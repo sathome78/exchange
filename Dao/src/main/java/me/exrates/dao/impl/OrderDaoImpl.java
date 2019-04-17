@@ -62,7 +62,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
@@ -103,7 +102,7 @@ public class OrderDaoImpl implements OrderDao {
 
     @Autowired
     @Qualifier(value = "masterTemplate")
-    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    private NamedParameterJdbcTemplate masterJdbcTemplate;
     @Autowired
     @Qualifier(value = "slaveTemplate")
     private NamedParameterJdbcTemplate slaveJdbcTemplate;
@@ -152,7 +151,7 @@ public class OrderDaoImpl implements OrderDao {
                 .addValue("order_source_id", exOrder.getSourceId())
                 .addValue("base_type", exOrder.getOrderBaseType().name());
 
-        int result = namedParameterJdbcTemplate.update(sql, parameters, keyHolder);
+        int result = masterJdbcTemplate.update(sql, parameters, keyHolder);
         int id = (int) keyHolder.getKey().longValue();
         if (result <= 0) {
             id = 0;
@@ -187,7 +186,7 @@ public class OrderDaoImpl implements OrderDao {
             put("date_acception", currentDate);
             put("status_modification_date", currentDate);
         }};
-        namedParameterJdbcTemplate.update(sql, params);
+        masterJdbcTemplate.update(sql, params);
     }
 
     @Override
@@ -269,7 +268,7 @@ public class OrderDaoImpl implements OrderDao {
         namedParameters.put("currency_pair_id", currencyPairId);
         namedParameters.put("operation_type_id", operationTypeId);
         try {
-            return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, namedParameters, BigDecimal.class));
+            return Optional.of(slaveJdbcTemplate.queryForObject(sql, namedParameters, BigDecimal.class));
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
@@ -283,7 +282,7 @@ public class OrderDaoImpl implements OrderDao {
         namedParameters.put("currency_pair_id", currencyPairId);
         namedParameters.put("operation_type_id", operationTypeId);
         try {
-            return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, namedParameters, BigDecimal.class));
+            return Optional.of(masterJdbcTemplate.queryForObject(sql, namedParameters, BigDecimal.class));
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
@@ -297,7 +296,7 @@ public class OrderDaoImpl implements OrderDao {
         namedParameters.put("id", String.valueOf(orderId));
 
         try {
-            return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, new OrderRowMapper());
+            return masterJdbcTemplate.queryForObject(sql, namedParameters, new OrderRowMapper());
         } catch (EmptyResultDataAccessException ex) {
             return null;
         }
@@ -309,7 +308,7 @@ public class OrderDaoImpl implements OrderDao {
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("status_id", String.valueOf(status.getStatus()));
         namedParameters.put("id", String.valueOf(orderId));
-        int result = namedParameterJdbcTemplate.update(sql, namedParameters);
+        int result = masterJdbcTemplate.update(sql, namedParameters);
         return result > 0;
     }
 
@@ -322,7 +321,7 @@ public class OrderDaoImpl implements OrderDao {
         namedParameters.put("user_acceptor_id", String.valueOf(exOrder.getUserAcceptorId()));
         namedParameters.put("status_id", String.valueOf(exOrder.getStatus().getStatus()));
         namedParameters.put("id", String.valueOf(exOrder.getId()));
-        int result = namedParameterJdbcTemplate.update(sql, namedParameters);
+        int result = masterJdbcTemplate.update(sql, namedParameters);
         return result > 0;
     }
 
@@ -348,7 +347,7 @@ public class OrderDaoImpl implements OrderDao {
                 .addValue("order_source_id", exOrder.getSourceId())
                 .addValue("base_type", exOrder.getOrderBaseType().name())
                 .addValue("id", orderId);
-        return namedParameterJdbcTemplate.update(sql, parameters) > 0;
+        return masterJdbcTemplate.update(sql, parameters) > 0;
     }
 
     @Override
@@ -398,7 +397,7 @@ public class OrderDaoImpl implements OrderDao {
         params.put("step_value", resolutionValue);
         params.put("step_type", resolutionType);
         params.put("currency_pair_id", currencyPair.getId());
-        return namedParameterJdbcTemplate.execute(sql, params, ps -> {
+        return masterJdbcTemplate.execute(sql, params, ps -> {
             ResultSet rs = ps.executeQuery();
             List<CandleChartItemDto> list = new ArrayList<>();
             while (rs.next()) {
@@ -422,7 +421,7 @@ public class OrderDaoImpl implements OrderDao {
     private List<CandleChartItemDto> getCandleChartData(CurrencyPair currencyPair, BackDealInterval backDealInterval, String startTimeSql) {
         String s = "{call GET_DATA_FOR_CANDLE(" + startTimeSql + ", " + backDealInterval.getIntervalValue() + ", '" + backDealInterval.getIntervalType().name() + "', " + currencyPair.getId() + ")}";
 
-        return namedParameterJdbcTemplate.execute(s, ps -> {
+        return masterJdbcTemplate.execute(s, ps -> {
             ResultSet rs = ps.executeQuery();
             List<CandleChartItemDto> list = new ArrayList<>();
             while (rs.next()) {
@@ -611,7 +610,7 @@ public class OrderDaoImpl implements OrderDao {
     @Override
     public List<CoinmarketApiDto> getCoinmarketData(String currencyPairName) {
         String s = "{call GET_COINMARKETCAP_STATISTICS('" + currencyPairName + "')}";
-        return namedParameterJdbcTemplate.execute(s, ps -> {
+        return masterJdbcTemplate.execute(s, ps -> {
             ResultSet rs = ps.executeQuery();
             List<CoinmarketApiDto> list = new ArrayList();
             while (rs.next()) {
@@ -791,7 +790,7 @@ public class OrderDaoImpl implements OrderDao {
                         "  ) COMMISSION";
         try {
             Map<String, Integer> params = Collections.singletonMap("user_role", userRole.getRole());
-            return namedParameterJdbcTemplate.queryForObject(sql, params, (rs, rowNum) -> {
+            return slaveJdbcTemplate.queryForObject(sql, params, (rs, rowNum) -> {
                 OrderCommissionsDto orderCommissionsDto = new OrderCommissionsDto();
                 orderCommissionsDto.setSellCommission(rs.getBigDecimal("sell_commission"));
                 orderCommissionsDto.setBuyCommission(rs.getBigDecimal("buy_commission"));
@@ -1140,7 +1139,7 @@ public class OrderDaoImpl implements OrderDao {
         Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("order_id", orderId);
         try {
-            return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, new RowMapper<OrderCreateDto>() {
+            return masterJdbcTemplate.queryForObject(sql, namedParameters, new RowMapper<OrderCreateDto>() {
                 @Override
                 public OrderCreateDto mapRow(ResultSet rs, int rowNum) throws SQLException {
                     OrderCreateDto orderCreateDto = new OrderCreateDto();
@@ -1190,7 +1189,7 @@ public class OrderDaoImpl implements OrderDao {
         namedParameters.put("user_role", userRole.getRole());
 
         try {
-            return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, new RowMapper<WalletsAndCommissionsForOrderCreationDto>() {
+            return masterJdbcTemplate.queryForObject(sql, namedParameters, new RowMapper<WalletsAndCommissionsForOrderCreationDto>() {
                 @Override
                 public WalletsAndCommissionsForOrderCreationDto mapRow(ResultSet rs, int rowNum) throws SQLException {
                     WalletsAndCommissionsForOrderCreationDto walletsAndCommissionsForOrderCreationDto = new WalletsAndCommissionsForOrderCreationDto();
@@ -1219,7 +1218,7 @@ public class OrderDaoImpl implements OrderDao {
             Map<String, Object> namedParameters = new HashMap<>();
             namedParameters.put("order_id", orderId);
             try {
-                namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
+                masterJdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
             } catch (EmptyResultDataAccessException e) {
                 return false;
             }
@@ -1273,7 +1272,7 @@ public class OrderDaoImpl implements OrderDao {
             return infoDto;
 
         });
-        int total = namedParameterJdbcTemplate.queryForObject(selectCountQuery, namedParameters, Integer.class);
+        int total = masterJdbcTemplate.queryForObject(selectCountQuery, namedParameters, Integer.class);
         result.setData(infoDtoList);
         result.setTotal(total);
         result.setFiltered(total);
@@ -1361,9 +1360,9 @@ public class OrderDaoImpl implements OrderDao {
             put("acceptor_role_id", userAcceptorRoleId);
             put("order_base_type", orderBaseType.name());
         }};
-        namedParameterJdbcTemplate.execute(sqlSetVar, PreparedStatement::execute);
+        masterJdbcTemplate.execute(sqlSetVar, PreparedStatement::execute);
 
-        return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> {
+        return masterJdbcTemplate.query(sql, params, (rs, row) -> {
             ExOrder exOrder = new ExOrder();
             exOrder.setId(rs.getInt("id"));
             exOrder.setUserId(rs.getInt("user_id"));
@@ -1444,7 +1443,7 @@ public class OrderDaoImpl implements OrderDao {
                 // join on source type and source id to use index
                 "  LEFT JOIN TRANSACTION TX ON TX.source_type = 'ORDER' AND TX.source_id = EO.id " +
                 "WHERE EO.id = :order_id;";
-        return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("order_id", orderId), (rs, rowNum) -> {
+        return masterJdbcTemplate.queryForObject(sql, Collections.singletonMap("order_id", orderId), (rs, rowNum) -> {
             Integer statusId = getInteger(rs, "status_id");
             Integer creatorRoleId = getInteger(rs, "creator_role");
             Integer acceptorRoleId = getInteger(rs, "acceptor_role");
@@ -1587,7 +1586,7 @@ public class OrderDaoImpl implements OrderDao {
         params.put("currency_pair_id", currencyPairId);
         params.put("status_id", OrderStatus.OPENED.getStatus());
 
-        return slaveJdbcTemplate.query(sql, params, userOrdersRowMapper);
+        return masterJdbcTemplate.query(sql, params, userOrdersRowMapper);
     }
 
     @Override
@@ -1686,7 +1685,7 @@ public class OrderDaoImpl implements OrderDao {
         params.put("user_id", userId);
         params.put("status_id", OrderStatus.OPENED.getStatus());
 
-        return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> {
+        return masterJdbcTemplate.query(sql, params, (rs, row) -> {
             ExOrder exOrder = new ExOrder();
             exOrder.setId(rs.getInt("order_id"));
             exOrder.setUserId(userId);
@@ -1728,7 +1727,7 @@ public class OrderDaoImpl implements OrderDao {
         params.put("currency_pair", currencyPair);
         params.put("status_id", OrderStatus.OPENED.getStatus());
 
-        return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> {
+        return masterJdbcTemplate.query(sql, params, (rs, row) -> {
             ExOrder exOrder = new ExOrder();
             exOrder.setId(rs.getInt("order_id"));
             exOrder.setUserId(userId);
@@ -2097,7 +2096,7 @@ public class OrderDaoImpl implements OrderDao {
             namedParameters.addValue("dateBefore", before, Types.DATE);
         }
 
-        return namedParameterJdbcTemplate.query(sql, namedParameters, (rs, rowNum) -> {
+        return masterJdbcTemplate.query(sql, namedParameters, (rs, rowNum) -> {
             OrderWideListDto orderWideListDto = new OrderWideListDto();
             orderWideListDto.setId(rs.getInt("id"));
             orderWideListDto.setUserId(rs.getInt("user_id"));
@@ -2204,7 +2203,7 @@ public class OrderDaoImpl implements OrderDao {
         Map<String, Object> params = new HashMap<>();
         params.put("status_id", 3);
 
-        return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> {
+        return masterJdbcTemplate.query(sql, params, (rs, row) -> {
             StatisticForMarket statisticForMarket = new StatisticForMarket();
 
             statisticForMarket.setCurrencyPairId(rs.getInt("currency_pair_id"));
@@ -2229,7 +2228,7 @@ public class OrderDaoImpl implements OrderDao {
         Map<String, Integer> namedParameters = new HashMap<>();
         namedParameters.put("currency_pair_id", currencyPairId);
         try {
-            return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, namedParameters, BigDecimal.class));
+            return Optional.of(masterJdbcTemplate.queryForObject(sql, namedParameters, BigDecimal.class));
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
@@ -2262,7 +2261,7 @@ public class OrderDaoImpl implements OrderDao {
         namedParameters.put("userId", String.valueOf(userId));
 
         try {
-            return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, getExOrderRowMapper());
+            return masterJdbcTemplate.queryForObject(sql, namedParameters, getExOrderRowMapper());
         } catch (EmptyResultDataAccessException ex) {
             return null;
         }

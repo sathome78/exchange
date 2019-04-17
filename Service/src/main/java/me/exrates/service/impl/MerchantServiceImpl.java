@@ -13,6 +13,7 @@ import me.exrates.model.dto.MerchantCurrencyBasicInfoDto;
 import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
+import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
@@ -77,6 +78,7 @@ import static java.util.Objects.isNull;
 import static me.exrates.configurations.CacheConfiguration.MERCHANT_BY_NAME_CACHE;
 import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.OperationType.USER_TRANSFER;
+import static me.exrates.service.util.CollectionUtil.isEmpty;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -564,9 +566,11 @@ public class MerchantServiceImpl implements MerchantService {
         LOG.info("Process of updating merchant commissions limits start...");
 
         List<MerchantCurrencyOptionsDto> merchantCommissionsLimits = merchantDao.getAllMerchantCommissionsLimits();
+        if (isEmpty(merchantCommissionsLimits)) {
+            return;
+        }
 
-        final Map<String, Pair<BigDecimal, BigDecimal>> rates = exchangeApi.getRates();
-
+        final Map<String, RateDto> rates = exchangeApi.getRates();
         if (rates.isEmpty()) {
             LOG.info("Exchange api did not return data");
             return;
@@ -578,12 +582,16 @@ public class MerchantServiceImpl implements MerchantService {
             BigDecimal minFixedCommissionUsdRate = merchantCommissionsLimit.getMinFixedCommissionUsdRate();
             BigDecimal minFixedCommission = merchantCommissionsLimit.getMinFixedCommission();
 
-            Pair<BigDecimal, BigDecimal> pairRates = rates.get(currencyName);
-
-            if (isNull(pairRates)) {
+            RateDto rateDto = rates.get(currencyName);
+            if (isNull(rateDto)) {
                 continue;
             }
-            final BigDecimal usdRate = pairRates.getLeft();
+
+            final BigDecimal usdRate = rateDto.getUsdRate();
+            if (usdRate.compareTo(BigDecimal.ZERO) == 0) {
+                continue;
+            }
+
             merchantCommissionsLimit.setCurrencyUsdRate(usdRate);
 
             if (recalculateToUsd) {
@@ -593,8 +601,8 @@ public class MerchantServiceImpl implements MerchantService {
                 minFixedCommissionUsdRate = minFixedCommission.multiply(usdRate);
                 merchantCommissionsLimit.setMinFixedCommissionUsdRate(minFixedCommissionUsdRate);
             }
-            merchantDao.updateMerchantCommissionsLimits(merchantCommissionsLimit);
         }
+        merchantDao.updateMerchantCommissionsLimits(merchantCommissionsLimits);
         LOG.info("Process of updating merchant commissions limits end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
     }
 

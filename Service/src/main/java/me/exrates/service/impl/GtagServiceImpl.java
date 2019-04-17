@@ -3,9 +3,9 @@ package me.exrates.service.impl;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.GtagRefillRequests;
 import me.exrates.dao.UserDao;
+import me.exrates.model.dto.api.RateDto;
 import me.exrates.service.GtagService;
 import me.exrates.service.api.ExchangeApi;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -45,11 +45,11 @@ public class GtagServiceImpl implements GtagService {
     public void sendGtagEvents(String coinsCount, String tiker, String userName) {
         if (!enable) return;
         try {
-            Pair<BigDecimal, BigDecimal> pair = exchangeApi.getRates().get(tiker);
-            String price = pair.getKey().multiply(new BigDecimal(coinsCount)).toString();
+            RateDto rateDto = exchangeApi.getRates().getOrDefault(tiker, RateDto.zeroRate(tiker));
+            String price = rateDto.getUsdRate().multiply(new BigDecimal(coinsCount)).toString();
             String transactionId = sendTransactionHit(userName, price, tiker);
             log.info("Successfully send transaction hit to gtag");
-            sendItemHit(userName, transactionId, tiker, coinsCount, pair.getKey().toString());
+            sendItemHit(userName, transactionId, tiker, coinsCount, rateDto.getUsdRate().toString());
             log.info("Successfully send item hit to gtag");
             log.info("Send all analytics");
             saveGtagRefillRequest(userName);

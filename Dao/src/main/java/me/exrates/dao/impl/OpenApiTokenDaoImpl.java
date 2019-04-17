@@ -72,7 +72,7 @@ public class OpenApiTokenDaoImpl implements OpenApiTokenDao {
                 " WHERE OT.public_key = :public_key AND is_active = 1 ";
 
         try {
-            return Optional.of(slaveJdbcTemplate.queryForObject(sql, Collections.singletonMap("public_key", publicKey), tokenRowMapper));
+            return Optional.of(jdbcTemplate.queryForObject(sql, Collections.singletonMap("public_key", publicKey), tokenRowMapper));
         } catch (DataAccessException e) {
             return Optional.empty();
         }

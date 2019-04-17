@@ -4,7 +4,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
-import org.apache.commons.lang3.tuple.Pair;
+import me.exrates.model.dto.api.RateDto;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 @Slf4j
@@ -37,7 +36,7 @@ public class ReportThreeExcelGeneratorUtil {
     private static final String SHEET2_NAME = "Sheet2 - Статистика оборота по валютным парам (отчет 2)";
 
     public static byte[] generate(List<CurrencyPairTurnoverReportDto> currencyPairsTurnover,
-                                  Map<String, Pair<BigDecimal, BigDecimal>> ratesMap) throws Exception {
+                                  Map<String, RateDto> rates) throws Exception {
         XSSFWorkbook workbook = new XSSFWorkbook();
 
         CellStyle header1Style = getHeader1Style(workbook);
@@ -186,12 +185,10 @@ public class ReportThreeExcelGeneratorUtil {
             final BigDecimal amountConvert = nonNull(cpt.getAmountConvert()) ? cpt.getAmountConvert() : BigDecimal.ZERO;
             final BigDecimal amountCommission = nonNull(cpt.getAmountCommission()) ? cpt.getAmountCommission() : BigDecimal.ZERO;
 
-            Pair<BigDecimal, BigDecimal> ratePair = ratesMap.get(currencyName);
-            if (isNull(ratePair)) {
-                ratePair = Pair.of(BigDecimal.ZERO, BigDecimal.ZERO);
-            }
-            final BigDecimal usdRate = ratePair.getLeft();
-            final BigDecimal btcRate = ratePair.getRight();
+            RateDto rateDto = rates.getOrDefault(currencyName, RateDto.zeroRate(currencyName));
+
+            final BigDecimal usdRate = rateDto.getUsdRate();
+            final BigDecimal btcRate = rateDto.getBtcRate();
 
             row = sheet1.createRow(i + 3);
 
@@ -388,12 +385,10 @@ public class ReportThreeExcelGeneratorUtil {
             final String key = cptm.getKey();
             List<CurrencyPairTurnoverReportDto> value = cptm.getValue();
 
-            Pair<BigDecimal, BigDecimal> ratePair = ratesMap.get(key);
-            if (isNull(ratePair)) {
-                ratePair = Pair.of(BigDecimal.ZERO, BigDecimal.ZERO);
-            }
-            final BigDecimal usdRate = ratePair.getLeft();
-            final BigDecimal btcRate = ratePair.getRight();
+            RateDto rateDto = rates.getOrDefault(key, RateDto.zeroRate(key));
+
+            final BigDecimal usdRate = rateDto.getUsdRate();
+            final BigDecimal btcRate = rateDto.getBtcRate();
 
             final BigDecimal sumAmountConvert = value
                     .stream()

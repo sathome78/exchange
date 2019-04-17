@@ -11,6 +11,8 @@ import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyReportInfoDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
+import me.exrates.model.dto.api.BalanceDto;
+import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
@@ -31,7 +33,6 @@ import me.exrates.service.bitshares.memo.Preconditions;
 import me.exrates.service.exception.ScaleForAmountNotSetException;
 import me.exrates.service.util.BigDecimalConverter;
 import org.apache.commons.lang3.time.StopWatch;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
@@ -52,6 +53,7 @@ import java.util.stream.Collectors;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.util.Objects.isNull;
+import static me.exrates.service.util.CollectionUtil.isEmpty;
 import static me.exrates.configurations.CacheConfiguration.CURRENCY_BY_NAME_CACHE;
 import static me.exrates.configurations.CacheConfiguration.CURRENCY_PAIRS_LIST_BY_TYPE_CACHE;
 import static me.exrates.configurations.CacheConfiguration.CURRENCY_PAIR_BY_ID_CACHE;
@@ -453,15 +455,18 @@ public class CurrencyServiceImpl implements CurrencyService {
         return currencyDao.setPropertyCalculateLimitToUsd(currencyId, operationType, userRoleService.getRealUserRoleIdByBusinessRoleList(roleName), recalculateToUsd);
     }
 
+    @Transactional
     @Override
     public void updateWithdrawLimits() {
         StopWatch stopWatch = StopWatch.createStarted();
         log.info("Process of updating withdraw limits start...");
 
         List<CurrencyLimit> currencyLimits = currencyDao.getAllCurrencyLimits();
+        if (isEmpty(currencyLimits)) {
+            return;
+        }
 
-        final Map<String, Pair<BigDecimal, BigDecimal>> rates = exchangeApi.getRates();
-
+        final Map<String, RateDto> rates = exchangeApi.getRates();
         if (rates.isEmpty()) {
             log.info("Exchange api did not return data");
             return;
@@ -473,12 +478,16 @@ public class CurrencyServiceImpl implements CurrencyService {
             BigDecimal minSumUsdRate = currencyLimit.getMinSumUsdRate();
             BigDecimal minSum = currencyLimit.getMinSum();
 
-            Pair<BigDecimal, BigDecimal> pairRates = rates.get(currencyName);
-
-            if (isNull(pairRates)) {
+            RateDto rateDto = rates.get(currencyName);
+            if (isNull(rateDto)) {
                 continue;
             }
-            final BigDecimal usdRate = pairRates.getLeft();
+
+            final BigDecimal usdRate = rateDto.getUsdRate();
+            if (usdRate.compareTo(BigDecimal.ZERO) == 0) {
+                continue;
+            }
+
             currencyLimit.setCurrencyUsdRate(usdRate);
 
             if (recalculateToUsd) {
@@ -536,5 +545,35 @@ public class CurrencyServiceImpl implements CurrencyService {
             return;
         }
         throw new RuntimeException("pair allready exist");
+    }
+
+    @Transactional
+    @Override
+    public void updateCurrencyExchangeRates(List<RateDto> rates) {
+        if (isEmpty(rates)) {
+            return;
+        }
+        currencyDao.updateCurrencyExchangeRates(rates);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<RateDto> getCurrencyRates() {
+        return currencyDao.getCurrencyRates();
+    }
+
+    @Transactional
+    @Override
+    public void updateCurrencyBalances(List<BalanceDto> balances) {
+        if (isEmpty(balances)) {
+            return;
+        }
+        currencyDao.updateCurrencyBalances(balances);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<BalanceDto> getCurrencyBalances() {
+        return currencyDao.getCurrencyBalances();
     }
 }

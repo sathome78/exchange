@@ -207,7 +207,6 @@ public class NgRefillControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    @Ignore
     public void createRefillRequest_operation_type_not_equals_input() throws Exception {
         Mockito.when(userService.getUserLocaleForMobile(anyString())).thenReturn(Locale.ENGLISH);
 
@@ -221,7 +220,6 @@ public class NgRefillControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    @Ignore
     public void createRefillRequest_operation_type_equals_input() throws Exception {
         when(userService.getUserLocaleForMobile(anyString())).thenReturn(Locale.ENGLISH);
         when(refillService.checkInputRequestsLimit(anyInt(), anyString())).thenReturn(Boolean.FALSE);
@@ -237,7 +235,6 @@ public class NgRefillControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    @Ignore
     public void createRefillRequest_forceGenerateNewAddress_equals_true_and_address_not_present() throws Exception {
         when(userService.getUserLocaleForMobile(anyString())).thenReturn(Locale.ENGLISH);
         when(userService.getIdByEmail(anyString())).thenReturn(100);
@@ -262,7 +259,6 @@ public class NgRefillControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    @Ignore
     public void createRefillRequest_forceGenerateNewAddress_equals_true_and_address_is_present() throws Exception {
         Map<String, Object> response = new HashMap<>();
         response.put("TEST_RESPONSE_KEY", "TEST_RESPONSE_VALUE");
@@ -292,7 +288,6 @@ public class NgRefillControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    @Ignore
     public void createRefillRequest_exception() throws Exception {
         Map<String, Object> response = new HashMap<>();
         response.put("TEST_RESPONSE_KEY", "TEST_RESPONSE_VALUE");

@@ -70,7 +70,6 @@ import me.exrates.service.stopOrder.StopOrdersHolder;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.BigDecimalConverter;
 import me.exrates.service.util.WithdrawUtils;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -423,7 +422,7 @@ public class ServiceTestConfig {
 
     @Bean
     public WalletsApi walletsApi() {
-        return new WalletsApi(url, username, password);
+        return new WalletsApi(url, username, password, currencyService());
     }
 
     @Bean

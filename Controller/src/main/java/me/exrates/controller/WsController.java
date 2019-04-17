@@ -17,7 +17,7 @@ import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.PrecissionsEnum;
 import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.model.enums.UserRole;
-import me.exrates.model.enums.WsMessageTypeEnum;
+import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.CurrencyService;
@@ -26,9 +26,6 @@ import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.UsersAlertsService;
 import me.exrates.service.bitshares.memo.Preconditions;
-import me.exrates.service.cache.ChartsCacheManager;
-import me.exrates.service.cache.currencyPairsInfo.CpStatisticsHolder;
-import me.exrates.service.impl.IEOServiceImpl;
 import me.exrates.service.util.OpenApiUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -150,13 +147,16 @@ public class WsController {
         return orderService.getMyOpenOrdersForWs(OpenApiUtils.transformCurrencyPair(currencyPairName), principal.getName());
     }
 
-    @SubscribeMapping("/queue/personal_message")
-    public WsMessageObject subscribePersonalMessages(Principal principal) {
-        return new WsMessageObject(WsMessageTypeEnum.SUBSCRIBE, "ok");
+
+    @SubscribeMapping("/message/private/{pubId}")
+    public WsMessageObject subscribePersonalMessages(Principal principal, @DestinationVariable String pubId) {
+        Preconditions.checkArgument(userService.getEmailByPubId(pubId).equals(principal.getName()));
+        return new WsMessageObject(WsSourceTypeEnum.SUBSCRIBE, principal.getName());
     }
 
-    @SubscribeMapping("/queue/ieo_details")
-    public Collection<IEODetails> subscribeIeoDetailsPersonal(Principal principal) {
+    @SubscribeMapping("/ieo_details/private/{pubId}")
+    public Collection<IEODetails> subscribeIeoDetailsPersonal(Principal principal, @DestinationVariable String pubId) {
+        Preconditions.checkArgument(userService.getEmailByPubId(pubId).equals(principal.getName()));
         User user = userService.findByEmail(principal.getName());
         return ieoService.findAll(user);
     }

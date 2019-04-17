@@ -100,6 +100,7 @@ import me.exrates.service.exception.process.OrderAcceptionException;
 import me.exrates.service.exception.process.OrderCancellingException;
 import me.exrates.service.exception.process.OrderCreationException;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
+import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.util.BiTuple;
 import org.apache.commons.lang3.StringUtils;

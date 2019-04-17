@@ -6,6 +6,7 @@ import me.exrates.model.User;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.exceptions.OpenApiException;
 import me.exrates.security.config.OpenApiSecurityConfig;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
@@ -280,37 +281,5 @@ public class OpenApiUserInfoOldControllerTest extends OpenApiCommonTest {
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
         verify(orderService, times(1)).getOrderTransactions(orderId);
-    }
-
-    @Test
-    public void checkEmailExistence_existTest() throws Exception {
-        String email = "test@test.com";
-
-        when(userService.findByEmail(email)).thenReturn(new User());
-
-        UriComponents uriComponents = UriComponentsBuilder.newInstance()
-                .path("/openapi/v1/user/info/email/exists")
-                .queryParam("email", email)
-                .build();
-
-        mockMvc.perform(MockMvcRequestBuilders.get(uriComponents.toUri().toString()))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(jsonPath("$.status", is(true)));
-    }
-
-    @Test
-    public void checkEmailExistence_notExistTest() throws Exception {
-        String email = "test@test.com";
-
-        when(userService.findByEmail(email)).thenThrow(new UserNotFoundException(String.format("User: %s not found", email)));
-
-        UriComponents uriComponents = UriComponentsBuilder.newInstance()
-                .path("/openapi/v1/user/info/email/exists")
-                .queryParam("email", email)
-                .build();
-
-        mockMvc.perform(MockMvcRequestBuilders.get(uriComponents.toUri().toString()))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(jsonPath("$.status", is(false)));
     }
 }

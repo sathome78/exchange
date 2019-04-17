@@ -4,12 +4,12 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.ExOrder;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.enums.ActionType;
-import me.exrates.model.enums.Market;
 import me.exrates.model.enums.TradeMarket;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.api.ExchangeApi;
+import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -88,11 +88,13 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
             fiatCache = new ConcurrentHashMap<>(newData);
         }, 0, 1, TimeUnit.MINUTES);
 
+        StopWatch stopWatch = StopWatch.createStarted();
+
         log.info("<<CACHE>>: Start init ExchangeRatesHolder");
 
         initExchangePairsCache();
 
-        log.info("<<CACHE>>: Finish init ExchangeRatesHolder");
+        log.info("<<CACHE>>: Finish init ExchangeRatesHolder, Time: {} ms", stopWatch.getTime(TimeUnit.MILLISECONDS));
 
         EXRATES_SCHEDULER.scheduleAtFixedRate(() -> {
             List<ExOrderStatisticsShortByPairsDto> newData = getExratesCacheFromDB(null);
@@ -118,6 +120,8 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     }
 
     private List<ExOrderStatisticsShortByPairsDto> getExratesCacheFromDB(Integer currencyPairId) {
+        StopWatch stopWatch = StopWatch.createStarted();
+
         log.info("<<CACHE>>: Started retrieving last and pred last rates for all currencyPairs ......");
         Map<Integer, ExOrderStatisticsShortByPairsDto> ratesDataForCache = orderService.getRatesDataForCache(currencyPairId)
                 .stream()
@@ -125,7 +129,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
                         ExOrderStatisticsShortByPairsDto::getCurrencyPairId,
                         Function.identity()
                 ));
-        log.info("<<CACHE>>: Finished retrieving last and pred last rates for all currencyPairs ......");
+        log.info("<<CACHE>>: Finished retrieving last and pred last rates for all currencyPairs ......, Time: {} ms", stopWatch.getTime(TimeUnit.MILLISECONDS));
         log.info("<<CACHE>>: Started retrieving volumes and last 24 hours data for all currencyPairs ......");
         List<ExOrderStatisticsShortByPairsDto> dtos = orderService.getAllDataForCache(currencyPairId)
                 .stream()
@@ -165,13 +169,13 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
                     setUSDRates(data);
                 })
                 .collect(Collectors.toList());
-        log.info("<<CACHE>>: Finished retrieving volumes and last 24 hours data for all currencyPairs ......");
+        log.info("<<CACHE>>: Finished retrieving volumes and last 24 hours data for all currencyPairs ......, Time: {} ms", stopWatch.getTime(TimeUnit.MILLISECONDS));
         log.info("<<CACHE>>: Started calculating price in USD for all currencyPairs ......");
         List<ExOrderStatisticsShortByPairsDto> finishedItems = dtos
                 .stream()
                 .peek(this::calculatePriceInUsd)
                 .collect(Collectors.toList());
-        log.info("<<CACHE>>: Finished calculating price in USD for all currencyPairs ......");
+        log.info("<<CACHE>>: Finished calculating price in USD for all currencyPairs ......, Time: {} ms", stopWatch.getTime(TimeUnit.MILLISECONDS));
         return finishedItems;
     }
 
@@ -187,7 +191,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
                 .filter(entry -> !USD.equals(entry.getKey()))
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
-                        entry -> entry.getValue().getLeft()
+                        Map.Entry::getValue
                 ));
     }
 
@@ -333,7 +337,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         } else if (item.getMarket().equalsIgnoreCase(USDT)
                 || item.getCurrencyPairName().endsWith(USDT)) {
             BigDecimal usdtToUsd = BigDecimal.ZERO;
-            if (!isZero(BTC_USDT_RATE) && !isZero(BTC_USD_RATE))  {
+            if (!isZero(BTC_USDT_RATE) && !isZero(BTC_USD_RATE)) {
                 usdtToUsd = new BigDecimal(item.getLastOrderRate()).divide(BTC_USDT_RATE, RoundingMode.HALF_UP).multiply(BTC_USD_RATE);
             }
             item.setPriceInUSD(usdtToUsd.toPlainString());

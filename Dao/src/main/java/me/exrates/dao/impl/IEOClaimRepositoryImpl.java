@@ -12,6 +12,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -78,6 +79,15 @@ public class IEOClaimRepositoryImpl implements IEOClaimRepository {
         String sql = "SElECT * FROM IEO_CLAIM WHERE id in (:ids)";
         MapSqlParameterSource params = new MapSqlParameterSource("ids", ids);
         return jdbcTemplate.query(sql, params, ieoClaimRowMapper());
+    }
+
+    @Override
+    public boolean updateAmountClaim(int id, BigDecimal newAmount) {
+        String sql = "UPDATE IEO_CLAIM SET amount = :amount WHERE id = :id";
+        Map<String, Object> params = new HashMap<>();
+        params.put("amount", newAmount);
+        params.put("id", id);
+        return jdbcTemplate.update(sql, params) > 0;
     }
 
     private RowMapper<IEOClaim> ieoClaimRowMapper() {

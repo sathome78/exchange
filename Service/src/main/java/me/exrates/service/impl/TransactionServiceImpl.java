@@ -20,7 +20,6 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.TransactionType;
 import me.exrates.model.enums.UserRole;
-import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.CacheData;
 import me.exrates.service.CompanyWalletService;
 import me.exrates.service.CurrencyService;
@@ -93,7 +92,8 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public boolean save(Collection<Transaction> transactions) {
-        return transactionDao.saveInBatch(transactions);
+        transactions.forEach(transactionDao::create);
+        return true;
     }
 
     @Override

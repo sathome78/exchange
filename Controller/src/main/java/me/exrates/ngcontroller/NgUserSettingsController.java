@@ -1,5 +1,6 @@
 package me.exrates.ngcontroller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.NotificationOption;
@@ -9,10 +10,13 @@ import me.exrates.model.constants.Constants;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.PageLayoutSettingsDto;
 import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.enums.ColorScheme;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.SessionLifeTypeEnum;
+import me.exrates.model.enums.UserNotificationType;
+import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.ngExceptions.WrongPasswordException;
@@ -30,6 +34,7 @@ import me.exrates.service.NotificationService;
 import me.exrates.service.PageLayoutSettingsService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
+import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.util.RestApiUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -48,6 +53,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -85,6 +91,8 @@ public class NgUserSettingsController {
     private final PageLayoutSettingsService layoutSettingsService;
     private final UserVerificationService verificationService;
     private final IpBlockingService ipBlockingService;
+    private final StompMessenger stompMessenger;
+    private final ObjectMapper objectMapper;
 
     @Value("${contacts.feedbackEmail}")
     String feedbackEmail;
@@ -96,7 +104,9 @@ public class NgUserSettingsController {
                                     SessionParamsService sessionParamsService,
                                     PageLayoutSettingsService pageLayoutSettingsService,
                                     UserVerificationService userVerificationService,
-                                    IpBlockingService ipBlockingService) {
+                                    IpBlockingService ipBlockingService,
+                                    StompMessenger stompMessenger,
+                                    ObjectMapper objectMapper) {
         this.authTokenService = authTokenService;
         this.userService = userService;
         this.notificationService = notificationService;
@@ -104,6 +114,8 @@ public class NgUserSettingsController {
         this.layoutSettingsService = pageLayoutSettingsService;
         this.verificationService = userVerificationService;
         this.ipBlockingService = ipBlockingService;
+        this.stompMessenger = stompMessenger;
+        this.objectMapper = objectMapper;
     }
 
     // /info/private/v2/settings/updateMainPassword
@@ -330,6 +342,21 @@ public class NgUserSettingsController {
     public ResponseEntity<AuthTokenDto> refreshToken(HttpServletRequest request) {
         AuthTokenDto authTokenDto = authTokenService.refreshTokenNg(getPrincipalEmail(), request);
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK); // 200
+    }
+
+    // /api/private/v2/users/jksdhfbsjfgsjdfgasj/personal/{status}?message=Hello
+    // possible statuses (information, warning, alert, error, success)
+    @GetMapping("/jksdhfbsjfgsjdfgasj/personal/{status}")
+    public ResponseEntity<Void> sendMeMessage(@PathVariable String status,
+                                              @RequestParam(required = false) String message) {
+        try {
+            UserNotificationType messageType = UserNotificationType.valueOf(status.toUpperCase());
+            UserNotificationMessage userNotificationMessage = new UserNotificationMessage(WsSourceTypeEnum.IEO, messageType, message);
+            stompMessenger.sendPersonalMessageToUser(getPrincipalEmail(), userNotificationMessage);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     private UpdateUserDto getUpdateUserDto(User user) {

@@ -271,13 +271,15 @@ public class BalanceServiceImpl implements BalanceService {
             if (dto.getCurrencyName().equalsIgnoreCase("USD") || dto.getCurrencyName().equalsIgnoreCase("EUR")) {
                 dto.setMarket("Fiat");
             } else {
-                try {
-                    merchant = (IRefillable) merchantServiceContext.getMerchantServiceByName(dto.getMerchantName());
-                    minConfirmations = Optional.ofNullable(merchant.minConfirmationsRefill()).orElse(0);
-                } catch (ClassCastException ex) {
-                    log.warn("Failed to cast IRefillable ", ex);
-                } catch (MerchantNotFoundException | MerchantServiceBeanNameNotDefinedException ex) {
-                    log.warn("Merchant: {} did not find: ", dto.getMerchantName(), ex);
+                if (StringUtils.isNotEmpty(dto.getMerchantName())) {
+                    try {
+                        merchant = (IRefillable) merchantServiceContext.getMerchantServiceByName(dto.getMerchantName());
+                        minConfirmations = Optional.ofNullable(merchant.minConfirmationsRefill()).orElse(0);
+                    } catch (ClassCastException ex) {
+                        log.warn("Failed to cast IRefillable ", ex);
+                    } catch (MerchantNotFoundException | MerchantServiceBeanNameNotDefinedException ex) {
+                        log.warn("Merchant: {} did not find: ", dto.getMerchantName(), ex);
+                    }
                 }
                 dto.setMarket("BTC");
             }

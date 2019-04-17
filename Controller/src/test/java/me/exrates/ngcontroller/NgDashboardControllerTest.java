@@ -105,7 +105,6 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    @Ignore
     public void createOrder_is_created_switch_stop_limit() throws Exception {
         InputCreateOrderDto requestBody = getMockInputCreateOrderDto();
         ObjectMapper mapper = new ObjectMapper();
@@ -129,7 +128,6 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    @Ignore
     public void createOrder_bad_reques_switch_stop_limit() throws Exception {
         InputCreateOrderDto requestBody = getMockInputCreateOrderDto();
         ObjectMapper mapper = new ObjectMapper();
@@ -163,7 +161,6 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    @Ignore
     public void createOrder_is_created_switch_default() throws Exception {
         InputCreateOrderDto requestBody = getMockInputCreateOrderDto();
         ObjectMapper mapper = new ObjectMapper();
@@ -187,7 +184,6 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    @Ignore
     public void createOrder_bad_request_switch_default() throws Exception {
         InputCreateOrderDto requestBody = getMockInputCreateOrderDto();
         ObjectMapper mapper = new ObjectMapper();
@@ -678,34 +674,32 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
 
     @Test
     public void cancelOrder_data_true() throws Exception {
-        Mockito.when(orderService.getOrderById(anyInt())).thenReturn(getMockExOrder());
         Mockito.when(orderService.cancelOrder(anyInt())).thenReturn(Boolean.TRUE);
 
         mockMvc.perform(post(BASE_URL + "/cancel")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .param("order_id", "1"))
+                .param("order_id", "1")
+                .param("type", "limit"))
                 .andExpect(jsonPath("$.data", is(Boolean.TRUE)))
                 .andExpect(jsonPath("$.error", is(nullValue())))
                 .andExpect(status().isOk());
 
-        verify(orderService, times(1)).getOrderById(anyInt());
         verify(orderService, times(1)).cancelOrder(anyInt());
         reset(orderService);
     }
 
     @Test
     public void cancelOrder_data_false() throws Exception {
-        Mockito.when(orderService.getOrderById(anyInt())).thenReturn(null);
         Mockito.when(stopOrderService.cancelOrder(anyInt(), anyObject())).thenReturn(Boolean.FALSE);
 
         mockMvc.perform(post(BASE_URL + "/cancel")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .param("order_id", "1"))
+                .param("order_id", "1")
+                .param("type", "stop_limit"))
                 .andExpect(jsonPath("$.data", is(Boolean.FALSE)))
                 .andExpect(jsonPath("$.error", is(nullValue())))
                 .andExpect(status().isOk());
 
-        verify(orderService, times(1)).getOrderById(anyInt());
         reset(orderService);
     }
 

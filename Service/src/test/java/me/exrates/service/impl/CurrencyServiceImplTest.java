@@ -11,6 +11,7 @@ import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyReportInfoDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
+import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
@@ -27,8 +28,6 @@ import me.exrates.service.UserService;
 import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.exception.ScaleForAmountNotSetException;
 import me.exrates.service.util.BigDecimalConverter;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -133,7 +132,7 @@ public class CurrencyServiceImplTest {
     public void getCurrencyName_Test() {
         when(currencyDao.getCurrencyName(anyInt())).thenReturn("name");
 
-        assertEquals("name",currencyService.getCurrencyName(5));
+        assertEquals("name", currencyService.getCurrencyName(5));
         verify(currencyDao, times(1)).getCurrencyName(5);
     }
 
@@ -142,7 +141,7 @@ public class CurrencyServiceImplTest {
         List<Currency> currencyList = Arrays.asList(new Currency());
         stub(currencyDao.getAllActiveCurrencies()).toReturn(currencyList);
 
-        assertEquals(currencyList,currencyService.getAllActiveCurrencies());
+        assertEquals(currencyList, currencyService.getAllActiveCurrencies());
         verify(currencyDao, times(1)).getAllActiveCurrencies();
     }
 
@@ -151,7 +150,7 @@ public class CurrencyServiceImplTest {
         List<Currency> currencyList = Arrays.asList(new Currency());
         stub(currencyDao.getAllCurrencies()).toReturn(currencyList);
 
-        assertEquals(currencyList,currencyService.getAllCurrencies());
+        assertEquals(currencyList, currencyService.getAllCurrencies());
         verify(currencyDao, times(1)).getAllCurrencies();
     }
 
@@ -160,7 +159,7 @@ public class CurrencyServiceImplTest {
         Currency currency = new Currency(8);
         when(currencyDao.findByName(anyString())).thenReturn(currency);
 
-        assertEquals(currency,currencyService.findByName("test"));
+        assertEquals(currency, currencyService.findByName("test"));
         verify(currencyDao, times(1)).findByName("test");
     }
 
@@ -169,7 +168,7 @@ public class CurrencyServiceImplTest {
         Currency currency = new Currency(8);
         when(currencyDao.findById(anyInt())).thenReturn(currency);
 
-        assertEquals(currency,currencyService.findById(7));
+        assertEquals(currency, currencyService.findById(7));
         verify(currencyDao, times(1)).findById(7);
     }
 
@@ -178,18 +177,18 @@ public class CurrencyServiceImplTest {
         List<Currency> currencyList = Arrays.asList(new Currency());
         when(currencyDao.findAllCurrencies()).thenReturn(currencyList);
 
-        assertEquals(currencyList,currencyService.findAllCurrencies());
+        assertEquals(currencyList, currencyService.findAllCurrencies());
         verify(currencyDao, times(1)).findAllCurrencies();
     }
 
     @Test
     public void updateCurrencyLimit_Test() {
-        when(userRoleService.getRealUserRoleIdByBusinessRoleList(anyString())).thenReturn(Arrays.asList(5,6,7));
+        when(userRoleService.getRealUserRoleIdByBusinessRoleList(anyString())).thenReturn(Arrays.asList(5, 6, 7));
         doNothing().when(currencyDao).updateCurrencyLimit(anyInt(), any(OperationType.class), anyListOf(Integer.TYPE), any(BigDecimal.class), any(BigDecimal.class), any(Integer.class));
         currencyService.updateCurrencyLimit(6, OperationType.STORNO, "", new BigDecimal(5), new BigDecimal(5), 8);
 
         verify(userRoleService, times(1)).getRealUserRoleIdByBusinessRoleList("");
-        verify(currencyDao, times(1)).updateCurrencyLimit(6, OperationType.STORNO, Arrays.asList(5,6,7), new BigDecimal(5), new BigDecimal(5), 8);
+        verify(currencyDao, times(1)).updateCurrencyLimit(6, OperationType.STORNO, Arrays.asList(5, 6, 7), new BigDecimal(5), new BigDecimal(5), 8);
     }
 
     @Test
@@ -202,16 +201,16 @@ public class CurrencyServiceImplTest {
 
     @Test
     public void retrieveCurrencyLimitsForRole_Test() {
-        List<Integer> integerList = Arrays.asList(5,6,7,9);
+        List<Integer> integerList = Arrays.asList(5, 6, 7, 9);
         List<CurrencyLimit> currencyLimits = Arrays.asList(new CurrencyLimit());
 
         when(userRoleService.getRealUserRoleIdByBusinessRoleList(anyString())).thenReturn(integerList);
         when(currencyDao.retrieveCurrencyLimitsForRoles(anyList(), any(OperationType.class))).thenReturn(currencyLimits);
 
-        assertEquals(currencyLimits,currencyService.retrieveCurrencyLimitsForRole("test", OperationType.INPUT));
+        assertEquals(currencyLimits, currencyService.retrieveCurrencyLimitsForRole("test", OperationType.INPUT));
 
         verify(userRoleService, times(1)).getRealUserRoleIdByBusinessRoleList("test");
-        verify(currencyDao, times(1)).retrieveCurrencyLimitsForRoles(integerList,OperationType.INPUT);
+        verify(currencyDao, times(1)).retrieveCurrencyLimitsForRoles(integerList, OperationType.INPUT);
     }
 
     @Test
@@ -262,8 +261,8 @@ public class CurrencyServiceImplTest {
         when(currencyDao.getAllCurrencyPairs(any(CurrencyPairType.class))).thenReturn(result);
         result.sort(Comparator.comparing(CurrencyPair::getName));
 
-        assertEquals(result.get(0),currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.MAIN).get(0));
-        assertEquals(result.get(1),currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.MAIN).get(1));
+        assertEquals(result.get(0), currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.MAIN).get(0));
+        assertEquals(result.get(1), currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.MAIN).get(1));
 
 
         verify(currencyDao, times(1)).getAllCurrencyPairs(CurrencyPairType.MAIN);
@@ -285,7 +284,7 @@ public class CurrencyServiceImplTest {
 
     @Test
     public void amountToString_Test() {
-        assertEquals("7.00000000",currencyService.amountToString(new BigDecimal(7), "EDR"));
+        assertEquals("7.00000000", currencyService.amountToString(new BigDecimal(7), "EDR"));
     }
 
     @Test
@@ -330,9 +329,9 @@ public class CurrencyServiceImplTest {
 
         when(currencyDao.retrieveMinTransferLimits(anyList(), anyInt())).thenReturn(transferLimitDtos);
 
-        assertEquals(transferLimitDtos, currencyService.retrieveMinTransferLimits(Arrays.asList(5,6,7)));
+        assertEquals(transferLimitDtos, currencyService.retrieveMinTransferLimits(Arrays.asList(5, 6, 7)));
 
-        verify(currencyDao, times(1)).retrieveMinTransferLimits(Arrays.asList(5,6,7), 4);
+        verify(currencyDao, times(1)).retrieveMinTransferLimits(Arrays.asList(5, 6, 7), 4);
     }
 
     @Test
@@ -350,7 +349,7 @@ public class CurrencyServiceImplTest {
 
         assertEquals(userCurrencyOperationPermissionDtoList, currencyService.getCurrencyOperationPermittedForRefill("email@email.com"));
 
-        verify(currencyDao, times(1)).findCurrencyOperationPermittedByUserAndDirection(99,"REFILL");
+        verify(currencyDao, times(1)).findCurrencyOperationPermittedByUserAndDirection(99, "REFILL");
 
     }
 
@@ -370,7 +369,7 @@ public class CurrencyServiceImplTest {
         when(currencyDao.findCurrencyOperationPermittedByUserAndDirection(anyInt(), anyString())).thenReturn(userCurrencyOperationPermissionDtoList);
         assertEquals(userCurrencyOperationPermissionDtoList, currencyService.getCurrencyOperationPermittedForWithdraw("email@email.com"));
 
-        verify(currencyDao, times(1)).findCurrencyOperationPermittedByUserAndDirection(99,"WITHDRAW");
+        verify(currencyDao, times(1)).findCurrencyOperationPermittedByUserAndDirection(99, "WITHDRAW");
     }
 
     @Test
@@ -380,7 +379,7 @@ public class CurrencyServiceImplTest {
 
         assertEquals(userCurrencyOperationPermissionDtoList, currencyService.getAllCurrencyOperationPermittedForWithdraw("email@email.com"));
 
-        verify(currencyDao, times(1)).findAllCurrencyOperationPermittedByUserAndDirection(99,"WITHDRAW");
+        verify(currencyDao, times(1)).findAllCurrencyOperationPermittedByUserAndDirection(99, "WITHDRAW");
     }
 
     @Test
@@ -440,7 +439,7 @@ public class CurrencyServiceImplTest {
 
     @Test
     public void getWarningForMerchant_Test() {
-        when(currencyDao.getWarningForMerchant(anyInt(),any(UserCommentTopicEnum.class))).thenReturn(Arrays.asList("list", "string"));
+        when(currencyDao.getWarningForMerchant(anyInt(), any(UserCommentTopicEnum.class))).thenReturn(Arrays.asList("list", "string"));
 
         assertEquals(Arrays.asList("list", "string"), currencyService.getWarningForMerchant(80, UserCommentTopicEnum.GENERAL));
 
@@ -465,7 +464,7 @@ public class CurrencyServiceImplTest {
 
         assertEquals(currencyPairLimitDto, currencyService.findLimitForRoleByCurrencyPairAndType(49, OperationType.SELL));
 
-        verify(currencyDao, times(1)).findCurrencyPairLimitForRoleByPairAndType(49,4,1);
+        verify(currencyDao, times(1)).findCurrencyPairLimitForRoleByPairAndType(49, 4, 1);
     }
 
     @Test
@@ -479,7 +478,7 @@ public class CurrencyServiceImplTest {
 
         assertEquals(currencyPairLimitDto, currencyService.findLimitForRoleByCurrencyPairAndTypeAndUser(49, OperationType.SELL, user));
 
-        verify(currencyDao, times(1)).findCurrencyPairLimitForRoleByPairAndType(49,3, 1);
+        verify(currencyDao, times(1)).findCurrencyPairLimitForRoleByPairAndType(49, 3, 1);
     }
 
     @Test
@@ -488,32 +487,32 @@ public class CurrencyServiceImplTest {
         currencyPairLimitDto.setCurrencyPairName("String");
         List<CurrencyPairLimitDto> currencyPairLimitDtos = Arrays.asList(currencyPairLimitDto);
 
-        when(userRoleService.getRealUserRoleIdByBusinessRoleList(anyString())).thenReturn(Arrays.asList(5,6,7));
+        when(userRoleService.getRealUserRoleIdByBusinessRoleList(anyString())).thenReturn(Arrays.asList(5, 6, 7));
         when(currencyDao.findLimitsForRolesByType(anyList(), anyInt())).thenReturn(currencyPairLimitDtos);
         assertEquals(currencyPairLimitDtos, currencyService.findAllCurrencyLimitsForRoleAndType("User", OrderType.SELL));
 
         verify(userRoleService, times(1)).getRealUserRoleIdByBusinessRoleList("User");
-        verify(currencyDao, times(1)).findLimitsForRolesByType(Arrays.asList(5,6,7), 1);
+        verify(currencyDao, times(1)).findLimitsForRolesByType(Arrays.asList(5, 6, 7), 1);
     }
 
     @Test
     public void updateCurrencyPairLimit_Test() {
-        when(userRoleService.getRealUserRoleIdByBusinessRoleList(anyString())).thenReturn(Arrays.asList(5,6,7));
+        when(userRoleService.getRealUserRoleIdByBusinessRoleList(anyString())).thenReturn(Arrays.asList(5, 6, 7));
         doNothing().when(currencyDao).setCurrencyPairLimit(anyInt(), anyList(), anyInt(), any(BigDecimal.class),
-                any(BigDecimal.class),any(BigDecimal.class),any(BigDecimal.class));
+                any(BigDecimal.class), any(BigDecimal.class), any(BigDecimal.class));
 
         currencyService.updateCurrencyPairLimit(5, OrderType.BUY, "USER", new BigDecimal(3), new BigDecimal(7), new BigDecimal(5), new BigDecimal(18));
 
         verify(userRoleService, times(1)).getRealUserRoleIdByBusinessRoleList("USER");
-        verify(currencyDao, times(1)).setCurrencyPairLimit(5, Arrays.asList(5,6,7), 2, new BigDecimal(3), new BigDecimal(7), new BigDecimal(5), new BigDecimal(18));
+        verify(currencyDao, times(1)).setCurrencyPairLimit(5, Arrays.asList(5, 6, 7), 2, new BigDecimal(3), new BigDecimal(7), new BigDecimal(5), new BigDecimal(18));
     }
 
     @Test
     public void findCurrencyPairsWithLimitsForUser_Test() {
         CurrencyPair currencyPair = new CurrencyPair(new Currency(3), new Currency(6));
         CurrencyPairWithLimitsDto currencyPairWithLimitsDto = new CurrencyPairWithLimitsDto(currencyPair,
-                new BigDecimal(3),new BigDecimal(7),new BigDecimal(22),new BigDecimal(77),
-                new BigDecimal(32),new BigDecimal(3),new BigDecimal(3),new BigDecimal(3));
+                new BigDecimal(3), new BigDecimal(7), new BigDecimal(22), new BigDecimal(77),
+                new BigDecimal(32), new BigDecimal(3), new BigDecimal(3), new BigDecimal(3));
 
         when(currencyDao.findAllCurrencyPairsWithLimits(anyInt())).thenReturn(Arrays.asList(currencyPairWithLimitsDto));
 
@@ -533,7 +532,7 @@ public class CurrencyServiceImplTest {
 
     @Test
     public void computeRandomizedAddition_WhenRandomAmountParamIsNotPresent() {
-        assertEquals(new BigDecimal(0),currencyService.computeRandomizedAddition(0,OperationType.BUY));
+        assertEquals(new BigDecimal(0), currencyService.computeRandomizedAddition(0, OperationType.BUY));
     }
 
     @Test
@@ -704,12 +703,12 @@ public class CurrencyServiceImplTest {
 
     @Test
     public void setPropertyCalculateLimitToUsd_Test() {
-        when(userRoleService.getRealUserRoleIdByBusinessRoleList(anyString())).thenReturn(Arrays.asList(4,5,6));
+        when(userRoleService.getRealUserRoleIdByBusinessRoleList(anyString())).thenReturn(Arrays.asList(4, 5, 6));
         when(currencyDao.setPropertyCalculateLimitToUsd(anyInt(), any(OperationType.class), anyList(), anyBoolean())).thenReturn(true);
 
         assertEquals(true, currencyService.setPropertyCalculateLimitToUsd(77, OperationType.STORNO, "String", false));
 
-        verify(currencyDao, times(1)).setPropertyCalculateLimitToUsd(77, OperationType.STORNO, Arrays.asList(4,5,6), false);
+        verify(currencyDao, times(1)).setPropertyCalculateLimitToUsd(77, OperationType.STORNO, Arrays.asList(4, 5, 6), false);
     }
 
     @Test
@@ -735,8 +734,11 @@ public class CurrencyServiceImplTest {
         currencyLimit.setMinSum(new BigDecimal(5));
 
         when(currencyDao.getAllCurrencyLimits()).thenReturn(Arrays.asList(currencyLimit));
-        when(exchangeApi.getRates()).thenReturn(new HashMap<String, Pair<BigDecimal, BigDecimal>>() {{
-            put("Name", new ImmutablePair(new BigDecimal(3),new BigDecimal(6)));
+        when(exchangeApi.getRates()).thenReturn(new HashMap<String, RateDto>() {{
+            put("Name", RateDto.builder()
+                    .usdRate(BigDecimal.valueOf(3))
+                    .btcRate(BigDecimal.valueOf(6))
+                    .build());
         }});
         doNothing().when(currencyDao).updateWithdrawLimits(anyList());
 
@@ -754,9 +756,9 @@ public class CurrencyServiceImplTest {
         when(currencyDao.getCurrencies(any(MerchantProcessType[].class))).thenReturn(currencyList);
 
         assertEquals(currencyList,
-                currencyService.getCurrencies(new MerchantProcessType[] {MerchantProcessType.CRYPTO}));
+                currencyService.getCurrencies(new MerchantProcessType[]{MerchantProcessType.CRYPTO}));
 
-        verify(currencyDao, times(1)).getCurrencies(new MerchantProcessType[] {MerchantProcessType.CRYPTO});
+        verify(currencyDao, times(1)).getCurrencies(new MerchantProcessType[]{MerchantProcessType.CRYPTO});
     }
 
     @Test

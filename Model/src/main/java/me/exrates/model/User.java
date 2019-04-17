@@ -1,8 +1,6 @@
 package me.exrates.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 
@@ -34,8 +32,17 @@ public class User implements Serializable {
 	private String firstName;
 	private String lastName;
 	private Date birthDay;
+	private String publicId;
 
 	public User() {
+	}
+
+	public String getPublicId() {
+		return publicId;
+	}
+
+	public void setPublicId(String publicId) {
+		this.publicId = publicId;
 	}
 
 	public UserRole getRole() {

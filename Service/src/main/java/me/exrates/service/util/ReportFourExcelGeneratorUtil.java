@@ -4,10 +4,10 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.exrates.model.Currency;
-import me.exrates.model.dto.CurrencyRateDto;
 import me.exrates.model.dto.ExternalWalletBalancesDto;
 import me.exrates.model.dto.InternalWalletBalancesDto;
 import me.exrates.model.dto.WalletBalancesDto;
+import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.enums.UserRole;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -253,9 +253,9 @@ public class ReportFourExcelGeneratorUtil {
                     .map(InternalWalletBalancesDto::getTotalBalance)
                     .reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
 
-            CurrencyRateDto rate = balance.getRate();
+            RateDto rate = balance.getRate();
             if (isNull(rate)) {
-                rate = new CurrencyRateDto(BigDecimal.ZERO, BigDecimal.ZERO);
+                rate = RateDto.zeroRate(currencyName);
             }
 
             final BigDecimal usdRate = rate.getUsdRate();

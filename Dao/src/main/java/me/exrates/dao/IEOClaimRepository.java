@@ -3,6 +3,7 @@ package me.exrates.dao;
 import me.exrates.model.IEOClaim;
 import me.exrates.model.IEOResult;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 
@@ -17,5 +18,7 @@ public interface IEOClaimRepository {
     Collection<Integer> getAllSuccessClaimIdsByIeoId(int claimId);
 
     List<IEOClaim> getClaimsByIds(List<Integer> ids);
+
+    boolean updateAmountClaim(int id, BigDecimal newAmount);
 }
 

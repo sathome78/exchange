@@ -8,8 +8,8 @@ import me.exrates.model.dto.ExternalWalletBalancesDto;
 import me.exrates.model.dto.InOutReportDto;
 import me.exrates.model.dto.InternalWalletBalancesDto;
 import me.exrates.model.dto.WalletBalancesDto;
+import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.enums.UserRole;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
@@ -34,7 +34,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 @Slf4j
@@ -52,7 +51,7 @@ public class ReportSixExcelGeneratorUtil {
                                   LocalDateTime secondCreatedAt,
                                   List<UserRole> roles,
                                   Map<String, InOutReportDto> inOutMap,
-                                  Map<String, Pair<BigDecimal, BigDecimal>> ratesMap) throws Exception {
+                                  Map<String, RateDto> rates) throws Exception {
         XSSFWorkbook workbook = new XSSFWorkbook();
 
         CellStyle header1Style = getHeader1Style(workbook);
@@ -366,12 +365,10 @@ public class ReportSixExcelGeneratorUtil {
             }
             final BigDecimal inOutDifference = input.subtract(output);
 
-            Pair<BigDecimal, BigDecimal> ratePair = ratesMap.get(currencyName);
-            if (isNull(ratePair)) {
-                ratePair = Pair.of(BigDecimal.ZERO, BigDecimal.ZERO);
-            }
-            final BigDecimal usdRate = ratePair.getLeft();
-            final BigDecimal btcRate = ratePair.getRight();
+            RateDto rateDto = rates.getOrDefault(currencyName, RateDto.zeroRate(currencyName));
+
+            final BigDecimal usdRate = rateDto.getUsdRate();
+            final BigDecimal btcRate = rateDto.getBtcRate();
 
             row = sheet.createRow(i + 3);
 

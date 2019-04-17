@@ -8,6 +8,8 @@ import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyReportInfoDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
+import me.exrates.model.dto.api.BalanceDto;
+import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
@@ -155,4 +157,12 @@ public interface CurrencyService {
 
     @Transactional
     void addCurrencyPairForIco(String firstCurrencyName, String secondCurrencyName);
+
+    void updateCurrencyExchangeRates(List<RateDto> rates);
+
+    List<RateDto> getCurrencyRates();
+
+    void updateCurrencyBalances(List<BalanceDto> balances);
+
+    List<BalanceDto> getCurrencyBalances();
 }

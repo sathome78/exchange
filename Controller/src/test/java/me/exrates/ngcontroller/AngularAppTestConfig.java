@@ -39,6 +39,7 @@ import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.G2faService;
+import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.util.RateLimitService;
@@ -72,6 +73,11 @@ public class AngularAppTestConfig {
     @Bean
     public NgUserService ngUserService() {
         return Mockito.mock(NgUserService.class);
+    }
+
+    @Bean
+    public StompMessenger stompMessenger() {
+        return Mockito.mock(StompMessenger.class);
     }
 
     @Bean

@@ -20,6 +20,7 @@ import org.jboss.aerogear.security.otp.Totp;
 import org.jboss.aerogear.security.otp.api.Base32;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,6 +34,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+
+import static java.util.Objects.isNull;
 
 @Log4j2(topic = "message_notify")
 @Component
@@ -94,15 +97,13 @@ public class Google2faNotificatorServiceImpl implements NotificatorService, G2fa
 
     @Override
     public String getGoogleAuthenticatorCode(Integer userId) {
-        final String newSecret2faCode = Base32.random();
-
         String secret2faCode = g2faDao.getGoogleAuthSecretCodeByUser(userId);
-        if (Objects.nonNull(secret2faCode) && !secret2faCode.isEmpty()) {
-            g2faDao.updateGoogleAuthSecretCode(userId, newSecret2faCode, false);
-        } else {
-            g2faDao.setGoogleAuthSecretCode(userId, newSecret2faCode);
+        if (isNull(secret2faCode)) {
+            g2faDao.setGoogleAuthSecretCode(userId, Base32.random());
+        } else if (secret2faCode.isEmpty()) {
+            g2faDao.setGoogleAuthSecretCode(userId);
         }
-        return newSecret2faCode;
+        return g2faDao.getGoogleAuthSecretCodeByUser(userId);
     }
 
 
@@ -221,7 +222,7 @@ public class Google2faNotificatorServiceImpl implements NotificatorService, G2fa
         } else if (!userService.checkPin(user.getEmail(), pin, NotificationMessageEventEnum.CHANGE_2FA_SETTING)) {
             return false;
         }
-        g2faDao.setEnable2faGoogleAuth(user.getId(), false);
+        g2faDao.updateGoogleAuthSecretCode(user.getId(), "", false);
         return true;
     }
 }

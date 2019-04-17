@@ -30,6 +30,8 @@ import me.exrates.model.dto.UserWalletSummaryDto;
 import me.exrates.model.dto.WalletFormattedDto;
 import me.exrates.model.dto.WalletsForOrderAcceptionDto;
 import me.exrates.model.dto.WalletsForOrderCancelDto;
+import me.exrates.model.dto.api.BalanceDto;
+import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
@@ -64,7 +66,6 @@ import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import me.exrates.service.util.Cache;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
@@ -525,7 +526,7 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public WalletsForOrderCancelDto getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType, int currencyPairId) {
         CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
         return walletDao.getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(orderId, operationType, currencyPair);
@@ -570,8 +571,8 @@ public class WalletServiceImpl implements WalletService {
 
         List<Currency> currencies = currencyService.getAllCurrencies();
 
-        final Map<String, Pair<BigDecimal, BigDecimal>> rates = exchangeApi.getRates();
-        final Map<String, Pair<BigDecimal, LocalDateTime>> balances = walletsApi.getBalances();
+        final Map<String, RateDto> rates = exchangeApi.getRates();
+        final Map<String, BalanceDto> balances = walletsApi.getBalances();
         final Map<String, ExternalWalletBalancesDto> mainBalancesMap = walletDao.getExternalMainWalletBalances()
                 .stream()
                 .collect(toMap(
@@ -579,59 +580,37 @@ public class WalletServiceImpl implements WalletService {
                         Function.identity()
                 ));
 
-        if (rates.isEmpty() || balances.isEmpty()) {
+        if (rates.isEmpty() || balances.isEmpty() || mainBalancesMap.isEmpty()) {
             log.info("Exchange or wallet api did not return any data");
             return;
         }
 
         for (Currency currency : currencies) {
-            final int currencyId = currency.getId();
             final String currencyName = currency.getName();
 
-            Pair<BigDecimal, BigDecimal> pairRates = rates.get(currencyName);
-            Pair<BigDecimal, LocalDateTime> pairBalances = balances.get(currencyName);
+            RateDto rateDto = rates.getOrDefault(currencyName, RateDto.zeroRate(currencyName));
+            BalanceDto balanceDto = balances.getOrDefault(currencyName, BalanceDto.zeroBalance(currencyName));
 
-            BigDecimal usdRate;
-            BigDecimal btcRate;
-            if (isNull(pairRates)) {
-                usdRate = BigDecimal.ZERO;
-                btcRate = BigDecimal.ZERO;
-            } else {
-                usdRate = pairRates.getLeft();
-                btcRate = pairRates.getRight();
-            }
+            BigDecimal usdRate = rateDto.getUsdRate();
+            BigDecimal btcRate = rateDto.getBtcRate();
 
-            BigDecimal mainBalance;
-            LocalDateTime lastBalanceUpdate;
-            if (isNull(pairBalances)) {
-                mainBalance = BigDecimal.ZERO;
-                lastBalanceUpdate = null;
-            } else {
-                mainBalance = pairBalances.getLeft();
-                lastBalanceUpdate = pairBalances.getRight();
-            }
+            BigDecimal mainBalance = balanceDto.getBalance();
+            LocalDateTime lastBalanceUpdate = balanceDto.getLastUpdatedAt();
 
             ExternalWalletBalancesDto exWallet = mainBalancesMap.get(currencyName);
-            if (nonNull(exWallet)) {
-                ExternalWalletBalancesDto.Builder builder = exWallet.toBuilder()
-                        .usdRate(usdRate)
-                        .btcRate(btcRate)
-                        .mainBalance(mainBalance);
 
-                if (nonNull(lastBalanceUpdate)) {
-                    builder.lastUpdatedDate(lastBalanceUpdate);
-                }
-                exWallet = builder.build();
-            } else {
-                exWallet = ExternalWalletBalancesDto.builder()
-                        .currencyId(currencyId)
-                        .currencyName(currencyName)
-                        .usdRate(usdRate)
-                        .btcRate(btcRate)
-                        .mainBalance(mainBalance)
-                        .lastUpdatedDate(lastBalanceUpdate)
-                        .build();
+            if (isNull(exWallet)) {
+                continue;
             }
+            ExternalWalletBalancesDto.Builder builder = exWallet.toBuilder()
+                    .usdRate(usdRate)
+                    .btcRate(btcRate)
+                    .mainBalance(mainBalance);
+
+            if (nonNull(lastBalanceUpdate)) {
+                builder.lastUpdatedDate(lastBalanceUpdate);
+            }
+            exWallet = builder.build();
             walletDao.updateExternalMainWalletBalances(exWallet);
         }
         log.info("Process of updating external main wallets end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
@@ -668,7 +647,7 @@ public class WalletServiceImpl implements WalletService {
         log.info("Process of updating external reserved wallets end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
     }
 
-    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+    @Transactional(readOnly = true)
     @Override
     public List<ExternalWalletBalancesDto> getExternalWalletBalances() {
         return walletDao.getExternalMainWalletBalances();
@@ -682,27 +661,27 @@ public class WalletServiceImpl implements WalletService {
 
         List<Currency> currencies = currencyService.getAllCurrencies();
 
-        final Map<String, Pair<BigDecimal, BigDecimal>> rates = exchangeApi.getRates();
+        final Map<String, RateDto> rates = exchangeApi.getRates();
         final Map<String, List<InternalWalletBalancesDto>> balances = this.getWalletBalances()
                 .stream()
                 .collect(groupingBy(InternalWalletBalancesDto::getCurrencyName));
 
         if (rates.isEmpty() || balances.isEmpty()) {
-            log.info("Exchange or wallet api did not return data");
+            log.info("Exchange or wallet api did not return any data");
             return;
         }
 
         for (Currency currency : currencies) {
             final String currencyName = currency.getName();
 
-            Pair<BigDecimal, BigDecimal> pairRates = rates.get(currencyName);
+            RateDto rateDto = rates.getOrDefault(currencyName, RateDto.zeroRate(currencyName));
             List<InternalWalletBalancesDto> balancesByRoles = balances.get(currencyName);
 
-            if (isNull(pairRates) || isNull(balancesByRoles)) {
+            if (isNull(balancesByRoles)) {
                 continue;
             }
-            final BigDecimal usdRate = pairRates.getLeft();
-            final BigDecimal btcRate = pairRates.getRight();
+            final BigDecimal usdRate = rateDto.getUsdRate();
+            final BigDecimal btcRate = rateDto.getBtcRate();
 
             for (InternalWalletBalancesDto balance : balancesByRoles) {
                 balance = balance.toBuilder()
@@ -715,13 +694,13 @@ public class WalletServiceImpl implements WalletService {
         log.info("Process of updating internal wallets end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
     }
 
-    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+    @Transactional(readOnly = true)
     @Override
     public List<InternalWalletBalancesDto> getInternalWalletBalances() {
         return walletDao.getInternalWalletBalances();
     }
 
-    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+    @Transactional(readOnly = true)
     @Override
     public List<InternalWalletBalancesDto> getWalletBalances() {
         return walletDao.getWalletBalances();
@@ -850,7 +829,8 @@ public class WalletServiceImpl implements WalletService {
         BigDecimal makerBtcInitialAmount = makerBtcWallet.getIeoReserved();
         makerBtcWallet.setIeoReserved(makerBtcInitialAmount.add(ieoClaim.getPriceInBtc()));
 
-        userBtcWallet.setIeoReserved(userBtcWallet.getIeoReserved().subtract(ieoClaim.getPriceInBtc()));
+        BigDecimal updateIeoReservedUserBalanceBtc = userBtcWallet.getIeoReserved().subtract(ieoClaim.getPriceInBtc());
+        userBtcWallet.setIeoReserved(updateIeoReservedUserBalanceBtc);
 
         BigDecimal userIeoInitialAmount = userIeoWallet.getActiveBalance();
         userIeoWallet.setActiveBalance(userIeoInitialAmount.add(ieoClaim.getAmount()));
@@ -858,6 +838,7 @@ public class WalletServiceImpl implements WalletService {
         boolean updateResult = walletDao.update(makerBtcWallet)
                 && walletDao.update(userBtcWallet)
                 && walletDao.update(userIeoWallet);
+        log.info("PerformIeoTransfer(), claimID {}, result update wallet {}", ieoClaim.getId(), updateResult);
         if (updateResult) {
             final Wallet makerWallet = makerBtcWallet;
             final Wallet userWallet = userIeoWallet;
@@ -870,10 +851,10 @@ public class WalletServiceImpl implements WalletService {
 
     private void writeTransActionsAsync(IEOClaim ieoClaim, BigDecimal makerBtcInitialAmount, Wallet makerBtcWallet,
                                         BigDecimal userIeoInitialAmount, Wallet userIeoWallet, Wallet userMainWallet, IeoStatusEnum statusEnum) {
-        Transaction makerTransaction = prepareTransaction(makerBtcInitialAmount, ieoClaim.getPriceInBtc(), makerBtcWallet, ieoClaim, statusEnum);
+        Transaction makerBtcTransaction = prepareTransaction(makerBtcInitialAmount, ieoClaim.getPriceInBtc(), makerBtcWallet, ieoClaim, statusEnum);
         Transaction userBtcTransaction = prepareUserBtcTransaction(userMainWallet, ieoClaim, statusEnum);
-        Transaction userTransaction = prepareTransaction(userIeoInitialAmount, ieoClaim.getAmount(), userIeoWallet, ieoClaim, statusEnum);
-        transactionService.save(ImmutableList.of(makerTransaction, userBtcTransaction, userTransaction));
+        Transaction userIeoTransaction = prepareTransaction(userIeoInitialAmount, ieoClaim.getAmount(), userIeoWallet, ieoClaim, statusEnum);
+        transactionService.save(ImmutableList.of(makerBtcTransaction, userBtcTransaction, userIeoTransaction));
     }
 
     @Override
