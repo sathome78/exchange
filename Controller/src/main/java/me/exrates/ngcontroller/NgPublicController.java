@@ -66,6 +66,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -256,11 +257,15 @@ public class NgPublicController {
 
     @GetMapping("/info/rates")
     public ResponseModel getCurrencyPairRates(@RequestParam(required = false) String namePart) {
-        Map<String, String> rates = exchangeRatesHolder.getAllRates()
-                .stream()
-                .filter(cp -> StringUtils.isNotEmpty(namePart) && cp.getCurrencyPairName().contains(namePart.toUpperCase()))
-                .collect(Collectors.toMap(ExOrderStatisticsShortByPairsDto::getCurrencyPairName, ExOrderStatisticsShortByPairsDto::getLastOrderRate));
-        return new ResponseModel<>(rates);
+        Map<String, String> result = new HashMap<>();
+        for (ExOrderStatisticsShortByPairsDto dto : exchangeRatesHolder.getAllRates()) {
+            if (StringUtils.isNotEmpty(namePart) && dto.getCurrencyPairName().contains(namePart.toUpperCase())) {
+                result.put(dto.getCurrencyPairName(), dto.getLastOrderRate());
+            } else {
+                result.put(dto.getCurrencyPairName(), dto.getLastOrderRate());
+            }
+        }
+        return new ResponseModel<>(result);
     }
 
     @GetMapping("/currencies/fast")
