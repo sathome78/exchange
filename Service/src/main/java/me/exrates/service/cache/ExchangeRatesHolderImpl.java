@@ -117,13 +117,12 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
 
     @Override
     public ExOrderStatisticsShortByPairsDto getOne(Integer currencyPairId) {
-        String currencyPairName = currencyService.getCurrencyName(currencyPairId);
-        return ratesRedisRepository.get(currencyPairName);
+        return loadingCache.asMap().get(currencyPairId);
     }
 
     @Override
     public List<ExOrderStatisticsShortByPairsDto> getAllRates() {
-        return ratesRedisRepository.getAll();
+        return new ArrayList<>(loadingCache.asMap().values());
     }
 
     @Override
@@ -131,11 +130,14 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         if (isEmpty(ids)) {
             return Collections.emptyList();
         }
-        List<String> names = ids.stream()
+        Set<String> names = ids.stream()
                 .map(currencyService::getCurrencyName)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
 
-        return ratesRedisRepository.getByNames(names);
+        return loadingCache.asMap().values()
+                .stream()
+                .filter(i -> isNotEmpty(names) && names.contains(i.getCurrencyPairName()))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -166,6 +168,15 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         ratesRedisRepository.delete(currencyPairName);
     }
 
+    private void initExchangePairsCache() {
+        ratesMap.putAll(loadRatesFromDB());
+        Map<Integer, ExOrderStatisticsShortByPairsDto> preparedRateItems = getExratesDailyCacheFromDB(null)
+                .stream()
+                .collect(Collectors.toMap(ExOrderStatisticsShortByPairsDto::getCurrencyPairId, Function.identity()));
+        loadingCache.putAll(preparedRateItems);
+        ratesRedisRepository.batchUpdate(new ArrayList<>(preparedRateItems.values()));
+    }
+
     private synchronized void setRates(ExOrder order) {
         final BigDecimal lastOrderRate = order.getExRate();
         BigDecimal predLastOrderRate;
@@ -182,28 +193,13 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
                 .lastOrderRate(lastOrderRate.toPlainString())
                 .build();
         ratesMap.put(order.getCurrencyPairId(), newSimpleItem);
-        loadingCache.refresh(order.getCurrencyPairId());
-
-        try {
-            ExOrderStatisticsShortByPairsDto refreshedItem = loadingCache.get(order.getCurrencyPairId());
-            setUSDRates(refreshedItem);
-            if (ratesRedisRepository.exist(refreshedItem.getCurrencyPairName())) {
-                ratesRedisRepository.update(refreshedItem);
-            } else {
-                ratesRedisRepository.put(refreshedItem);
-            }
-        } catch (ExecutionException e) {
-            log.warn("<<CACHE>> Failed to update cache for currency pair id: " + order.getCurrencyPairId(), e);
+        ExOrderStatisticsShortByPairsDto refreshedItem = refreshItem(order.getCurrencyPairId());
+        loadingCache.put(order.getCurrencyPairId(), refreshedItem);
+        if (ratesRedisRepository.exist(refreshedItem.getCurrencyPairName())) {
+            ratesRedisRepository.update(refreshedItem);
+        } else {
+            ratesRedisRepository.put(refreshedItem);
         }
-    }
-
-    private void initExchangePairsCache() {
-        ratesMap.putAll(loadRatesFromDB());
-        Map<Integer, ExOrderStatisticsShortByPairsDto> preparedRateItems = getExratesDailyCacheFromDB(null)
-                .stream()
-                .collect(Collectors.toMap(ExOrderStatisticsShortByPairsDto::getCurrencyPairId, Function.identity()));
-        loadingCache.putAll(preparedRateItems);
-        ratesRedisRepository.batchUpdate(new ArrayList<>(preparedRateItems.values()));
     }
 
     private Map<Integer, ExOrderStatisticsShortByPairsDto> loadRatesFromDB() {
@@ -227,16 +223,23 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
                 .filter(statistic -> !statistic.isHidden())
                 .peek(data -> {
                     final Integer id = data.getCurrencyPairId();
-                    ExOrderStatisticsShortByPairsDto rate = ratesMap.get(id);
 
                     String lastOrderRate;
                     String predLastOrderRate;
-                    if (Objects.nonNull(rate)) {
+
+                    if (ratesMap.containsKey(id)) {
+                        ExOrderStatisticsShortByPairsDto rate = ratesMap.get(id);
                         lastOrderRate = rate.getLastOrderRate();
                         predLastOrderRate = rate.getPredLastOrderRate();
                     } else {
                         lastOrderRate = BigDecimal.ZERO.toPlainString();
                         predLastOrderRate = BigDecimal.ZERO.toPlainString();
+                        ExOrderStatisticsShortByPairsDto newItem = ExOrderStatisticsShortByPairsDto.builder()
+                                .currencyPairId(id)
+                                .lastOrderRate(lastOrderRate)
+                                .predLastOrderRate(predLastOrderRate)
+                                .build();
+                        ratesMap.put(id, newItem);
                     }
 
                     BigDecimal high24hr = new BigDecimal(data.getHigh24hr());
