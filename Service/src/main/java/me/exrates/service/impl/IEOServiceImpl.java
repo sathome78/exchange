@@ -88,10 +88,10 @@ public class IEOServiceImpl implements IEOService {
     public ClaimDto addClaim(ClaimDto claimDto, String email) {
         IEODetails ieoDetails = ieoDetailsRepository.findOpenIeoByCurrencyName(claimDto.getCurrencyName());
         if (ieoDetails == null) {
-            String message = String.format("Failed to create claim while IEO for %s not started or already finish",
+            String message = String.format("Failed to create claim while IEO for %s not started or already finished",
                     claimDto.getCurrencyName());
             logger.warn(message);
-            throw new IeoException(ErrorApiTitles.IEO_NOT_STARTED_YET_OR_ALREADY_FINISH, message);
+            throw new IeoException(ErrorApiTitles.IEO_NOT_STARTED_YET_OR_ALREADY_FINISHED, message);
         }
 
         IEOStatusInfo statusInfo = checkUserStatusForIEO(email, ieoDetails.getId());
