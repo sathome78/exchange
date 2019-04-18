@@ -115,9 +115,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -157,7 +154,6 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -614,14 +610,8 @@ public class OrderServiceImplTest {
     }
 
     @Test
-    public void prepareNewOrder_operation_type_sell_order_base_type_ico_authentication_not_null() {
-        Authentication authentication = mock(Authentication.class);
-        SecurityContext securityContext = mock(SecurityContext.class);
-        SecurityContextHolder.setContext(securityContext);
-
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(SecurityContextHolder.getContext().getAuthentication()).thenReturn(authentication);
-        when(userService.getUserRoleFromSecurityContext()).thenReturn(UserRole.USER);
+    public void prepareNewOrder_operation_type_sell_order_base_type_ico() {
+        when(userService.getUserRoleFromDB(anyString())).thenReturn(UserRole.USER);
         when(orderDao.getWalletAndCommission(
                 anyString(),
                 any(Currency.class),
@@ -646,19 +636,16 @@ public class OrderServiceImplTest {
         assertEquals(getMockWalletsAndCommissionsForOrderCreationDto().getCommissionValue(), orderCreateDto.getComission());
         assertEquals(24, orderCreateDto.getComissionId());
 
-        verify(securityContext, atLeastOnce()).getAuthentication();
-        verify(userService, atLeastOnce()).getUserRoleFromSecurityContext();
+        verify(userService, atLeastOnce()).getUserRoleFromDB(anyString());
         verify(orderDao, atLeastOnce()).getWalletAndCommission(
                 anyString(),
                 any(Currency.class),
                 any(OperationType.class),
                 any(UserRole.class));
-
-        reset(securityContext);
     }
 
     @Test
-    public void prepareNewOrder_operation_type_buy_order_base_type_ico_authentication_equals_null() {
+    public void prepareNewOrder_operation_type_buy_order_base_type_ico() {
         when(userService.getUserRoleFromDB(anyString())).thenReturn(UserRole.USER);
         when(orderDao.getWalletAndCommission(
                 anyString(),
@@ -685,86 +672,6 @@ public class OrderServiceImplTest {
         assertEquals(24, orderCreateDto.getComissionId());
 
         verify(userService, atLeastOnce()).getUserRoleFromDB(anyString());
-        verify(orderDao, atLeastOnce()).getWalletAndCommission(
-                anyString(),
-                any(Currency.class),
-                any(OperationType.class),
-                any(UserRole.class));
-
-        reset(userService);
-    }
-
-    @Test
-    public void prepareNewOrder_operation_type_buy_order_base_type_ico_authentication_not_null() {
-        Authentication authentication = mock(Authentication.class);
-        SecurityContext securityContext = mock(SecurityContext.class);
-        SecurityContextHolder.setContext(securityContext);
-
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(SecurityContextHolder.getContext().getAuthentication()).thenReturn(authentication);
-        when(userService.getUserRoleFromSecurityContext()).thenReturn(UserRole.USER);
-        when(orderDao.getWalletAndCommission(
-                anyString(),
-                any(Currency.class),
-                any(OperationType.class),
-                any(UserRole.class))).thenReturn(getMockWalletsAndCommissionsForOrderCreationDto());
-
-        OrderCreateDto orderCreateDto = orderService.prepareNewOrder(
-                new CurrencyPair("BTC/USD"),
-                OperationType.BUY,
-                USER_EMAIL,
-                BigDecimal.ONE,
-                BigDecimal.ONE,
-                OrderBaseType.ICO);
-
-        assertNotNull(orderCreateDto);
-        assertEquals(getMockWalletsAndCommissionsForOrderCreationDto().getUserId(), orderCreateDto.getUserId());
-        assertEquals("BTC/USD", orderCreateDto.getCurrencyPair().getName());
-        assertEquals(OperationType.BUY, orderCreateDto.getOperationType());
-        assertEquals(OrderBaseType.ICO, orderCreateDto.getOrderBaseType());
-        assertEquals(BigDecimal.ONE, orderCreateDto.getAmount());
-        assertEquals(BigDecimal.ONE, orderCreateDto.getExchangeRate());
-        assertEquals(getMockWalletsAndCommissionsForOrderCreationDto().getCommissionValue(), orderCreateDto.getComission());
-        assertEquals(24, orderCreateDto.getComissionId());
-
-        verify(securityContext, atLeastOnce()).getAuthentication();
-        verify(userService, atLeastOnce()).getUserRoleFromSecurityContext();
-        verify(orderDao, atLeastOnce()).getWalletAndCommission(
-                anyString(),
-                any(Currency.class),
-                any(OperationType.class),
-                any(UserRole.class));
-
-        reset(securityContext);
-    }
-
-    @Test
-    public void prepareNewOrder_operation_type_buy_order_base_type_any_authentication_equals_null() {
-        when(userService.getUserRoleFromDB(anyString())).thenReturn(UserRole.USER);
-        when(orderDao.getWalletAndCommission(
-                anyString(),
-                any(Currency.class),
-                any(OperationType.class),
-                any(UserRole.class))).thenReturn(getMockWalletsAndCommissionsForOrderCreationDto());
-
-        OrderCreateDto orderCreateDto = orderService.prepareNewOrder(
-                new CurrencyPair("BTC/USD"),
-                OperationType.BUY,
-                USER_EMAIL,
-                BigDecimal.ONE,
-                BigDecimal.ONE,
-                OrderBaseType.LIMIT);
-
-        assertNotNull(orderCreateDto);
-        assertEquals(getMockWalletsAndCommissionsForOrderCreationDto().getUserId(), orderCreateDto.getUserId());
-        assertEquals("BTC/USD", orderCreateDto.getCurrencyPair().getName());
-        assertEquals(OperationType.BUY, orderCreateDto.getOperationType());
-        assertEquals(OrderBaseType.LIMIT, orderCreateDto.getOrderBaseType());
-        assertEquals(BigDecimal.ONE, orderCreateDto.getAmount());
-        assertEquals(BigDecimal.ONE, orderCreateDto.getExchangeRate());
-        assertEquals(getMockWalletsAndCommissionsForOrderCreationDto().getCommissionValue(), orderCreateDto.getComission());
-        assertEquals(getMockWalletsAndCommissionsForOrderCreationDto().getCommissionId(), orderCreateDto.getComissionId());
-
         verify(orderDao, atLeastOnce()).getWalletAndCommission(
                 anyString(),
                 any(Currency.class),
@@ -1578,9 +1485,12 @@ public class OrderServiceImplTest {
         when(userService.getUserRoleFromDB(anyInt())).thenReturn(UserRole.BOT_TRADER);
         when(userRoleService.retrieveSettingsForRole(anyInt())).thenReturn(userRoleSettings);
         when(orderDao.getOrderById(anyInt())).thenReturn(exOrder);
-        when(walletService.getWalletsForOrderByOrderIdAndBlock(anyInt(), anyInt())).thenReturn(walletsForOrderAcceptionDto);
-        when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class))).thenReturn(descriptionForCreator);
-        when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class))).thenReturn(descriptionForAcceptor);
+        when(walletService.getWalletsForOrderByOrderIdAndBlock(anyInt(), anyInt()))
+                .thenReturn(walletsForOrderAcceptionDto);
+        when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class)))
+                .thenReturn(descriptionForCreator);
+        when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class)))
+                .thenReturn(descriptionForAcceptor);
         when(currencyService.findCurrencyPairById(anyInt())).thenReturn(cp);
         when(commissionDao.getCommission(any(OperationType.class), any(UserRole.class))).thenReturn(commission);
         when(walletService.walletInnerTransfer(
@@ -1590,7 +1500,10 @@ public class OrderServiceImplTest {
                 anyInt(),
                 anyString())).thenReturn(WalletTransferStatus.SUCCESS);
         when(walletService.walletBalanceChange(any(WalletOperationData.class))).thenReturn(WalletTransferStatus.SUCCESS);
-        doNothing().when(companyWalletService).deposit(any(CompanyWallet.class), any(BigDecimal.class), any(BigDecimal.class));
+        doNothing().when(companyWalletService).deposit(
+                any(CompanyWallet.class),
+                any(BigDecimal.class),
+                any(BigDecimal.class));
         doNothing().when(referralService).processReferral(
                 any(ExOrder.class),
                 any(BigDecimal.class),
@@ -2167,7 +2080,8 @@ public class OrderServiceImplTest {
                 any(UserRole.class))).thenReturn(getMockWalletsAndCommissionsForOrderCreationDto());
         when(transactionDescription.get(any(), any(OrderActionEnum.class))).thenReturn("DESCRIPTION");
         when(walletService.ifEnoughMoney(anyInt(), any(BigDecimal.class))).thenReturn(Boolean.TRUE);
-        when(walletService.getWalletsForOrderByOrderIdAndBlock(anyInt(), anyInt())).thenReturn(walletsForOrderAcceptionDto);
+        when(walletService.getWalletsForOrderByOrderIdAndBlock(anyInt(), anyInt()))
+                .thenReturn(walletsForOrderAcceptionDto);
         when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class)))
                 .thenReturn(descriptionForCreator);
         when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class)))
@@ -2353,7 +2267,12 @@ public class OrderServiceImplTest {
         when(currencyService.getCurrencyPairByName(anyString())).thenReturn(getMockCurrencyPair(CurrencyPairType.ICO));
 
         try {
-            orderService.prepareAndCreateOrderRest("BTC/USD", OperationType.BUY, BigDecimal.ONE, BigDecimal.TEN, USER_EMAIL);
+            orderService.prepareAndCreateOrderRest(
+                    "BTC/USD",
+                    OperationType.BUY,
+                    BigDecimal.ONE,
+                    BigDecimal.TEN,
+                    USER_EMAIL);
         } catch (Exception e) {
             assertTrue(e instanceof NotCreatableOrderException);
             assertEquals("This pair available only through website", e.getMessage());
@@ -2735,9 +2654,12 @@ public class OrderServiceImplTest {
         when(userService.getUserRoleFromDB(anyInt())).thenReturn(UserRole.BOT_TRADER);
         when(userRoleService.retrieveSettingsForRole(anyInt())).thenReturn(userRoleSettings);
         when(orderDao.getOrderById(anyInt())).thenReturn(exOrder);
-        when(walletService.getWalletsForOrderByOrderIdAndBlock(anyInt(), anyInt())).thenReturn(walletsForOrderAcceptionDto);
-        when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class))).thenReturn(descriptionForCreator);
-        when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class))).thenReturn(descriptionForAcceptor);
+        when(walletService.getWalletsForOrderByOrderIdAndBlock(anyInt(), anyInt()))
+                .thenReturn(walletsForOrderAcceptionDto);
+        when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class)))
+                .thenReturn(descriptionForCreator);
+        when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class)))
+                .thenReturn(descriptionForAcceptor);
         when(currencyService.findCurrencyPairById(anyInt())).thenReturn(cp);
         when(commissionDao.getCommission(any(OperationType.class), any(UserRole.class))).thenReturn(commission);
         when(walletService.walletInnerTransfer(
@@ -2747,14 +2669,22 @@ public class OrderServiceImplTest {
                 anyInt(),
                 anyString())).thenReturn(WalletTransferStatus.SUCCESS);
         when(walletService.walletBalanceChange(any(WalletOperationData.class))).thenReturn(WalletTransferStatus.SUCCESS);
-        doNothing().when(companyWalletService).deposit(any(CompanyWallet.class), any(BigDecimal.class), any(BigDecimal.class));
-        doNothing().when(referralService).processReferral(any(ExOrder.class), any(BigDecimal.class), any(Currency.class), anyInt());
+        doNothing().when(companyWalletService).deposit(
+                any(CompanyWallet.class),
+                any(BigDecimal.class),
+                any(BigDecimal.class));
+        doNothing().when(referralService).processReferral(
+                any(ExOrder.class),
+                any(BigDecimal.class),
+                any(Currency.class),
+                anyInt());
         when(orderDao.updateOrder(any(ExOrder.class))).thenReturn(Boolean.TRUE);
         doNothing().when(eventPublisher).publishEvent(any(AcceptOrderEvent.class));
         when(userService.getUserById(anyInt())).thenReturn(user);
         doNothing().when(eventPublisher).publishEvent(any(ApplicationEvent.class));
 
-        Optional<OrderCreationResultDto> orderCreationResultDto = orderService.autoAcceptOrders(mockOrderCreateDto, Locale.ENGLISH);
+        Optional<OrderCreationResultDto> orderCreationResultDto = orderService
+                .autoAcceptOrders(mockOrderCreateDto, Locale.ENGLISH);
 
         assertNotNull(orderCreationResultDto);
 
@@ -2782,8 +2712,15 @@ public class OrderServiceImplTest {
                 anyInt(),
                 anyString());
         verify(walletService, atLeastOnce()).walletBalanceChange(any(WalletOperationData.class));
-        verify(companyWalletService, atLeastOnce()).deposit(any(CompanyWallet.class), any(BigDecimal.class), any(BigDecimal.class));
-        verify(referralService, atLeastOnce()).processReferral(any(ExOrder.class), any(BigDecimal.class), any(Currency.class), anyInt());
+        verify(companyWalletService, atLeastOnce()).deposit(
+                any(CompanyWallet.class),
+                any(BigDecimal.class),
+                any(BigDecimal.class));
+        verify(referralService, atLeastOnce()).processReferral(
+                any(ExOrder.class),
+                any(BigDecimal.class),
+                any(Currency.class),
+                anyInt());
         verify(orderDao, atLeastOnce()).updateOrder(any(ExOrder.class));
         verify(eventPublisher, atLeastOnce()).publishEvent(any(AcceptOrderEvent.class));
     }
@@ -2968,9 +2905,12 @@ public class OrderServiceImplTest {
                 any(UserRole.class))).thenReturn(getMockWalletsAndCommissionsForOrderCreationDto());
         when(transactionDescription.get(any(), any(OrderActionEnum.class))).thenReturn("DESCRIPTION");
         when(walletService.ifEnoughMoney(anyInt(), any(BigDecimal.class))).thenReturn(Boolean.TRUE);
-        when(walletService.getWalletsForOrderByOrderIdAndBlock(anyInt(), anyInt())).thenReturn(walletsForOrderAcceptionDto);
-        when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class))).thenReturn(descriptionForCreator);
-        when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class))).thenReturn(descriptionForAcceptor);
+        when(walletService.getWalletsForOrderByOrderIdAndBlock(anyInt(), anyInt()))
+                .thenReturn(walletsForOrderAcceptionDto);
+        when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class)))
+                .thenReturn(descriptionForCreator);
+        when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class)))
+                .thenReturn(descriptionForAcceptor);
         when(orderDao.getOrderById(anyInt())).thenReturn(mockExOrder);
         when(userService.getUserRoleFromDB(anyInt())).thenReturn(UserRole.BOT_TRADER);
         when(userRoleService.retrieveSettingsForRole(anyInt())).thenReturn(userRoleSettings);
@@ -2984,8 +2924,15 @@ public class OrderServiceImplTest {
         when(walletService.walletBalanceChange(any(WalletOperationData.class))).thenReturn(WalletTransferStatus.SUCCESS);
         when(currencyService.findCurrencyPairById(anyInt())).thenReturn(cp);
         when(commissionDao.getCommission(any(OperationType.class), any(UserRole.class))).thenReturn(commission);
-        doNothing().when(companyWalletService).deposit(any(CompanyWallet.class), any(BigDecimal.class), any(BigDecimal.class));
-        doNothing().when(referralService).processReferral(any(ExOrder.class), any(BigDecimal.class), any(Currency.class), anyInt());
+        doNothing().when(companyWalletService).deposit(
+                any(CompanyWallet.class),
+                any(BigDecimal.class),
+                any(BigDecimal.class));
+        doNothing().when(referralService).processReferral(
+                any(ExOrder.class),
+                any(BigDecimal.class),
+                any(Currency.class),
+                anyInt());
         when(orderDao.updateOrder(any(ExOrder.class))).thenReturn(Boolean.TRUE);
         doNothing().when(eventPublisher).publishEvent(any(ApplicationEvent.class));
 
@@ -3371,19 +3318,29 @@ public class OrderServiceImplTest {
         when(userService.getUserRoleFromDB(anyInt())).thenReturn(UserRole.USER);
         when(userRoleService.retrieveSettingsForRole(anyInt())).thenReturn(userRoleSettings);
         when(userRoleService.isOrderAcceptionAllowedForUser(anyInt())).thenReturn(Boolean.TRUE);
-        when(walletService.getWalletsForOrderByOrderIdAndBlock(anyInt(), anyInt())).thenReturn(walletsForOrderAcceptionDto);
+        when(walletService.getWalletsForOrderByOrderIdAndBlock(anyInt(), anyInt()))
+                .thenReturn(walletsForOrderAcceptionDto);
         when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class))).thenReturn("DESCRIPTION");
         when(currencyService.findCurrencyPairById(anyInt())).thenReturn(mockCurrencyPair);
         when(userService.getUserRoleFromDB(anyInt())).thenReturn(UserRole.ACCOUNTANT);
         when(commissionDao.getCommission(any(OperationType.class), any(UserRole.class))).thenReturn(commission);
-        when(walletService.walletInnerTransfer(anyInt(), any(BigDecimal.class), any(TransactionSourceType.class), anyInt(), anyString())).thenReturn(WalletTransferStatus.SUCCESS);
+        when(walletService.walletInnerTransfer(
+                anyInt(),
+                any(BigDecimal.class),
+                any(TransactionSourceType.class),
+                anyInt(),
+                anyString())).thenReturn(WalletTransferStatus.SUCCESS);
         when(walletService.walletBalanceChange(any(WalletOperationData.class))).thenReturn(WalletTransferStatus.SUCCESS);
-        when(walletService.walletBalanceChange(any(WalletOperationData.class))).thenReturn(WalletTransferStatus.SUCCESS);
-        when(walletService.walletBalanceChange(any(WalletOperationData.class))).thenReturn(WalletTransferStatus.SUCCESS);
-        when(walletService.walletBalanceChange(any(WalletOperationData.class))).thenReturn(WalletTransferStatus.SUCCESS);
-        doNothing().when(companyWalletService).deposit(any(CompanyWallet.class), any(BigDecimal.class), any(BigDecimal.class));
+        doNothing().when(companyWalletService).deposit(
+                any(CompanyWallet.class),
+                any(BigDecimal.class),
+                any(BigDecimal.class));
         when(currencyService.findCurrencyPairById(anyInt())).thenReturn(mockCurrencyPair);
-        doNothing().when(referralService).processReferral(any(ExOrder.class), any(BigDecimal.class), any(Currency.class), anyInt());
+        doNothing().when(referralService).processReferral(
+                any(ExOrder.class),
+                any(BigDecimal.class),
+                any(Currency.class),
+                anyInt());
         when(orderDao.updateOrder(any(ExOrder.class))).thenReturn(Boolean.TRUE);
         doNothing().when(eventPublisher).publishEvent(ApplicationEvent.class);
 
@@ -3401,11 +3358,23 @@ public class OrderServiceImplTest {
         verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
         verify(userService, atLeastOnce()).getUserRoleFromDB(anyInt());
         verify(commissionDao, atLeastOnce()).getCommission(any(OperationType.class), any(UserRole.class));
-        verify(walletService, atLeastOnce()).walletInnerTransfer(anyInt(), any(BigDecimal.class), any(TransactionSourceType.class), anyInt(), anyString());
+        verify(walletService, atLeastOnce()).walletInnerTransfer(
+                anyInt(),
+                any(BigDecimal.class),
+                any(TransactionSourceType.class),
+                anyInt(),
+                anyString());
         verify(walletService, atLeastOnce()).walletBalanceChange(any(WalletOperationData.class));
-        verify(companyWalletService, atLeastOnce()).deposit(any(CompanyWallet.class), any(BigDecimal.class), any(BigDecimal.class));
+        verify(companyWalletService, atLeastOnce()).deposit(
+                any(CompanyWallet.class),
+                any(BigDecimal.class),
+                any(BigDecimal.class));
         verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
-        verify(referralService, atLeastOnce()).processReferral(any(ExOrder.class), any(BigDecimal.class), any(Currency.class), anyInt());
+        verify(referralService, atLeastOnce()).processReferral(
+                any(ExOrder.class),
+                any(BigDecimal.class),
+                any(Currency.class),
+                anyInt());
         verify(orderDao, atLeastOnce()).updateOrder(any(ExOrder.class));
     }
 
@@ -3534,9 +3503,16 @@ public class OrderServiceImplTest {
                 anyInt(),
                 anyString())).thenReturn(WalletTransferStatus.SUCCESS);
         when(walletService.walletBalanceChange(any(WalletOperationData.class))).thenReturn(WalletTransferStatus.SUCCESS);
-        doNothing().when(companyWalletService).deposit(any(CompanyWallet.class), any(BigDecimal.class), any(BigDecimal.class));
+        doNothing().when(companyWalletService).deposit(
+                any(CompanyWallet.class),
+                any(BigDecimal.class),
+                any(BigDecimal.class));
         when(currencyService.findCurrencyPairById(anyInt())).thenReturn(mockCurrencyPair);
-        doNothing().when(referralService).processReferral(any(ExOrder.class), any(BigDecimal.class), any(Currency.class), anyInt());
+        doNothing().when(referralService).processReferral(
+                any(ExOrder.class),
+                any(BigDecimal.class),
+                any(Currency.class),
+                anyInt());
         when(orderDao.updateOrder(any(ExOrder.class))).thenReturn(Boolean.TRUE);
 
         orderService.acceptManyOrdersByAdmin(USER_EMAIL, Collections.singletonList(1), Locale.ENGLISH);
@@ -3683,7 +3659,8 @@ public class OrderServiceImplTest {
     public void cancelOpenOrdersByCurrencyPair_false_openedOrders_and_openedStopOrders_empty() {
         when(userService.getIdByEmail(anyString())).thenReturn(100);
         when(orderDao.getOpenedOrdersByCurrencyPair(anyInt(), anyString())).thenReturn(Collections.EMPTY_LIST);
-        when(stopOrderService.getOpenedStopOrdersByCurrencyPair(anyInt(), anyString())).thenReturn(Collections.EMPTY_LIST);
+        when(stopOrderService.getOpenedStopOrdersByCurrencyPair(anyInt(), anyString()))
+                .thenReturn(Collections.EMPTY_LIST);
 
         boolean cancelOpenOrdersByCurrencyPair = orderService.cancelOpenOrdersByCurrencyPair("1");
 
@@ -3699,8 +3676,10 @@ public class OrderServiceImplTest {
         walletsForOrderCancelDto.setOrderStatusId(2);
 
         when(userService.getIdByEmail(anyString())).thenReturn(100);
-        when(orderDao.getOpenedOrdersByCurrencyPair(anyInt(), anyString())).thenReturn(Collections.singletonList(getMockExOrder()));
-        when(stopOrderService.getOpenedStopOrdersByCurrencyPair(anyInt(), anyString())).thenReturn(Collections.singletonList(1));
+        when(orderDao.getOpenedOrdersByCurrencyPair(anyInt(), anyString()))
+                .thenReturn(Collections.singletonList(getMockExOrder()));
+        when(stopOrderService.getOpenedStopOrdersByCurrencyPair(anyInt(), anyString()))
+                .thenReturn(Collections.singletonList(1));
         when(stopOrderService.cancelOrder(anyInt(), any())).thenReturn(Boolean.TRUE);
         when(userService.getUserEmailFromSecurityContext()).thenReturn(USER_EMAIL);
         when(userService.getEmailById(anyInt())).thenReturn(USER_EMAIL);
@@ -4847,7 +4826,7 @@ public class OrderServiceImplTest {
     }
 
     @Test
-    public void getWalletAndCommission_authentication_null() {
+    public void getWalletAndCommission() {
         when(userService.getUserRoleFromDB(anyString())).thenReturn(UserRole.USER);
         when(orderDao.getWalletAndCommission(
                 anyString(),
@@ -4878,46 +4857,6 @@ public class OrderServiceImplTest {
                 any(UserRole.class));
 
         reset(userService);
-    }
-
-    @Test
-    public void getWalletAndCommission_authentication_not_null() {
-        Authentication authentication = mock(Authentication.class);
-        SecurityContext securityContext = mock(SecurityContext.class);
-        SecurityContextHolder.setContext(securityContext);
-
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(SecurityContextHolder.getContext().getAuthentication()).thenReturn(authentication);
-
-        when(userService.getUserRoleFromSecurityContext()).thenReturn(UserRole.USER);
-        when(orderDao.getWalletAndCommission(
-                anyString(),
-                any(Currency.class),
-                any(OperationType.class),
-                any(UserRole.class))).thenReturn(getMockWalletsAndCommissionsForOrderCreationDto());
-
-        WalletsAndCommissionsForOrderCreationDto walletAndCommission = orderService.getWalletAndCommission(
-                USER_EMAIL,
-                getMockCurrency(),
-                OperationType.BUY);
-
-        assertNotNull(walletAndCommission);
-        assertEquals(getMockWalletsAndCommissionsForOrderCreationDto().getUserId(), walletAndCommission.getUserId());
-        assertEquals(getMockWalletsAndCommissionsForOrderCreationDto().getSpendWalletId(),
-                walletAndCommission.getSpendWalletId());
-        assertEquals(getMockWalletsAndCommissionsForOrderCreationDto().getSpendWalletActiveBalance(),
-                walletAndCommission.getSpendWalletActiveBalance());
-        assertEquals(getMockWalletsAndCommissionsForOrderCreationDto().getCommissionId(),
-                walletAndCommission.getCommissionId());
-        assertEquals(getMockWalletsAndCommissionsForOrderCreationDto().getCommissionValue(),
-                walletAndCommission.getCommissionValue());
-
-        verify(userService, atLeastOnce()).getUserRoleFromSecurityContext();
-        verify(orderDao, atLeastOnce()).getWalletAndCommission(
-                anyString(),
-                any(Currency.class),
-                any(OperationType.class),
-                any(UserRole.class));
     }
 
     @Test
