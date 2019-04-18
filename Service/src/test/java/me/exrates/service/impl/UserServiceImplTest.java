@@ -12,10 +12,12 @@ import me.exrates.model.UserFile;
 import me.exrates.model.dto.CallbackURL;
 import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.dto.UserBalancesDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.dto.UserIpReportDto;
 import me.exrates.model.dto.UserSessionInfoDto;
+import me.exrates.model.dto.UsersInfoDto;
 import me.exrates.model.dto.kyc.VerificationStep;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
@@ -43,6 +45,7 @@ import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.session.UserSessionService;
 import me.exrates.service.token.TokenScheduler;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -61,6 +64,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.servlet.http.HttpServletRequest;
+import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -68,12 +72,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
@@ -1702,11 +1709,86 @@ public class UserServiceImplTest {
 
     @Test
     public void getUsersInfoFromCache() {
+        LocalDateTime start = LocalDateTime.now();
+        LocalDateTime finish = LocalDateTime.now();
+        UsersInfoDto usersInfoDto = new UsersInfoDto();
+        usersInfoDto.setNotZeroBalanceUsers(0);
+
+        UserBalancesDto userBalancesDto = new UserBalancesDto();
+        userBalancesDto.setUserId(67);
+        userBalancesDto.setCurrencyName("name");
+        userBalancesDto.setActiveBalance(new BigDecimal(5));
+        userBalancesDto.setReservedBalance(new BigDecimal(8));
+        List<UserBalancesDto> usersBalances = Arrays.asList(userBalancesDto);
+
+        Map<String, Pair<BigDecimal, BigDecimal>> ratesMap = new HashMap<>();
+        ratesMap.put("str", Pair.of(BigDecimal.ONE, BigDecimal.ONE));
+
+        when(userDao.getUsersInfo(any(LocalDateTime.class), any(LocalDateTime.class), anyList())).thenReturn(usersInfoDto);
+        when(userDao.getUserBalances(anyList())).thenReturn(usersBalances);
+        when(exchangeApi.getRates()).thenReturn(ratesMap);
+
+        assertEquals(usersInfoDto, userService.getUsersInfoFromCache(start, finish,
+                Arrays.asList(UserRole.ADMINISTRATOR, UserRole.ADMIN_USER)));
+
+        verify(userDao, times(1)).getUsersInfo(start, finish,
+                Arrays.asList(UserRole.ADMINISTRATOR, UserRole.ADMIN_USER));
+        verify(userDao, times(1)).getUserBalances(Arrays.asList(UserRole.ADMINISTRATOR, UserRole.ADMIN_USER));
+        verify(exchangeApi, times(1)).getRates();
+
+    }
+
+    @Test
+    public void getUsersInfoFromCache_WhenException() {
+        LocalDateTime start = LocalDateTime.now();
+        LocalDateTime finish = LocalDateTime.now();
+        UsersInfoDto usersInfoDto = UsersInfoDto.builder()
+                .newUsers(0)
+                .allUsers(0)
+                .activeUsers(0)
+                .notZeroBalanceUsers(0)
+                .oneOrMoreSuccessInputUsers(0)
+                .oneOrMoreSuccessOutputUsers(0)
+                .build();
+
+        when(userDao.getUsersInfo(any(LocalDateTime.class), any(LocalDateTime.class), anyList())).thenThrow(ExecutionException.class);
+
+        assertEquals(usersInfoDto, userService.getUsersInfoFromCache(start, finish,
+                Arrays.asList(UserRole.ADMINISTRATOR, UserRole.ADMIN_USER)));
+
+        verify(userDao, times(1)).getUsersInfo(start, finish,
+                Arrays.asList(UserRole.ADMINISTRATOR, UserRole.ADMIN_USER));
+
     }
 
     @Test
     public void getUsersInfoFromDatabase() {
+        LocalDateTime start = LocalDateTime.now();
+        LocalDateTime finish = LocalDateTime.now();
+        UsersInfoDto usersInfoDto = new UsersInfoDto();
+        usersInfoDto.setNotZeroBalanceUsers(0);
 
+        UserBalancesDto userBalancesDto = new UserBalancesDto();
+        userBalancesDto.setUserId(67);
+        userBalancesDto.setCurrencyName("name");
+        userBalancesDto.setActiveBalance(new BigDecimal(5));
+        userBalancesDto.setReservedBalance(new BigDecimal(8));
+        List<UserBalancesDto> usersBalances = Arrays.asList(userBalancesDto);
+
+        Map<String, Pair<BigDecimal, BigDecimal>> ratesMap = new HashMap<>();
+        ratesMap.put("str", Pair.of(BigDecimal.ONE, BigDecimal.ONE));
+
+        when(userDao.getUsersInfo(any(LocalDateTime.class), any(LocalDateTime.class), anyList())).thenReturn(usersInfoDto);
+        when(userDao.getUserBalances(anyList())).thenReturn(usersBalances);
+        when(exchangeApi.getRates()).thenReturn(ratesMap);
+
+        assertEquals(usersInfoDto, userService.getUsersInfoFromDatabase(start, finish,
+                Arrays.asList(UserRole.ADMINISTRATOR, UserRole.ADMIN_USER)));
+
+        verify(userDao, times(1)).getUsersInfo(start, finish,
+                Arrays.asList(UserRole.ADMINISTRATOR, UserRole.ADMIN_USER));
+        verify(userDao, times(1)).getUserBalances(Arrays.asList(UserRole.ADMINISTRATOR, UserRole.ADMIN_USER));
+        verify(exchangeApi, times(1)).getRates();
     }
 
     @Test
