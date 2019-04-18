@@ -273,16 +273,15 @@ public class InputOutputServiceImpl implements InputOutputService {
 
     @Override
     public Integer getUserInputOutputHistoryCount(String userEmail, Integer currencyId, String currencyName,
-                                                  LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo,
-                                                  Integer limit, Integer offset, Locale locale) {
+                                                  LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo, Locale locale) {
         List<MyInputOutputHistoryDto> items = inputOutputDao.findMyInputOutputHistoryByOperationType(
                 userEmail,
                 currencyId,
                 currencyName,
                 dateTimeFrom,
                 dateTimeTo,
-                limit,
-                offset,
+                0,
+                0,
                 getOperationTypesList(),
                 locale
         );

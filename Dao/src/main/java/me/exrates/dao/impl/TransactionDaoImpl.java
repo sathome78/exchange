@@ -1,5 +1,6 @@
 package me.exrates.dao.impl;
 
+import com.beust.jcommander.internal.Sets;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.TransactionDao;
 import me.exrates.model.Commission;
@@ -13,6 +14,7 @@ import me.exrates.model.Transaction;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.WithdrawRequest;
+import me.exrates.model.adapters.TransactionSqlAdapter;
 import me.exrates.model.dto.InOutReportDto;
 import me.exrates.model.dto.TransactionFlatForReportDto;
 import me.exrates.model.dto.UserSummaryDto;
@@ -37,6 +39,8 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -47,11 +51,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
 import static java.util.Objects.isNull;
@@ -598,6 +606,21 @@ public final class TransactionDaoImpl implements TransactionDao {
     }
 
     @Override
+    public Set<TransactionSourceType> findAllTransactionSourceTypes() {
+        String sql = "SELECT id FROM TRANSACTION_SOURCE_TYPE";
+        List<TransactionSourceType> types = jdbcTemplate.query(sql, (rs, i) -> TransactionSourceType.convert(rs.getInt("id")));
+        return new HashSet<>(types);
+    }
+
+    @Override
+    public boolean updateStoredTransactionSourceType(Set<TransactionSourceType> values) {
+        SqlParameterSource[] batch = SqlParameterSourceUtils.createBatch(values.toArray());
+        String sql = "INSERT INTO TRANSACTION_SOURCE_TYPE VALUES (:code, :name)";
+        int[] updateCounts = jdbcTemplate.batchUpdate(sql, batch);
+        return updateCounts.length > 0;
+    }
+
+    @Override
     public BigDecimal maxCommissionAmount() {
         String sql = "SELECT MAX(TRANSACTION.commission_amount)" +
                 " FROM TRANSACTION ";
@@ -839,4 +862,21 @@ public final class TransactionDaoImpl implements TransactionDao {
             return Collections.emptyList();
         }
     }
+
+    @Override
+    public boolean saveInBatch(Collection<Transaction> transactions) {
+        TransactionSqlAdapter[] adapters = transactions
+                .stream()
+                .map(TransactionSqlAdapter::valueOf)
+                .collect(Collectors.toList())
+                .toArray(new TransactionSqlAdapter[]{});
+        SqlParameterSource[] batch = SqlParameterSourceUtils.createBatch(adapters);
+        String sql = "INSERT INTO TRANSACTION (user_wallet_id, amount, commission_amount, operation_type_id, currency_id,"
+                + " provided, active_balance_before, source_type, status_id, description)"
+                + " VALUES (:userWalletId, :amount, :commissionAmount, :operationTypeId, :currencyId, :provided," +
+                " :activeBalanceBefore, :sourceType, :statusId, :description)";
+        int[] updateCounts = jdbcTemplate.batchUpdate(sql, batch);
+        return updateCounts.length > 0;
+    }
+
 }

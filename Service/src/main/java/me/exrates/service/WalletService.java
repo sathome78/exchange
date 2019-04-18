@@ -1,6 +1,7 @@
 package me.exrates.service;
 
 import me.exrates.model.Currency;
+import me.exrates.model.IEOClaim;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.dto.ExternalReservedWalletAddressDto;
@@ -22,15 +23,16 @@ import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.ReportGroupUserRole;
 import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public interface WalletService {
 
@@ -132,8 +134,6 @@ public interface WalletService {
 
     List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> getWalletBalancesSummaryByGroups();
 
-    List<UserRoleTotalBalancesReportDto<UserRole>> getWalletBalancesSummaryByRoles(List<UserRole> roles);
-
     int getWalletIdAndBlock(Integer userId, Integer currencyId);
 
     List<ExternalWalletBalancesDto> getExternalWalletBalances();
@@ -165,4 +165,22 @@ public interface WalletService {
     BigDecimal getExternalReservedWalletBalance(Integer currencyId, String walletAddress);
 
     Wallet findByUserAndCurrency(int userId, int currencyId);
+
+    Wallet findByUserAndCurrency(int userId, String currencyName);
+
+    Map<String, Wallet> findAllByUserAndCurrencyNames(int userId, Collection<String> currencyNames);
+
+    boolean reserveUserBtcForIeo(int userId, BigDecimal amountInBtc);
+
+    boolean rollbackUserBtcForIeo(int userId, BigDecimal amountInBtc);
+
+    boolean performIeoTransfer(IEOClaim ieoClaim);
+
+    BigDecimal getAvailableAmountInBtcLocked(int id, int currencyId);
+
+    Map<String, String> findUserCurrencyBalances(User user);
+
+    BigDecimal findUserCurrencyBalance(IEOClaim ieoClaim);
+
+    boolean performIeoRollbackTransfer(IEOClaim ieoClaim);
 }

@@ -4,25 +4,33 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
+import me.exrates.dao.KYCSettingsDao;
 import me.exrates.dao.UserVerificationInfoDao;
 import me.exrates.model.Email;
 import me.exrates.model.User;
 import me.exrates.model.UserVerificationInfo;
 import me.exrates.model.constants.Constants;
+import me.exrates.model.dto.UserNotificationMessage;
+import me.exrates.model.dto.WsMessageObject;
 import me.exrates.model.dto.kyc.CreateApplicantDto;
 import me.exrates.model.dto.kyc.DocTypeEnum;
 import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.model.dto.kyc.IdentityDataKyc;
 import me.exrates.model.dto.kyc.IdentityDataRequest;
+import me.exrates.model.dto.kyc.KycCountryDto;
 import me.exrates.model.dto.kyc.PersonKycDto;
 import me.exrates.model.dto.kyc.ResponseCreateApplicantDto;
 import me.exrates.model.dto.kyc.request.RequestOnBoardingDto;
 import me.exrates.model.dto.kyc.responces.KycResponseStatusDto;
 import me.exrates.model.dto.kyc.responces.KycStatusResponseDto;
 import me.exrates.model.dto.kyc.responces.OnboardingResponseDto;
+import me.exrates.model.enums.UserNotificationType;
+import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.exceptions.KycException;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.service.KYCService;
@@ -30,6 +38,8 @@ import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.ShuftiProException;
 import me.exrates.service.kyc.http.KycHttpClient;
+import me.exrates.service.stomp.StompMessenger;
+import me.exrates.service.util.DateUtils;
 import me.exrates.service.util.ShuftiProUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -46,6 +56,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.validation.Valid;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -85,6 +96,9 @@ public class KYCServiceImpl implements KYCService {
     private final SendMailService sendMailService;
     private final KycHttpClient kycHttpClient;
     private final UserVerificationInfoDao userVerificationInfoDao;
+    private final KYCSettingsDao kycSettingsDao;
+    private final StompMessenger stompMessenger;
+    private final ObjectMapper objectMapper;
 
     @Value("${server-host}")
     private String host;
@@ -106,7 +120,10 @@ public class KYCServiceImpl implements KYCService {
                           UserService userService,
                           SendMailService sendMailService,
                           KycHttpClient kycHttpClient,
-                          UserVerificationInfoDao userVerificationInfoDao) {
+                          UserVerificationInfoDao userVerificationInfoDao,
+                          KYCSettingsDao kycSettingsDao,
+                          StompMessenger stompMessenger,
+                          ObjectMapper objectMapper) {
         this.verificationUrl = verificationUrl;
         this.statusUrl = statusUrl;
         this.callbackUrl = callbackUrl;
@@ -123,6 +140,9 @@ public class KYCServiceImpl implements KYCService {
         this.sendMailService = sendMailService;
         this.kycHttpClient = kycHttpClient;
         this.userVerificationInfoDao = userVerificationInfoDao;
+        this.kycSettingsDao = kycSettingsDao;
+        this.stompMessenger = stompMessenger;
+        this.objectMapper = objectMapper;
         this.restTemplate = new RestTemplate();
         this.restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(username, password));
     }
@@ -310,10 +330,13 @@ public class KYCServiceImpl implements KYCService {
         if (user.getKycStatus().equalsIgnoreCase("success")) {
             throw new KycException("Already passed KYC");
         }
-
+        Date dateOfBirth = DateUtils.getDateFromStringForKyc(identityDataRequest.getBirthYear(), identityDataRequest.getBirthMonth(),
+                identityDataRequest.getBirthDay());
         //start create applicant
         String uuid = UUID.randomUUID().toString();
-        userService.updateKycReferenceByEmail(email, uuid);
+        KycCountryDto countryDto = kycSettingsDao.getCountryByCode(identityDataRequest.getCountry());
+        userService.updatePrivateDataAndKycReference(email, uuid, countryDto.getCountryCode(), identityDataRequest.getFirstNames()[0],
+                identityDataRequest.getLastName(), dateOfBirth);
         PersonKycDto personKycDto = new PersonKycDto(Collections.singletonList(IdentityDataKyc.of(identityDataRequest)));
         CreateApplicantDto createApplicantDto = new CreateApplicantDto(uuid, personKycDto);
 
@@ -358,6 +381,18 @@ public class KYCServiceImpl implements KYCService {
                 .build();
 
         sendMailService.sendMailMandrill(email);
+
+        UserNotificationType type;
+        String msg = String.format(emailMessagePattern, eventStatus);
+        if (eventStatus.equalsIgnoreCase("success")) {
+            type = UserNotificationType.SUCCESS;
+        } else {
+            type = UserNotificationType.ERROR;
+        }
+
+        final UserNotificationMessage message = new UserNotificationMessage(WsSourceTypeEnum.KYC, type, msg);
+
+        stompMessenger.sendPersonalMessageToUser(userEmail, message);
     }
 
     private void validateMerchantSignature(String signature, String response) {

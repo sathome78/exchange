@@ -490,10 +490,13 @@ public class EntryController {
     @ResponseBody
     public Generic2faResponseDto getGoogle2FaState(Principal principal) throws UnsupportedEncodingException {
         User user = userService.findByEmail(principal.getName());
-        Boolean isConnected = g2faService.isGoogleAuthenticatorEnable(user.getId());
+        boolean isConnected = g2faService.isGoogleAuthenticatorEnable(user.getId());
         Generic2faResponseDto dto = null;
         if (!isConnected) {
-            dto = new Generic2faResponseDto(g2faService.generateQRUrl(principal.getName()), g2faService.getGoogleAuthenticatorCode(user.getId()));
+            final String secretCode = g2faService.getGoogleAuthenticatorCode(user.getId());
+            final String qrURL = g2faService.generateQRUrl(principal.getName(), secretCode);
+
+            dto = new Generic2faResponseDto(qrURL, secretCode);
         }
         return dto;
     }

@@ -2,6 +2,7 @@ package me.exrates.security.config;
 
 import me.exrates.security.service.AuthChannelInterceptorAdapter;
 import me.exrates.security.service.WebSocketAuthenticatorService;
+import me.exrates.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -18,9 +19,12 @@ public class WebSocketAuthSecurityConfig extends AbstractWebSocketMessageBrokerC
 
     private final WebSocketAuthenticatorService webSocketAuthenticatorService;
 
+    private final UserService userService;
+
     @Autowired
-    public WebSocketAuthSecurityConfig(WebSocketAuthenticatorService webSocketAuthenticatorService) {
+    public WebSocketAuthSecurityConfig(WebSocketAuthenticatorService webSocketAuthenticatorService, UserService userService) {
         this.webSocketAuthenticatorService = webSocketAuthenticatorService;
+        this.userService = userService;
     }
 
     @Override
@@ -30,7 +34,7 @@ public class WebSocketAuthSecurityConfig extends AbstractWebSocketMessageBrokerC
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(new AuthChannelInterceptorAdapter(webSocketAuthenticatorService));
+        registration.interceptors(new AuthChannelInterceptorAdapter(webSocketAuthenticatorService, userService));
     }
 }
 

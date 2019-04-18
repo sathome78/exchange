@@ -21,11 +21,14 @@ import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.dto.UserIpReportDto;
 import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.UsersInfoDto;
+import me.exrates.model.dto.api.RateDto;
+import me.exrates.model.dto.ieo.IeoUserStatus;
 import me.exrates.model.dto.kyc.VerificationStep;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.NotificationTypeEnum;
+import me.exrates.model.enums.PolicyEnum;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
@@ -78,6 +81,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -328,6 +332,7 @@ public class UserServiceImpl implements UserService {
         return userDao.ifNicknameIsUnique(nickname);
     }
 
+    @Transactional(readOnly = true)
     public boolean ifEmailIsUnique(String email) {
         return userDao.ifEmailIsUnique(email);
     }
@@ -991,7 +996,7 @@ public class UserServiceImpl implements UserService {
                 .stream()
                 .collect(Collectors.groupingBy(UserBalancesDto::getUserId));
 
-        final Map<String, Pair<BigDecimal, BigDecimal>> ratesMap = exchangeApi.getRates();
+        final Map<String, RateDto> ratesMap = exchangeApi.getRates();
 
         return usersInfo.toBuilder()
                 .notZeroBalanceUsers((int) usersBalances.entrySet()
@@ -1004,11 +1009,9 @@ public class UserServiceImpl implements UserService {
                                         double activeBalance = balance.getActiveBalance().doubleValue();
                                         double reservedBalance = balance.getReservedBalance().doubleValue();
 
-                                        Pair<BigDecimal, BigDecimal> ratePair = ratesMap.get(currencyName);
-                                        if (isNull(ratePair)) {
-                                            ratePair = Pair.of(BigDecimal.ZERO, BigDecimal.ZERO);
-                                        }
-                                        final double usdRate = ratePair.getLeft().doubleValue();
+                                        RateDto rateDto = ratesMap.getOrDefault(currencyName, RateDto.zeroRate(currencyName));
+
+                                        final double usdRate = rateDto.getUsdRate().doubleValue();
 
                                         return (activeBalance + reservedBalance) * usdRate;
                                     })
@@ -1055,8 +1058,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean updateKycReferenceByEmail(String email, String referenceUID) {
-        return userDao.updateKycReferenceIdByEmail(email, referenceUID);
+    public boolean updatePrivateDataAndKycReference(String email, String referenceUID, String country,
+                                                    String firstName, String lastName, Date birthDay) {
+        return userDao.updatePrivacyDataAndKycReferenceIdByEmail(email, referenceUID, country, firstName, lastName, birthDay);
     }
 
     @Override
@@ -1076,6 +1080,40 @@ public class UserServiceImpl implements UserService {
     @Override
     public String getKycReferenceByEmail(String email) {
         return userDao.findKycReferenceByUserEmail(email);
+    }
+
+    @Override
+    public boolean addPolicyToUser(String email, String policy) {
+        PolicyEnum policyEnum = PolicyEnum.convert(policy);
+        User user = userDao.findByEmail(email);
+        if (userDao.existPolicyByUserIdAndPolicy(user.getId(), policy)) {
+            return true;
+        }
+        return userDao.updateUserPolicyByEmail(email, policyEnum);
+    }
+
+    public IeoUserStatus findIeoUserStatusByEmail(String email) {
+        return userDao.findIeoUserStatusByEmail(email);
+    }
+
+    @Override
+    public boolean updateUserRole(int userId, UserRole userRole) {
+        return userDao.updateUserRole(userId, userRole);
+    }
+
+    @Override
+    public boolean existPolicyByUserIdAndPolicy(int id, String name) {
+        return userDao.existPolicyByUserIdAndPolicy(id, name);
+    }
+
+    @Override
+    public String getEmailByPubId(String pubId) {
+        return userDao.getEmailByPubId(pubId);
+    }
+
+    @Override
+    public String getPubIdByEmail(String email) {
+        return userDao.getPubIdByEmail(email);
     }
 
 }

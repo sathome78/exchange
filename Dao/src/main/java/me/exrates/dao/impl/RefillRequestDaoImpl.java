@@ -59,7 +59,6 @@ import static me.exrates.model.enums.TransactionSourceType.REFILL;
  */
 
 @Repository
-@Conditional(MonolitConditional.class)
 public class RefillRequestDaoImpl implements RefillRequestDao {
 
     private static final Logger log = LogManager.getLogger("refill");
@@ -269,7 +268,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
             put("hash", hash);
         }};
         try {
-            return Optional.ofNullable(namedParameterJdbcTemplate.queryForObject(sql, params, refillRequestFlatDtoRowMapper));
+            return Optional.ofNullable(slaveJdbcTemplate.queryForObject(sql, params, refillRequestFlatDtoRowMapper));
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }

@@ -1,17 +1,24 @@
 package me.exrates.ngcontroller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.NotificationOption;
 import me.exrates.model.SessionParams;
 import me.exrates.model.User;
+import me.exrates.model.constants.Constants;
+import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.PageLayoutSettingsDto;
 import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.enums.ColorScheme;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.SessionLifeTypeEnum;
-import me.exrates.model.constants.Constants;
+import me.exrates.model.enums.UserNotificationType;
+import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.ngExceptions.NgDashboardException;
+import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.ngExceptions.WrongPasswordException;
 import me.exrates.model.ngModel.ExceptionDto;
 import me.exrates.model.ngModel.UserDocVerificationDto;
@@ -27,7 +34,7 @@ import me.exrates.service.NotificationService;
 import me.exrates.service.PageLayoutSettingsService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
-import me.exrates.dao.exception.notfound.UserNotFoundException;
+import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.util.RestApiUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -46,6 +53,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -83,6 +91,8 @@ public class NgUserSettingsController {
     private final PageLayoutSettingsService layoutSettingsService;
     private final UserVerificationService verificationService;
     private final IpBlockingService ipBlockingService;
+    private final StompMessenger stompMessenger;
+    private final ObjectMapper objectMapper;
 
     @Value("${contacts.feedbackEmail}")
     String feedbackEmail;
@@ -94,7 +104,9 @@ public class NgUserSettingsController {
                                     SessionParamsService sessionParamsService,
                                     PageLayoutSettingsService pageLayoutSettingsService,
                                     UserVerificationService userVerificationService,
-                                    IpBlockingService ipBlockingService) {
+                                    IpBlockingService ipBlockingService,
+                                    StompMessenger stompMessenger,
+                                    ObjectMapper objectMapper) {
         this.authTokenService = authTokenService;
         this.userService = userService;
         this.notificationService = notificationService;
@@ -102,6 +114,8 @@ public class NgUserSettingsController {
         this.layoutSettingsService = pageLayoutSettingsService;
         this.verificationService = userVerificationService;
         this.ipBlockingService = ipBlockingService;
+        this.stompMessenger = stompMessenger;
+        this.objectMapper = objectMapper;
     }
 
     // /info/private/v2/settings/updateMainPassword
@@ -188,7 +202,8 @@ public class NgUserSettingsController {
                 return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
             }
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            String message = String.format("Update session period %s failed", body.get("sessionInterval"));
+            throw new NgResponseException(ErrorApiTitles.UPDATE_SESSION_PERIOD_FAILED, message);
         }
     }
 
@@ -214,7 +229,8 @@ public class NgUserSettingsController {
             notificationService.updateNotificationOptionsForUser(userId, options);
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            String message = "Update user notification failed";
+            throw new NgResponseException(ErrorApiTitles.UPDATE_USER_NOTIFICATION_FAILED, message);
         }
     }
 
@@ -270,7 +286,8 @@ public class NgUserSettingsController {
         if (attempt != null) {
             return new ResponseEntity<>(HttpStatus.CREATED);
         }
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        String message = "Upload user verification failed";
+        throw new NgResponseException(ErrorApiTitles.UPLOAD_USER_VERIFICATION_FAILED, message);
     }
 
     @PostMapping("/userFiles/docs/{type}")
@@ -282,8 +299,8 @@ public class NgUserSettingsController {
         String encoded = body.getOrDefault("BASE_64", "");
 
         if (StringUtils.isEmpty(encoded)) {
-            logger.info("uploadUserVerificationDocs() Error get data from file");
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            String message = "Upload user verification code failed. String encoded is empty.";
+            throw new NgResponseException(ErrorApiTitles.UPLOAD_USER_VERIFICATION_DOCS_FAILED, message);
         }
         UserDocVerificationDto data = new UserDocVerificationDto(userId, documentType, encoded);
 
@@ -291,7 +308,8 @@ public class NgUserSettingsController {
         if (attempt != null) {
             return new ResponseEntity<>(HttpStatus.CREATED);
         }
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        String message = "Upload user verification code failed. Invalid path variable and/or request body.";
+        throw new NgResponseException(ErrorApiTitles.UPLOAD_USER_VERIFICATION_DOCS_FAILED, message);
     }
 
     @GetMapping("/currency_pair/favourites")
@@ -309,19 +327,36 @@ public class NgUserSettingsController {
             toDelete = Boolean.valueOf(params.get("TO_DELETE"));
         } catch (Exception e) {
             logger.info("Failed to convert attributes as {}", e.getMessage());
-            return ResponseEntity.badRequest().build();
+            String message = String.format("Failed to convert attributes %s.", params);
+            throw new NgResponseException(ErrorApiTitles.FAILED_MANAGE_USER_FAVORITE_CURRENCY_PAIRS, message);
         }
         boolean result = userService.manageUserFavouriteCurrencyPair(getPrincipalEmail(), currencyPairId, toDelete);
         if (result) {
             return ResponseEntity.ok().build();
         }
-        return ResponseEntity.badRequest().build();
+        String message = "Cannot find user by email.";
+        throw new NgResponseException(ErrorApiTitles.FAILED_MANAGE_USER_FAVORITE_CURRENCY_PAIRS, message);
     }
 
     @GetMapping("/token/refresh")
     public ResponseEntity<AuthTokenDto> refreshToken(HttpServletRequest request) {
         AuthTokenDto authTokenDto = authTokenService.refreshTokenNg(getPrincipalEmail(), request);
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK); // 200
+    }
+
+    // /api/private/v2/users/jksdhfbsjfgsjdfgasj/personal/{status}?message=Hello
+    // possible statuses (information, warning, alert, error, success)
+    @GetMapping("/jksdhfbsjfgsjdfgasj/personal/{status}")
+    public ResponseEntity<Void> sendMeMessage(@PathVariable String status,
+                                              @RequestParam(required = false) String message) {
+        try {
+            UserNotificationType messageType = UserNotificationType.valueOf(status.toUpperCase());
+            UserNotificationMessage userNotificationMessage = new UserNotificationMessage(WsSourceTypeEnum.IEO, messageType, message);
+            stompMessenger.sendPersonalMessageToUser(getPrincipalEmail(), userNotificationMessage);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     private UpdateUserDto getUpdateUserDto(User user) {

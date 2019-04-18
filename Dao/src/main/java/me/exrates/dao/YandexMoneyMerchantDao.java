@@ -10,7 +10,7 @@ import java.util.Optional;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
-public interface YandexMoneyMerchantDao {
+public interface    YandexMoneyMerchantDao {
     List<String> getAllTokens();
     String getTokenByUserEmail(String email);
     boolean createToken(String token, int userId);

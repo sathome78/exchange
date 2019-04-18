@@ -1,10 +1,13 @@
 package me.exrates.controller.openAPI.config;
 
+import me.exrates.dao.IeoDetailsRepository;
 import me.exrates.security.service.OpenApiAuthService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
+import me.exrates.service.openapi.OpenApiCommonService;
+import me.exrates.service.openapi.impl.OpenApiCommonServiceImpl;
 import me.exrates.service.userOperation.UserOperationService;
 import org.mockito.Mockito;
 import org.springframework.context.MessageSource;
@@ -26,12 +29,17 @@ public class WebAppTestConfig {
     }
 
     @Bean
-    public UserService userService(){
+    public UserService userService() {
         return Mockito.mock(UserService.class);
     }
 
     @Bean
-    public CurrencyService currencyService(){
+    public IeoDetailsRepository ieoDetailsRepository() {
+        return Mockito.mock(IeoDetailsRepository.class);
+    }
+
+    @Bean
+    public CurrencyService currencyService() {
         return Mockito.mock(CurrencyService.class);
     }
 
@@ -53,5 +61,10 @@ public class WebAppTestConfig {
     @Bean
     public WalletService walletService() {
         return Mockito.mock(WalletService.class);
+    }
+
+    @Bean
+    public OpenApiCommonService openApiCommonService() {
+        return new OpenApiCommonServiceImpl(userService(), messageSource(), userOperationService());
     }
 }

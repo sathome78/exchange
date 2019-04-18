@@ -3,12 +3,14 @@ package me.exrates.service.bitshares.ppy;
 import lombok.SneakyThrows;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.service.bitshares.BitsharesServiceImpl;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 import javax.websocket.ClientEndpoint;
+import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import java.io.IOException;
 
@@ -113,4 +115,10 @@ public class PPYServiceImpl extends BitsharesServiceImpl {
         block.put("params", new JSONArray().put("database").put("get_block").put(new JSONArray().put(blockNum)));
         endpoint.sendText(block.toString());
     }
+
+    @OnError
+    public void onError(Throwable t) throws Throwable {
+        log.error(ExceptionUtils.getStackTrace(t));
+    }
+
 }

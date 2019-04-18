@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.InOutReportDto;
-import org.apache.commons.lang3.tuple.Pair;
+import me.exrates.model.dto.api.RateDto;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static java.util.Objects.isNull;
 
@@ -35,7 +34,7 @@ public class ReportTwoExcelGeneratorUtil {
 
     public static byte[] generate(List<Currency> currencies,
                                   Map<String, InOutReportDto> inOutMap,
-                                  Map<String, Pair<BigDecimal, BigDecimal>> ratesMap) throws Exception {
+                                  Map<String, RateDto> rates) throws Exception {
         XSSFWorkbook workbook = new XSSFWorkbook();
 
         CellStyle header1Style = getHeader1Style(workbook);
@@ -235,12 +234,10 @@ public class ReportTwoExcelGeneratorUtil {
             final BigDecimal inputCommission = inOutReportDto.getInputCommission();
             final BigDecimal outputCommission = inOutReportDto.getOutputCommission();
 
-            Pair<BigDecimal, BigDecimal> ratePair = ratesMap.get(currencyName);
-            if (isNull(ratePair)) {
-                ratePair = Pair.of(BigDecimal.ZERO, BigDecimal.ZERO);
-            }
-            final BigDecimal usdRate = ratePair.getLeft();
-            final BigDecimal btcRate = ratePair.getRight();
+            RateDto rateDto = rates.getOrDefault(currencyName, RateDto.zeroRate(currencyName));
+
+            final BigDecimal usdRate = rateDto.getUsdRate();
+            final BigDecimal btcRate = rateDto.getBtcRate();
 
             row = sheet.createRow(i + 2);
 

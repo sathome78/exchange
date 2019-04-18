@@ -14,7 +14,11 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Repository
 public class OpenApiTokenDaoImpl implements OpenApiTokenDao {
@@ -22,6 +26,10 @@ public class OpenApiTokenDaoImpl implements OpenApiTokenDao {
     @Autowired
     @Qualifier(value = "masterTemplate")
     private NamedParameterJdbcTemplate jdbcTemplate;
+
+    @Autowired
+    @Qualifier(value = "slaveTemplate")
+    private NamedParameterJdbcTemplate slaveJdbcTemplate;
 
     private final RowMapper<OpenApiToken> tokenRowMapper = (rs, rowNum) -> {
         OpenApiToken token = new OpenApiToken();
@@ -54,7 +62,6 @@ public class OpenApiTokenDaoImpl implements OpenApiTokenDao {
         jdbcTemplate.update(sql, params, keyHolder);
         return keyHolder.getKey().longValue();
     }
-
 
     @Override
     public Optional<OpenApiToken> getByPublicKey(String publicKey) {
@@ -124,8 +131,6 @@ public class OpenApiTokenDaoImpl implements OpenApiTokenDao {
         String sql = "UPDATE OPEN_API_USER_TOKEN SET is_active = 0 WHERE id = :token_id ";
         jdbcTemplate.update(sql, Collections.singletonMap("token_id", tokenId));
     }
-
-
 
 
 }

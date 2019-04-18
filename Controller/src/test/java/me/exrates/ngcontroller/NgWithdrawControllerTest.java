@@ -4,6 +4,7 @@ import me.exrates.model.dto.PinOrderInfoDto;
 import me.exrates.model.dto.WithdrawRequestParamsDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.InputOutputService;
@@ -30,6 +31,7 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.util.NestedServletException;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -42,6 +44,7 @@ import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasValue;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyObject;
@@ -244,10 +247,20 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         when(inputOutputService.prepareCreditsOperation(anyObject(), anyString(), anyObject()))
                 .thenThrow(InvalidAmountException.class);
 
-        mockMvc.perform(post(BASE_URL + "/request/create")
-                .contentType(MediaType.APPLICATION_JSON_UTF8)
-                .content(objectMapper.writeValueAsString(getMockWithdrawRequestParamsDto("TEST_SECURITY_CODE"))))
-                .andExpect(status().isBadRequest());
+        try {
+            mockMvc.perform(post(BASE_URL + "/request/create")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8)
+                    .content(objectMapper.writeValueAsString(getMockWithdrawRequestParamsDto("TEST_SECURITY_CODE"))))
+                    .andExpect(status().isBadRequest());
+            Assert.fail();
+        } catch (Exception e) {
+            assertTrue(((NestedServletException) e).getRootCause() instanceof NgResponseException);
+            NgResponseException responseException = (NgResponseException) ((NestedServletException) e).getRootCause();
+            assertEquals("FAILED_TO_CREATE_WITHDRAW_REQUEST", responseException.getTitle());
+
+            String expected = "Failed to create withdraw request me.exrates.service.exception.InvalidAmountException";
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(userOperationService, times(1))
                 .getStatusAuthorityForUserByOperation(anyInt(), anyObject());
@@ -262,22 +275,16 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
 
     @Test
     public void outputCredits_isOk_merchantCurrencyData_is_empty() throws Exception {
-        List<String> warningCodeList = new ArrayList<>();
-        warningCodeList.add("WARNING_CODE_ONE");
-        warningCodeList.add("WARNING_CODE_TWO");
-
         when(currencyService.findByName(anyString())).thenReturn(getMockCurrency("TEST_CURRENCY"));
         when(userService.findByEmail(anyString())).thenReturn(getMockUser());
         when(walletService.findByUserAndCurrency(anyObject(), anyObject())).thenReturn(getMockWallet());
         when(userService.getUserRoleFromSecurityContext()).thenReturn(UserRole.USER);
-
         when(currencyService.retrieveMinLimitForRoleAndCurrency(anyObject(), anyObject(), anyInt())).thenReturn(BigDecimal.TEN);
         when(currencyService.retrieveMaxDailyRequestForRoleAndCurrency(anyObject(), anyObject(), anyInt())).thenReturn(BigDecimal.TEN);
-
+        when(withdrawService.getLeftOutputRequestsSum(anyInt(), anyString())).thenReturn(BigDecimal.ONE);
         when(currencyService.getCurrencyScaleByCurrencyId(anyInt())).thenReturn(getMockMerchantCurrencyScaleDto());
         when(merchantService.getAllUnblockedForOperationTypeByCurrencies(anyList(), anyObject())).thenReturn((Collections.EMPTY_LIST));
-
-        when(currencyService.getWarningForCurrency(anyInt(), anyObject())).thenReturn(warningCodeList);
+        when(currencyService.getWarningForCurrency(anyInt(), anyObject())).thenReturn(getWarningCodeList());
 
         mockMvc.perform(get(BASE_URL + "/merchants/output")
                 .param("currency", "BTC")
@@ -306,45 +313,45 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         when(userService.findByEmail(anyString())).thenThrow(Exception.class);
         when(walletService.findByUserAndCurrency(anyObject(), anyObject())).thenThrow(Exception.class);
         when(userService.getUserRoleFromSecurityContext()).thenThrow(Exception.class);
-
         when(currencyService.retrieveMinLimitForRoleAndCurrency(anyObject(), anyObject(), anyInt())).thenThrow(Exception.class);
         when(currencyService.retrieveMaxDailyRequestForRoleAndCurrency(anyObject(), anyObject(), anyInt())).thenThrow(Exception.class);
-
         when(currencyService.getCurrencyScaleByCurrencyId(anyInt())).thenThrow(Exception.class);
         when(merchantService.getAllUnblockedForOperationTypeByCurrencies(anyList(), anyObject())).thenThrow(Exception.class);
         when(merchantServiceContext.getMerchantService(anyInt())).thenThrow(Exception.class);
-
         when(currencyService.getWarningForCurrency(anyInt(), anyObject())).thenThrow(Exception.class);
 
-        mockMvc.perform(get(BASE_URL + "/merchants/output")
-                .param("currency", "BTC")
-                .contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andExpect(status().isBadRequest());
+        try {
+            mockMvc.perform(get(BASE_URL + "/merchants/output")
+                    .param("currency", "BTC")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8))
+                    .andExpect(status().isBadRequest());
+            Assert.fail();
+        } catch (Exception e) {
+            assertTrue(((NestedServletException) e).getRootCause() instanceof NgResponseException);
+            NgResponseException responseException = (NgResponseException) ((NestedServletException) e).getRootCause();
+            assertEquals("FAILED_OUTPUT_CREDITS", responseException.getTitle());
+
+            String expected = "Failed output credits BTC";
+            assertEquals(expected, e.getCause().getMessage());
+        }
     }
 
     @Test
     public void outputCredits_isOk_additionalTagForWithdrawAddressIsUsed_equals_false() throws Exception {
-        List<String> warningCodeList = new ArrayList<>();
-        warningCodeList.add("WARNING_CODE_ONE");
-        warningCodeList.add("WARNING_CODE_TWO");
-
         IWithdrawable withdrawable = Mockito.mock(IWithdrawable.class);
 
         when(currencyService.findByName(anyString())).thenReturn(getMockCurrency("TEST_CURRENCY"));
         when(userService.findByEmail(anyString())).thenReturn(getMockUser());
         when(walletService.findByUserAndCurrency(anyObject(), anyObject())).thenReturn(getMockWallet());
         when(userService.getUserRoleFromSecurityContext()).thenReturn(UserRole.USER);
-
         when(currencyService.retrieveMinLimitForRoleAndCurrency(anyObject(), anyObject(), anyInt())).thenReturn(BigDecimal.TEN);
         when(currencyService.retrieveMaxDailyRequestForRoleAndCurrency(anyObject(), anyObject(), anyInt())).thenReturn(BigDecimal.TEN);
-
+        when(withdrawService.getLeftOutputRequestsSum(anyInt(), anyString())).thenReturn(BigDecimal.ONE);
         when(currencyService.getCurrencyScaleByCurrencyId(anyInt())).thenReturn(getMockMerchantCurrencyScaleDto());
         when(merchantService.getAllUnblockedForOperationTypeByCurrencies(anyList(), anyObject())).thenReturn((Collections.singletonList(getMockMerchantCurrency())));
-
         when(merchantServiceContext.getMerchantService(anyInt())).thenReturn(withdrawable);
         when(withdrawable.additionalTagForWithdrawAddressIsUsed()).thenReturn(Boolean.FALSE);
-
-        when(currencyService.getWarningForCurrency(anyInt(), anyObject())).thenReturn(warningCodeList);
+        when(currencyService.getWarningForCurrency(anyInt(), anyObject())).thenReturn(getWarningCodeList());
 
         mockMvc.perform(get(BASE_URL + "/merchants/output")
                 .param("currency", "BTC")
@@ -370,27 +377,20 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
 
     @Test
     public void outputCredits_isOk_additionalTagForWithdrawAddressIsUsed_equals_true() throws Exception {
-        List<String> warningCodeList = new ArrayList<>();
-        warningCodeList.add("WARNING_CODE_ONE");
-        warningCodeList.add("WARNING_CODE_TWO");
-
         IWithdrawable withdrawable = Mockito.mock(IWithdrawable.class);
 
         when(currencyService.findByName(anyString())).thenReturn(getMockCurrency("TEST_CURRENCY"));
         when(userService.findByEmail(anyString())).thenReturn(getMockUser());
         when(walletService.findByUserAndCurrency(anyObject(), anyObject())).thenReturn(getMockWallet());
         when(userService.getUserRoleFromSecurityContext()).thenReturn(UserRole.USER);
-
         when(currencyService.retrieveMinLimitForRoleAndCurrency(anyObject(), anyObject(), anyInt())).thenReturn(BigDecimal.TEN);
         when(currencyService.retrieveMaxDailyRequestForRoleAndCurrency(anyObject(), anyObject(), anyInt())).thenReturn(BigDecimal.TEN);
-
+        when(withdrawService.getLeftOutputRequestsSum(anyInt(), anyString())).thenReturn(BigDecimal.ONE);
         when(currencyService.getCurrencyScaleByCurrencyId(anyInt())).thenReturn(getMockMerchantCurrencyScaleDto());
         when(merchantService.getAllUnblockedForOperationTypeByCurrencies(anyList(), anyObject())).thenReturn((Collections.singletonList(getMockMerchantCurrency())));
-
         when(merchantServiceContext.getMerchantService(anyInt())).thenReturn(withdrawable);
         when(withdrawable.additionalTagForWithdrawAddressIsUsed()).thenReturn(Boolean.TRUE);
-
-        when(currencyService.getWarningForCurrency(anyInt(), anyObject())).thenReturn(warningCodeList);
+        when(currencyService.getWarningForCurrency(anyInt(), anyObject())).thenReturn(getWarningCodeList());
 
         mockMvc.perform(get(BASE_URL + "/merchants/output")
                 .param("currency", "BTC")
@@ -448,10 +448,20 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
     public void sendUserPinCode_badRequest() throws Exception {
         when(userService.findByEmail(anyString())).thenThrow(Exception.class);
 
-        mockMvc.perform(post(BASE_URL + "/request/pin")
-                .contentType(MediaType.APPLICATION_JSON_UTF8)
-                .content(objectMapper.writeValueAsString(new PinOrderInfoDto("TEST_NAME", BigDecimal.ZERO))))
-                .andExpect(status().isBadRequest());
+        try {
+            mockMvc.perform(post(BASE_URL + "/request/pin")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8)
+                    .content(objectMapper.writeValueAsString(new PinOrderInfoDto("TEST_NAME", BigDecimal.ZERO))))
+                    .andExpect(status().isBadRequest());
+            Assert.fail();
+        } catch (Exception e) {
+            assertTrue(((NestedServletException) e).getRootCause() instanceof NgResponseException);
+            NgResponseException responseException = (NgResponseException) ((NestedServletException) e).getRootCause();
+            assertEquals("FAILED_TO_SEND_PIN_CODE_ON_USER_EMAIL", responseException.getTitle());
+
+            String expected = "Failed to send pin code on user email";
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(userService, times(1)).findByEmail(anyString());
     }
@@ -459,8 +469,6 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
     @Test
     public void getCommissions_isOk_memo_empty() throws Exception {
         int userId = 100;
-        Map<String, String> response = new HashMap<>();
-        response.put("TEST_KEY", "TEST_VALUE");
 
         when(userService.getIdByEmail(anyString())).thenReturn(userId);
 
@@ -477,8 +485,6 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
     @Test
     public void getCommissions_isOk_memo_not_empty() throws Exception {
         int userId = 100;
-        Map<String, String> response = new HashMap<>();
-        response.put("TEST_KEY", "TEST_VALUE");
 
         when(userService.getIdByEmail(anyString())).thenReturn(userId);
 
@@ -509,5 +515,13 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         dto.setSecurityCode(securityCode);
 
         return dto;
+    }
+
+    private List<String> getWarningCodeList() {
+        List<String> warningCodeList = new ArrayList<>();
+        warningCodeList.add("WARNING_CODE_ONE");
+        warningCodeList.add("WARNING_CODE_TWO");
+
+        return warningCodeList;
     }
 }

@@ -8,7 +8,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
-import static me.exrates.model.enums.invoice.RefillStatusEnum.CREATED_BY_FACT;
 
 /**
  * Created by ValkSam
@@ -93,11 +92,6 @@ public enum TransferStatusEnum implements InvoiceStatus {
     return Arrays.stream(TransferStatusEnum.class.getEnumConstants())
         .filter(e -> action.stream().filter(e::availableForAction).findFirst().isPresent())
         .collect(Collectors.toList());
-  }
-
-  public Set<InvoiceActionTypeEnum> getAvailableActionList() {
-    schemaMap.keySet().forEach(InvoiceActionTypeEnum::checkRestrictParamNeeded);
-    return schemaMap.keySet();
   }
 
   public Set<InvoiceActionTypeEnum> getAvailableActionList(InvoiceActionParamsValue paramsValue) {

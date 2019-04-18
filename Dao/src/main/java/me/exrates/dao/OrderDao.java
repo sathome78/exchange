@@ -108,7 +108,7 @@ public interface OrderDao {
 
     List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, String currencyName,
                                                 OrderStatus orderStatus, String scope, Integer limit, Integer offset,
-                                                Boolean hideCanceled, Map<String, String> sortedColumns,
+                                                Boolean hideCanceled, String sortByCreated,
                                                 LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo, Locale locale);
 
     OrderCreateDto getMyOrderById(int orderId);
@@ -157,8 +157,8 @@ public interface OrderDao {
     List<UserOrdersDto> getUserOrders(Integer userId, Integer currencyPairId, int queryLimit, int queryOffset);
 
     Integer getMyOrdersWithStateCount(Integer userId, CurrencyPair currencyPair, String currencyName, OrderStatus orderStatus,
-                                      String scope, Integer limit, Integer offset, Boolean hideCanceled, Map<String, String> sortedColumns,
-                                      LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo);
+                                      String scope, Integer limit, Integer offset, Boolean hideCanceled, LocalDateTime dateTimeFrom,
+                                      LocalDateTime dateTimeTo);
 
     List<OrderWideListDto> getAllOrders(Integer userId, OrderStatus status, CurrencyPair currencyPair, Locale locale,
                                         String scope, LocalDate dateFrom, LocalDate dateTo, boolean hideCanceled);

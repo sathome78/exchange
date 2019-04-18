@@ -11,6 +11,16 @@ public class Wallet {
     private User user;
     private BigDecimal activeBalance;
     private BigDecimal reservedBalance;
+
+    public BigDecimal getIeoReserved() {
+        return ieoReserved;
+    }
+
+    public void setIeoReserved(BigDecimal ieoReserved) {
+        this.ieoReserved = ieoReserved;
+    }
+
+    private BigDecimal ieoReserved;
     private String name;
 
     public Wallet() {

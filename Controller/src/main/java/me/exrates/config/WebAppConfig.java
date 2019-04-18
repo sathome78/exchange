@@ -1,16 +1,21 @@
 package me.exrates.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.google.common.collect.Lists;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.SSMGetter;
 import me.exrates.aspect.LoggingAspect;
+import me.exrates.config.ext.JsonMimeInterceptor;
+import me.exrates.config.ext.LogableErrorHandler;
 import me.exrates.controller.filter.LoggingFilter;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.controller.interceptor.MDCInterceptor;
 import me.exrates.controller.interceptor.SecurityInterceptor;
 import me.exrates.controller.interceptor.TokenInterceptor;
+import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.model.dto.MosaicIdDto;
@@ -20,7 +25,11 @@ import me.exrates.service.BitcoinService;
 import me.exrates.service.MoneroService;
 import me.exrates.service.NamedParameterJdbcTemplateWrapper;
 import me.exrates.service.achain.AchainContract;
-import me.exrates.service.ethereum.*;
+import me.exrates.service.ethereum.EthTokenService;
+import me.exrates.service.ethereum.EthTokenServiceImpl;
+import me.exrates.service.ethereum.EthereumCommonService;
+import me.exrates.service.ethereum.EthereumCommonServiceImpl;
+import me.exrates.service.ethereum.ExConvert;
 import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.handler.RestResponseErrorHandler;
 import me.exrates.service.impl.BitcoinServiceImpl;
@@ -29,6 +38,7 @@ import me.exrates.service.impl.MoneroServiceImpl;
 import me.exrates.service.job.QuartzJobFactory;
 import me.exrates.service.nem.XemMosaicService;
 import me.exrates.service.nem.XemMosaicServiceImpl;
+import me.exrates.service.properties.InOutProperties;
 import me.exrates.service.properties.SsmProperties;
 import me.exrates.service.qtum.QtumTokenService;
 import me.exrates.service.qtum.QtumTokenServiceImpl;
@@ -36,8 +46,10 @@ import me.exrates.service.stellar.StellarAsset;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.apache.http.Header;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicHeader;
 import org.flywaydb.core.Flyway;
 import org.nem.core.model.primitive.Supply;
 import org.quartz.Scheduler;
@@ -102,6 +114,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
@@ -249,10 +262,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     private String dbSlaveForReportsUrl;
     private String dbSlaveForReportsClassname;
 
+    private final InOutProperties inOutProperties;
     private final String inoutTokenValue;
 
-    public WebAppConfig(SSMGetter ssmGetter, SsmProperties ssmProperties) {
+    public WebAppConfig(SSMGetter ssmGetter, SsmProperties ssmProperties, InOutProperties inOutProperties) {
         this.inoutTokenValue = ssmGetter.lookup(ssmProperties.getInoutTokenPath());
+        this.inOutProperties = inOutProperties;
     }
 
     @PostConstruct
@@ -1954,6 +1969,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
     @Bean(name = "rvcServiceImpl")
+    @Conditional(MonolitConditional.class)
     public EthTokenService rvcServiceImpl(){
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0xa3ebd756729904ba2a39289751d96d9b2eac793b");
@@ -2118,6 +2134,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
     @Bean(name = "digicServiceImpl")
+    @Conditional(MonolitConditional.class)
     public XemMosaicService digicService() {
         return new XemMosaicServiceImpl(
                 "DIGIT",
@@ -2127,6 +2144,19 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 6,
                 new Supply(8999999999L),
                 10);
+    }
+
+    @Bean(name = "darcServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public XemMosaicService darcService() {
+        return new XemMosaicServiceImpl(
+                "DARC",
+                "DARC",
+                new MosaicIdDto("darc_totalsupply", "darc"),
+                1000000,
+                6,
+                new Supply(1000000000L),
+                0);
     }
 
     /***stellarAssets****/
@@ -2168,6 +2198,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     @Bean
     @Primary
+    @Conditional(MonolitConditional.class)
     public RestTemplate restTemplate() {
         HttpClientBuilder b = HttpClientBuilder.create();
         HttpClient client = b.build();
@@ -2184,9 +2215,27 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
     @Bean("qiwiRestTemplate")
+    @Conditional(MonolitConditional.class)
     public RestTemplate qiwiRestTemplate() {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(qiwiClientId, qiwiClientSecret));
+        return restTemplate;
+    }
+
+    @Bean("inoutRestTemplate")
+    @Conditional(MicroserviceConditional.class)
+    public RestTemplate inoutRestTemplate(LogableErrorHandler errorHandler) {
+        RestTemplate restTemplate = new RestTemplate();
+        HttpClientBuilder b = HttpClientBuilder.create();
+        List<Header> headers = Lists.newArrayList();
+        headers.add(new BasicHeader(inOutProperties.getTokenName(), inOutProperties.getTokenValue()));
+        b.setDefaultHeaders(headers);
+        HttpClient client = b.build();
+        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+        requestFactory.setHttpClient(client);
+        restTemplate.setRequestFactory(requestFactory);
+        restTemplate.setErrorHandler(errorHandler);
+        restTemplate.setInterceptors(Collections.singletonList(new JsonMimeInterceptor()));
         return restTemplate;
     }
 

@@ -50,6 +50,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anySet;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
@@ -640,7 +641,7 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    public void getBtcAndUsdBalancesSum() throws Exception {
+    public void getBtcAndUsdBalancesSumDefault() throws Exception {
         Map<String, BigDecimal> balance = new HashMap<>();
         balance.put("BTC", BigDecimal.valueOf(0.00002343));
         balance.put("USD", BigDecimal.valueOf(32.00));
@@ -650,10 +651,26 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
         mockMvc.perform(MockMvcRequestBuilders.get(BASE_URL + "/myBalances")
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(jsonPath("$.BTC", is(0.00002343)))
-                .andExpect(jsonPath("$.USD", is(32.0)));
+                .andExpect(jsonPath("$.data.BTC", is(0.00002343)))
+                .andExpect(jsonPath("$.data.USD", is(32.0)));
+    }
 
-        verify(refillService, never()).revokeRefillRequest(anyInt());
+    @Test
+    public void getBtcAndUsdBalancesSum() throws Exception {
+        Map<String, BigDecimal> balance = new HashMap<>();
+        balance.put("BTC", BigDecimal.valueOf(0.00002343));
+        balance.put("ETH", BigDecimal.valueOf(32.00));
+
+        UriComponentsBuilder builder = UriComponentsBuilder.newInstance()
+                .path(BASE_URL + "/myBalances")
+                .queryParam("names", "BTC", "ETH");
+
+        Mockito.when(balanceService.getActiveBalanceByCurrencyNamesAndEmail(anyString(), anySet())).thenReturn(balance);
+
+        mockMvc.perform(getApiRequestBuilder(builder.build().toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(jsonPath("$.data.BTC", is(0.00002343)))
+                .andExpect(jsonPath("$.data.ETH", is(32.0)));
     }
 
     private MyInputOutputHistoryDto getMockMyInputOutputHistoryDto() {

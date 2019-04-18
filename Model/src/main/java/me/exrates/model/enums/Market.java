@@ -4,7 +4,7 @@ import java.util.stream.Stream;
 
 public enum Market {
 
-    USD, BTC, ETH, FIAT, USDT, UNDEFINED;
+    USD, BTC, ETH, FIAT, USDT, ICO/*IEO*/, UNDEFINED;
 
     public static Market of(String type) {
         return Stream.of(Market.values())

@@ -3,6 +3,7 @@ package me.exrates.dao;
 import me.exrates.model.AdminAuthorityOption;
 import me.exrates.model.Comment;
 import me.exrates.model.PagingData;
+import me.exrates.model.Policy;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
@@ -14,8 +15,10 @@ import me.exrates.model.dto.UserIpReportDto;
 import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.UserShortDto;
 import me.exrates.model.dto.UsersInfoDto;
+import me.exrates.model.dto.ieo.IeoUserStatus;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.model.enums.PolicyEnum;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
@@ -25,6 +28,7 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -164,6 +168,10 @@ public interface UserDao {
 
     String getEmailById(Integer id);
 
+    String getEmailByPubId(String pubId);
+
+    String getPubIdByEmail(String email);
+
     UserRole getUserRoleByEmail(String email);
 
     void savePollAsDoneByUser(String email);
@@ -226,9 +234,20 @@ public interface UserDao {
 
     String getKycStatusByEmail(String email);
 
-    boolean updateKycReferenceIdByEmail(String email, String refernceUID);
+    boolean updatePrivacyDataAndKycReferenceIdByEmail(String email, String refernceUID, String country,
+                                                      String firstName, String lastName, Date birthDay);
 
     Optional<User> findByKycReferenceId(String referenceId);
 
     String findKycReferenceByUserEmail(String email);
+
+    List<Policy> getAllPoliciesByUserId(String id);
+
+    boolean existPolicyByUserIdAndPolicy(int id, String policyName);
+
+    boolean updateUserPolicyByEmail(String email, PolicyEnum policyEnum);
+
+    IeoUserStatus findIeoUserStatusByEmail(String email);
+
+    boolean updateUserRole(int userId, UserRole userRole);
 }

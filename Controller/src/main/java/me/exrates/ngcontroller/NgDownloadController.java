@@ -10,11 +10,11 @@ import me.exrates.ngService.BalanceService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
+import me.exrates.service.util.DateUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,13 +28,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 
 @RequestMapping("/api/private/v2/download/")
 @RestController
@@ -65,14 +62,14 @@ public class NgDownloadController {
                                             @RequestParam(required = false, name = "currencyPairId", defaultValue = "0") Integer currencyPairId,
                                             @RequestParam(required = false, name = "scope", defaultValue = StringUtils.EMPTY) String scope,
                                             @RequestParam(required = false, name = "hideCanceled", defaultValue = "false") Boolean hideCanceled,
-                                            @RequestParam(required = false, name = "dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
-                                            @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+                                            @RequestParam(required = false, name = "dateFrom") String dateFrom,
+                                            @RequestParam(required = false, name = "dateTo") String dateTo,
                                             HttpServletRequest request) {
         Integer userId = userService.getIdByEmail(getPrincipalEmail());
         Locale locale = localeResolver.resolveLocale(request);
         OrderStatus orderStatus = OrderStatus.valueOf(status);
-        LocalDateTime dateTimeFrom = Objects.nonNull(dateFrom) ? LocalDateTime.of(dateFrom, LocalTime.MIN) : null;
-        LocalDateTime dateTimeTo = Objects.nonNull(dateTo) ? LocalDateTime.of(dateTo, LocalTime.MAX) : null;
+        LocalDateTime dateTimeFrom = DateUtils.convert(dateFrom, false);
+        LocalDateTime dateTimeTo = DateUtils.convert(dateTo, true);
 
         CurrencyPair currencyPair = null;
         if (currencyPairId > 0) {
@@ -90,7 +87,7 @@ public class NgDownloadController {
                     0,
                     0,
                     hideCanceled,
-                    Collections.emptyMap(),
+                    "DESC",
                     dateTimeFrom,
                     dateTimeTo,
                     locale);
@@ -117,13 +114,13 @@ public class NgDownloadController {
     @GetMapping(value = "/inputOutputData/excel")
     public ResponseEntity getMyInputOutputDataToExcel(@RequestParam(required = false, defaultValue = "0") Integer currencyId,
                                                       @RequestParam(required = false, defaultValue = StringUtils.EMPTY) String currencyName,
-                                                      @RequestParam(required = false, name = "dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
-                                                      @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+                                                      @RequestParam(required = false, name = "dateFrom") String dateFrom,
+                                                      @RequestParam(required = false, name = "dateTo") String dateTo,
                                                       HttpServletRequest request) {
         Locale locale = localeResolver.resolveLocale(request);
         String userEmail = getPrincipalEmail();
-        LocalDateTime dateTimeFrom = Objects.nonNull(dateFrom) ? LocalDateTime.of(dateFrom, LocalTime.MIN) : null;
-        LocalDateTime dateTimeTo = Objects.nonNull(dateTo) ? LocalDateTime.of(dateTo, LocalTime.MAX) : null;
+        LocalDateTime dateTimeFrom = DateUtils.convert(dateFrom, false);
+        LocalDateTime dateTimeTo = DateUtils.convert(dateTo, true);
 
         ReportDto reportDto;
         try {

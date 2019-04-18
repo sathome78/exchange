@@ -15,6 +15,7 @@ import me.exrates.model.enums.CurrencyType;
 import me.exrates.model.ngExceptions.NgBalanceException;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngModel.RefillPendingRequestDto;
+import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.model.ngUtil.PagedResult;
 import me.exrates.ngService.BalanceService;
 import me.exrates.security.exception.IncorrectPinException;
@@ -25,7 +26,7 @@ import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.exception.UserOperationAccessException;
-import me.exrates.utils.DateUtils;
+import me.exrates.service.util.DateUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,8 +50,10 @@ import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -319,11 +322,17 @@ public class NgBalanceController {
     }
 
     // /info/private/v2/balances/myBalances
-//        map.put("BTC", 0.00002343);
-//        map.put("USD", 32.00);
+    // map.put("BTC", 0.00002343);
+    // map.put("USD", 32.00);
     @GetMapping("/myBalances")
-    public Map<String, BigDecimal> getBtcAndUsdBalancesSum() {
-        return balanceService.getBalancesSumInBtcAndUsd();
+    public ResponseModel<?> getBtcAndUsdBalancesSum(@RequestParam(value = "names", required = false) String[] currencyNames) {
+        if (currencyNames == null || currencyNames.length == 0) {
+            return new ResponseModel<>(balanceService.getBalancesSumInBtcAndUsd());
+        }
+
+        Map<String, String> result = balanceService.getActiveBalanceByCurrencyNamesAndEmail(getPrincipalEmail(),
+                new HashSet<>(Arrays.asList(currencyNames)));
+        return new ResponseModel<>(result);
     }
 
     private String getPrincipalEmail() {

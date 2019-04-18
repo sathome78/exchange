@@ -11,12 +11,6 @@ import java.util.stream.Collectors;
  */
 public interface InvoiceStatus {
 
-  default Set<InvoiceStatus> getAvailableNextStatesSet(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
-    Set<InvoiceStatus> availableNextStates = new HashSet<>(schemaMap.values());
-    assert (availableNextStates.size() == schemaMap.values().size());
-    return availableNextStates;
-  }
-
   default Optional<InvoiceStatus> nextState(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap, InvoiceActionTypeEnum action) {
     return Optional.ofNullable(schemaMap.get(action));
   }
@@ -30,8 +24,6 @@ public interface InvoiceStatus {
   InvoiceStatus nextState(InvoiceActionTypeEnum action, InvoiceActionTypeEnum.InvoiceActionParamsValue paramsValue);
 
   Boolean availableForAction(InvoiceActionTypeEnum action);
-
-  Set<InvoiceActionTypeEnum> getAvailableActionList();
 
   Set<InvoiceActionTypeEnum> getAvailableActionList(InvoiceActionTypeEnum.InvoiceActionParamsValue paramsValue);
 

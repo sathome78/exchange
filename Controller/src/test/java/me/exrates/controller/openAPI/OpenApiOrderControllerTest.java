@@ -1,15 +1,23 @@
 package me.exrates.controller.openAPI;
 
 import me.exrates.controller.openAPI.config.WebAppTestConfig;
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
+import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.CallbackURL;
 import me.exrates.model.dto.openAPI.OrderParamsDto;
+import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.OrderType;
+import me.exrates.model.exceptions.OpenApiException;
 import me.exrates.security.config.OpenApiSecurityConfig;
+import me.exrates.service.exception.process.NotCreatableOrderException;
 import me.exrates.service.util.OpenApiUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
@@ -24,13 +32,17 @@ import org.springframework.web.util.UriComponentsBuilder;
 import static me.exrates.controller.openAPI.TestUtils.getFakeOrderCreationResultDto;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.anyObject;
 import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 
@@ -38,6 +50,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = {WebAppTestConfig.class, OpenApiSecurityConfig.class})
 @WebAppConfiguration
 public class OpenApiOrderControllerTest extends OpenApiCommonTest {
+
+    private static final String LOCALIZED_MESSAGE = "LOCALIZED MESSAGE TEXT";
+
+    @Autowired
+    private MessageSource messageSource;
 
     @Test
     public void createOrder_successTest() throws Exception {
@@ -50,27 +67,67 @@ public class OpenApiOrderControllerTest extends OpenApiCommonTest {
                 .andExpect(MockMvcResultMatchers.status().isCreated());
 
         verify(orderService, times(1)).prepareAndCreateOrderRest(anyString(), anyObject(), anyObject(), any(), anyString());
+        reset(orderService);
     }
 
-    @Test(expected = NestedServletException.class)
+    @Test
     public void createOrder_transformCurrencyPairNameErrorTest() throws Exception {
         OrderParamsDto testOrderCreate = TestUtils.getTestOrderCreate();
         testOrderCreate.setCurrencyPair("btc__usd");
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/openapi/v1/orders/create")
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(objectMapper.writeValueAsString(testOrderCreate)))
-                .andExpect(MockMvcResultMatchers.status().isCreated());
+        try {
+            mockMvc.perform(MockMvcRequestBuilders.post("/openapi/v1/orders/create")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                    .content(objectMapper.writeValueAsString(testOrderCreate)))
+                    .andDo(print())
+                    .andExpect(MockMvcResultMatchers.status().isCreated());
+            fail();
+        } catch (Exception e) {
+            assertTrue(((NestedServletException) e).getRootCause() instanceof OpenApiException);
+            OpenApiException exception = (OpenApiException) ((NestedServletException) e).getRootCause();
+            assertEquals(ErrorApiTitles.API_WRONG_CURRENCY_PAIR_PATTERN, exception.getTitle());
+            assertTrue(exception.getMessage().startsWith("Failed to parse currency pair name"));
+        }
     }
 
-    @Test(expected = NestedServletException.class)
+    @Test
     public void createOrder_accessClosedToOperationForUserTest() throws Exception {
         when(userOperationService.getStatusAuthorityForUserByOperation(anyInt(), anyObject())).thenReturn(false);
+        when(messageSource.getMessage(anyString(), anyObject(), anyObject())).thenReturn(LOCALIZED_MESSAGE);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/openapi/v1/orders/create")
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(objectMapper.writeValueAsString(TestUtils.getTestOrderCreate())))
-                .andExpect(MockMvcResultMatchers.status().isCreated());
+        try {
+            mockMvc.perform(MockMvcRequestBuilders.post("/openapi/v1/orders/create")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                    .content(objectMapper.writeValueAsString(TestUtils.getTestOrderCreate())))
+                    .andExpect(MockMvcResultMatchers.status().isCreated());
+            fail();
+        } catch (Exception e) {
+            assertTrue(((NestedServletException) e).getRootCause() instanceof OpenApiException);
+            OpenApiException exception = (OpenApiException) ((NestedServletException) e).getRootCause();
+            assertEquals(ErrorApiTitles.API_USER_RESOURCE_ACCESS_DENIED, exception.getTitle());
+            assertEquals(LOCALIZED_MESSAGE, exception.getMessage());
+        }
+    }
+
+    @Test
+    public void createOrder_invalidCurrencyPair() {
+        when(orderService.prepareAndCreateOrderRest(anyString(), anyObject(), anyObject(), any(), anyString())).thenThrow(NotCreatableOrderException.class);
+        CurrencyPair currencyPair = new CurrencyPair();
+        currencyPair.setPairType(CurrencyPairType.ICO);
+        when(currencyService.getCurrencyPairByName(anyString())).thenReturn(currencyPair);
+
+        try {
+            mockMvc.perform(MockMvcRequestBuilders.post("/openapi/v1/orders/create")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                    .content(objectMapper.writeValueAsString(TestUtils.getTestOrderCreate())))
+                    .andExpect(MockMvcResultMatchers.status().isCreated());
+            fail();
+        } catch (Exception e) {
+            assertTrue(((NestedServletException) e).getRootCause() instanceof OpenApiException);
+            OpenApiException exception = (OpenApiException) ((NestedServletException) e).getRootCause();
+            assertEquals(ErrorApiTitles.API_UNAVAILABLE_CURRENCY_PAIR, exception.getTitle());
+        }
+        reset(orderService);
     }
 
     @Test
@@ -83,6 +140,7 @@ public class OpenApiOrderControllerTest extends OpenApiCommonTest {
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsString(TestUtils.getCustomTestOrderCreate(null, null, OrderType.BUY, cp))))
                 .andExpect(MockMvcResultMatchers.status().is4xxClientError());
+        reset(orderService);
     }
 
     @Test

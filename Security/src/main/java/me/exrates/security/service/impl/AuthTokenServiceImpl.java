@@ -13,6 +13,7 @@ import me.exrates.model.User;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.security.exception.IncorrectPasswordException;
 import me.exrates.security.exception.MissingCredentialException;
@@ -269,10 +270,13 @@ public class AuthTokenServiceImpl implements AuthTokenService {
 
     private Optional<AuthTokenDto> prepareAuthTokenNg(String username) {
         ApiAuthToken token = createAuthToken(username);
+        User user = userService.findByEmail(username);
         Map<String, Object> tokenData = new HashMap<>();
         tokenData.put("token_id", token.getId());
         tokenData.put("username", token.getUsername());
         tokenData.put("value", token.getValue());
+        tokenData.put("publicId", user.getPublicId());
+        tokenData.put("userRole", user.getRole() == null ? UserRole.USER.name() : user.getRole().name());
         JwtBuilder jwtBuilder = Jwts.builder();
         Optional<SessionParams> params = Optional.of(sessionParamsService.getByEmailOrDefault(username));
         Date expiration = params

@@ -5,6 +5,8 @@ import me.exrates.model.dto.TronReceivedTransactionDto;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Set;
 
 public interface TronService extends IRefillable, IWithdrawable {
@@ -47,6 +49,11 @@ public interface TronService extends IRefillable, IWithdrawable {
     @Override
     default boolean specificWithdrawMerchantCommissionCountNeeded() {
         return true;
+    }
+
+    @Override
+    default BigDecimal countSpecCommission(java.math.BigDecimal amount, String destinationTag, Integer merchantId) {
+        return new BigDecimal(0.1).setScale(3, RoundingMode.HALF_UP);
     }
 
     Set<String> getAddressesHEX();

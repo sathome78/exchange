@@ -1,6 +1,9 @@
 package me.exrates.ngService;
 
 import lombok.extern.slf4j.Slf4j;
+import me.exrates.dao.CurrencyDao;
+import me.exrates.dao.UserDao;
+import me.exrates.dao.WalletDao;
 import me.exrates.model.dto.BalanceFilterDataDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.enums.CurrencyType;
@@ -50,6 +53,15 @@ public class BalanceServiceImplTest {
     @Mock
     private ExchangeRatesHolder exchangeRatesHolder;
 
+    @Mock
+    private UserDao userDao;
+
+    @Mock
+    private WalletDao walletDao;
+
+    @Mock
+    private CurrencyDao currencyDao;
+
     private BalanceService balanceService;
 
     private BalanceFilterDataDto filter;
@@ -62,7 +74,7 @@ public class BalanceServiceImplTest {
         doReturn(BigDecimal.valueOf(0.01)).when(exchangeRatesHolder).getBtcUsdRate();
 
         balanceService = new BalanceServiceImpl(null, null, ngWalletService,
-                null, null, exchangeRatesHolder, null);
+                null, null, exchangeRatesHolder, null, userDao, walletDao, currencyDao);
 
         locale = Locale.ENGLISH;
 

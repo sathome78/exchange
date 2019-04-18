@@ -11,6 +11,7 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.util.List;
@@ -26,13 +27,13 @@ public class OpenApiTokenServiceImpl implements OpenApiTokenService {
     @Autowired
     private UserService userService;
 
-    private final String ALIAS_REGEX = "^[a-zA-Z\\d]{4,15}$";
+    private static final String ALIAS_REGEX = "^[a-zA-Z\\d]{4,15}$";
 
 
     @Override
     public OpenApiToken generateToken(String userEmail, String alias) {
         if (StringUtils.isEmpty(alias) || !alias.matches(ALIAS_REGEX)) {
-            throw new IllegalArgumentException("Incorrect alias");
+            throw new IllegalArgumentException(String.format("Invalid format of API key alias: %s", alias));
         }
         OpenApiToken token = new OpenApiToken();
         token.setUserEmail(userEmail);
@@ -45,12 +46,12 @@ public class OpenApiTokenServiceImpl implements OpenApiTokenService {
     }
 
 
-
     @Override
     public OpenApiToken getById(Long id) {
         return openApiTokenDao.getById(id).orElseThrow(() -> new TokenNotFoundException("Token not found by id: " + id));
     }
 
+    @Transactional(readOnly = true)
     @Override
     public OpenApiToken getByPublicKey(String publicKey, String currentUserEmail) {
         OpenApiToken token = openApiTokenDao.getByPublicKey(publicKey).
@@ -86,10 +87,7 @@ public class OpenApiTokenServiceImpl implements OpenApiTokenService {
     }
 
 
-
     private String generateKey() {
         return RandomStringUtils.random(KEY_LENGTH, 0, 0, true, true, null, new SecureRandom());
     }
-
-
 }

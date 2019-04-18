@@ -1,5 +1,10 @@
 package me.exrates.ngService.impl;
 
+import me.exrates.dao.CurrencyDao;
+import me.exrates.dao.UserDao;
+import me.exrates.dao.WalletDao;
+import me.exrates.model.User;
+import me.exrates.model.Wallet;
 import me.exrates.model.dto.BalanceFilterDataDto;
 import me.exrates.model.dto.BalancesShortDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
@@ -45,6 +50,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -63,6 +69,9 @@ public class BalanceServiceImpl implements BalanceService {
     private final UserService userService;
     private final ExchangeRatesHolder exchangeRatesHolder;
     private final MerchantServiceContext merchantServiceContext;
+    private final UserDao userDao;
+    private final WalletDao walletDao;
+    private final CurrencyDao currencyDao;
 
     @Autowired
     public BalanceServiceImpl(BalanceDao balanceDao,
@@ -71,7 +80,8 @@ public class BalanceServiceImpl implements BalanceService {
                               RefillPendingRequestService refillPendingRequestService,
                               UserService userService,
                               ExchangeRatesHolder exchangeRatesHolder,
-                              MerchantServiceContext merchantServiceContext) {
+                              MerchantServiceContext merchantServiceContext,
+                              UserDao userDao, WalletDao walletDao, CurrencyDao currencyDao) {
         this.balanceDao = balanceDao;
         this.inputOutputService = inputOutputService;
         this.refillPendingRequestService = refillPendingRequestService;
@@ -79,6 +89,9 @@ public class BalanceServiceImpl implements BalanceService {
         this.userService = userService;
         this.exchangeRatesHolder = exchangeRatesHolder;
         this.merchantServiceContext = merchantServiceContext;
+        this.userDao = userDao;
+        this.walletDao = walletDao;
+        this.currencyDao = currencyDao;
     }
 
     private static Predicate<MyWalletsDetailedDto> excludeRub(CurrencyType currencyType) {
@@ -189,8 +202,6 @@ public class BalanceServiceImpl implements BalanceService {
                 currencyName,
                 dateTimeFrom,
                 dateTimeTo,
-                limit,
-                offset,
                 locale);
 
         List<MyInputOutputHistoryDto> historyDtoList = Collections.emptyList();
@@ -260,13 +271,15 @@ public class BalanceServiceImpl implements BalanceService {
             if (dto.getCurrencyName().equalsIgnoreCase("USD") || dto.getCurrencyName().equalsIgnoreCase("EUR")) {
                 dto.setMarket("Fiat");
             } else {
-                try {
-                    merchant = (IRefillable) merchantServiceContext.getMerchantServiceByName(dto.getMerchantName());
-                    minConfirmations = Optional.ofNullable(merchant.minConfirmationsRefill()).orElse(0);
-                } catch (ClassCastException ex) {
-                    log.warn("Failed to cast IRefillable ", ex);
-                } catch (MerchantNotFoundException | MerchantServiceBeanNameNotDefinedException ex) {
-                    log.warn("Merchant: {} did not find: ", dto.getMerchantName(), ex);
+                if (StringUtils.isNotEmpty(dto.getMerchantName())) {
+                    try {
+                        merchant = (IRefillable) merchantServiceContext.getMerchantServiceByName(dto.getMerchantName());
+                        minConfirmations = Optional.ofNullable(merchant.minConfirmationsRefill()).orElse(0);
+                    } catch (ClassCastException ex) {
+                        log.warn("Failed to cast IRefillable ", ex);
+                    } catch (MerchantNotFoundException | MerchantServiceBeanNameNotDefinedException ex) {
+                        log.warn("Merchant: {} did not find: ", dto.getMerchantName(), ex);
+                    }
                 }
                 dto.setMarket("BTC");
             }
@@ -315,6 +328,12 @@ public class BalanceServiceImpl implements BalanceService {
         balancesMap.put("BTC", btcBalances.setScale(8, RoundingMode.HALF_DOWN));
         balancesMap.put("USD", usdBalances.setScale(2, RoundingMode.HALF_DOWN));
         return balancesMap;
+    }
+
+    @Override
+    public Map<String, String> getActiveBalanceByCurrencyNamesAndEmail(String email, Set<String> currencyNames) {
+        User user = userDao.findByEmail(email);
+        return walletDao.findUserCurrencyBalances(user, currencyNames);
     }
 
     private BalancesShortDto getBalanceForOtherCurrency(String currencyName, BigDecimal sumBalances, BigDecimal btcUsdRate) {

@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Arrays;
+import java.time.LocalDateTime;
 
 public class BtcGenerator {
     private static final String SQL_PATCH = "INSERT IGNORE INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)\n" +
@@ -27,7 +27,7 @@ public class BtcGenerator {
             "\n" +
             "INSERT IGNORE INTO CURRENCY_LIMIT(currency_id, operation_type_id, user_role_id, min_sum, max_sum)\n" +
             "  SELECT (select id from CURRENCY where name = 'TCR'), operation_type_id, user_role_id, min_sum, max_sum\n" +
-            "  FROM CURRENCY_LIMIT WHERE currency_id = (select id from CURRENCY where name = 'EDR');\n" +
+            "  FROM CURRENCY_LIMIT WHERE currency_id = (select id from CURRENCY where name = 'EDC');\n" +
             "\n" +
             "INSERT IGNORE INTO `COMPANY_WALLET` (`currency_id`) VALUES ((select id from CURRENCY where name = 'TCR'));\n" +
             "\n" +
@@ -103,7 +103,7 @@ public class BtcGenerator {
             "node.supportInstantSend=false\n" +
             "node.isEnabled=true\n";
 
-    private static final String ENVS[] = new String[]{"dev", "uat", "prod"};
+    private static final String ENVS[] = new String[]{"dev", "uat", "prod", "devtest"};
     private static final String NODE_CONFIG = "node.bitcoind.rpc.protocol = http\n" +
             "node.bitcoind.rpc.host = $host\n" +
             "node.bitcoind.rpc.port = $port\n" +
@@ -159,19 +159,11 @@ public class BtcGenerator {
     }
 
     private static String getSqlName(String ticker){
-        File migrantions = new File(new File("").getAbsoluteFile() + "/Controller/src/main/resources/db/migration/");
-        File[] files = migrantions.listFiles();
-        double[] versions = new double[files.length];
-
-        for (int i = 0; i < files.length - 1; i++) {
-            String name = files[i].getName();
-            if (!name.contains("V")) continue;
-            String substring = name.replace("V", "").substring(0, name.indexOf("__") - 1);
-            versions[i] = Integer.valueOf(substring.replace("1.", ""));
-        }
-
-        double lastVersion = Arrays.stream(versions).max().getAsDouble();
-        String version = "1." + String.valueOf(++lastVersion).replace(".0", "");
+        LocalDateTime localDateTime = LocalDateTime.now();
+        String month = String.valueOf(localDateTime.getMonthValue()).length() == 1 ? "0" + localDateTime.getMonthValue() : String.valueOf(localDateTime.getMonthValue());
+        String dayOfMonth = String.valueOf(localDateTime.getDayOfMonth()).length() == 1 ? "0" + localDateTime.getDayOfMonth() : String.valueOf(localDateTime.getDayOfMonth());
+        String version = "1." + localDateTime.getYear() + month + dayOfMonth
+                + localDateTime.getHour() + localDateTime.getMinute();
         return "V" + version + "__Bitcoin_fork_" + ticker;
     }
 
@@ -185,34 +177,8 @@ public class BtcGenerator {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     public static void main(String[] args) throws IOException {
-        generate("EXO", "Exosis", 30, true, true, "172.10.13.176", 8332, 11901);
+        generate("TSL", "TreasureSL", 30, false, false, "172.10.13.6", 8090, 12201);
     }
 
 

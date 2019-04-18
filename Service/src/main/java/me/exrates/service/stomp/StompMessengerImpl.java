@@ -1,37 +1,39 @@
 package me.exrates.service.stomp;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.IEODetails;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.RefreshStatisticDto;
-import me.exrates.model.enums.ChartPeriodsEnum;
+import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.PrecissionsEnum;
 import me.exrates.model.enums.RefreshObjectsEnum;
-import me.exrates.model.enums.UserRole;
-import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.util.BiTuple;
 import me.exrates.service.util.OpenApiUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.user.SimpSubscription;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.stream.Collectors;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.Objects.isNull;
 
@@ -50,14 +52,8 @@ public class StompMessengerImpl implements StompMessenger {
     private DefaultSimpUserRegistry registry;
     @Autowired
     private UserService userService;
-
-
-    private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-
-
-    private final List<BackDealInterval> intervals = Arrays.stream(ChartPeriodsEnum.values())
-            .map(ChartPeriodsEnum::getBackDealInterval)
-            .collect(Collectors.toList());
+    @Autowired
+    private ObjectMapper objectMapper;
 
 
     @Override
@@ -66,7 +62,6 @@ public class StompMessengerImpl implements StompMessenger {
         sendMessageToDestination("/app/trade_orders/".concat(String.valueOf(currencyPair.getId())), message);
         sendMessageToDestination("/app/orders/sfwfrf442fewdf/".concat(String.valueOf(currencyPair.getId())), message);
         sendMessageToOrderBookNg(currencyPair, operationType);
-        /*sendRefreshTradeOrdersMessageToFiltered(pairId, operationType);*/
     }
 
     private void sendMessageToOrderBookNg(CurrencyPair currencyPair, OperationType operationType) {
@@ -94,33 +89,6 @@ public class StompMessengerImpl implements StompMessenger {
     @Override
     public void sendRefreshTradeOrdersDetailMessage(String pairName, String message) {
         sendMessageToDestination("/app/orders/sfwfrf442fewdf/detailed/".concat(pairName), message);
-    }
-
-    private void sendRefreshTradeOrdersMessageToFiltered(Integer pairId, OperationType operationType) {
-        Set<SimpSubscription> subscriptions =
-                findSubscribersByDestination("/user/queue/trade_orders/f/".concat(pairId.toString()));
-        if (!subscriptions.isEmpty()) {
-            Map<UserRole, List<SimpSubscription>> map = new HashMap<>();
-            subscriptions.forEach(p -> {
-                String userEmail = p.getSession().getUser().getName();
-                if (!StringUtils.isEmpty(userEmail)) {
-                    UserRole role = userService.getUserRoleFromDB(userEmail);
-                    if (map.containsKey(role)) {
-                        map.get(role).add(p);
-                    } else {
-                        map.put(role, new ArrayList<SimpSubscription>() {{
-                            add(p);
-                        }});
-                    }
-                }
-            });
-            map.forEach((k, v) -> {
-                String message = orderService.getOrdersForRefresh(pairId, operationType, k);
-                for (SimpSubscription subscription : v) {
-                    sendMessageToSubscription(subscription, message, "/queue/trade_orders/f/".concat(pairId.toString()));
-                }
-            });
-        }
     }
 
 
@@ -165,21 +133,6 @@ public class StompMessengerImpl implements StompMessenger {
     }
 
 
-    private List<BackDealInterval> getSubscribedIntervalsForCurrencyPair(Integer pairId) {
-        List<BackDealInterval> intervals = new ArrayList<>();
-        orderService.getIntervals().forEach(p -> {
-            Set<SimpSubscription> subscribers = findSubscribersByDestination("/app/charts/".concat(pairId.toString().concat("/").concat(p.getInterval())));
-            if (subscribers.size() > 0) {
-                intervals.add(p);
-            }
-        });
-        return intervals;
-    }
-
-   /* public void sendChartUpdate(Integer currencyPairId) {
-       registry.findSubscriptions(sub -> sub.).forEach(sub -> sub.);
-    }*/
-
     @Synchronized
     @Override
     public void sendStatisticMessage(Set<Integer> currenciesIds) {
@@ -215,6 +168,33 @@ public class StompMessengerImpl implements StompMessenger {
         sendMessageToDestination("/app/users_alerts/".concat(lang), message);
     }
 
+    @SneakyThrows
+    @Override
+    public void sendPersonalMessageToUser(String userEmail, UserNotificationMessage message) {
+        String destination = "/app/message/private/".concat(userService.getPubIdByEmail(userEmail));
+        sendMessageToDestination(destination, objectMapper.writeValueAsString(message));
+    }
+
+    @Override
+    public void sendPersonalDetailsIeo(String userEmail, String payload) {
+        String destination = "/app/ieo_details/private/".concat(userService.getPubIdByEmail(userEmail));
+        sendMessageToDestination(destination, payload);
+    }
+
+    @Override
+    public void sendDetailsIeo(Integer detailId, String payload) {
+        sendMessageToDestination("/app/ieo/ieo_details/".concat(detailId.toString()), payload);
+    }
+
+    @Override
+    public void sendAllIeos(Collection<IEODetails> ieoDetails) {
+        try {
+            String payload = objectMapper.writeValueAsString(ieoDetails);
+            sendMessageToDestination("/app/ieo/ieo_details", payload);
+        } catch (JsonProcessingException e) {
+            log.warn("<<IEO>>>: Failed parse to json ieo details", e);
+        }
+    }
 
     private Set<SimpSubscription> findSubscribersByDestination(final String destination) {
         return registry.findSubscriptions(subscription -> subscription.getDestination().equals(destination));
@@ -224,9 +204,6 @@ public class StompMessengerImpl implements StompMessenger {
         messagingTemplate.convertAndSend(destination, message);
     }
 
-    private void sendMessageToSubscription(SimpSubscription subscription, String message, String dest) {
-        sendMessageToDestinationAndUser(subscription.getSession().getUser().getName(), dest, message);
-    }
 
     private void sendMessageToDestinationAndUser(final String user, String destination, String message) {
         messagingTemplate.convertAndSendToUser(user,

@@ -13,6 +13,7 @@ import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -65,4 +66,6 @@ public interface WithdrawRequestDao {
                                                                   LocalDateTime endTime, 
                                                                   List<UserRole> userRoles, 
                                                                   int requesterId);
+
+    BigDecimal getLeftOutputRequestsSum(int currencyId, String email);
 }
