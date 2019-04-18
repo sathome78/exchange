@@ -73,6 +73,7 @@ import me.exrates.service.util.BigDecimalConverter;
 import me.exrates.service.util.WithdrawUtils;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.Cache;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -495,5 +496,30 @@ public class ServiceTestConfig {
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return Mockito.mock(BCryptPasswordEncoder.class);
+    }
+
+    @Bean("cache.currencyByName")
+    public Cache currencyByNameCache() {
+        return Mockito.mock(Cache.class);
+    }
+
+    @Bean("cache.currencyPairByName")
+    public Cache currencyPairByNameCache() {
+        return Mockito.mock(Cache.class);
+    }
+
+    @Bean("cache.currencyPairById")
+    public Cache currencyPairByIdCache() {
+        return Mockito.mock(Cache.class);
+    }
+
+    @Bean("cache.currencyPairListByType")
+    public Cache currencyPairsListByTypeCache() {
+        return Mockito.mock(Cache.class);
+    }
+
+    @Bean("cache.merchantByName")
+    public Cache cacheMerchantByName() {
+        return Mockito.mock(Cache.class);
     }
 }

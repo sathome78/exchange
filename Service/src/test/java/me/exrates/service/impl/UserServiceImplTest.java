@@ -18,15 +18,19 @@ import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.dto.UserIpReportDto;
 import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.UsersInfoDto;
+import me.exrates.model.dto.api.RateDto;
+import me.exrates.model.dto.ieo.IeoUserStatus;
 import me.exrates.model.dto.kyc.VerificationStep;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.model.enums.PolicyEnum;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
+import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.service.NotificationService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
@@ -45,7 +49,6 @@ import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.session.UserSessionService;
 import me.exrates.service.token.TokenScheduler;
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -72,6 +75,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -1721,8 +1725,10 @@ public class UserServiceImplTest {
         userBalancesDto.setReservedBalance(new BigDecimal(8));
         List<UserBalancesDto> usersBalances = Arrays.asList(userBalancesDto);
 
-        Map<String, Pair<BigDecimal, BigDecimal>> ratesMap = new HashMap<>();
-        ratesMap.put("str", Pair.of(BigDecimal.ONE, BigDecimal.ONE));
+        RateDto rateDto = new RateDto();
+        rateDto.setCurrencyName("name");
+        Map<String, RateDto> ratesMap = new HashMap<>();
+        ratesMap.put("str", rateDto);
 
         when(userDao.getUsersInfo(any(LocalDateTime.class), any(LocalDateTime.class), anyList())).thenReturn(usersInfoDto);
         when(userDao.getUserBalances(anyList())).thenReturn(usersBalances);
@@ -1775,8 +1781,10 @@ public class UserServiceImplTest {
         userBalancesDto.setReservedBalance(new BigDecimal(8));
         List<UserBalancesDto> usersBalances = Arrays.asList(userBalancesDto);
 
-        Map<String, Pair<BigDecimal, BigDecimal>> ratesMap = new HashMap<>();
-        ratesMap.put("str", Pair.of(BigDecimal.ONE, BigDecimal.ONE));
+        RateDto rateDto = new RateDto();
+        rateDto.setCurrencyName("name");
+        Map<String, RateDto> ratesMap = new HashMap<>();
+        ratesMap.put("str", rateDto);
 
         when(userDao.getUsersInfo(any(LocalDateTime.class), any(LocalDateTime.class), anyList())).thenReturn(usersInfoDto);
         when(userDao.getUserBalances(anyList())).thenReturn(usersBalances);
@@ -1862,12 +1870,16 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void updateKycReferenceByEmail() {
-        when(userDao.updateKycReferenceIdByEmail(anyString(), anyString())).thenReturn(true);
+    public void updatePrivateDataAndKycReference() {
+        Date date = new Date();
+        when(userDao.updatePrivacyDataAndKycReferenceIdByEmail(anyString(), anyString(), anyString(),
+                anyString(),anyString(),any(Date.class))).thenReturn(true);
 
-        assertEquals(true, userService.updateKycReferenceByEmail("some@email.com","referenceUID"));
+        assertEquals(true, userService.updatePrivateDataAndKycReference("some@email.com","referenceUID",
+                "country", "firstName", "lastName", date));
 
-        verify(userDao, times(1)).updateKycReferenceIdByEmail("some@email.com","referenceUID");
+        verify(userDao, times(1)).updatePrivacyDataAndKycReferenceIdByEmail("some@email.com","referenceUID",
+                "country", "firstName", "lastName", date);
     }
 
     @Test(expected = UserNotFoundException.class)
@@ -1902,5 +1914,81 @@ public class UserServiceImplTest {
         assertEquals("KYC", userService.getKycReferenceByEmail("some@email.com"));
 
         verify(userDao, times(1)).findKycReferenceByUserEmail("some@email.com");
+    }
+
+    @Test
+    public void addPolicyToUser_WhenExistPolicyByUserId(){
+        when(userDao.findByEmail(anyString())).thenReturn(user);
+        when(userDao.existPolicyByUserIdAndPolicy(anyInt(), anyString())).thenReturn(true);
+
+        assertEquals(true, userService.addPolicyToUser("some@email.com", "IEO"));
+
+        verify(userDao, times(1)).findByEmail("some@email.com");
+        verify(userDao, times(1)).existPolicyByUserIdAndPolicy(5, "IEO");
+    }
+
+    @Test(expected = NgDashboardException.class)
+    public void addPolicyToUser_WhenPolicyEnumNgDashboardException(){
+        userService.addPolicyToUser("some@email.com", "IEO24t");
+    }
+
+    @Test
+    public void addPolicyToUser_WhenUpdateUserPolicyByEmail(){
+        when(userDao.findByEmail(anyString())).thenReturn(user);
+        when(userDao.existPolicyByUserIdAndPolicy(anyInt(), anyString())).thenReturn(false);
+        when(userDao.updateUserPolicyByEmail(anyString(), any(PolicyEnum.class))).thenReturn(false);
+
+        assertEquals(false, userService.addPolicyToUser("some@email.com", "IEO"));
+
+        verify(userDao, times(1)).findByEmail("some@email.com");
+        verify(userDao, times(1)).existPolicyByUserIdAndPolicy(5, "IEO");
+        verify(userDao, times(1)).updateUserPolicyByEmail("some@email.com", PolicyEnum.IEO);
+    }
+
+    @Test
+    public void findIeoUserStatusByEmail(){
+        IeoUserStatus ieoUserStatus = new IeoUserStatus();
+        ieoUserStatus.setCountryCode("CountryCode");
+        when(userDao.findIeoUserStatusByEmail(anyString())).thenReturn(ieoUserStatus);
+
+        assertEquals(ieoUserStatus, userService.findIeoUserStatusByEmail("some@email.com"));
+
+        verify(userDao, times(1)).findIeoUserStatusByEmail("some@email.com");
+    }
+
+    @Test
+    public void updateUserRole(){
+        when(userDao.updateUserRole(anyInt(), any(UserRole.class))).thenReturn(true);
+
+        assertEquals(true, userService.updateUserRole(67, UserRole.ADMINISTRATOR));
+
+        verify(userDao, times(1)).updateUserRole(67, UserRole.ADMINISTRATOR);
+    }
+
+    @Test
+    public void existPolicyByUserIdAndPolicy(){
+        when(userDao.existPolicyByUserIdAndPolicy(anyInt(), anyString())).thenReturn(true);
+
+        assertEquals(true, userService.existPolicyByUserIdAndPolicy(67, "name"));
+
+        verify(userDao, times(1)).existPolicyByUserIdAndPolicy(67, "name");
+    }
+
+    @Test
+    public void getEmailByPubId(){
+        when(userDao.getEmailByPubId(anyString())).thenReturn("some@email.com");
+
+        assertEquals("some@email.com", userService.getEmailByPubId("pubId"));
+
+        verify(userDao, times(1)).getEmailByPubId("pubId");
+    }
+
+    @Test
+    public void getPubIdByEmail(){
+        when(userDao.getPubIdByEmail(anyString())).thenReturn("pubId");
+
+        assertEquals("pubId", userService.getPubIdByEmail("some@email.com"));
+
+        verify(userDao, times(1)).getPubIdByEmail("some@email.com");
     }
 }
