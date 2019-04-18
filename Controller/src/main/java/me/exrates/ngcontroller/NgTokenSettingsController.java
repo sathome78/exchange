@@ -59,23 +59,20 @@ public class NgTokenSettingsController {
     @PostMapping("/allowTrade")
     public ResponseEntity allowTrade(@RequestParam Long tokenId,
                                      @RequestParam Boolean allowTrade,
-                                     @RequestParam String pin) {
+                                     @RequestParam(required = false) String pin) {
         final String userEmail = userService.getUserEmailFromSecurityContext();
 
-        check2faAuthorization(userEmail, pin);
+        if (allowTrade) {
+            check2faAuthorization(userEmail, pin);
+        }
 
         openApiTokenService.updateToken(tokenId, allowTrade, userEmail);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity deleteToken(@RequestParam Long tokenId,
-                                      @RequestParam String pin) {
-        final String userEmail = userService.getUserEmailFromSecurityContext();
-
-        check2faAuthorization(userEmail, pin);
-
-        openApiTokenService.deleteToken(tokenId, userEmail);
+    public ResponseEntity deleteToken(@RequestParam Long tokenId) {
+        openApiTokenService.deleteToken(tokenId, userService.getUserEmailFromSecurityContext());
         return ResponseEntity.ok().build();
     }
 

@@ -196,7 +196,7 @@ public class NgTokenSettingsControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    public void allowTrade_successTest() throws Exception {
+    public void allowTrade_successAllowTradeIsTrueTest() throws Exception {
         Mockito.when(userService.getUserEmailFromSecurityContext()).thenReturn(USER_EMAIL);
         Mockito.when(userService.getIdByEmail(anyString())).thenReturn(1);
         Mockito.when(g2faService.isGoogleAuthenticatorEnable(anyInt())).thenReturn(true);
@@ -221,17 +221,31 @@ public class NgTokenSettingsControllerTest extends AngularApiCommonTest {
     }
 
     @Test
+    public void allowTrade_successAllowTradeIsFalseTest() throws Exception {
+        Mockito.when(userService.getUserEmailFromSecurityContext()).thenReturn(USER_EMAIL);
+        Mockito.doNothing().when(openApiTokenService).updateToken(anyLong(), anyBoolean(), anyString());
+
+        UriComponents uriComponents = UriComponentsBuilder.newInstance()
+                .path(BASE_URL + "/allowTrade")
+                .queryParam("tokenId", 1)
+                .queryParam("allowTrade", false)
+                .build();
+
+        mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.POST, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+
+        Mockito.verify(userService, Mockito.atLeastOnce()).getUserEmailFromSecurityContext();
+        Mockito.verify(openApiTokenService, Mockito.atLeastOnce()).updateToken(anyLong(), anyBoolean(), anyString());
+    }
+
+    @Test
     public void deleteToken_successTest() throws Exception {
         Mockito.when(userService.getUserEmailFromSecurityContext()).thenReturn(USER_EMAIL);
-        Mockito.when(userService.getIdByEmail(anyString())).thenReturn(1);
-        Mockito.when(g2faService.isGoogleAuthenticatorEnable(anyInt())).thenReturn(true);
-        Mockito.when(g2faService.checkGoogle2faVerifyCode(anyString(), anyInt())).thenReturn(true);
         Mockito.doNothing().when(openApiTokenService).deleteToken(anyLong(), anyString());
 
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
                 .path(BASE_URL + "/delete")
                 .queryParam("tokenId", 1)
-                .queryParam("pin", "pin")
                 .build();
 
         mockMvc.perform(MockMvcRequestBuilders.delete(uriComponents.toUri())
@@ -239,9 +253,6 @@ public class NgTokenSettingsControllerTest extends AngularApiCommonTest {
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
         Mockito.verify(userService, Mockito.atLeastOnce()).getUserEmailFromSecurityContext();
-        Mockito.verify(userService, Mockito.atLeastOnce()).getIdByEmail(anyString());
-        Mockito.verify(g2faService, Mockito.atLeastOnce()).isGoogleAuthenticatorEnable(anyInt());
-        Mockito.verify(g2faService, Mockito.atLeastOnce()).checkGoogle2faVerifyCode(anyString(), anyInt());
         Mockito.verify(openApiTokenService, Mockito.atLeastOnce()).deleteToken(anyLong(), anyString());
     }
 }
