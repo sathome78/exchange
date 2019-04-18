@@ -19,6 +19,6 @@ public interface IEOClaimRepository {
 
     List<IEOClaim> getClaimsByIds(List<Integer> ids);
 
-    boolean updateAmountClaim(int id, BigDecimal newAmount);
+    boolean updateClaim(IEOClaim ieoClaim);
 }
 

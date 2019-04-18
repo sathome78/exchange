@@ -43,7 +43,9 @@ public class IEOProcessor implements Runnable {
     public IEOProcessor(IEOResultRepository ieoResultRepository,
                         IEOClaimRepository ieoClaimRepository,
                         IeoDetailsRepository ieoDetailsRepository,
-                        SendMailService sendMailService, UserService userService, IEOClaim ieoClaim,
+                        SendMailService sendMailService,
+                        UserService userService,
+                        IEOClaim ieoClaim,
                         WalletService walletService,
                         ObjectMapper objectMapper,
                         StompMessenger stompMessenger) {
@@ -63,6 +65,7 @@ public class IEOProcessor implements Runnable {
         String msg = String.format("Congrats! You successfully purchased %s %s", ieoClaim.getAmount().toPlainString(), ieoClaim.getCurrencyName());
         final UserNotificationMessage notificationMessage = new UserNotificationMessage(WsSourceTypeEnum.IEO, UserNotificationType.SUCCESS, msg);
         IEODetails ieoDetails = ieoDetailsRepository.findOne(ieoClaim.getIeoId());
+        String principalEmail = userService.findEmailById(ieoClaim.getUserId());
         if (ieoDetails == null) {
             String message = String.format("Failed to find ieo details for id: %d", ieoClaim.getIeoId());
             log.warn(message);
@@ -74,16 +77,7 @@ public class IEOProcessor implements Runnable {
             String text = String.format("Unfortunately, there are no tokens available in IEO %s (%s)", ieoDetails.getCurrencyDescription(), ieoDetails.getCurrencyName());
             notificationMessage.setNotificationType(UserNotificationType.ERROR);
             notificationMessage.setText(text);
-            String principalEmail = userService.getUserEmailFromSecurityContext();
-            if (StringUtils.isNotEmpty(principalEmail)) {
-                try {
-                    stompMessenger.sendPersonalMessageToUser(principalEmail, notificationMessage);
-                } catch (Exception e) {
-                    log.warn("Failed to parse notificationMessage", e);
-                }
-            } else {
-                principalEmail = userService.findEmailById(ieoClaim.getUserId());
-            }
+            stompMessenger.sendPersonalMessageToUser(principalEmail, notificationMessage);
             sendMailService.sendInfoMail(prepareEmail(principalEmail, notificationMessage));
             return;
         } else if (availableAmount.compareTo(ieoClaim.getAmount()) < 0) {
@@ -122,7 +116,7 @@ public class IEOProcessor implements Runnable {
         ieoDetailsRepository.updateAvailableAmount(ieoClaim.getIeoId(), availableAmount);
         ieoDetails.setAvailableAmount(availableAmount);
         ieoDetails.setPersonalAmount(walletService.findUserCurrencyBalance(ieoClaim));
-        CompletableFuture.runAsync(() -> sendNotifications(ieoClaim.getCreatorEmail(), ieoDetails, notificationMessage));
+        CompletableFuture.runAsync(() -> sendNotifications(principalEmail, ieoDetails, notificationMessage));
     }
 
     private void refactorClaim(BigDecimal newAmount) {
@@ -133,7 +127,7 @@ public class IEOProcessor implements Runnable {
         ieoClaim.setAmount(newAmount);
         BigDecimal newPriceInBtc = newAmount.multiply(ieoClaim.getRate());
         ieoClaim.setPriceInBtc(newPriceInBtc);
-        ieoClaimRepository.updateAmountClaim(ieoClaim.getId(), newAmount);
+        ieoClaimRepository.updateClaim(ieoClaim);
     }
 
     private void sendNotifications(String userEmail, IEODetails ieoDetails, UserNotificationMessage message) {

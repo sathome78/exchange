@@ -350,6 +350,11 @@ public class CryptocurrencyConfig {
 		return new BitcoinServiceImpl("merchants/owc_wallet.properties","OWC","OWC", 30, 20, false, false);
 	}
 
+	@Bean(name = "vollarServiceImpl")
+	public BitcoinService vollarServiceImpl() {
+		return new BitcoinServiceImpl("merchants/vollar_wallet.properties","VOLLAR","VOLLAR", 30, 20, false, true);
+  }
+
 	@Bean(name = "wolfServiceImpl")
 	public BitcoinService wolfServiceImpl() {
 		return new BitcoinServiceImpl("merchants/wolf_wallet.properties","WOLF","WOLF", 30, 20, false, true);

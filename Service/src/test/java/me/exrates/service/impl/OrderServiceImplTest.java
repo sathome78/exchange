@@ -6411,8 +6411,7 @@ public class OrderServiceImplTest {
 
     @Test
     public void getTransactionExcelFile() throws Exception {
-        ReportDto transactionExcelFile = orderService
-                .getTransactionExcelFile(Collections.singletonList(new MyInputOutputHistoryDto()));
+        ReportDto transactionExcelFile = orderService.getTransactionExcelFile(Collections.singletonList(new MyInputOutputHistoryDto()));
 
         assertNotNull(transactionExcelFile);
         assertEquals(String.format("Transactions_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)),

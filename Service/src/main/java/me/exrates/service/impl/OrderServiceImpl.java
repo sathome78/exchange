@@ -1744,13 +1744,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public WalletsAndCommissionsForOrderCreationDto getWalletAndCommission(String email, Currency currency,
                                                                            OperationType operationType) {
-        UserRole userRole;
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (Objects.isNull(authentication)) {
-            userRole = userService.getUserRoleFromDB(email);
-        } else {
-            userRole = userService.getUserRoleFromSecurityContext();
-        }
+        UserRole userRole = userService.getUserRoleFromDB(email);
         return orderDao.getWalletAndCommission(email, currency, operationType, userRole);
     }
 
