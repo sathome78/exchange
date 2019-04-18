@@ -489,4 +489,6 @@ public interface OrderService {
     List<ExOrderStatisticsShortByPairsDto> getRatesDataForCache(Integer currencyPairId);
 
     List<ExOrderStatisticsShortByPairsDto> getAllDataForCache(Integer currencyPairId);
+
+    ExOrderStatisticsShortByPairsDto getBeforeLastRateForCache(Integer currencyPairId);
 }

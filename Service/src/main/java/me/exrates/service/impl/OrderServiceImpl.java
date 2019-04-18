@@ -2631,6 +2631,11 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getAllDataForCache(currencyPairId);
     }
 
+    @Override
+    public ExOrderStatisticsShortByPairsDto getBeforeLastRateForCache(Integer currencyPairId) {
+        return orderDao.getBeforeLastRateForCache(currencyPairId);
+    }
+
     private boolean safeCompareBigDecimals(BigDecimal last, BigDecimal beforeLast) {
         if (Objects.isNull(last)) {
             return false;

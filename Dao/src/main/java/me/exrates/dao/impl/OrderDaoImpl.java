@@ -2313,6 +2313,43 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
+    public ExOrderStatisticsShortByPairsDto getBeforeLastRateForCache(Integer currencyPairId) {
+        String sql = "SELECT " +
+                "EO.currency_pair_id, " +
+                "(IFNULL ((" +
+                "   SELECT PREDLASTORDER.exrate" +
+                "   FROM EXORDERS PREDLASTORDER" +
+                "   WHERE" +
+                "       PREDLASTORDER.currency_pair_id = EO.currency_pair_id AND" +
+                "       PREDLASTORDER.status_id = EO.status_id" +
+                "   ORDER BY PREDLASTORDER.date_acception DESC" +
+                "   LIMIT 1" +
+                "   OFFSET 1" +
+                "), 0)) AS pred_last, " +
+                "0 AS last " +
+                " FROM EXORDERS EO " +
+                "WHERE EO.status_id = 3 " +
+                " AND EO.currency_pair_id = :currency_pair_id " +
+                "GROUP BY EO.currency_pair_id";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("currency_pair_id", currencyPairId);
+
+        List<ExOrderStatisticsShortByPairsDto> objectList = masterJdbcTemplate.query(sql, params, (rs, rowNum) -> ExOrderStatisticsShortByPairsDto.builder()
+                .currencyPairId(rs.getInt("currency_pair_id"))
+                .lastOrderRate(rs.getBigDecimal("last").toPlainString())
+                .predLastOrderRate(rs.getBigDecimal("pred_last").toPlainString())
+                .build());
+        return objectList.stream()
+                .findFirst()
+                .orElseThrow(() -> {
+                    String message = "Failed to find currency pair with id: " + currencyPairId;
+                    log.warn(message);
+                    return new RuntimeException(message);
+                });
+    }
+
+    @Override
     public List<ExOrderStatisticsShortByPairsDto> getAllDataForCache(Integer currencyPairId) {
         String whereClause = StringUtils.EMPTY;
         if (Objects.nonNull(currencyPairId)) {
