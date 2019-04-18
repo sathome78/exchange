@@ -112,14 +112,14 @@ public class OrdersEventHandleService {
     @TransactionalEventListener
     public void handleOrderEventAsync(CreateOrderEvent event) {
         ExOrder exOrder = (ExOrder) event.getSource();
-        InputCreateOrderDto inputCreateOrderDto = InputCreateOrderDto.of(exOrder);
+        onOrdersEvent(exOrder.getCurrencyPairId(), exOrder.getOperationType());
     }
 
     @Async
     @TransactionalEventListener
     public void handleOrderEventAsync(CancelOrderEvent event) throws JsonProcessingException {
         ExOrder exOrder = (ExOrder) event.getSource();
-        InputCreateOrderDto inputCreateOrderDto = InputCreateOrderDto.of(exOrder);
+        onOrdersEvent(exOrder.getCurrencyPairId(), exOrder.getOperationType());
     }
 
 
@@ -130,7 +130,6 @@ public class OrdersEventHandleService {
         if (!(event instanceof PartiallyAcceptedOrder)) {
             handleOrdersDetailed(exOrder, event.getOrderEventEnum());
         }
-        onOrdersEvent(exOrder.getCurrencyPairId(), exOrder.getOperationType());
         if (!DEV_MODE) {
             handleCallBack(event);
             if (exOrder.getUserAcceptorId() != 0) {
@@ -174,9 +173,10 @@ public class OrdersEventHandleService {
         ExOrder order = (ExOrder) event.getSource();
         handleAllTrades(order);
         handleMyTrades(order);
-        handleChart(order);
         ratesHolder.onRatesChange(order);
         currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
+        onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
+        handleChart(order);
     }
 
     private void handleCallBack(OrderEvent event) throws JsonProcessingException {
