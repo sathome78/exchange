@@ -242,7 +242,7 @@ public class IEOServiceImpl implements IEOService {
     }
 
     @Override
-    public void updateIeoStatuses() {
+    public synchronized void updateIeoStatuses() {
         log.info("<<IEO>>: Starting to update IEO statuses ...");
         boolean updateResult = ieoDetailsRepository.updateIeoStatuses();
         log.info("<<IEO>>: Finished update IEO statuses, result: " + updateResult);
@@ -256,9 +256,12 @@ public class IEOServiceImpl implements IEOService {
                     stompMessenger.sendPersonalDetailsIeo(userEmail, objectMapper.writeValueAsString(findAll(user)));
                 }
             } catch (Exception e) {
-                log.error("Failed to send personal messages as ", e);
+                log.error("<<IEO>>: Failed to send personal messages as ", e);
             }
             Collection<IEODetails> ieoDetails = ieoDetailsRepository.findAll();
+            log.info("<<IEO>>: Starting sending all ieo statuses ..... ");
+            stompMessenger.sendAllIeos(ieoDetails);
+            log.info("<<IEO>>: Finished sending all ieo statuses :) ");
             ieoDetails.forEach(ieoDetail -> {
                 try {
                     stompMessenger.sendDetailsIeo(ieoDetail.getId(), objectMapper.writeValueAsString(ieoDetail));

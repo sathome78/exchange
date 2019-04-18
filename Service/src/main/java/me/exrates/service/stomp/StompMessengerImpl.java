@@ -1,10 +1,12 @@
 package me.exrates.service.stomp;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.IEODetails;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.RefreshStatisticDto;
 import me.exrates.model.dto.UserNotificationMessage;
@@ -25,6 +27,7 @@ import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -181,6 +184,16 @@ public class StompMessengerImpl implements StompMessenger {
     @Override
     public void sendDetailsIeo(Integer detailId, String payload) {
         sendMessageToDestination("/app/ieo/ieo_details/".concat(detailId.toString()), payload);
+    }
+
+    @Override
+    public void sendAllIeos(Collection<IEODetails> ieoDetails) {
+        try {
+            String payload = objectMapper.writeValueAsString(ieoDetails);
+            sendMessageToDestination("/app/ieo/ieo_details", payload);
+        } catch (JsonProcessingException e) {
+            log.warn("<<IEO>>>: Failed parse to json ieo details", e);
+        }
     }
 
     private Set<SimpSubscription> findSubscribersByDestination(final String destination) {
