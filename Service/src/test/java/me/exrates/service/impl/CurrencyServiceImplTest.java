@@ -758,4 +758,13 @@ public class CurrencyServiceImplTest {
         verify(currencyDao, times(1)).findAllCurrenciesBySecondPartName("Pair");
     }
 
+    @Test
+    public void isCurrencyPairHidden_Test(){
+        when(currencyDao.isCurrencyPairHidden(anyInt())).thenReturn(true);
+
+        assertEquals(true, currencyService.isCurrencyPairHidden(51));
+
+        verify(currencyDao, times(1)).isCurrencyPairHidden(51);
+    }
+
 }
