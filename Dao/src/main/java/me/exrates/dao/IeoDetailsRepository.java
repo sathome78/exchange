@@ -26,5 +26,7 @@ public interface IeoDetailsRepository {
 
     boolean isCountryRestrictedByIeoId(int idIeo, String countryCode);
 
-    boolean updateIeoStatuses();
+    boolean updateIeoStatusesToRunning();
+
+    boolean updateIeoStatusesToTerminated();
 }
