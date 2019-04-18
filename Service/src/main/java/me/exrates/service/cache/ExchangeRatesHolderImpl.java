@@ -131,7 +131,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
             return Collections.emptyList();
         }
         Set<String> names = ids.stream()
-                .map(currencyService::getCurrencyName)
+                .map(p -> currencyService.findCurrencyPairById(p).getName())
                 .collect(Collectors.toSet());
 
         return loadingCache.asMap().values()
