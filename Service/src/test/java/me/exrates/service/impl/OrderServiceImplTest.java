@@ -92,14 +92,13 @@ import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.exception.AttemptToAcceptBotOrderException;
 import me.exrates.service.exception.IncorrectCurrentUserException;
 import me.exrates.service.exception.OrderDeletingException;
-import me.exrates.service.exception.api.OrderParamsWrongException;
+import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
 import me.exrates.service.exception.process.CancelOrderException;
 import me.exrates.service.exception.process.NotCreatableOrderException;
 import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.process.OrderAcceptionException;
 import me.exrates.service.exception.process.OrderCancellingException;
 import me.exrates.service.exception.process.OrderCreationException;
-import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.util.BiTuple;
@@ -2040,12 +2039,11 @@ public class OrderServiceImplTest {
                 any(UserRole.class))).thenReturn(getMockWalletsAndCommissionsForOrderCreationDto());
         when(currencyService.findLimitForRoleByCurrencyPairAndType(anyInt(), any(OperationType.class)))
                 .thenReturn(getMockCurrencyPairLimitDto());
-        when(messageSource.getMessage(anyString(), any(), any(Locale.class))).thenReturn("SOME CODE, SOME ERRORS");
         try {
             orderService.prepareOrderRest(dto, USER_EMAIL, Locale.ENGLISH, OrderBaseType.ICO);
         } catch (Exception e) {
-            assertTrue(e instanceof OrderParamsWrongException);
-            assertEquals("SOME CODE, SOME ERRORS, SOME CODE, SOME ERRORS", e.getMessage());
+            assertTrue(e instanceof InsufficientCostsInWalletException);
+            assertEquals("Failed as user has insufficient funds for this operation!", e.getMessage());
         }
         verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
         verify(orderDao, atLeastOnce()).getWalletAndCommission(
@@ -2054,7 +2052,6 @@ public class OrderServiceImplTest {
                 any(OperationType.class),
                 any(UserRole.class));
         verify(currencyService, atLeastOnce()).findLimitForRoleByCurrencyPairAndType(anyInt(), any(OperationType.class));
-        verify(messageSource, atLeastOnce()).getMessage(anyString(), any(), any(Locale.class));
     }
 
     @Test
