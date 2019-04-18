@@ -86,13 +86,12 @@ public class IEOServiceImpl implements IEOService {
     @Transactional
     @Override
     public ClaimDto addClaim(ClaimDto claimDto, String email) {
-
         IEODetails ieoDetails = ieoDetailsRepository.findOpenIeoByCurrencyName(claimDto.getCurrencyName());
         if (ieoDetails == null) {
-            String message = String.format("Failed to create claim while IEO for %s not started",
+            String message = String.format("Failed to create claim while IEO for %s not started or already finish",
                     claimDto.getCurrencyName());
             logger.warn(message);
-            throw new IeoException(ErrorApiTitles.IEO_NOT_STARTED_YET, message);
+            throw new IeoException(ErrorApiTitles.IEO_NOT_STARTED_YET_OR_ALREADY_FINISH, message);
         }
 
         IEOStatusInfo statusInfo = checkUserStatusForIEO(email, ieoDetails.getId());
@@ -157,7 +156,7 @@ public class IEOServiceImpl implements IEOService {
 
     @Override
     public Collection<IEODetails> findAll(User user) {
-        ieoDetailsRepository.updateIeoStatuses();
+        updateIeoStatusesForAll();
         if (Objects.isNull(user)) {
             return ieoDetailsRepository.findAll();
         } else if (user.getRole() == UserRole.ICO_MARKET_MAKER) {
@@ -182,7 +181,7 @@ public class IEOServiceImpl implements IEOService {
 
     @Override
     public IEODetails findOne(int ieoId) {
-        ieoDetailsRepository.updateIeoStatuses();
+        updateIeoStatusesForAll();
         return ieoDetailsRepository.findOne(ieoId);
     }
 
@@ -244,7 +243,7 @@ public class IEOServiceImpl implements IEOService {
     @Override
     public synchronized void updateIeoStatuses() {
         log.info("<<IEO>>: Starting to update IEO statuses ...");
-        boolean updateResult = ieoDetailsRepository.updateIeoStatuses();
+        boolean updateResult = ieoDetailsRepository.updateIeoStatusesToRunning();
         log.info("<<IEO>>: Finished update IEO statuses, result: " + updateResult);
         if (updateResult) {
             String userEmail = userService.getUserEmailFromSecurityContext();
@@ -334,5 +333,11 @@ public class IEOServiceImpl implements IEOService {
             }
         });
         return makerIeos;
+    }
+
+
+    private void updateIeoStatusesForAll() {
+        ieoDetailsRepository.updateIeoStatusesToRunning();
+        ieoDetailsRepository.updateIeoStatusesToTerminated();
     }
 }
