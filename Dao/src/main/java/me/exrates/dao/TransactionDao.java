@@ -9,12 +9,15 @@ import me.exrates.model.dto.UserSummaryOrdersDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
+import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.UserRole;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -44,6 +47,10 @@ public interface TransactionDao {
 
     BigDecimal maxAmount();
 
+    Set<TransactionSourceType> findAllTransactionSourceTypes();
+
+    boolean updateStoredTransactionSourceType(Set<TransactionSourceType> values);
+
     BigDecimal maxCommissionAmount();
 
     void setSourceId(Integer trasactionId, Integer sourceId);
@@ -57,4 +64,6 @@ public interface TransactionDao {
     List<InOutReportDto> getInOutSummaryByPeriodAndRoles(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles);
 
     List<UserSummaryDto> getUsersWalletSummaryDataByPeriodAndRoles(LocalDateTime startTime, LocalDateTime endTime, String userEmail, int requesterId);
+
+    boolean saveInBatch(Collection<Transaction> transactions);
 }

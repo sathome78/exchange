@@ -14,7 +14,7 @@ public class InOutProperties {
     @Value("${inout.token.name}")
     private String tokenName;
     private String tokenValue;
-    @Value("${inout.url.basic")
+    @Value("${inout.url.basic}")
     private String url;
 
     public InOutProperties(SSMGetter ssmGetter, SsmProperties ssmProperties) {

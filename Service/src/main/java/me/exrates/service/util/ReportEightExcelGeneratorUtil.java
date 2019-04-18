@@ -4,8 +4,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.exrates.model.dto.UserSummaryOrdersDto;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
+import me.exrates.model.dto.api.RateDto;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
@@ -20,11 +19,9 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static me.exrates.service.impl.OrderServiceImpl.BUY;
 import static me.exrates.service.impl.OrderServiceImpl.SELL;
@@ -38,7 +35,7 @@ public class ReportEightExcelGeneratorUtil {
     private static final String SHEET3_NAME = "Sheet3 - Итого";
 
     public static byte[] generate(Map<String, List<UserSummaryOrdersDto>> summaryOrdersData,
-                                  Map<String, Pair<BigDecimal, BigDecimal>> ratesMap) throws Exception {
+                                  Map<String, RateDto> rates) throws Exception {
         XSSFWorkbook workbook = new XSSFWorkbook();
 
         CellStyle header1Style = getHeader1Style(workbook);
@@ -183,11 +180,9 @@ public class ReportEightExcelGeneratorUtil {
             final double amount = nonNull(sod.getAmount()) ? sod.getAmount().doubleValue() : 0;
             final double commission = nonNull(sod.getCommission()) ? sod.getCommission().doubleValue() : 0;
 
-            Pair<BigDecimal, BigDecimal> ratePair = ratesMap.get(currencyName);
-            if (isNull(ratePair)) {
-                ratePair = Pair.of(BigDecimal.ZERO, BigDecimal.ZERO);
-            }
-            final double usdRate = ratePair.getLeft().doubleValue();
+            RateDto rateDto = rates.getOrDefault(currencyName, RateDto.zeroRate(currencyName));
+
+            final double usdRate = rateDto.getUsdRate().doubleValue();
 
             row = sheet1.createRow(i + 2);
 
@@ -421,11 +416,9 @@ public class ReportEightExcelGeneratorUtil {
             final double amount = nonNull(sod.getAmount()) ? sod.getAmount().doubleValue() : 0;
             final double commission = nonNull(sod.getCommission()) ? sod.getCommission().doubleValue() : 0;
 
-            Pair<BigDecimal, BigDecimal> ratePair = ratesMap.get(currencyName);
-            if (isNull(ratePair)) {
-                ratePair = Pair.of(BigDecimal.ZERO, BigDecimal.ZERO);
-            }
-            final double usdRate = ratePair.getLeft().doubleValue();
+            RateDto rateDto = rates.getOrDefault(currencyName, RateDto.zeroRate(currencyName));
+
+            final double usdRate = rateDto.getUsdRate().doubleValue();
 
             row = sheet2.createRow(i + 2);
 

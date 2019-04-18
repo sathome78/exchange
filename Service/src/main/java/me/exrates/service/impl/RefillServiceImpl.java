@@ -1099,13 +1099,6 @@ public class RefillServiceImpl implements RefillService {
         return refillRequestDao.findAllAddresses(merchantId, currencyId, isValidStatuses);
     }
 
-    //TODO remove after changes in mobile api
-    @Override
-    public String getPaymentMessageForTag(String serviceBeanName, String tag, Locale locale) {
-        IMerchantService merchantService = merchantServiceContext.getMerchantService(serviceBeanName);
-        return merchantService.getPaymentMessage(tag, locale);
-    }
-
     @Override
     public List<RefillRequestFlatDto> findAllNotAcceptedByAddressAndMerchantAndCurrency(String address, Integer merchantId, Integer currencyId) {
         return refillRequestDao.findAllNotAcceptedByAddressAndMerchantAndCurrency(address, merchantId, currencyId);
@@ -1271,11 +1264,6 @@ public class RefillServiceImpl implements RefillService {
     @Override
     public Integer findFlatByUserIdAndMerchantIdAndCurrencyId(int userId, int merchantId, int currencyId) {
         return refillRequestDao.findFlatByUserIdAndMerchantIdAndCurrencyId(userId, merchantId, currencyId);
-    }
-
-    @Override
-    public void processRefillRequest(WalletOperationMsDto walletOperationMsDto) {
-        throw new NotImplimentedMethod("");
     }
 
 }

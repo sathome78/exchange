@@ -111,6 +111,7 @@ import me.exrates.service.exception.AttemptToAcceptBotOrderException;
 import me.exrates.service.exception.IncorrectCurrentUserException;
 import me.exrates.service.exception.OrderDeletingException;
 import me.exrates.service.exception.api.OrderParamsWrongException;
+import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
 import me.exrates.service.exception.process.AlreadyAcceptedOrderException;
 import me.exrates.service.exception.process.CancelOrderException;
 import me.exrates.service.exception.process.InsufficientCostsForAcceptionException;
@@ -757,8 +758,11 @@ public class OrderServiceImpl implements OrderService {
         OrderValidationDto orderValidationDto = validateOrder(orderCreateDto, false, null);
         Map<String, Object> errors = orderValidationDto.getErrors();
         if (!errors.isEmpty()) {
+            if (errors.keySet().stream().anyMatch(key -> key.startsWith("balance_"))) {
+                throw new InsufficientCostsInWalletException("Failed as user has insufficient funds for this operation!");
+            }
             errors.replaceAll((key, value) -> messageSource.getMessage(value.toString(), orderValidationDto.getErrorParams().get(key), locale));
-            throw new OrderParamsWrongException(errors.toString());
+            throw new OrderParamsWrongException(String.join(", ", errors.values().toArray(new String [] {})));
         }
         return orderCreateDto;
     }
@@ -1560,7 +1564,6 @@ public class OrderServiceImpl implements OrderService {
         return (Integer) result;
     }
 
-
     @Override
     public Integer searchOrderByAdmin(Integer currencyPair, String orderType, String orderDate, BigDecimal orderRate, BigDecimal orderVolume) {
         Integer ot = OperationType.valueOf(orderType).getType();
@@ -1741,13 +1744,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public WalletsAndCommissionsForOrderCreationDto getWalletAndCommission(String email, Currency currency,
                                                                            OperationType operationType) {
-        UserRole userRole;
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (Objects.isNull(authentication)) {
-            userRole = userService.getUserRoleFromDB(email);
-        } else {
-            userRole = userService.getUserRoleFromSecurityContext();
-        }
+        UserRole userRole = userService.getUserRoleFromDB(email);
         return orderDao.getWalletAndCommission(email, currency, operationType, userRole);
     }
 
@@ -1796,7 +1793,6 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, statuses, operationType, null, offset, limit, locale);
     }
 
-
     @Override
     public List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(String email,
                                                                    BackDealInterval backDealInterval,
@@ -1809,7 +1805,6 @@ public class OrderServiceImpl implements OrderService {
         return result;
     }
 
-
     @Override
     public List<OrderListDto> getAllBuyOrders(CurrencyPair currencyPair, Locale locale) {
         List<OrderListDto> result = orderDao.getOrdersBuyForCurrencyPair(currencyPair, null);
@@ -1820,7 +1815,6 @@ public class OrderServiceImpl implements OrderService {
         });
         return result;
     }
-
 
     @Override
     public List<OrderListDto> getAllSellOrders(CurrencyPair currencyPair, Locale locale) {
@@ -2201,6 +2195,7 @@ public class OrderServiceImpl implements OrderService {
                 direction);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<UserOrdersDto> getUserOpenOrders(@Nullable String currencyPairName) {
         logTransaction("getUserOpenOrders", "begin", -1, -1, null);
@@ -2212,6 +2207,7 @@ public class OrderServiceImpl implements OrderService {
 
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<UserOrdersDto> getUserClosedOrders(@Null String currencyPairName,
                                                    @Null Integer limit,
@@ -2330,7 +2326,7 @@ public class OrderServiceImpl implements OrderService {
     public Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair,
                                                                          String currencyName, OrderStatus orderStatus,
                                                                          String scope, Integer limit, Integer offset,
-                                                                         Boolean hideCanceled, Map<String, String> sortedColumns,
+                                                                         Boolean hideCanceled, String sortByCreated,
                                                                          LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo,
                                                                          Locale locale) {
 
@@ -2343,7 +2339,6 @@ public class OrderServiceImpl implements OrderService {
                 limit,
                 offset,
                 hideCanceled,
-                sortedColumns,
                 dateTimeFrom,
                 dateTimeTo);
 
@@ -2358,7 +2353,7 @@ public class OrderServiceImpl implements OrderService {
                     limit,
                     offset,
                     hideCanceled,
-                    sortedColumns,
+                    sortByCreated,
                     dateTimeFrom,
                     dateTimeTo,
                     locale);
@@ -2377,7 +2372,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<OrderWideListDto> getOrdersForExcel(Integer userId, CurrencyPair currencyPair, String currencyName,
                                                     OrderStatus orderStatus, String scope, Integer limit,
-                                                    Integer offset, Boolean hideCanceled, Map<String, String> sortedColumns,
+                                                    Integer offset, Boolean hideCanceled, String sortByCreated,
                                                     LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo, Locale locale) {
         return orderDao.getMyOrdersWithState(
                 userId,
@@ -2388,7 +2383,7 @@ public class OrderServiceImpl implements OrderService {
                 limit,
                 offset,
                 hideCanceled,
-                sortedColumns,
+                sortByCreated,
                 dateTimeFrom,
                 dateTimeTo,
                 locale);
@@ -2430,7 +2425,7 @@ public class OrderServiceImpl implements OrderService {
             Row row = sheet.createRow(index++);
             if (orderStatus == OrderStatus.OPENED) {
                 row.createCell(0, CellType.STRING).setCellValue(getValue(order.getId()));
-                row.createCell(1, CellType.STRING).setCellValue(getValue(Objects.nonNull(order.getDateCreation()) ? order.getDateCreation() : order.getDateStatusModification()));
+                row.createCell(1, CellType.STRING).setCellValue(getValue(order.getDateCreation()));
                 row.createCell(2, CellType.STRING).setCellValue(getValue(order.getCurrencyPairName()));
                 row.createCell(3, CellType.STRING).setCellValue(getValue(order.getOrderBaseType()));
                 row.createCell(4, CellType.STRING).setCellValue(getValue(order.getAmountBase()));
@@ -2439,7 +2434,7 @@ public class OrderServiceImpl implements OrderService {
                 row.createCell(7, CellType.STRING).setCellValue(getValue(order.getCommissionValue()));
                 row.createCell(8, CellType.STRING).setCellValue(getValue(order.getAmountWithCommission()));
             } else {
-                row.createCell(0, CellType.STRING).setCellValue(getValue(Objects.nonNull(order.getDateAcception()) ? order.getDateAcception() : order.getDateStatusModification()));
+                row.createCell(0, CellType.STRING).setCellValue(getValue(Objects.nonNull(order.getDateStatusModification()) ? order.getDateStatusModification() : order.getDateModification()));
                 row.createCell(1, CellType.STRING).setCellValue(getValue(order.getCurrencyPairName()));
                 row.createCell(2, CellType.STRING).setCellValue(getValue(order.getOrderBaseType()));
                 row.createCell(3, CellType.STRING).setCellValue(getValue(order.getOperationType()));

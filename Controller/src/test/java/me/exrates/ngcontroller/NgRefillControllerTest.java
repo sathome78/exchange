@@ -12,6 +12,7 @@ import me.exrates.service.RefillService;
 import me.exrates.service.UserService;
 import org.hamcrest.Matchers;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;

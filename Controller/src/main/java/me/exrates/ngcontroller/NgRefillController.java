@@ -17,12 +17,16 @@ import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissio
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
 import me.exrates.model.ngExceptions.NgCurrencyNotFoundException;
 import me.exrates.model.ngExceptions.NgRefillException;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
+import me.exrates.security.service.CheckUserAuthority;
 import me.exrates.service.*;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.MerchantNotFoundException;
 import me.exrates.service.exception.MerchantServiceNotFoundException;
+import me.exrates.service.exception.UserOperationAccessException;
 import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
+import me.exrates.service.userOperation.UserOperationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +34,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,6 +53,7 @@ import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_CURRENCY_WARNIN
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USER;
 
 @RestController
+@PreAuthorize("!hasRole('ICO_MARKET_MAKER')")
 @RequestMapping(value = "/api/private/v2/balances/refill",
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -61,6 +67,7 @@ public class NgRefillController {
     private final MessageSource messageSource;
     private final RefillService refillService;
     private final UserService userService;
+    private final UserOperationService userOperationService;
 
     private final GtagRefillService gtagRefillService;
 
@@ -70,13 +77,16 @@ public class NgRefillController {
                               UserService userService,
                               MerchantService merchantService,
                               MessageSource messageSource,
-                              RefillService refillService, GtagRefillService gtagRefillService) {
+                              RefillService refillService,
+                              UserOperationService userOperationService,
+                              GtagRefillService gtagRefillService) {
         this.currencyService = currencyService;
         this.inputOutputService = inputOutputService;
         this.userService = userService;
         this.merchantService = merchantService;
         this.messageSource = messageSource;
         this.refillService = refillService;
+        this.userOperationService = userOperationService;
         this.gtagRefillService = gtagRefillService;
     }
 
@@ -152,6 +162,7 @@ public class NgRefillController {
      * @return merchant data for selected currency name
      */
     @GetMapping(value = "/merchants/input")
+    @CheckUserAuthority(authority = UserOperationAuthority.INPUT)
     public RefillPageDataDto inputCredits(@RequestParam("currency") String currencyName) {
         Currency currency = currencyService.findByName(currencyName);
         if (currency == null) {
@@ -183,6 +194,7 @@ public class NgRefillController {
     }
 
     @PostMapping(value = "/request/create")
+    @CheckUserAuthority(authority = UserOperationAuthority.INPUT)
     public ResponseEntity<Map<String, Object>> createRefillRequest(
             @RequestBody RefillRequestParamsDto requestParamsDto) {
         Locale locale = userService.getUserLocaleForMobile(getPrincipalEmail());

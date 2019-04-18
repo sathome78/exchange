@@ -55,6 +55,8 @@ public class EDCServiceImpl implements EDCService {
     String hook;
     private @Value("${edcmerchant.history}")
     String history;
+    private @Value("${edcmerchant.new_account}")
+    String urlCreateNewAccount;
 
     @Autowired
     private TransactionService transactionService;
@@ -183,7 +185,7 @@ public class EDCServiceImpl implements EDCService {
         formBuilder.add("account", main_account);
         formBuilder.add("hook", hook);
         final Request request = new Request.Builder()
-                .url("https://receive.edinarcoin.com/new-account/" + token)
+                .url(urlCreateNewAccount + token)
                 .post(formBuilder.build())
                 .build();
         final String returnResponse;

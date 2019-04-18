@@ -1,9 +1,7 @@
 package me.exrates.controller;
 
-import me.exrates.service.EDCServiceNode;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 /**
@@ -12,14 +10,7 @@ import org.springframework.stereotype.Controller;
 @Controller
 public class UnsafeController {
 
-    private final EDCServiceNode edcService;
-
     private static final Logger LOGGER = LogManager.getLogger(UnsafeController.class);
-
-    @Autowired
-    public UnsafeController(final EDCServiceNode edcService) {
-        this.edcService = edcService;
-    }
 /*
     @RequestMapping(value = "unsafe/rescanEDCBlockchain")
     public ResponseEntity<String> rescanEDCBlockchain(@RequestParam("from") final int from, @RequestParam("to") final int to) {

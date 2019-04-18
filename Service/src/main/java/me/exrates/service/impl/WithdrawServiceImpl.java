@@ -743,12 +743,29 @@ public class WithdrawServiceImpl implements WithdrawService {
         return notification;
     }
 
-    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+  @Override
+  public List<WithdrawRequestFlatForReportDto> findAllByPeriodAndRoles(LocalDateTime startTime,
+                                                                       LocalDateTime endTime,
+                                                                       List<UserRole> userRoles,
+                                                                       int requesterId) {
+    return withdrawRequestDao.findAllByPeriodAndRoles(startTime, endTime, userRoles, requesterId);
+  }
+
+  @Override
+  public void setAdditionalData(MerchantCurrency merchantCurrency) {
+    IWithdrawable withdrawable = (IWithdrawable) merchantServiceContext.getMerchantService(merchantCurrency.getMerchantId());
+    if (withdrawable.additionalTagForWithdrawAddressIsUsed()) {
+      merchantCurrency.setAdditionalTagForWithdrawAddressIsUsed(true);
+      merchantCurrency.setAdditionalFieldName(withdrawable.additionalWithdrawFieldName());
+    } else {
+      merchantCurrency.setAdditionalTagForWithdrawAddressIsUsed(false);
+    }
+  }
+
     @Override
-    public List<WithdrawRequestFlatForReportDto> findAllByPeriodAndRoles(LocalDateTime startTime,
-                                                                         LocalDateTime endTime,
-                                                                         List<UserRole> userRoles,
-                                                                         int requesterId) {
-        return withdrawRequestDao.findAllByPeriodAndRoles(startTime, endTime, userRoles, requesterId);
+    @Transactional(readOnly = true)
+    public BigDecimal getLeftOutputRequestsSum(int currencyId, String email) {
+        return withdrawRequestDao.getLeftOutputRequestsSum(currencyId, email);
     }
 }

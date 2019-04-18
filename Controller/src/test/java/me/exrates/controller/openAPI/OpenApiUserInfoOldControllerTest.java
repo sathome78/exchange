@@ -1,7 +1,12 @@
 package me.exrates.controller.openAPI;
 
 import me.exrates.controller.openAPI.config.WebAppTestConfig;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
+import me.exrates.model.User;
+import me.exrates.model.constants.ErrorApiTitles;
+import me.exrates.model.exceptions.OpenApiException;
 import me.exrates.security.config.OpenApiSecurityConfig;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
@@ -15,10 +20,14 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDate;
 
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertTrue;
 import static me.exrates.service.util.OpenApiUtils.transformCurrencyPair;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {WebAppTestConfig.class, OpenApiSecurityConfig.class})
@@ -209,8 +218,15 @@ public class OpenApiUserInfoOldControllerTest extends OpenApiCommonTest {
                 .build()
                 .expand(cp);
 
-        mockMvc.perform(MockMvcRequestBuilders.get(uriComponents.toUri().toString()))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+        try {
+            mockMvc.perform(MockMvcRequestBuilders.get(uriComponents.toUri().toString()))
+                    .andExpect(MockMvcResultMatchers.status().isBadRequest());
+        } catch (Exception ex) {
+            assertTrue(((NestedServletException) ex).getRootCause() instanceof OpenApiException);
+            OpenApiException exception = (OpenApiException) ((NestedServletException) ex).getRootCause();
+            assertEquals(ErrorApiTitles.API_REQUEST_ERROR_DATES, exception.getTitle());
+            assertEquals("From date is after to date", exception.getMessage());
+        }
     }
 
     @Test
@@ -228,8 +244,15 @@ public class OpenApiUserInfoOldControllerTest extends OpenApiCommonTest {
                 .build()
                 .expand(cp);
 
-        mockMvc.perform(MockMvcRequestBuilders.get(uriComponents.toUri().toString()))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+        try {
+            mockMvc.perform(MockMvcRequestBuilders.get(uriComponents.toUri().toString()))
+                    .andExpect(MockMvcResultMatchers.status().isBadRequest());
+        } catch (Exception ex) {
+            assertTrue(((NestedServletException) ex).getRootCause() instanceof OpenApiException);
+            OpenApiException exception = (OpenApiException) ((NestedServletException) ex).getRootCause();
+            assertEquals(ErrorApiTitles.API_REQUEST_ERROR_LIMIT, exception.getTitle());
+            assertEquals("Limit value equals or less than zero", exception.getMessage());
+        }
     }
 
     @Test

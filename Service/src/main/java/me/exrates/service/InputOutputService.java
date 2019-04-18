@@ -37,7 +37,7 @@ public interface InputOutputService {
                                                               List<Integer> userRoleIdList);
 
     Integer getUserInputOutputHistoryCount(String userEmail, Integer currencyId, String currencyName, LocalDateTime dateTimeFrom,
-                                           LocalDateTime dateTimeTo, Integer limit, Integer offset, Locale locale);
+                                           LocalDateTime dateTimeTo, Locale locale);
 
     List<MyInputOutputHistoryDto> getUserInputOutputHistory(String userEmail, Integer currencyId, String currencyName, LocalDateTime dateTimeFrom,
                                                             LocalDateTime dateTimeTo, Integer limit, Integer offset, Locale locale);

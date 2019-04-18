@@ -1,10 +1,7 @@
 package me.exrates.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import me.exrates.model.util.BigDecimalToStringSerializer;
 
 import java.math.BigDecimal;
@@ -17,6 +14,7 @@ import java.util.List;
 @Setter
 @EqualsAndHashCode
 @ToString
+@NoArgsConstructor
 public class MerchantCurrency {
     private int merchantId;
     private int currencyId;

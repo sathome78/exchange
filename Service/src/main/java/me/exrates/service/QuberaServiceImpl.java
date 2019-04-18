@@ -5,6 +5,7 @@ import me.exrates.dao.QuberaDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.User;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.constants.Constants;
 import me.exrates.model.dto.AccountCreateDto;
 import me.exrates.model.dto.qubera.AccountInfoDto;
@@ -27,6 +28,7 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
@@ -35,6 +37,7 @@ import java.util.Map;
 
 @Service
 @PropertySource("classpath:/merchants/qubera.properties")
+@Conditional(MonolitConditional.class)
 public class QuberaServiceImpl implements QuberaService {
 
     private static final Logger logger = LogManager.getLogger(QuberaServiceImpl.class);

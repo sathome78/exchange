@@ -6,6 +6,8 @@ import me.exrates.dao.CommissionDao;
 import me.exrates.dao.CompanyWalletDao;
 import me.exrates.dao.CurrencyDao;
 import me.exrates.dao.G2faDao;
+import me.exrates.dao.IEOClaimRepository;
+import me.exrates.dao.IeoDetailsRepository;
 import me.exrates.dao.MerchantDao;
 import me.exrates.dao.NewsDao;
 import me.exrates.dao.NotificationDao;
@@ -47,6 +49,7 @@ import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
+import me.exrates.service.merchantStrategy.MerchantServiceContextImpl;
 import me.exrates.service.notifications.EmailNotificatorServiceImpl;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.Google2faNotificatorServiceImpl;
@@ -120,6 +123,11 @@ public class ServiceTestConfig {
     }
 
     @Bean
+    public IeoDetailsRepository ieoDetailsRepository() {
+        return Mockito.mock(IeoDetailsRepository.class);
+    }
+
+    @Bean
     public UserService userService() {
         return new UserServiceImpl();
     }
@@ -133,6 +141,12 @@ public class ServiceTestConfig {
     public UserSessionService userSessionService() {
         return new UserSessionService();
     }
+
+    @Bean
+    public IEOClaimRepository ieoClaimRepository(){
+        return Mockito.mock(IEOClaimRepository.class);
+    }
+
 
     @Bean("ExratesSessionRegistry")
     public SessionRegistry sessionRegistry() {
@@ -267,7 +281,7 @@ public class ServiceTestConfig {
 
     @Bean
     public MerchantServiceContext merchantServiceContext () {
-        return new MerchantServiceContext();
+        return new MerchantServiceContextImpl();
     }
 
     @Bean
@@ -367,7 +381,8 @@ public class ServiceTestConfig {
 
     @Bean
     public TransactionService transactionService() {
-        return new TransactionServiceImpl();
+        return new TransactionServiceImpl(transactionDao(), walletService(), companyWalletService(), merchantService(),
+                currencyService());
     }
 
     @Bean
@@ -407,7 +422,7 @@ public class ServiceTestConfig {
 
     @Bean
     public WalletsApi walletsApi() {
-        return new WalletsApi(url, username, password);
+        return new WalletsApi(url, username, password, currencyService());
     }
 
     @Bean

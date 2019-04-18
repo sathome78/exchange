@@ -609,6 +609,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="rabbit_refill" fileName="${sys:catalina.home}/logs/rabbit/rabbit_refill.log"
+                     filePattern="${sys:catalina.home}/logs/rabbit/rabbit_refill%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="crea" fileName="${sys:catalina.home}/logs/crypto/crea.log"
                      filePattern="${sys:catalina.home}/logs/crypto/crea%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
@@ -674,6 +683,15 @@
         </RollingFile>
         <RollingFile name="nixmoney_log" fileName="${sys:catalina.home}/logs/merchants/nixmoney_log.log"
                      filePattern="${sys:catalina.home}/logs/merchants/nixmoney_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="inout" fileName="${sys:catalina.home}/logs/inout/inout.log"
+                     filePattern="${sys:catalina.home}/logs/inout/inout%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -853,6 +871,9 @@
         <logger name="ethereum_classic_log" level="ALL" additivity="false">
             <AppenderRef ref="ethereum_classic_log"/>
         </logger>
+        <logger name="rabbit_refill" level="ALL" additivity="false">
+            <AppenderRef ref="rabbit_refill"/>
+        </logger>
         <logger name="etherzero_log" level="ALL" additivity="false">
             <AppenderRef ref="etherzero_log"/>
         </logger>
@@ -981,6 +1002,9 @@
         </logger>
         <logger name="alterdice_api_logger" level="ALL" additivity="false">
             <AppenderRef ref="alterdice_logger"/>
+        </logger>
+        <logger name="inout" level="ALL" additivity="false">
+            <AppenderRef ref="inout"/>
         </logger>
         <Root level="INFO">
             <AppenderRef ref="Console"/>

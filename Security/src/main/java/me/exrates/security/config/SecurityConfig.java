@@ -181,8 +181,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(GET, "/2a8fy7b07dxe44/autoTrading/**").hasAnyAuthority(UserRole.BOT_TRADER.name(), UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
             .antMatchers(POST, "/2a8fy7b07dxe44/autoTrading/**")
             .hasAnyAuthority(UserRole.BOT_TRADER.name(), UserRole.ADMINISTRATOR.name())
+            .antMatchers("/2a8fy7b07dxe44/ieo/**").hasAnyAuthority(UserRole.ADMINISTRATOR.name())
+            /*... ADMIN */
             .antMatchers("/2a8fy7b07dxe44/**",
-                    "/2a8fy7b07dxe44").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.FIN_OPERATOR.name())
+            "/2a8fy7b07dxe44").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.FIN_OPERATOR.name())
             /*... ADMIN */
             .antMatchers("/companywallet").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.FIN_OPERATOR.name())
             .antMatchers("/merchants/bitcoin/payment/accept", "/merchants/invoice/payment/accept").hasAuthority(AdminAuthority.PROCESS_INVOICE.name())

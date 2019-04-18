@@ -183,11 +183,6 @@ public class TronServiceImpl implements TronService {
     }
 
     @Override
-    public BigDecimal countSpecCommission(BigDecimal amount, String destinationTag, Integer merchantId) {
-        return new BigDecimal(0.1).setScale(3, RoundingMode.HALF_UP);
-    }
-
-    @Override
     public boolean isValidDestinationAddress(String address) {
 
         return withdrawUtils.isValidDestinationAddress(address);

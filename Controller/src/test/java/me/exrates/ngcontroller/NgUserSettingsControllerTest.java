@@ -5,18 +5,22 @@ import me.exrates.model.SessionParams;
 import me.exrates.model.User;
 import me.exrates.model.dto.PageLayoutSettingsDto;
 import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.enums.ColorScheme;
 import me.exrates.model.enums.NotificationEvent;
+import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.ngModel.UserDocVerificationDto;
 import me.exrates.model.ngModel.UserInfoVerificationDto;
 import me.exrates.model.ngModel.enums.VerificationDocumentType;
 import me.exrates.ngService.UserVerificationService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
+import me.exrates.security.service.AuthTokenService;
 import me.exrates.service.NotificationService;
 import me.exrates.service.PageLayoutSettingsService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -29,7 +33,9 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.util.NestedServletException;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,6 +48,8 @@ import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasValue;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
@@ -80,6 +88,8 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
     private UserVerificationService verificationService;
     @Mock
     private IpBlockingService ipBlockingService;
+    @Mock
+    private AuthTokenService authTokenService;
 
     @InjectMocks
     NgUserSettingsController ngUserSettingsController;
@@ -329,10 +339,20 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
     public void updateSessionPeriod_bad_request() throws Exception {
         Map<String, String> requestBody = new HashMap<>();
 
-        mockMvc.perform(put(BASE_URL + SESSION_INTERVAL)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(objectMapper.writeValueAsString(requestBody)))
-                .andExpect(status().isBadRequest());
+        try {
+            mockMvc.perform(put(BASE_URL + SESSION_INTERVAL)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(requestBody)))
+                    .andExpect(status().isBadRequest());
+            Assert.fail();
+        } catch (Exception e) {
+            assertTrue(((NestedServletException) e).getRootCause() instanceof NgResponseException);
+            NgResponseException responseException = (NgResponseException) ((NestedServletException) e).getRootCause();
+            assertEquals("UPDATE_SESSION_PERIOD_FAILED", responseException.getTitle());
+
+            String expected = "Update session period null failed";
+            assertEquals(expected, e.getCause().getMessage());
+        }
     }
 
     @Test
@@ -411,10 +431,20 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
 
         when(userService.getIdByEmail(anyString())).thenThrow(Exception.class);
 
-        mockMvc.perform(put(BASE_URL + EMAIL_NOTIFICATION)
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(objectMapper.writeValueAsString(options)))
-                .andExpect(status().isBadRequest());
+        try {
+            mockMvc.perform(put(BASE_URL + EMAIL_NOTIFICATION)
+                    .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                    .content(objectMapper.writeValueAsString(options)))
+                    .andExpect(status().isBadRequest());
+            Assert.fail();
+        } catch (Exception e) {
+            assertTrue(((NestedServletException) e).getRootCause() instanceof NgResponseException);
+            NgResponseException responseException = (NgResponseException) ((NestedServletException) e).getRootCause();
+            assertEquals("UPDATE_USER_NOTIFICATION_FAILED", responseException.getTitle());
+
+            String expected = "Update user notification failed";
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(userService, times(1)).getIdByEmail(anyString());
     }
@@ -547,11 +577,21 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
         when(userService.getIdByEmail(anyString())).thenReturn(100);
         when(verificationService.save((UserInfoVerificationDto) anyObject())).thenReturn(mockDto);
 
-        mockMvc.perform(post(BASE_URL + "/docs")
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(objectMapper.writeValueAsString(mockDto)))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
+        try {
+            mockMvc.perform(post(BASE_URL + "/docs")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                    .content(objectMapper.writeValueAsString(mockDto)))
+                    .andDo(print())
+                    .andExpect(status().isBadRequest());
+            Assert.fail();
+        } catch (Exception e) {
+            assertTrue(((NestedServletException) e).getRootCause() instanceof NgResponseException);
+            NgResponseException responseException = (NgResponseException) ((NestedServletException) e).getRootCause();
+            assertEquals("UPLOAD_USER_VERIFICATION_FAILED", responseException.getTitle());
+
+            String expected = "Upload user verification failed";
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(userService, times(1)).getIdByEmail(anyString());
         verify(verificationService, times(1)).save((UserDocVerificationDto) anyObject());
@@ -615,10 +655,20 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
         when(userService.getIdByEmail(anyString())).thenReturn(100);
         when(verificationService.save((UserDocVerificationDto) anyObject())).thenReturn(null);
 
-        mockMvc.perform(post(BASE_URL + "/userFiles/docs/{type}", "PHOTO")
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(objectMapper.writeValueAsString(body)))
-                .andExpect(status().isBadRequest());
+        try {
+            mockMvc.perform(post(BASE_URL + "/userFiles/docs/{type}", "PHOTO")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                    .content(objectMapper.writeValueAsString(body)))
+                    .andExpect(status().isBadRequest());
+            Assert.fail();
+        } catch (Exception e) {
+            assertTrue(((NestedServletException) e).getRootCause() instanceof NgResponseException);
+            NgResponseException responseException = (NgResponseException) ((NestedServletException) e).getRootCause();
+            assertEquals("UPLOAD_USER_VERIFICATION_DOCS_FAILED", responseException.getTitle());
+
+            String expected = "Upload user verification code failed. Invalid path variable and/or request body.";
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(userService, times(1)).getIdByEmail(anyString());
         verify(verificationService, times(1)).save((UserDocVerificationDto) anyObject());
@@ -630,10 +680,20 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
 
         when(userService.getIdByEmail(anyString())).thenReturn(100);
 
-        mockMvc.perform(post(BASE_URL + "/userFiles/docs/{type}", "PHOTO")
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(objectMapper.writeValueAsString(body)))
-                .andExpect(status().isBadRequest());
+        try {
+            mockMvc.perform(post(BASE_URL + "/userFiles/docs/{type}", "PHOTO")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                    .content(objectMapper.writeValueAsString(body)))
+                    .andExpect(status().isBadRequest());
+            Assert.fail();
+        } catch (Exception e) {
+            assertTrue(((NestedServletException) e).getRootCause() instanceof NgResponseException);
+            NgResponseException responseException = (NgResponseException) ((NestedServletException) e).getRootCause();
+            assertEquals("UPLOAD_USER_VERIFICATION_DOCS_FAILED", responseException.getTitle());
+
+            String expected = "Upload user verification code failed. String encoded is empty.";
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(userService, times(1)).getIdByEmail(anyString());
     }
@@ -671,29 +731,76 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    public void manegeUserFavouriteCurrencyPairs_bad_request_manageUserFavouriteCurrencyPair_equals_false() throws Exception {
+    public void manegeUserFavouriteCurrencyPairs_bad_request_manageUserFavouriteCurrencyPair_equals_false() {
         Map<String, String> params = new HashMap<>();
         params.put("PAIR_ID", "100");
         params.put("TO_DELETE", "false");
 
         when(userService.manageUserFavouriteCurrencyPair(anyString(), anyInt(), anyBoolean())).thenReturn(Boolean.FALSE);
 
-        mockMvc.perform(put(BASE_URL + "/currency_pair/favourites")
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(objectMapper.writeValueAsString(params)))
-                .andExpect(status().isBadRequest());
+        try {
+            mockMvc.perform(put(BASE_URL + "/currency_pair/favourites")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                    .content(objectMapper.writeValueAsString(params)))
+                    .andExpect(status().isBadRequest());
+            Assert.fail();
+        } catch (Exception e) {
+            assertTrue(((NestedServletException) e).getRootCause() instanceof NgResponseException);
+            NgResponseException responseException = (NgResponseException) ((NestedServletException) e).getRootCause();
+            assertEquals("FAILED_MANAGE_USER_FAVORITE_CURRENCY_PAIRS", responseException.getTitle());
+
+            String expected = "Cannot find user by email.";
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(userService, times(1))
                 .manageUserFavouriteCurrencyPair(anyString(), anyInt(), anyBoolean());
     }
 
     @Test
-    public void manegeUserFavouriteCurrencyPairs_bad_request() throws Exception {
+    public void manegeUserFavouriteCurrencyPairs_bad_request() {
         Map<String, String> params = new HashMap<>();
 
-        mockMvc.perform(put(BASE_URL + "/currency_pair/favourites")
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(objectMapper.writeValueAsString(params)))
-                .andExpect(status().isBadRequest());
+        try {
+            mockMvc.perform(put(BASE_URL + "/currency_pair/favourites")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                    .content(objectMapper.writeValueAsString(params)))
+                    .andExpect(status().isBadRequest());
+            Assert.fail();
+        } catch (Exception e) {
+            assertTrue(((NestedServletException) e).getRootCause() instanceof NgResponseException);
+            NgResponseException responseException = (NgResponseException) ((NestedServletException) e).getRootCause();
+            assertEquals("FAILED_MANAGE_USER_FAVORITE_CURRENCY_PAIRS", responseException.getTitle());
+
+            String expected = "Failed to convert attributes {}.";
+            assertEquals(expected, e.getCause().getMessage());
+        }
+    }
+
+    @Test
+    public void refreshToken() throws Exception {
+        AuthTokenDto mockTokenDto = new AuthTokenDto();
+        mockTokenDto.setToken("TEST_TOKEN");
+        mockTokenDto.setNickname("TEST_NICKNAME");
+        mockTokenDto.setUserId(100);
+        mockTokenDto.setAvatarPath("TEST_AVATAR_PATH");
+        mockTokenDto.setLocale(Locale.ENGLISH);
+        mockTokenDto.setFinPasswordSet(Boolean.TRUE);
+        mockTokenDto.setReferralReference("TEST_REFRRAL_REFERENCE");
+
+        when(authTokenService.refreshTokenNg(anyString(), any(HttpServletRequest.class))).thenReturn(mockTokenDto);
+
+        mockMvc.perform(get(BASE_URL + "/token/refresh")
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token", is("TEST_TOKEN")))
+                .andExpect(jsonPath("$.nickname", is("TEST_NICKNAME")))
+                .andExpect(jsonPath("$.avatarPath", is("TEST_AVATAR_PATH")))
+                .andExpect(jsonPath("$.finPasswordSet", is(Boolean.TRUE)))
+                .andExpect(jsonPath("$.referralReference", is("TEST_REFRRAL_REFERENCE")))
+                .andExpect(jsonPath("$.id", is(100)))
+                .andExpect(jsonPath("$.language", is("en")));
+
+        verify(authTokenService, times(1)).refreshTokenNg(anyString(), any(HttpServletRequest.class));
     }
 }

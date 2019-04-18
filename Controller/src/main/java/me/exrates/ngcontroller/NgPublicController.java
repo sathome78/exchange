@@ -9,6 +9,7 @@ import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.IEODetails;
 import me.exrates.model.User;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.ChatHistoryDateWrapperDto;
@@ -32,6 +33,7 @@ import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.service.NgUserService;
 import me.exrates.service.ChatService;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.IEOService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
@@ -59,6 +61,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -82,6 +85,7 @@ public class NgPublicController {
     private final ChatService chatService;
     private final CurrencyService currencyService;
     private final IpBlockingService ipBlockingService;
+    private final IEOService ieoService;
     private final UserService userService;
     private final NgUserService ngUserService;
     private final SimpMessagingTemplate simpMessagingTemplate;
@@ -93,7 +97,9 @@ public class NgPublicController {
 
     @Autowired
     public NgPublicController(ChatService chatService,
-                              CurrencyService currencyService, IpBlockingService ipBlockingService,
+                              CurrencyService currencyService,
+                              IpBlockingService ipBlockingService,
+                              IEOService ieoService,
                               UserService userService,
                               NgUserService ngUserService,
                               SimpMessagingTemplate simpMessagingTemplate,
@@ -105,6 +111,7 @@ public class NgPublicController {
         this.chatService = chatService;
         this.currencyService = currencyService;
         this.ipBlockingService = ipBlockingService;
+        this.ieoService = ieoService;
         this.userService = userService;
         this.ngUserService = ngUserService;
         this.simpMessagingTemplate = simpMessagingTemplate;
@@ -144,6 +151,12 @@ public class NgPublicController {
     @ResponseBody
     public Boolean isGoogleTwoFAEnabled(@RequestParam("email") String email) {
         return g2faService.isGoogleAuthenticatorEnable(email);
+    }
+
+    @GetMapping("/ieo")
+    @ResponseBody
+    public Collection<IEODetails> getAllIeo() {
+        return ieoService.findAll(null);
     }
 
     @GetMapping(value = "/if_username_exists")
@@ -271,6 +284,12 @@ public class NgPublicController {
         }
 
         return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @GetMapping("/ieo/refresh")
+    public ResponseEntity<Void> refresh(){
+        ieoService.updateIeoStatuses();
+        return ResponseEntity.ok().build();
     }
 
     private String fromChatMessage(ChatMessage message) {

@@ -1,10 +1,14 @@
 package me.exrates.service;
 
+import me.exrates.model.constants.ErrorApiTitles;
+import me.exrates.model.exceptions.OpenApiException;
 import me.exrates.service.exception.api.InvalidCurrencyPairFormatException;
 import me.exrates.service.util.OpenApiUtils;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class OpenApiUtilsTest {
 
@@ -62,8 +66,14 @@ public class OpenApiUtilsTest {
         assertEquals(DIM_USD_BTC, pair);
     }
 
-    @Test(expected = InvalidCurrencyPairFormatException.class)
+    @Test
     public void transformCurrencyPair_fail() {
-        OpenApiUtils.transformCurrencyPair(BAD_CURRENCY_PAIR);
+        try {
+            OpenApiUtils.transformCurrencyPair(BAD_CURRENCY_PAIR);
+            fail();
+        } catch (OpenApiException e) {
+            assertTrue(e.getMessage().startsWith("Failed to parse currency pair name"));
+            assertEquals(ErrorApiTitles.API_WRONG_CURRENCY_PAIR_PATTERN, e.getTitle());
+        }
     }
 }

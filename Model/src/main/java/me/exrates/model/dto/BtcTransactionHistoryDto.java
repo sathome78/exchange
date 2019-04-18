@@ -1,10 +1,12 @@
 package me.exrates.model.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import me.exrates.model.serializer.LocalDateTimeDeserializer;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
@@ -24,6 +26,7 @@ public class BtcTransactionHistoryDto {
     private String fee;
     private Integer confirmations;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime time;
 
     public BtcTransactionHistoryDto(String txId, String address, String category, String amount, Integer confirmations, LocalDateTime time) {

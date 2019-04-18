@@ -461,7 +461,7 @@ public interface OrderService {
     @Transactional(readOnly = true)
     Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, String currencyName,
                                                                   OrderStatus orderStatus, String scope, Integer limit,
-                                                                  Integer offset, Boolean hideCanceled, Map<String, String> sortedColumns,
+                                                                  Integer offset, Boolean hideCanceled, String sortByCreated,
                                                                   LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo, Locale locale);
 
     @Transactional
@@ -469,7 +469,7 @@ public interface OrderService {
 
     List<OrderWideListDto> getOrdersForExcel(Integer userId, CurrencyPair currencyPair, String currencyName,
                                              OrderStatus orderStatus, String scope, Integer limit,
-                                             Integer offset, Boolean hideCanceled, Map<String, String> sortedColumns,
+                                             Integer offset, Boolean hideCanceled, String sortByCreated,
                                              LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo, Locale locale);
 
     ReportDto getOrderExcelFile(List<OrderWideListDto> orders, OrderStatus orderStatus) throws Exception;

@@ -7,16 +7,20 @@ import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyReportInfoDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
+import me.exrates.model.dto.api.BalanceDto;
+import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
 import me.exrates.model.enums.CurrencyPairType;
+import me.exrates.model.enums.Market;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -121,5 +125,19 @@ public interface CurrencyDao {
 
     List<CurrencyPair> findAllCurrenciesBySecondPartName(String partName);
 
+    List<Currency> findAllByNames(Collection<String> names);
+
     boolean isCurrencyPairHidden(int currencyPairId);
+
+    void addCurrency(String currencyName, String description, String beanName, String imgPath, boolean hidden, boolean lockInOut);
+
+    void addCurrencyPair(Currency currency1, Currency currency2, String newPairName, CurrencyPairType type, Market market, String tiker, boolean hidden);
+
+    void updateCurrencyExchangeRates(List<RateDto> rates);
+
+    List<RateDto> getCurrencyRates();
+
+    void updateCurrencyBalances(List<BalanceDto> balances);
+
+    List<BalanceDto> getCurrencyBalances();
 }

@@ -71,6 +71,9 @@ public class SendMailServiceImpl implements SendMailService {
     @Value("${spring.profile}")
     private String springProfile;
 
+    @Value("${front-host}")
+    private String server;
+
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void sendMail(Email email) {
         SUPPORT_MAIL_EXECUTORS.execute(() -> {
@@ -206,6 +209,8 @@ public class SendMailServiceImpl implements SendMailService {
         } catch (IOException e) {
             return text;
         }
-        return html.replace("{::text::}", text);
+        html = html.replace("{::text::}", text);
+        html = html.replace("{::server::}", server);
+        return html;
     }
 }
