@@ -243,9 +243,11 @@ public class IEOServiceImpl implements IEOService {
     @Override
     public synchronized void updateIeoStatuses() {
         log.info("<<IEO>>: Starting to update IEO statuses ...");
-        boolean updateResult = ieoDetailsRepository.updateIeoStatusesToRunning();
-        log.info("<<IEO>>: Finished update IEO statuses, result: " + updateResult);
-        if (updateResult) {
+        boolean updateResultToToRunning = ieoDetailsRepository.updateIeoStatusesToRunning();
+        boolean updateResultToTerminated = ieoDetailsRepository.updateIeoStatusesToRunning();
+        log.info("<<IEO>>: Finished update IEO statuses to running, result: " + updateResultToToRunning);
+        log.info("<<IEO>>: Finished update IEO statuses to terminated, result: " + updateResultToTerminated);
+        if (updateResultToToRunning || updateResultToTerminated) {
             String userEmail = userService.getUserEmailFromSecurityContext();
             log.info("<<IEO>>: Principal email from Security Context: " + userEmail);
             try {
@@ -270,7 +272,8 @@ public class IEOServiceImpl implements IEOService {
             });
             log.info("<<IEO>>: Finished sending statuses ..... ");
         }
-        log.info("<<IEO>>: Exiting IEO statuses, result: " + updateResult);
+        log.info("<<IEO>>: Exiting IEO statuses to running, result: " + updateResultToToRunning);
+        log.info("<<IEO>>: Exiting IEO statuses to terminated, result: " + updateResultToTerminated);
     }
 
     private void validateUserAmountRestrictions(IEODetails ieoDetails, User user, ClaimDto claimDto) {
