@@ -2,16 +2,23 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.ReferralUserGraphDao;
 import me.exrates.dao.UserDao;
+import me.exrates.dao.UserSettingsDao;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.AdminAuthorityOption;
 import me.exrates.model.Comment;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
+import me.exrates.model.dto.CallbackURL;
+import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.UserIpDto;
+import me.exrates.model.dto.UserIpReportDto;
 import me.exrates.model.dto.UserSessionInfoDto;
+import me.exrates.model.dto.kyc.VerificationStep;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
+import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
@@ -25,6 +32,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.UserSettingService;
 import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.exception.AuthenticationNotAvailableException;
+import me.exrates.service.exception.CallBackUrlAlreadyExistException;
 import me.exrates.service.exception.ForbiddenOperationException;
 import me.exrates.service.exception.ResetPasswordExpirationException;
 import me.exrates.service.exception.TokenNotFoundException;
@@ -39,6 +47,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.quartz.JobKey;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +56,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -61,10 +71,13 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyLong;
@@ -122,8 +135,12 @@ public class UserServiceImplTest {
     @Autowired
     private ReferralUserGraphDao referralUserGraphDao;
 
-//    @Autowired
-//    private AdminAuthority adminAuthority;
+    @Autowired
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    @Autowired
+    private UserSettingsDao userSettingsDao;
+
 
     private List<String> LOCALES_LIST;
     private User user;
@@ -1375,107 +1392,312 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void getUserRoleFromDB() {
+    public void getUserRoleFromDBByEmail() {
+        when(userDao.getUserRoleByEmail(anyString())).thenReturn(UserRole.USER);
+
+        assertEquals(UserRole.USER, userService.getUserRoleFromDB("test@test.com"));
+
+        verify(userDao, times(1)).getUserRoleByEmail("test@test.com");
     }
 
     @Test
-    public void getUserRoleFromDB1() {
+    public void getUserRoleFromDBByUserId() {
+        when(userDao.getUserRoleById(anyInt())).thenReturn(UserRole.USER);
+
+        assertEquals(UserRole.USER, userService.getUserRoleFromDB(17));
+
+        verify(userDao, times(1)).getUserRoleById(17);
     }
 
     @Test
     public void updatePinForUserForEvent() {
+        Random random = Mockito.mock(Random.class);
+        when(random.nextInt()).thenReturn(5);
+//        when(bCryptPasswordEncoder.encode(anyString())).thenReturn("1234123");
+        doNothing().when(userDao).updatePinByUserEmail(anyString(), anyString(), any(NotificationMessageEventEnum.class));
+
+       assertEquals(String.valueOf(10000005), userService.updatePinForUserForEvent("test@test.com", NotificationMessageEventEnum.TRANSFER));
+
+        verify(userDao, times(1)).updatePinByUserEmail("test@test.com", "1234123", NotificationMessageEventEnum.TRANSFER);
     }
 
     @Test
-    public void checkPin() {
+    public void checkPin_WhenGOOGLE2FA() {
+        NotificationsUserSetting setting = new  NotificationsUserSetting();
+        setting.setNotificatorId(4);
+        when(userDao.getIdByEmail(anyString())).thenReturn(59);
+        when(settingsService.getByUserAndEvent(anyInt(), any(NotificationMessageEventEnum.class))).thenReturn(setting);
+        when(g2faService.checkGoogle2faVerifyCode(anyString(), anyInt())).thenReturn(true);
+
+        assertEquals(true, userService.checkPin("test@test.com","1234123", NotificationMessageEventEnum.TRANSFER));
+
+        verify(userDao, times(1)).getIdByEmail("test@test.com");
+        verify(settingsService, times(1)).getByUserAndEvent(59, NotificationMessageEventEnum.TRANSFER);
+        verify(g2faService, times(1)).checkGoogle2faVerifyCode("1234123", 59);
+    }
+
+    @Test
+    public void checkPin_WhenEMAIL() {
+        NotificationsUserSetting setting = new  NotificationsUserSetting();
+        setting.setNotificatorId(1);
+        when(userDao.getIdByEmail(anyString())).thenReturn(59);
+        when(settingsService.getByUserAndEvent(anyInt(), any(NotificationMessageEventEnum.class))).thenReturn(setting);
+        when(userDao.getPinByEmailAndEvent(anyString(), any(NotificationMessageEventEnum.class))).thenReturn("$2a$10$meKA97t3W5GBAWoBZVd9HeB4ONjt5C6zoMPSuTv5wGWsTTC48us22");
+
+        assertEquals(true, userService.checkPin("test@test.com","123", NotificationMessageEventEnum.TRANSFER));
+
+        verify(userDao, times(1)).getIdByEmail("test@test.com");
+        verify(settingsService, times(1)).getByUserAndEvent(59, NotificationMessageEventEnum.TRANSFER);
+        verify(userDao, times(1)).getPinByEmailAndEvent("test@test.com", NotificationMessageEventEnum.TRANSFER);
+    }
+
+    @Test
+    public void checkPin_WhenSettingIsNull() {
+        when(userDao.getIdByEmail(anyString())).thenReturn(59);
+        when(settingsService.getByUserAndEvent(anyInt(), any(NotificationMessageEventEnum.class))).thenReturn(null);
+        when(userDao.getPinByEmailAndEvent(anyString(), any(NotificationMessageEventEnum.class))).thenReturn("$2a$10$meKA97t3W5GBAWoBZVd9HeB4ONjt5C6zoMPSuTv5wGWsTTC48us22");
+
+        assertEquals(true, userService.checkPin("test@test.com","123", NotificationMessageEventEnum.TRANSFER));
+
+        verify(userDao, times(1)).getIdByEmail("test@test.com");
+        verify(settingsService, times(1)).getByUserAndEvent(59, NotificationMessageEventEnum.TRANSFER);
+        verify(userDao, times(1)).getPinByEmailAndEvent("test@test.com", NotificationMessageEventEnum.TRANSFER);
+    }
+
+    @Test
+    public void checkPin_WhenNotificatorIdIsNull() {
+        NotificationsUserSetting setting = new  NotificationsUserSetting();
+        when(userDao.getIdByEmail(anyString())).thenReturn(59);
+        when(settingsService.getByUserAndEvent(anyInt(), any(NotificationMessageEventEnum.class))).thenReturn(setting);
+        when(userDao.getPinByEmailAndEvent(anyString(), any(NotificationMessageEventEnum.class))).thenReturn("$2a$10$meKA97t3W5GBAWoBZVd9HeB4ONjt5C6zoMPSuTv5wGWsTTC48us22");
+
+        assertEquals(true, userService.checkPin("test@test.com","123", NotificationMessageEventEnum.TRANSFER));
+
+        verify(userDao, times(1)).getIdByEmail("test@test.com");
+        verify(settingsService, times(1)).getByUserAndEvent(59, NotificationMessageEventEnum.TRANSFER);
+        verify(userDao, times(1)).getPinByEmailAndEvent("test@test.com", NotificationMessageEventEnum.TRANSFER);
     }
 
     @Test
     public void isLogin2faUsed() {
+        when(userDao.getIdByEmail(anyString())).thenReturn(16);
+        when(g2faService.isGoogleAuthenticatorEnable(anyInt())).thenReturn(true);
+
+        assertEquals(true, userService.isLogin2faUsed("test@test.com"));
+
+        verify(userDao, times(1)).getIdByEmail("test@test.com");
+        verify(g2faService, times(1)).isGoogleAuthenticatorEnable(16);
     }
 
     @Test
     public void checkIsNotifyUserAbout2fa() {
+        when(userDao.updateLast2faNotifyDate(anyString())).thenReturn(true);
+
+        assertEquals(true, userService.checkIsNotifyUserAbout2fa("test@test.com"));
+
+        verify(userDao, times(1)).updateLast2faNotifyDate("test@test.com");
     }
 
     @Test
     public void getUserIpReportForRoles() {
+        UserIpReportDto userIpReportDto = new UserIpReportDto();
+        userIpReportDto.setEmail("test@test.com");
+        when(userDao.getUserIpReportByRoleList(anyList())).thenReturn(Arrays.asList(userIpReportDto));
+
+        assertEquals(Arrays.asList(userIpReportDto), userService.getUserIpReportForRoles(Arrays.asList(7,9)));
+
+        verify(userDao, times(1)).getUserIpReportByRoleList(Arrays.asList(7,9));
     }
 
     @Test
     public void getNewRegisteredUserNumber() {
+        LocalDateTime start = LocalDateTime.now();
+        LocalDateTime finish = LocalDateTime.now();
+        when(userDao.getNewRegisteredUserNumber(any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(77);
+
+        assertEquals(new Integer(77), userService.getNewRegisteredUserNumber(start, finish));
+
+        verify(userDao, times(1)).getNewRegisteredUserNumber(start, finish);
+    }
+
+    @Test(expected = AuthenticationNotAvailableException.class)
+    public void getUserEmailFromSecurityContext_WhenAuthenticationIsNull() {
+        SecurityContextHolder.getContext()
+                .setAuthentication(null);
+
+        userService.getUserEmailFromSecurityContext();
     }
 
     @Test
-    public void getUserEmailFromSecurityContext() {
+    public void getUserEmailFromSecurityContext_WhenAuthenticationIsNotNull() {
+        SecurityContextHolder.getContext()
+                .setAuthentication(new AnonymousAuthenticationToken("w1", "testemail@gmail.com",
+                        AuthorityUtils.createAuthorityList("d1")));
+
+        assertEquals("testemail@gmail.com", userService.getUserEmailFromSecurityContext());
     }
 
     @Test
     public void getTemporalTokenByValue() {
+        TemporalToken temporalToken = new TemporalToken();
+        temporalToken.setId(56);
+        when(userDao.verifyToken(anyString())).thenReturn(temporalToken);
+
+        assertEquals(temporalToken, userService.getTemporalTokenByValue("String Token"));
+
+        verify(userDao, times(1)).verifyToken("String Token");
     }
 
     @Test
     public void getUserByTemporalToken() {
+        User user = new User();
+        user.setId(35);
+        when(userDao.getUserByTemporalToken(anyString())).thenReturn(user);
+
+        assertEquals(user, userService.getUserByTemporalToken("String Token"));
+
+        verify(userDao, times(1)).getUserByTemporalToken("String Token");
     }
 
     @Test
     public void checkPassword() {
+        when(userDao.getPassword(anyInt())).thenReturn("$2a$10$meKA97t3W5GBAWoBZVd9HeB4ONjt5C6zoMPSuTv5wGWsTTC48us22");
+
+        assertEquals(true, userService.checkPassword(78, "123"));
+
+        verify(userDao, times(1)).getPassword(78);
     }
 
     @Test
     public void countUserIps() {
+        when(userDao.countUserEntrance(anyString())).thenReturn(45L);
+
+        assertEquals(45L, userService.countUserIps("testemail@gmail.com"));
+
+        verify(userDao, times(1)).countUserEntrance("testemail@gmail.com");
     }
 
     @Test
     public void isGlobal2FaActive() {
+        assertEquals(false, userService.isGlobal2FaActive());
     }
 
     @Test
-    public void getUserFavouriteCurrencyPairs() {
+    public void getUserFavouriteCurrencyPairs_WhenUserIsNotNull() {
+        when(userDao.findByEmail(anyString())).thenReturn(user);
+        when(userDao.findFavouriteCurrencyPairsById(anyInt())).thenReturn(Arrays.asList(5,6,7));
+
+        assertEquals(Arrays.asList(5,6,7), userService.getUserFavouriteCurrencyPairs("testemail@gmail.com"));
+
+        verify(userDao, times(1)).findByEmail("testemail@gmail.com");
+        verify(userDao, times(1)).findFavouriteCurrencyPairsById(5);
+    }
+
+    @Test
+    public void getUserFavouriteCurrencyPairs_WhenUserNull() {
+        when(userDao.findByEmail(anyString())).thenReturn(null);
+
+        assertEquals(Collections.emptyList(), userService.getUserFavouriteCurrencyPairs("testemail@gmail.com"));
+
+        verify(userDao, times(1)).findByEmail("testemail@gmail.com");
     }
 
     @Test
     public void manageUserFavouriteCurrencyPair() {
+        when(userDao.findByEmail(anyString())).thenReturn(user);
+        when(userDao.manageUserFavouriteCurrencyPair(anyInt(), anyInt(), anyBoolean())).thenReturn(true);
+
+        assertEquals(true, userService.manageUserFavouriteCurrencyPair("testemail@gmail.com", 88, false));
+
+        verify(userDao, times(1)).findByEmail("testemail@gmail.com");
+        verify(userDao, times(1)).manageUserFavouriteCurrencyPair(5, 88, false);
+    }
+
+    @Test
+    public void manageUserFavouriteCurrencyPair_WhenNull() {
+        when(userDao.findByEmail(anyString())).thenReturn(null);
+
+        assertEquals(false, userService.manageUserFavouriteCurrencyPair("testemail@gmail.com", 88, false));
+
+        verify(userDao, times(1)).findByEmail("testemail@gmail.com");
     }
 
     @Test
     public void deleteTempTokenByValue() {
+        when(userDao.deleteTemporalToken(anyString())).thenReturn(true);
+
+        assertEquals(true, userService.deleteTempTokenByValue("token"));
+
+        verify(userDao, times(1)).deleteTemporalToken("token");
     }
 
     @Test
     public void updateGaTag() {
+        when(userDao.updateGaTag(anyString(), anyString())).thenReturn(77);
+
+        userService.updateGaTag("gaCookie","username");
+
+        verify(userDao, times(1)).updateGaTag("gaCookie","username");
     }
 
     @Test
     public void getReferenceId() {
+        when(userDao.getReferenceIdByUserEmail(anyString())).thenReturn("refID");
+
+        assertEquals("refID", userService.getReferenceId());
+
+        verify(userDao, times(1)).getReferenceIdByUserEmail("testemail@gmail.com");
     }
 
     @Test
     public void updateVerificationStep() {
+        when(userDao.updateVerificationStep(anyString())).thenReturn(7);
+
+        assertEquals(7, userService.updateVerificationStep("23testemail@gmail.com"));
+
+        verify(userDao, times(1)).updateVerificationStep("23testemail@gmail.com");
     }
 
     @Test
     public void getVerificationStep() {
+        when(userDao.getVerificationStep(anyString())).thenReturn(2);
+
+        assertEquals(VerificationStep.LEVEL_TWO, userService.getVerificationStep());
+
+        verify(userDao, times(1)).getVerificationStep("testemail@gmail.com");
     }
 
     @Test
     public void updateReferenceId() {
+        when(userDao.updateReferenceId(anyString(), anyString())).thenReturn(16);
+
+        assertEquals(16, userService.updateReferenceId("referenceId"));
+
+        verify(userDao, times(1)).updateReferenceId("referenceId", "testemail@gmail.com");
     }
 
     @Test
     public void getEmailByReferenceId() {
+        when(userDao.getEmailByReferenceId(anyString())).thenReturn("some@email.com");
+
+        assertEquals("some@email.com", userService.getEmailByReferenceId("referenceId"));
+
+        verify(userDao, times(1)).getEmailByReferenceId("referenceId");
     }
 
     @Test
     public void getCallBackUrlById() {
+        assertEquals(null, userService.getCallBackUrlById(5,77));
     }
 
     @Test
     public void getCallBackUrlByUserAcceptorId() {
+        assertEquals(null, userService.getCallBackUrlByUserAcceptorId(5,77));
     }
 
     @Test
     public void findEmailById() {
+        assertEquals(null, userService.findEmailById(5));
     }
 
     @Test
@@ -1484,41 +1706,119 @@ public class UserServiceImplTest {
 
     @Test
     public void getUsersInfoFromDatabase() {
+
     }
 
     @Test
     public void blockUserByRequest() {
+        User user2 = new User();
+        user2.setId(67);
+        user2.setUserStatus(UserStatus.DELETED);
+        when(userDao.updateUserStatus(any(User.class))).thenReturn(true);
+        doNothing().when(userSessionService).invalidateUserSessionExceptSpecific(anyString(), anyString());
+        when(userDao.getEmailById(anyInt())).thenReturn("getEmailById");
+
+        userService.blockUserByRequest(67);
+
+        verify(userDao, times(1)).updateUserStatus(any(User.class));
+        verify(userSessionService, times(1)).invalidateUserSessionExceptSpecific("getEmailById", null);
+        verify(userDao, times(1)).getEmailById(67);
     }
 
     @Test
     public void updateCallbackURL() {
+        CallbackURL callbackUrl = new CallbackURL();
+        callbackUrl.setPairId(8);
+        when(userSettingsDao.updateCallbackURL(anyInt(), any(CallbackURL.class))).thenReturn(80);
+
+        assertEquals(80, userService.updateCallbackURL(57, callbackUrl));
+
+        verify(userSettingsDao, times(1)).updateCallbackURL(57, callbackUrl);
     }
 
     @Test
     public void setCallbackURL() {
+        CallbackURL callbackUrl = new CallbackURL();
+        callbackUrl.setPairId(8);
+        when(userSettingsDao.getCallBackURLByUserId(anyInt(), anyInt())).thenReturn("");
+        when(userSettingsDao.addCallBackUrl(anyInt(), any(CallbackURL.class))).thenReturn(89);
+
+        assertEquals(89, userService.setCallbackURL(57, callbackUrl));
+
+        verify(userSettingsDao, times(1)).getCallBackURLByUserId(57, 8);
+        verify(userSettingsDao, times(1)).addCallBackUrl(57, callbackUrl);
+    }
+
+    @Test(expected = CallBackUrlAlreadyExistException.class)
+    public void setCallbackURL_WhenException() {
+        CallbackURL callbackUrl = new CallbackURL();
+        callbackUrl.setPairId(8);
+        when(userSettingsDao.getCallBackURLByUserId(anyInt(), anyInt())).thenReturn("Callback");
+
+        userService.setCallbackURL(57, callbackUrl);
     }
 
     @Test
     public void verifyUserEmailForForgetPassword() {
+        TemporalToken temporalToken = new TemporalToken();
+        temporalToken.setId(55);
+        when(userDao.verifyToken(anyString())).thenReturn(temporalToken);
+
+        assertEquals(temporalToken, userService.verifyUserEmailForForgetPassword("token"));
+
+        verify(userDao, times(1)).verifyToken("token");
+
     }
 
     @Test
     public void getUserKycStatusByEmail() {
+        when(userDao.getKycStatusByEmail(anyString())).thenReturn("UserKycStatus");
+
+        assertEquals("UserKycStatus", userService.getUserKycStatusByEmail("some@email.com"));
+
+        verify(userDao, times(1)).getKycStatusByEmail("some@email.com");
     }
 
     @Test
     public void updateKycReferenceByEmail() {
+        when(userDao.updateKycReferenceIdByEmail(anyString(), anyString())).thenReturn(true);
+
+        assertEquals(true, userService.updateKycReferenceByEmail("some@email.com","referenceUID"));
+
+        verify(userDao, times(1)).updateKycReferenceIdByEmail("some@email.com","referenceUID");
+    }
+
+    @Test(expected = UserNotFoundException.class)
+    public void findByKycReferenceId_WhenException() {
+        when(userDao.findByKycReferenceId(anyString())).thenReturn(Optional.empty());
+
+        userService.findByKycReferenceId("some@email.com");
     }
 
     @Test
     public void findByKycReferenceId() {
+        when(userDao.findByKycReferenceId(anyString())).thenReturn(Optional.of(user));
+
+        assertEquals(user, userService.findByKycReferenceId("some@email.com"));
+
+        verify(userDao, times(1)).findByKycReferenceId("some@email.com");
     }
 
     @Test
     public void updateKycStatusByEmail() {
+        when(userDao.updateKycStatusByEmail(anyString(), anyString())).thenReturn(true);
+
+        assertEquals(true, userService.updateKycStatusByEmail("some@email.com", "status"));
+
+        verify(userDao, times(1)).updateKycStatusByEmail("some@email.com", "status");
     }
 
     @Test
     public void getKycReferenceByEmail() {
+        when(userDao.findKycReferenceByUserEmail(anyString())).thenReturn("KYC");
+
+        assertEquals("KYC", userService.getKycReferenceByEmail("some@email.com"));
+
+        verify(userDao, times(1)).findKycReferenceByUserEmail("some@email.com");
     }
 }

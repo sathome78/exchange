@@ -80,6 +80,7 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.social.twitter.api.Twitter;
 import org.springframework.web.servlet.LocaleResolver;
@@ -203,12 +204,12 @@ public class ServiceTestConfig {
 
     @Bean
     public NotificationsSettingsService settingsService() {
-        return new NotificationsSettingsServiceImpl();
+        return Mockito.mock(NotificationsSettingsService.class);
     }
 
     @Bean
     public G2faService g2faService() {
-        return new Google2faNotificatorServiceImpl();
+        return Mockito.mock(G2faService.class);
     }
 
     @Bean
@@ -476,8 +477,8 @@ public class ServiceTestConfig {
         return Mockito.mock(UserSettingsDao.class);
     }
 
-//    @Bean
-//    public AdminAuthority adminAuthority() {
-//        return AdminAuthority.MANAGE_ACCESS;
-//    }
+    @Bean
+    public BCryptPasswordEncoder bCryptPasswordEncoder() {
+        return Mockito.mock(BCryptPasswordEncoder.class);
+    }
 }
