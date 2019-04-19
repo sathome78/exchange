@@ -98,7 +98,6 @@ public class KYCServiceImpl implements KYCService {
     private final UserVerificationInfoDao userVerificationInfoDao;
     private final KYCSettingsDao kycSettingsDao;
     private final StompMessenger stompMessenger;
-    private final ObjectMapper objectMapper;
 
     @Value("${server-host}")
     private String host;
@@ -122,8 +121,7 @@ public class KYCServiceImpl implements KYCService {
                           KycHttpClient kycHttpClient,
                           UserVerificationInfoDao userVerificationInfoDao,
                           KYCSettingsDao kycSettingsDao,
-                          StompMessenger stompMessenger,
-                          ObjectMapper objectMapper) {
+                          StompMessenger stompMessenger) {
         this.verificationUrl = verificationUrl;
         this.statusUrl = statusUrl;
         this.callbackUrl = callbackUrl;
@@ -142,7 +140,6 @@ public class KYCServiceImpl implements KYCService {
         this.userVerificationInfoDao = userVerificationInfoDao;
         this.kycSettingsDao = kycSettingsDao;
         this.stompMessenger = stompMessenger;
-        this.objectMapper = objectMapper;
         this.restTemplate = new RestTemplate();
         this.restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(username, password));
     }
@@ -180,7 +177,9 @@ public class KYCServiceImpl implements KYCService {
         if (affectedRowCount == 0) {
             log.debug("Reference id have not been updated in database");
         }
-        return verificationObject.getString(VERIFICATION_URL).replace("\\", "");
+        String verificationUrl = verificationObject.getString(VERIFICATION_URL).replace("\\", "");
+        sendPersonalMessage(userEmail, verificationUrl);
+        return verificationUrl;
     }
 
     private VerificationRequest buildVerificationRequest(String userEmail, String languageCode, String countryCode, int stepNumber) {
@@ -368,8 +367,31 @@ public class KYCServiceImpl implements KYCService {
     public void processingCallBack(String referenceId, KycStatusResponseDto kycStatusResponseDto) {
         User user = userService.findByKycReferenceId(referenceId);
         updateUserVerificationInfo(user, kycStatusResponseDto);
-
+        sendPersonalMessage(kycStatusResponseDto, user);
         sendStatusNotification(user.getEmail(), kycStatusResponseDto.getStatus());
+    }
+
+    private void sendPersonalMessage(KycStatusResponseDto kycStatusResponseDto, User user) {
+        UserNotificationMessage message = UserNotificationMessage.builder()
+                .notificationType(UserNotificationType.SUCCESS)
+                .sourceTypeEnum(WsSourceTypeEnum.KYC)
+                .text("Dear user, your current verification status is SUCCESS")
+                .build();
+        if (StringUtils.isNotEmpty(kycStatusResponseDto.getErrorMsg())) {
+            message.setNotificationType(UserNotificationType.WARNING);
+            String text = "Dear user, your verification seems to fail as " + kycStatusResponseDto.getErrorMsg();
+            message.setText(text);
+        }
+        stompMessenger.sendPersonalMessageToUser(user.getEmail(), message);
+    }
+
+    private void sendPersonalMessage(String userEmail, String verificationLink) {
+        UserNotificationMessage message = UserNotificationMessage.builder()
+                .notificationType(UserNotificationType.INFORMATION)
+                .sourceTypeEnum(WsSourceTypeEnum.KYC)
+                .text("Dear user, you to proceed your verification, please follow: " + verificationLink)
+                .build();
+        stompMessenger.sendPersonalMessageToUser(userEmail, message);
     }
 
     private void sendStatusNotification(String userEmail, String eventStatus) {

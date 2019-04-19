@@ -4922,7 +4922,6 @@ public class OrderServiceImplTest {
         dto.setCurrencyPairName("BTC/USD");
         dto.setStatus(OrderStatus.OPENED);
 
-        when(userService.getIdByEmail(anyString())).thenReturn(1);
         when(orderDao.getMyOrdersWithState(
                 anyInt(),
                 any(CurrencyPair.class),
@@ -4934,7 +4933,7 @@ public class OrderServiceImplTest {
                 any(Locale.class))).thenReturn(Collections.singletonList(dto));
 
         List<OrderWideListDto> myOrdersWithState = orderService.getUsersOrdersWithStateForAdmin(
-                USER_EMAIL,
+                1,
                 new CurrencyPair(),
                 OrderStatus.OPENED,
                 OperationType.SELL,
@@ -4945,7 +4944,6 @@ public class OrderServiceImplTest {
         assertNotNull(myOrdersWithState);
         assertEquals(dto, myOrdersWithState.get(0));
 
-        verify(userService, atLeastOnce()).getIdByEmail(anyString());
         verify(orderDao, atLeastOnce()).getMyOrdersWithState(
                 anyInt(),
                 any(CurrencyPair.class),
