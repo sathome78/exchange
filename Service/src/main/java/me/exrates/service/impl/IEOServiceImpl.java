@@ -248,7 +248,12 @@ public class IEOServiceImpl implements IEOService {
         log.info("<<IEO>>: Finished update IEO statuses to running, result: " + updateResultToToRunning);
         log.info("<<IEO>>: Finished update IEO statuses to terminated, result: " + updateResultToTerminated);
         if (updateResultToToRunning || updateResultToTerminated) {
-            String userEmail = userService.getUserEmailFromSecurityContext();
+            String userEmail = null;
+            try {
+                userEmail = userService.getUserEmailFromSecurityContext();
+            } catch (Exception e) {
+                log.debug("<<IEO>>: Principal email from Security Context not found, but we don't care ");
+            }
             log.info("<<IEO>>: Principal email from Security Context: " + userEmail);
             try {
                 if (StringUtils.isNotEmpty(userEmail)) {
