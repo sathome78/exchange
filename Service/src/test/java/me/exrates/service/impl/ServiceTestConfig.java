@@ -497,29 +497,4 @@ public class ServiceTestConfig {
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return Mockito.mock(BCryptPasswordEncoder.class);
     }
-
-    @Bean("cache.currencyByName")
-    public Cache currencyByNameCache() {
-        return Mockito.mock(Cache.class);
-    }
-
-    @Bean("cache.currencyPairByName")
-    public Cache currencyPairByNameCache() {
-        return Mockito.mock(Cache.class);
-    }
-
-    @Bean("cache.currencyPairById")
-    public Cache currencyPairByIdCache() {
-        return Mockito.mock(Cache.class);
-    }
-
-    @Bean("cache.currencyPairListByType")
-    public Cache currencyPairsListByTypeCache() {
-        return Mockito.mock(Cache.class);
-    }
-
-    @Bean("cache.merchantByName")
-    public Cache cacheMerchantByName() {
-        return Mockito.mock(Cache.class);
-    }
 }

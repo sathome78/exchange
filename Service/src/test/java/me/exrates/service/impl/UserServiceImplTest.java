@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import me.exrates.configurations.CacheConfiguration;
 import me.exrates.dao.ReferralUserGraphDao;
 import me.exrates.dao.UserDao;
 import me.exrates.dao.UserSettingsDao;
@@ -101,7 +102,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {ServiceTestConfig.class})
+@ContextConfiguration(classes = {ServiceTestConfig.class, CacheConfiguration.class})
 public class UserServiceImplTest {
 
     @Autowired
@@ -157,7 +158,7 @@ public class UserServiceImplTest {
     private User user;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         MockitoAnnotations.initMocks(this);
 
         SecurityContextHolder.getContext()
@@ -177,6 +178,7 @@ public class UserServiceImplTest {
         user.setIp("127.0.0.1");
         user.setId(5);
         user.setRole(UserRole.USER);
+
         reset(userDao);
         reset(tokenScheduler);
         reset(userSessionService);
