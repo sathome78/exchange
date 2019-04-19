@@ -56,6 +56,12 @@ $(function () {
                             "data": "name"
                         },
                         {
+                            "data": "totalBalance",
+                            "render": function (data, type, row) {
+                                return formatDecimalValue(data);
+                            }
+                        },
+                        {
                             "data": "activeBalance",
                             "render": function (data, type, row) {
                                 return formatDecimalValue(data);

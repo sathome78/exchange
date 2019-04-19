@@ -478,6 +478,7 @@
                     <thead>
                     <tr>
                         <th></th>
+                        <th><loc:message code="mywallets.totalBalance"/></th>
                         <th><loc:message code="mywallets.abalance"/></th>
                         <th><loc:message code="mywallets.rbalance"/></th>
                         <th><loc:message code="mywallets.reservedonorders"/></th>
@@ -493,6 +494,7 @@
                     <thead>
                     <tr>
                         <th></th>
+                        <th><loc:message code="mywallets.totalBalance"/></th>
                         <th><loc:message code="mywallets.abalance"/></th>
                         <th><loc:message code="mywallets.rbalance"/></th>
                     </tr>

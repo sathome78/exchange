@@ -89,9 +89,11 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
     @Override
     public IEODetails findOpenIeoByCurrencyName(String currencyName) {
         String sql = "SELECT * FROM IEO_DETAILS" +
-                " WHERE currency_name = :currencyName AND starts_at < CURRENT_TIMESTAMP AND terminates_at >= CURRENT_TIMESTAMP";
+                " WHERE currency_name = :currencyName AND starts_at < CURRENT_TIMESTAMP" +
+                " AND terminates_at >= CURRENT_TIMESTAMP AND status = :status";
 
-        MapSqlParameterSource params = new MapSqlParameterSource("currencyName", currencyName);
+        MapSqlParameterSource params = new MapSqlParameterSource("currencyName", currencyName)
+                .addValue("status", IEODetailsStatus.RUNNING.name());
         try {
             return jdbcTemplate.queryForObject(sql, params, ieoDetailsRowMapper());
         } catch (Exception e) {

@@ -210,7 +210,6 @@ public class SendMailServiceImpl implements SendMailService {
             return text;
         }
         html = html.replace("{::text::}", text);
-        html = html.replace("{::server::}", server);
         return html;
     }
 }

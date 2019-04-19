@@ -3,6 +3,7 @@ package me.exrates.generator;
 import lombok.Data;
 import lombok.SneakyThrows;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 
 public class BtcYamlGen {
 
-    public static final String prod = "/home/dudoser/git/exrates/Controller/src/main/prod/";
+    public static final String prod = "/home/dudoser/IdeaProjects/exrates/Controller/src/main/prod/";
 
     @SneakyThrows
     public static void main(String[] args) {
@@ -49,7 +50,7 @@ public class BtcYamlGen {
             try {
 
                 BtcProperty p = entry.getValue();
-                b.append("  " + p.getMerchantName().toLowerCase() + ":\n");
+                b.append("  " + p.getCurrencyName().toLowerCase() + ":\n");
                 b.append("    merchant-name: " + p.getMerchantName()).append("\n");
                 b.append("    currency-name: " + p.getCurrencyName()).append("\n");
                 b.append("    min-confirmations: " + p.getMinConf()).append("\n");
@@ -80,13 +81,19 @@ public class BtcYamlGen {
         }
 
         File f = new File("/home/dudoser/Desktop/yaml.txt");
+        f.delete();
         f.createNewFile();
-        new FileWriter(f).write(b.toString());
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(f));
+        String str = b.toString();
+        for (int i = 0; i < str.length(); i++) {
+            bufferedWriter.write(str.charAt(i));
+            bufferedWriter.flush();
+        }
     }
 
     private static void f(Map<String, BtcProperty> walletPropsBtcPropsMap) throws IOException {
         String next = null;
-            File crypto = new File("/home/dudoser/.local/share/Trash/files/exrates-master/Controller/src/main/java/me/exrates/config/CryptocurrencyConfig.java");
+            File crypto = new File("/home/dudoser/IdeaProjects/exrates/Controller/src/main/java/me/exrates/config/CryptocurrencyConfig.java");
 
             String full = new String(Files.readAllBytes(crypto.toPath()), StandardCharsets.UTF_8);
 

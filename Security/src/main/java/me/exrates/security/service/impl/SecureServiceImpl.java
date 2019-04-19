@@ -37,10 +37,14 @@ import java.util.Locale;
 @PropertySource(value = {"classpath:session.properties", "classpath:/security.properties"})
 public class SecureServiceImpl implements SecureService {
 
-    private @Value("${session.checkPinParam}") String checkPinParam;
-    private @Value("${session.authenticationParamName}") String authenticationParamName;
-    private @Value("${session.passwordParam}") String passwordParam;
-    private @Value("${security.isLoginPinEnabled}") boolean isEnabled;
+    private @Value("${session.checkPinParam}")
+    String checkPinParam;
+    private @Value("${session.authenticationParamName}")
+    String authenticationParamName;
+    private @Value("${session.passwordParam}")
+    String passwordParam;
+    private @Value("${security.isLoginPinEnabled}")
+    boolean isEnabled;
 
     @Autowired
     private NotificationMessageService notificationService;
@@ -74,11 +78,11 @@ public class SecureServiceImpl implements SecureService {
         NotificationMessageEventEnum event = NotificationMessageEventEnum.LOGIN;
         NotificationsUserSetting setting = settingsService.getByUserAndEvent(userId, event);
         if (setting == null || setting.getNotificatorId() == null) {
-                setting = NotificationsUserSetting.builder()
-                        .notificatorId(NotificationTypeEnum.EMAIL.getCode())
-                        .userId(userId)
-                        .notificationMessageEventEnum(event)
-                        .build();
+            setting = NotificationsUserSetting.builder()
+                    .notificatorId(NotificationTypeEnum.EMAIL.getCode())
+                    .userId(userId)
+                    .notificationMessageEventEnum(event)
+                    .build();
         }
         PinAttempsDto attempsDto = (PinAttempsDto) request.getSession().getAttribute("2fa_".concat(event.name()));
         Locale locale = localeResolver.resolveLocale(request);
@@ -143,7 +147,7 @@ public class SecureServiceImpl implements SecureService {
         String subject = messageSource.getMessage(setting.getNotificationMessageEventEnum().getSbjCode(), null, Locale.ENGLISH);
         String pin = userService.updatePinForUserForEvent(user.getEmail(), setting.getNotificationMessageEventEnum());
         String messageText = messageSource.getMessage(setting.getNotificationMessageEventEnum().getMessageCode(),
-                new String[] {pin}, Locale.ENGLISH);
+                new String[]{pin}, Locale.ENGLISH);
         return sendMessage(user.getEmail(), messageText, subject, setting);
     }
 
@@ -153,9 +157,21 @@ public class SecureServiceImpl implements SecureService {
         Locale locale = localeResolver.resolveLocale(request);
         String subject = messageSource.getMessage(setting.getNotificationMessageEventEnum().getSbjCode(), null, locale);
         String pin = userService.updatePinForUserForEvent(user.getEmail(), setting.getNotificationMessageEventEnum());
-        System.out.println("LOGIN pin code: " + pin);
+        log.info("LOGIN pin code: {}", pin);
         String messageText = messageSource.getMessage(setting.getNotificationMessageEventEnum().getMessageCode(),
-                new String[] {pin, ipAddress}, locale);
+                new String[]{pin, ipAddress}, locale);
+        return sendMessage(user.getEmail(), messageText, subject, setting);
+    }
+
+    @Override
+    public NotificationResultDto sendApiTokenPincode(User user, HttpServletRequest request) {
+        NotificationsUserSetting setting = getApiTokenSettings(user);
+        Locale locale = localeResolver.resolveLocale(request);
+        String subject = messageSource.getMessage(setting.getNotificationMessageEventEnum().getSbjCode(), null, locale);
+        String pin = userService.updatePinForUserForEvent(user.getEmail(), setting.getNotificationMessageEventEnum());
+        log.info("API TOKEN pin code: {}", pin);
+        String messageText = messageSource.getMessage(setting.getNotificationMessageEventEnum().getMessageCode(),
+                new String[]{pin}, locale);
         return sendMessage(user.getEmail(), messageText, subject, setting);
     }
 
@@ -174,7 +190,7 @@ public class SecureServiceImpl implements SecureService {
         String subject = messageSource.getMessage(setting.getNotificationMessageEventEnum().getSbjCode(), null, Locale.ENGLISH);
         String pin = userService.updatePinForUserForEvent(user.getEmail(), setting.getNotificationMessageEventEnum());
         String messageText = messageSource.getMessage(setting.getNotificationMessageEventEnum().getMessageCode(),
-                new String[] {pin, amount + " " + currencyName}, Locale.ENGLISH);
+                new String[]{pin, amount + " " + currencyName}, Locale.ENGLISH);
         return sendMessage(user.getEmail(), messageText, subject, setting);
     }
 
@@ -184,7 +200,7 @@ public class SecureServiceImpl implements SecureService {
         String subject = messageSource.getMessage(setting.getNotificationMessageEventEnum().getSbjCode(), null, Locale.ENGLISH);
         String pin = userService.updatePinForUserForEvent(user.getEmail(), setting.getNotificationMessageEventEnum());
         String messageText = messageSource.getMessage(setting.getNotificationMessageEventEnum().getMessageCode(),
-                new String[] {pin, amount + " " + currencyName}, Locale.ENGLISH);
+                new String[]{pin, amount + " " + currencyName}, Locale.ENGLISH);
         return sendMessage(user.getEmail(), messageText, subject, setting);
     }
 
@@ -218,7 +234,7 @@ public class SecureServiceImpl implements SecureService {
     }
 
     private NotificationsUserSetting getWithdrawSettings(User user) {
-        return  NotificationsUserSetting
+        return NotificationsUserSetting
                 .builder()
                 .notificationMessageEventEnum(NotificationMessageEventEnum.WITHDRAW)
                 .notificatorId(NotificationMessageEventEnum.LOGIN.getCode())
@@ -227,7 +243,7 @@ public class SecureServiceImpl implements SecureService {
     }
 
     private NotificationsUserSetting getTransferSettings(User user) {
-        return  NotificationsUserSetting
+        return NotificationsUserSetting
                 .builder()
                 .notificationMessageEventEnum(NotificationMessageEventEnum.TRANSFER)
                 .notificatorId(NotificationMessageEventEnum.LOGIN.getCode())
@@ -236,10 +252,19 @@ public class SecureServiceImpl implements SecureService {
     }
 
     private NotificationsUserSetting getLoginSettings(User user) {
-        return  NotificationsUserSetting
+        return NotificationsUserSetting
                 .builder()
                 .notificationMessageEventEnum(NotificationMessageEventEnum.LOGIN)
                 .notificatorId(NotificationMessageEventEnum.LOGIN.getCode())
+                .userId(user.getId())
+                .build();
+    }
+
+    private NotificationsUserSetting getApiTokenSettings(User user) {
+        return NotificationsUserSetting
+                .builder()
+                .notificationMessageEventEnum(NotificationMessageEventEnum.API_TOKEN_SETTING)
+                .notificatorId(NotificationMessageEventEnum.API_TOKEN_SETTING.getCode())
                 .userId(user.getId())
                 .build();
     }

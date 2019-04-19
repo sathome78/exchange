@@ -10,7 +10,8 @@ public enum NotificationMessageEventEnum {
     LOGIN(1, "message.pincode.forlogin", "message.subj.login.pin", false, true),
     WITHDRAW(2, "message.pincode.forWithdraw", "message.subj.withdraw.pin", false, true),
     TRANSFER(3, "message.pincode.forTransfer", "message.subj.transfer.pin", false, true),
-    CHANGE_2FA_SETTING(4, "message.pincode.for2faChange", "message.subj.2fachange.pin", false, false);
+    CHANGE_2FA_SETTING(4, "message.pincode.for2faChange", "message.subj.2fachange.pin", false, false),
+    API_TOKEN_SETTING(1, "message.pincode.forTokenChange", "message.subj.token.pin", false, false);
 
     private int code;
 
