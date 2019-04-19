@@ -70,8 +70,14 @@ public class AdminIeoController {
     @RequestMapping(value = "/2a8fy7b07dxe44/ieo/revert/{id}", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public ResponseEntity revertIeo(@PathVariable("id") Integer id) {
-
         ieoService.startRevertIEO(id, getPrincipalEmail());
+        return ResponseEntity.ok(null);
+    }
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/ieo/approve/{id}", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseBody
+    public ResponseEntity approveSuccessIeo(@PathVariable("id") Integer id) {
+        /*todo: call service method here*/
         return ResponseEntity.ok(null);
     }
 
