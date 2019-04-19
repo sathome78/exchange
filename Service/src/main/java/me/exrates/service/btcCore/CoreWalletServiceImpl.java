@@ -2,6 +2,7 @@ package me.exrates.service.btcCore;
 
 import com.google.common.collect.ImmutableList;
 import com.neemre.btcdcli4j.core.BitcoindException;
+import com.neemre.btcdcli4j.core.Commands;
 import com.neemre.btcdcli4j.core.CommunicationException;
 import com.neemre.btcdcli4j.core.client.BtcdClient;
 import com.neemre.btcdcli4j.core.client.BtcdClientImpl;
@@ -16,6 +17,8 @@ import com.neemre.btcdcli4j.core.domain.SinceBlock;
 import com.neemre.btcdcli4j.core.domain.SmartFee;
 import com.neemre.btcdcli4j.core.domain.Transaction;
 import com.neemre.btcdcli4j.core.domain.WalletInfo;
+import com.neemre.btcdcli4j.core.jsonrpc.client.JsonRpcClient;
+import com.neemre.btcdcli4j.core.util.CollectionUtils;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.PagingData;
 import me.exrates.model.condition.MonolitConditional;
@@ -52,6 +55,7 @@ import reactor.core.publisher.Flux;
 
 import javax.annotation.Nullable;
 import javax.annotation.PreDestroy;
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -298,26 +302,21 @@ public class CoreWalletServiceImpl implements CoreWalletService {
 
     @Override
     public List<BtcTransactionHistoryDto> listAllTransactions() {
-        try {
-            List<Payment> result = btcdClient.listTransactions("*", TRANSACTION_LIMIT, 0);
-
-            return result.stream()
-                    .map(payment -> {
-                        BtcTransactionHistoryDto dto = new BtcTransactionHistoryDto();
-                        dto.setTxId(payment.getTxId());
-                        dto.setAddress(payment.getAddress());
-                        dto.setBlockhash(payment.getBlockHash());
-                        dto.setCategory(payment.getCategory().getName());
-                        dto.setAmount(BigDecimalProcessing.formatNonePoint(payment.getAmount(), true));
-                        dto.setFee(BigDecimalProcessing.formatNonePoint(payment.getFee(), true));
-                        dto.setConfirmations(payment.getConfirmations());
-                        dto.setTime(LocalDateTime.ofInstant(Instant.ofEpochSecond(payment.getTime()), ZoneId.systemDefault()));
-                        return dto;
-                    }).collect(Collectors.toList());
-        } catch (BitcoindException | CommunicationException e) {
+        List<Payment> payments;
+        try{
+            try {
+                payments = btcdClient.listTransactions("*", TRANSACTION_LIMIT, 0);
+            } catch (BitcoindException ex){
+                //Fix for coin with specific 'listtransactions' method without first params
+                payments = listTransactionsForSpecificBtcCoins(TRANSACTION_LIMIT, 0);
+            }
+        }catch (BitcoindException | CommunicationException e) {
             log.error(e);
             throw new BitcoinCoreException(e.getMessage());
         }
+
+        return payments.stream()
+                .map(this::setBtcTransactionHistoryDto).collect(Collectors.toList());
     }
 
 
@@ -712,36 +711,58 @@ public class CoreWalletServiceImpl implements CoreWalletService {
 
     @Override
     public List<BtcTransactionHistoryDto> getTransactionsByPage(int page, int transactionsPerPage) throws BitcoindException, CommunicationException {
-        return btcdClient.listTransactions("*", transactionsPerPage, page * transactionsPerPage).stream()
-                .map(payment -> {
-                    BtcTransactionHistoryDto dto = new BtcTransactionHistoryDto();
-                    dto.setTxId(payment.getTxId());
-                    dto.setAddress(payment.getAddress());
-                    dto.setBlockhash(payment.getBlockHash());
-                    dto.setCategory(payment.getCategory().getName());
-                    dto.setAmount(BigDecimalProcessing.formatNonePoint(payment.getAmount(), true));
-                    dto.setFee(BigDecimalProcessing.formatNonePoint(payment.getFee(), true));
-                    dto.setConfirmations(payment.getConfirmations());
-                    dto.setTime(LocalDateTime.ofInstant(Instant.ofEpochSecond(payment.getTime()), ZoneId.systemDefault()));
-                    return dto;
-                }).collect(Collectors.toList());
+        List<Payment> payments;
+        try {
+            payments = btcdClient.listTransactions("*", transactionsPerPage, page * transactionsPerPage);
+        } catch (BitcoindException ex){
+            //Fix for coin with specific 'listtransactions' method without first params
+            payments = listTransactionsForSpecificBtcCoins(transactionsPerPage, page * transactionsPerPage);
+        }
+        return ImmutableList.copyOf(payments.stream()
+                .map(this::setBtcTransactionHistoryDto).collect(Collectors.toList())).reverse();
     }
 
     @Override
     public List<BtcTransactionHistoryDto> getTransactionsForPagination(int start, int length) throws BitcoindException, CommunicationException {
-        return ImmutableList.copyOf(btcdClient.listTransactions("*", length, start).stream()
-                .map(payment -> {
-                    BtcTransactionHistoryDto dto = new BtcTransactionHistoryDto();
-                    dto.setTxId(payment.getTxId());
-                    dto.setAddress(payment.getAddress());
-                    dto.setBlockhash(payment.getBlockHash());
-                    dto.setCategory(payment.getCategory().getName());
-                    dto.setAmount(BigDecimalProcessing.formatNonePoint(payment.getAmount(), true));
-                    dto.setFee(BigDecimalProcessing.formatNonePoint(payment.getFee(), true));
-                    dto.setConfirmations(payment.getConfirmations());
-                    dto.setTime(LocalDateTime.ofInstant(Instant.ofEpochSecond(payment.getTime()), ZoneId.systemDefault()));
-                    return dto;
-                }).collect(Collectors.toList())).reverse();
+        List<Payment> payments;
+        try {
+            payments = btcdClient.listTransactions("*", length, start);
+        } catch (BitcoindException ex){
+            //Fix for coin with specific 'listtransactions' method without first params
+            payments = listTransactionsForSpecificBtcCoins(length, start);
+        }
+        return ImmutableList.copyOf(payments.stream()
+                .map(this::setBtcTransactionHistoryDto).collect(Collectors.toList())).reverse();
+    }
+
+    private List<Payment> listTransactionsForSpecificBtcCoins(Integer account, Integer count) throws BitcoindException, CommunicationException {
+        BtcdClient myClass = btcdClient;
+        JsonRpcClient jsonRpcClient = null;
+        try {
+            Field field = myClass.getClass().getDeclaredField("rpcClient");
+            field.setAccessible(true);
+            jsonRpcClient = (JsonRpcClient) field.get(myClass);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        List<Object> params = CollectionUtils.asList(new Object[]{account, count});
+        String paymentsJson = jsonRpcClient.execute(Commands.LIST_TRANSACTIONS.getName(), params);
+        List<Payment> payments = jsonRpcClient.getMapper().mapToList(paymentsJson, Payment.class);
+
+        return payments;
+    }
+
+    private BtcTransactionHistoryDto setBtcTransactionHistoryDto(Payment payment){
+        BtcTransactionHistoryDto dto = new BtcTransactionHistoryDto();
+        dto.setTxId(payment.getTxId());
+        dto.setAddress(payment.getAddress());
+        dto.setBlockhash(payment.getBlockHash());
+        dto.setCategory(payment.getCategory().getName());
+        dto.setAmount(BigDecimalProcessing.formatNonePoint(payment.getAmount(), true));
+        dto.setFee(BigDecimalProcessing.formatNonePoint(payment.getFee(), true));
+        dto.setConfirmations(payment.getConfirmations());
+        dto.setTime(LocalDateTime.ofInstant(Instant.ofEpochSecond(payment.getTime()), ZoneId.systemDefault()));
+        return dto;
     }
 
     @Override

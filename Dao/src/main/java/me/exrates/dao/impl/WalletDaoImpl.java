@@ -320,7 +320,8 @@ public class WalletDaoImpl implements WalletDao {
     public List<WalletFormattedDto> getAllUserWalletsForAdminDetailed(Integer userId, List<Integer> withdrawEndStatusIds,
                                                                       List<Integer> withdrawSuccessStatusIds,
                                                                       List<Integer> refillSuccessStatusIds) {
-        String sql = "SELECT wallet_id, user_id, currency_id, currency_name, active_balance, reserved_balance, " +
+        String sql = "SELECT wallet_id, user_id, currency_id, currency_name, active_balance + reserved_balance AS total_balance, " +
+                "               active_balance, reserved_balance, " +
                 "               SUM(amount_base+amount_convert+commission_fixed_amount) AS reserved_balance_by_orders, " +
                 "               SUM(withdraw_amount) AS reserved_balance_by_withdraw, " +
                 "               SUM(total_input) AS total_input, SUM(total_output) AS total_output, " +
@@ -514,6 +515,7 @@ public class WalletDaoImpl implements WalletDao {
             WalletFormattedDto dto = new WalletFormattedDto();
             dto.setId(rs.getInt("wallet_id"));
             dto.setName(rs.getString("currency_name"));
+            dto.setTotalBalance(rs.getBigDecimal("total_balance"));
             dto.setActiveBalance(rs.getBigDecimal("active_balance"));
             dto.setReservedBalance(rs.getBigDecimal("reserved_balance"));
             dto.setReserveOrders(rs.getBigDecimal("reserved_balance_by_orders"));

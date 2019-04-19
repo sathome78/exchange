@@ -10,20 +10,71 @@ import me.exrates.controller.exception.InvalidNumberParamException;
 import me.exrates.controller.exception.NotAcceptableOrderException;
 import me.exrates.controller.exception.NotEnoughMoneyException;
 import me.exrates.controller.validator.RegisterFormValidation;
+import me.exrates.model.BotLaunchSettings;
+import me.exrates.model.BotTrader;
+import me.exrates.model.Comment;
 import me.exrates.model.Currency;
-import me.exrates.model.*;
-import me.exrates.model.dto.*;
+import me.exrates.model.CurrencyLimit;
+import me.exrates.model.CurrencyPair;
+import me.exrates.model.Merchant;
+import me.exrates.model.RefillRequestAddressShortDto;
+import me.exrates.model.User;
+import me.exrates.model.UserRoleSettings;
+import me.exrates.model.dto.AdminOrderInfoDto;
+import me.exrates.model.dto.AlertDto;
+import me.exrates.model.dto.BotTradingSettingsShortDto;
+import me.exrates.model.dto.BtcTransactionHistoryDto;
+import me.exrates.model.dto.CandleChartItemDto;
+import me.exrates.model.dto.CommissionShortEditDto;
+import me.exrates.model.dto.CurrencyPairLimitDto;
+import me.exrates.model.dto.EditMerchantCommissionDto;
+import me.exrates.model.dto.ExternalReservedWalletAddressDto;
+import me.exrates.model.dto.ExternalWalletBalancesDto;
+import me.exrates.model.dto.MerchantCurrencyOptionsDto;
+import me.exrates.model.dto.Notificator;
+import me.exrates.model.dto.NotificatorSubscription;
+import me.exrates.model.dto.OperationViewDto;
+import me.exrates.model.dto.OrderBasicInfoDto;
+import me.exrates.model.dto.OrderInfoDto;
+import me.exrates.model.dto.RefFilterData;
+import me.exrates.model.dto.RefillRequestBtcInfoDto;
+import me.exrates.model.dto.RefsListContainer;
+import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
+import me.exrates.model.dto.UserSessionDto;
+import me.exrates.model.dto.UserTransferInfoDto;
+import me.exrates.model.dto.UserWalletSummaryDto;
+import me.exrates.model.dto.UsersInfoDto;
+import me.exrates.model.dto.WalletFormattedDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.filterData.AdminStopOrderFilterData;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
 import me.exrates.model.dto.filterData.RefillAddressFilterData;
-import me.exrates.model.dto.merchants.btc.*;
+import me.exrates.model.dto.merchants.btc.BtcAdminPaymentResponseDto;
+import me.exrates.model.dto.merchants.btc.BtcAdminPreparedTxDto;
+import me.exrates.model.dto.merchants.btc.BtcPreparedTransactionDto;
+import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
+import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.merchants.omni.OmniTxDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.ActionType;
+import me.exrates.model.enums.AlertType;
+import me.exrates.model.enums.BusinessUserRoleEnum;
+import me.exrates.model.enums.CurrencyPairType;
+import me.exrates.model.enums.MerchantProcessType;
+import me.exrates.model.enums.NotificationEvent;
+import me.exrates.model.enums.NotificationPayTypeEnum;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.enums.OrderType;
+import me.exrates.model.enums.ReportGroupUserRole;
+import me.exrates.model.enums.TransactionType;
+import me.exrates.model.enums.UserCommentTopicEnum;
+import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.UserStatus;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.form.AuthorityOptionsForm;
@@ -31,10 +82,28 @@ import me.exrates.model.form.UserOperationAuthorityOptionsForm;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.security.service.UserSecureService;
-import me.exrates.service.*;
+import me.exrates.service.BitcoinService;
+import me.exrates.service.BotService;
+import me.exrates.service.CommissionService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.NotificationService;
+import me.exrates.service.OrderService;
+import me.exrates.service.PhraseTemplateService;
+import me.exrates.service.ReferralService;
+import me.exrates.service.RefillService;
+import me.exrates.service.TransactionService;
+import me.exrates.service.UserFilesService;
+import me.exrates.service.UserRoleService;
+import me.exrates.service.UserService;
+import me.exrates.service.UserTransferService;
+import me.exrates.service.UsersAlertsService;
+import me.exrates.service.WalletService;
+import me.exrates.service.WithdrawService;
 import me.exrates.service.aidos.AdkService;
 import me.exrates.service.aidos.AdkServiceImpl;
-import me.exrates.service.exception.*;
+import me.exrates.service.exception.NoRequestedBeansFoundException;
+import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.process.NotCreatableOrderException;
 import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.process.OrderAcceptionException;
@@ -71,7 +140,17 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -89,7 +168,18 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -100,10 +190,17 @@ import static me.exrates.model.enums.GroupUserRoleEnum.ADMINS;
 import static me.exrates.model.enums.GroupUserRoleEnum.BOT;
 import static me.exrates.model.enums.GroupUserRoleEnum.USERS;
 import static me.exrates.model.enums.UserCommentTopicEnum.GENERAL;
-import static me.exrates.model.enums.UserRole.*;
-import static me.exrates.model.enums.invoice.InvoiceOperationDirection.*;
+import static me.exrates.model.enums.UserRole.ADMINISTRATOR;
+import static me.exrates.model.enums.UserRole.ROLE_CHANGE_PASSWORD;
+import static me.exrates.model.enums.UserRole.USER;
+import static me.exrates.model.enums.UserRole.VIP_USER;
+import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
+import static me.exrates.model.enums.invoice.InvoiceOperationDirection.TRANSFER_VOUCHER;
+import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -407,60 +504,68 @@ public class AdminController {
 
 
     @ResponseBody
-    @RequestMapping(value = "/2a8fy7b07dxe44/orders", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<OrderWideListDto> getUserOrders(final @RequestParam int id, final @RequestParam("tableType") String tableType,
-                                                final @RequestParam("currencyPairId") int currencyPairId, final HttpServletRequest request) {
-
-        CurrencyPair currencyPair;
+    @GetMapping(value = "/2a8fy7b07dxe44/orders", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public DataTable<List<OrderWideListDto>> getUserOrders(@RequestParam int id,
+                                                           @RequestParam String tableType,
+                                                           @RequestParam int currencyPairId,
+                                                           @RequestParam Map<String, String> params,
+                                                           HttpServletRequest request) {
+        CurrencyPair currencyPair = null;
         if (currencyPairId != 0) {
             currencyPair = currencyService.findCurrencyPairById(currencyPairId);
-        } else {
-            currencyPair = null;
         }
-        String email = userService.getUserById(id).getEmail();
-        return getOrderWideListDtos(tableType, currencyPair, email, localeResolver.resolveLocale(request));
+        final Locale locale = localeResolver.resolveLocale(request);
+
+        return getOrderWideListDtos(tableType, currencyPair, id, locale, params);
     }
 
-    private List<OrderWideListDto> getOrderWideListDtos(@RequestParam("tableType") String tableType, CurrencyPair currencyPair, String email, Locale locale) {
-        List<OrderWideListDto> result = new ArrayList<>();
+    private DataTable<List<OrderWideListDto>> getOrderWideListDtos(String tableType, CurrencyPair currencyPair, int id, Locale locale, Map<String, String> params) {
+        OrderStatus orderStatus = null;
+        OperationType operationType = null;
         switch (tableType) {
             case "ordersBuyClosed":
-                List<OrderWideListDto> ordersBuyClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.BUY, 0, -1, locale);
-                result = ordersBuyClosed;
+                orderStatus = OrderStatus.CLOSED;
+                operationType = OperationType.BUY;
                 break;
             case "ordersSellClosed":
-                List<OrderWideListDto> ordersSellClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.SELL, 0, -1, locale);
-                result = ordersSellClosed;
+                orderStatus = OrderStatus.CLOSED;
+                operationType = OperationType.SELL;
                 break;
             case "ordersBuyOpened":
-                List<OrderWideListDto> ordersBuyOpened = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, OperationType.BUY, 0, -1, locale);
-                result = ordersBuyOpened;
+                orderStatus = OrderStatus.OPENED;
+                operationType = OperationType.BUY;
                 break;
             case "ordersSellOpened":
-                List<OrderWideListDto> ordersSellOpened = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, OperationType.SELL, 0, -1, locale);
-                result = ordersSellOpened;
+                orderStatus = OrderStatus.OPENED;
+                operationType = OperationType.SELL;
                 break;
             case "ordersBuyCancelled":
-                List<OrderWideListDto> ordersBuyCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.BUY, 0, -1, locale);
-                result = ordersBuyCancelled;
+                orderStatus = OrderStatus.CANCELLED;
+                operationType = OperationType.BUY;
                 break;
             case "ordersSellCancelled":
-                List<OrderWideListDto> ordersSellCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.SELL, 0, -1, locale);
-                result = ordersSellCancelled;
+                orderStatus = OrderStatus.CANCELLED;
+                operationType = OperationType.SELL;
                 break;
             case "stopOrdersCancelled":
-                List<OrderWideListDto> stopOrdersCancelled = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, null, 0, -1, locale);
-                result = stopOrdersCancelled;
+                orderStatus = OrderStatus.CANCELLED;
                 break;
             case "stopOrdersClosed":
-                List<OrderWideListDto> stopOrdersClosed = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, null, 0, -1, locale);
-                result = stopOrdersClosed;
+                orderStatus = OrderStatus.CLOSED;
                 break;
             case "stopOrdersOpened":
-                List<OrderWideListDto> stopOrdersOpened = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, null, 0, -1, locale);
-                result = stopOrdersOpened;
+                orderStatus = OrderStatus.OPENED;
                 break;
         }
+        DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
+
+        final List<OrderWideListDto> filteredOrders = orderService.getUsersOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, dataTableParams.getStart(), dataTableParams.getLength(), locale);
+        final int notFilteredAmount = orderService.getUsersOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, 0, -1, locale).size();
+
+        DataTable<List<OrderWideListDto>> result = new DataTable<>();
+        result.setRecordsFiltered(notFilteredAmount);
+        result.setRecordsTotal(notFilteredAmount);
+        result.setData(filteredOrders);
         return result;
     }
 
@@ -1116,7 +1221,7 @@ public class AdminController {
 
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transactions/pagination", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public DataTable<List<BtcTransactionHistoryDto>> getAllTransactionByCoinLikeBitcoin(@PathVariable String merchantName, @RequestParam Map<String, String> tableParams)  throws BitcoindException, CommunicationException {
+    public DataTable<List<BtcTransactionHistoryDto>> getAllTransactionByCoinLikeBitcoin(@PathVariable String merchantName, @RequestParam Map<String, String> tableParams) throws BitcoindException, CommunicationException {
         return getBitcoinServiceByMerchantName(merchantName).listTransactions(tableParams);
     }
 

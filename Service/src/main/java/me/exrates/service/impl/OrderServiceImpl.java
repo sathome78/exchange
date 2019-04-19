@@ -762,7 +762,7 @@ public class OrderServiceImpl implements OrderService {
                 throw new InsufficientCostsInWalletException("Failed as user has insufficient funds for this operation!");
             }
             errors.replaceAll((key, value) -> messageSource.getMessage(value.toString(), orderValidationDto.getErrorParams().get(key), locale));
-            throw new OrderParamsWrongException(String.join(", ", errors.values().toArray(new String [] {})));
+            throw new OrderParamsWrongException(String.join(", ", errors.values().toArray(new String[]{})));
         }
         return orderCreateDto;
     }
@@ -1332,6 +1332,7 @@ public class OrderServiceImpl implements OrderService {
             return BigDecimalProcessing.doAction(exOrder.getAmountConvert(), exOrder.getCommissionFixedAmount(), ActionType.ADD);
         }
     }
+
     /*Убрать этот костыль!!!!*/
     @Transactional
     @Override
@@ -1771,12 +1772,9 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderWideListDto> getUsersOrdersWithStateForAdmin(String email, CurrencyPair currencyPair, OrderStatus status,
-                                                                  OperationType operationType,
-                                                                  Integer offset, Integer limit, Locale locale) {
-        List<OrderWideListDto> result = orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, SCOPE, offset, limit, locale);
-
-        return result;
+    public List<OrderWideListDto> getUsersOrdersWithStateForAdmin(int id, CurrencyPair currencyPair, OrderStatus status,
+                                                                  OperationType operationType, Integer offset, Integer limit, Locale locale) {
+        return orderDao.getMyOrdersWithState(id, currencyPair, status, operationType, SCOPE, offset, limit, locale);
     }
 
     @Override
@@ -2358,7 +2356,7 @@ public class OrderServiceImpl implements OrderService {
                     dateTimeTo,
                     locale);
         }
-        return Pair.of(recordsCount, orders);
+        return Pair.of(recordsCount, changeCommissionAmountDependsOnUserRole(userId, orders));
     }
 
     @Transactional
@@ -2374,7 +2372,7 @@ public class OrderServiceImpl implements OrderService {
                                                     OrderStatus orderStatus, String scope, Integer limit,
                                                     Integer offset, Boolean hideCanceled, String sortByCreated,
                                                     LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo, Locale locale) {
-        return orderDao.getMyOrdersWithState(
+        List<OrderWideListDto> orders = orderDao.getMyOrdersWithState(
                 userId,
                 currencyPair,
                 currencyName,
@@ -2387,6 +2385,21 @@ public class OrderServiceImpl implements OrderService {
                 dateTimeFrom,
                 dateTimeTo,
                 locale);
+        return changeCommissionAmountDependsOnUserRole(userId, orders);
+    }
+
+    private List<OrderWideListDto> changeCommissionAmountDependsOnUserRole(Integer userId, List<OrderWideListDto> orders) {
+        UserRole userRole = userService.getUserRoleFromDB(userId);
+
+        if (userRole == UserRole.VIP_USER) {
+            return orders
+                    .stream()
+                    .peek(order -> {
+                        order.setCommissionFixedAmount(BigDecimal.ZERO.toPlainString());
+                    })
+                    .collect(toList());
+        }
+        return orders;
     }
 
     @Override
@@ -2629,6 +2642,11 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<ExOrderStatisticsShortByPairsDto> getAllDataForCache(Integer currencyPairId) {
         return orderDao.getAllDataForCache(currencyPairId);
+    }
+
+    @Override
+    public ExOrderStatisticsShortByPairsDto getBeforeLastRateForCache(Integer currencyPairId) {
+        return orderDao.getBeforeLastRateForCache(currencyPairId);
     }
 
     private boolean safeCompareBigDecimals(BigDecimal last, BigDecimal beforeLast) {

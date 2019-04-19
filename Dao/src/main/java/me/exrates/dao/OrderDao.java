@@ -171,5 +171,7 @@ public interface OrderDao {
 
     List<ExOrderStatisticsShortByPairsDto> getRatesDataForCache(Integer currencyPairId);
 
+    ExOrderStatisticsShortByPairsDto getBeforeLastRateForCache(Integer currencyPairId);
+
     List<ExOrderStatisticsShortByPairsDto> getAllDataForCache(Integer currencyPairId);
 }

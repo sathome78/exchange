@@ -25,6 +25,7 @@ public class WalletFormattedDto {
   private BigDecimal reserveWithdraw;
   private BigDecimal activeBalance;
   private BigDecimal reservedBalance;
+  private BigDecimal totalBalance;
 
   public WalletFormattedDto() {
   }
@@ -34,5 +35,6 @@ public class WalletFormattedDto {
     this.name = wallet.getName();
     this.activeBalance = wallet.getActiveBalance();
     this.reservedBalance = wallet.getReservedBalance();
+    this.totalBalance = wallet.getActiveBalance().add(wallet.getReservedBalance());
   }
 }

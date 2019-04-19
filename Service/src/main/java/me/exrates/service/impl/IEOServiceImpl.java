@@ -86,13 +86,12 @@ public class IEOServiceImpl implements IEOService {
     @Transactional
     @Override
     public ClaimDto addClaim(ClaimDto claimDto, String email) {
-
         IEODetails ieoDetails = ieoDetailsRepository.findOpenIeoByCurrencyName(claimDto.getCurrencyName());
         if (ieoDetails == null) {
-            String message = String.format("Failed to create claim while IEO for %s not started",
+            String message = String.format("Failed to create claim while IEO for %s not started or already finished",
                     claimDto.getCurrencyName());
             logger.warn(message);
-            throw new IeoException(ErrorApiTitles.IEO_NOT_STARTED_YET, message);
+            throw new IeoException(ErrorApiTitles.IEO_NOT_STARTED_YET_OR_ALREADY_FINISHED, message);
         }
 
         IEOStatusInfo statusInfo = checkUserStatusForIEO(email, ieoDetails.getId());
@@ -157,7 +156,7 @@ public class IEOServiceImpl implements IEOService {
 
     @Override
     public Collection<IEODetails> findAll(User user) {
-        ieoDetailsRepository.updateIeoStatuses();
+        updateIeoStatusesForAll();
         if (Objects.isNull(user)) {
             return ieoDetailsRepository.findAll();
         } else if (user.getRole() == UserRole.ICO_MARKET_MAKER) {
@@ -182,7 +181,7 @@ public class IEOServiceImpl implements IEOService {
 
     @Override
     public IEODetails findOne(int ieoId) {
-        ieoDetailsRepository.updateIeoStatuses();
+        updateIeoStatusesForAll();
         return ieoDetailsRepository.findOne(ieoId);
     }
 
@@ -244,10 +243,17 @@ public class IEOServiceImpl implements IEOService {
     @Override
     public synchronized void updateIeoStatuses() {
         log.info("<<IEO>>: Starting to update IEO statuses ...");
-        boolean updateResult = ieoDetailsRepository.updateIeoStatuses();
-        log.info("<<IEO>>: Finished update IEO statuses, result: " + updateResult);
-        if (updateResult) {
-            String userEmail = userService.getUserEmailFromSecurityContext();
+        boolean updateResultToToRunning = ieoDetailsRepository.updateIeoStatusesToRunning();
+        boolean updateResultToTerminated = ieoDetailsRepository.updateIeoStatusesToRunning();
+        log.info("<<IEO>>: Finished update IEO statuses to running, result: " + updateResultToToRunning);
+        log.info("<<IEO>>: Finished update IEO statuses to terminated, result: " + updateResultToTerminated);
+        if (updateResultToToRunning || updateResultToTerminated) {
+            String userEmail = null;
+            try {
+                userEmail = userService.getUserEmailFromSecurityContext();
+            } catch (Exception e) {
+                log.debug("<<IEO>>: Principal email from Security Context not found, but we don't care ");
+            }
             log.info("<<IEO>>: Principal email from Security Context: " + userEmail);
             try {
                 if (StringUtils.isNotEmpty(userEmail)) {
@@ -271,7 +277,8 @@ public class IEOServiceImpl implements IEOService {
             });
             log.info("<<IEO>>: Finished sending statuses ..... ");
         }
-        log.info("<<IEO>>: Exiting IEO statuses, result: " + updateResult);
+        log.info("<<IEO>>: Exiting IEO statuses to running, result: " + updateResultToToRunning);
+        log.info("<<IEO>>: Exiting IEO statuses to terminated, result: " + updateResultToTerminated);
     }
 
     private void validateUserAmountRestrictions(IEODetails ieoDetails, User user, ClaimDto claimDto) {
@@ -334,5 +341,11 @@ public class IEOServiceImpl implements IEOService {
             }
         });
         return makerIeos;
+    }
+
+
+    private void updateIeoStatusesForAll() {
+        ieoDetailsRepository.updateIeoStatusesToRunning();
+        ieoDetailsRepository.updateIeoStatusesToTerminated();
     }
 }

@@ -385,7 +385,7 @@ public interface OrderService {
 
     List<OrderReportInfoDto> getOrdersForReport(AdminOrderFilterData adminOrderFilterData);
 
-    List<OrderWideListDto> getUsersOrdersWithStateForAdmin(String email, CurrencyPair currencyPair, OrderStatus status,
+    List<OrderWideListDto> getUsersOrdersWithStateForAdmin(int id, CurrencyPair currencyPair, OrderStatus status,
                                                            OperationType operationType,
                                                            Integer offset, Integer limit, Locale locale);
 
@@ -489,4 +489,6 @@ public interface OrderService {
     List<ExOrderStatisticsShortByPairsDto> getRatesDataForCache(Integer currencyPairId);
 
     List<ExOrderStatisticsShortByPairsDto> getAllDataForCache(Integer currencyPairId);
+
+    ExOrderStatisticsShortByPairsDto getBeforeLastRateForCache(Integer currencyPairId);
 }

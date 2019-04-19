@@ -89,9 +89,11 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
     @Override
     public IEODetails findOpenIeoByCurrencyName(String currencyName) {
         String sql = "SELECT * FROM IEO_DETAILS" +
-                " WHERE currency_name = :currencyName AND starts_at < CURRENT_TIMESTAMP AND terminates_at >= CURRENT_TIMESTAMP";
+                " WHERE currency_name = :currencyName AND starts_at < CURRENT_TIMESTAMP" +
+                " AND terminates_at >= CURRENT_TIMESTAMP AND status = :status";
 
-        MapSqlParameterSource params = new MapSqlParameterSource("currencyName", currencyName);
+        MapSqlParameterSource params = new MapSqlParameterSource("currencyName", currencyName)
+                .addValue("status", IEODetailsStatus.RUNNING.name());
         try {
             return jdbcTemplate.queryForObject(sql, params, ieoDetailsRowMapper());
         } catch (Exception e) {
@@ -155,9 +157,16 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
     }
 
     @Override
-    public boolean updateIeoStatuses() {
+    public boolean updateIeoStatusesToRunning() {
         String sql = "UPDATE IEO_DETAILS SET status = 'RUNNING', available_amount = amount" +
                 " WHERE status = 'PENDING' AND starts_at <= CURRENT_TIMESTAMP;";
+        return jdbcTemplate.update(sql, new HashMap<>()) > 0;
+    }
+
+    @Override
+    public boolean updateIeoStatusesToTerminated() {
+        String sql = "UPDATE IEO_DETAILS SET status = 'TERMINATED', available_amount = amount" +
+                " WHERE status = 'RUNNING' AND terminates_at <= CURRENT_TIMESTAMP;";
         return jdbcTemplate.update(sql, new HashMap<>()) > 0;
     }
 

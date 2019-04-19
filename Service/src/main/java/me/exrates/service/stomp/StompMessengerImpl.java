@@ -60,22 +60,12 @@ public class StompMessengerImpl implements StompMessenger {
     public void sendRefreshTradeOrdersMessage(CurrencyPair currencyPair, OperationType operationType) {
         String message = orderService.getOrdersForRefresh(currencyPair.getId(), operationType, null);
         sendMessageToDestination("/app/trade_orders/".concat(String.valueOf(currencyPair.getId())), message);
-        sendMessageToDestination("/app/orders/sfwfrf442fewdf/".concat(String.valueOf(currencyPair.getId())), message);
         sendMessageToOrderBookNg(currencyPair, operationType);
+        sendMessageToDestination("/app/orders/sfwfrf442fewdf/".concat(String.valueOf(currencyPair.getId())), message);
     }
 
     private void sendMessageToOrderBookNg(CurrencyPair currencyPair, OperationType operationType) {
         String pairName = OpenApiUtils.transformCurrencyPairBack(currencyPair.getName());
-        String basePath2 = "/order_book/%s/%d";
-        List<PrecissionsEnum> finalSubscribed = new ArrayList<>();
-        Arrays.stream(PrecissionsEnum.values()).forEach(p -> {
-            String path = String.format(basePath2, pairName, p.getValue());
-            Set<SimpSubscription> subscribers = findSubscribersByDestination(path);
-            if (subscribers.size() > 0) {
-                System.out.println("added " + path);
-                finalSubscribed.add(p);
-            }
-        });
         String basePath = "/app/order_book/%s/%d";
         List<PrecissionsEnum> subscribed = Arrays.asList(PrecissionsEnum.values());
         Map<PrecissionsEnum, String> result = orderService.findAllOrderBookItemsForAllPrecissions(OrderType.fromOperationType(operationType), currencyPair.getId(), subscribed);
