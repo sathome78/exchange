@@ -1771,12 +1771,9 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderWideListDto> getUsersOrdersWithStateForAdmin(String email, CurrencyPair currencyPair, OrderStatus status,
-                                                                  OperationType operationType,
-                                                                  Integer offset, Integer limit, Locale locale) {
-        List<OrderWideListDto> result = orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, SCOPE, offset, limit, locale);
-
-        return result;
+    public List<OrderWideListDto> getUsersOrdersWithStateForAdmin(int id, CurrencyPair currencyPair, OrderStatus status,
+                                                                  OperationType operationType, Integer offset, Integer limit, Locale locale) {
+        return orderDao.getMyOrdersWithState(id, currencyPair, status, operationType, SCOPE, offset, limit, locale);
     }
 
     @Override

@@ -1,4 +1,6 @@
-
+var ordersSellDataTable;
+var ordersBuyDataTable;
+var stopOrdersDataTable;
 
 $(function () {
     var myordersStatusForShow = 'Closed';
@@ -16,43 +18,48 @@ $(function () {
         update();
     });
 
-    $('#myorders-button-deal').addClass('active');
-    /**/
-    $('#myorders-button-opened').on('click', function () {
-        $('.myorders__button').removeClass('active');
-        $(this).addClass('active');
-        myordersStatusForShow = 'Opened';
-        update();
-    });
-    $('#myorders-button-cancelled').on('click', function () {
-        $('.myorders__button').removeClass('active');
-        $(this).addClass('active');
-        myordersStatusForShow = 'Cancelled';
-        update();
-    });
-    $('#myorders-button-deal').on('click', function () {
+    $('#myorders-button-deal').click(function () {
         $('.myorders__button').removeClass('active');
         $(this).addClass('active');
         myordersStatusForShow = 'Closed';
         update();
     });
+    $('#myorders-button-opened').click(function () {
+        $('.myorders__button').removeClass('active');
+        $(this).addClass('active');
+        myordersStatusForShow = 'Opened';
+        update();
+    });
+    $('#myorders-button-cancelled').click(function () {
+        $('.myorders__button').removeClass('active');
+        $(this).addClass('active');
+        myordersStatusForShow = 'Cancelled';
+        update();
+    });
 
     function updateOrdersSellTableClosed() {
-        if ($.fn.dataTable.isDataTable('#ordersSellTable')) {
-            ordersSellTable.ajax.reload();
+        var ordersSellTable = $('#ordersSellTable');
+        var ordersUrl = '/2a8fy7b07dxe44/orders';
+        if ($.fn.dataTable.isDataTable(ordersSellTable)) {
+            ordersSellDataTable = $(ordersSellTable).DataTable();
+            ordersSellDataTable.ajax.url(ordersUrl).load();
         } else {
-            var id = $("#user-id").val();
-            ordersSellTable = $('#ordersSellTable').DataTable({
+            var userId = $("#user-id").val();
+            var currencyPairId = $('#currency-pair-selector').val();
+
+            ordersSellDataTable = $(ordersSellTable).DataTable({
                 "ajax": {
-                    "url": '/2a8fy7b07dxe44/orders',
+                    "url": ordersUrl,
                     "type": "GET",
-                    "data": function(d){
-                        d.id = id;
+                    "data": function (d) {
+                        d.id = userId;
                         d.tableType = 'ordersSell' + myordersStatusForShow;
-                        d.currencyPairId = $('#currency-pair-selector').val();
+                        d.currencyPairId = currencyPairId;
                     },
-                    "dataSrc": ""
+                    "dataSrc": "data"
                 },
+                "processing": true,
+                "serverSide": true,
                 "deferRender": true,
                 "paging": true,
                 "info": true,
@@ -83,13 +90,12 @@ $(function () {
                     },
                     {
                         "data": "dateAcception",
-                        "render": function (data, type, row){
-                            if (myordersStatusForShow == 'Closed') {
+                        "render": function (data, type, row) {
+                            if (myordersStatusForShow === 'Closed') {
                                 return data;
-                            }else {
+                            } else {
                                 return row.dateStatusModification;
                             }
-                            return data;
                         }
                     }
                 ],
@@ -99,27 +105,35 @@ $(function () {
                         "asc"
                     ]
                 ],
-                "destroy" : true
+                "destroy": true
             });
         }
     }
 
     function updateOrdersBuyTableClosed() {
-        if ($.fn.dataTable.isDataTable('#ordersBuyTable')) {
-            ordersBuyTable.ajax.reload();
+        var ordersBuyTable = $('#ordersBuyTable');
+        var ordersUrl = '/2a8fy7b07dxe44/orders';
+
+        if ($.fn.dataTable.isDataTable(ordersBuyTable)) {
+            ordersBuyDataTable = $(ordersBuyTable).DataTable();
+            ordersBuyDataTable.ajax.url(ordersUrl).load();
         } else {
-            var id = $("#user-id").val();
-            ordersBuyTable = $('#ordersBuyTable').DataTable({
+            var userId = $("#user-id").val();
+            var currencyPairId = $('#currency-pair-selector').val();
+
+            ordersBuyDataTable = $(ordersBuyTable).DataTable({
                 "ajax": {
-                    "url": '/2a8fy7b07dxe44/orders',
+                    "url": ordersUrl,
                     "type": "GET",
-                    "data": function(d){
-                        d.id = id;
+                    "data": function (d) {
+                        d.id = userId;
                         d.tableType = 'ordersBuy' + myordersStatusForShow;
-                        d.currencyPairId = $('#currency-pair-selector').val();
+                        d.currencyPairId = currencyPairId;
                     },
-                    "dataSrc": ""
+                    "dataSrc": "data"
                 },
+                "processing": true,
+                "serverSide": true,
                 "deferRender": true,
                 "paging": true,
                 "info": true,
@@ -150,13 +164,12 @@ $(function () {
                     },
                     {
                         "data": "dateAcception",
-                        "render": function (data, type, row){
-                            if (myordersStatusForShow == 'Closed') {
+                        "render": function (data, type, row) {
+                            if (myordersStatusForShow === 'Closed') {
                                 return data;
-                            }else {
+                            } else {
                                 return row.dateStatusModification;
                             }
-                            return data;
                         }
                     }
                 ],
@@ -166,27 +179,35 @@ $(function () {
                         "asc"
                     ]
                 ],
-                "destroy" : true
+                "destroy": true
             });
         }
     }
 
     function updateStopOrdersTableClosed() {
-        if ($.fn.dataTable.isDataTable('#stopOrdersTable')) {
-            stopOrdersTable.ajax.reload();
+        var stopOrdersTable = $('#stopOrdersTable');
+        var ordersUrl = '/2a8fy7b07dxe44/orders';
+
+        if ($.fn.dataTable.isDataTable(stopOrdersTable)) {
+            stopOrdersDataTable = $(stopOrdersTable).DataTable();
+            stopOrdersDataTable.ajax.url(ordersUrl).load();
         } else {
-            var id = $("#user-id").val();
-            stopOrdersTable = $('#stopOrdersTable').DataTable({
+            var userId = $("#user-id").val();
+            var currencyPairId = $('#currency-pair-selector').val();
+
+            stopOrdersDataTable = $(stopOrdersTable).DataTable({
                 "ajax": {
-                    "url": '/2a8fy7b07dxe44/orders',
+                    "url": ordersUrl,
                     "type": "GET",
-                    "data": function(d){
-                        d.id = id;
+                    "data": function (d) {
+                        d.id = userId;
                         d.tableType = 'stopOrders' + myordersStatusForShow;
-                        d.currencyPairId = $('#currency-pair-selector').val();
+                        d.currencyPairId = currencyPairId;
                     },
-                    "dataSrc": ""
+                    "dataSrc": "data"
                 },
+                "processing": true,
+                "serverSide": true,
                 "deferRender": true,
                 "paging": true,
                 "info": true,
@@ -223,13 +244,12 @@ $(function () {
                     },
                     {
                         "data": "dateStatusModification",
-                        "render": function (data, type, row){
-                            if (myordersStatusForShow == 'Closed' || myordersStatusForShow == 'Cancelled') {
+                        "render": function (data, type, row) {
+                            if (myordersStatusForShow === 'Closed' || myordersStatusForShow === 'Cancelled') {
                                 return data;
-                            }else {
+                            } else {
                                 return "";
                             }
-                            return data;
                         }
                     }
                 ],
@@ -239,10 +259,9 @@ $(function () {
                         "asc"
                     ]
                 ],
-                "destroy" : true
+                "destroy": true
             });
         }
     }
-
 });
 
