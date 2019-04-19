@@ -484,5 +484,4 @@ public class ServiceTestConfig {
     public UserSettingsDao userSettingsDao() {
         return Mockito.mock(UserSettingsDao.class);
     }
-
 }
