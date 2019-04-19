@@ -72,7 +72,6 @@ import me.exrates.service.util.BigDecimalConverter;
 import me.exrates.service.util.WithdrawUtils;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.Cache;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
