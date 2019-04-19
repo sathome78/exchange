@@ -516,11 +516,10 @@ public class AdminController {
         }
         final Locale locale = localeResolver.resolveLocale(request);
 
-        DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
-        return getOrderWideListDtos(tableType, currencyPair, id, locale, dataTableParams);
+        return getOrderWideListDtos(tableType, currencyPair, id, locale, params);
     }
 
-    private DataTable<List<OrderWideListDto>> getOrderWideListDtos(String tableType, CurrencyPair currencyPair, int id, Locale locale, DataTableParams dataTableParams) {
+    private DataTable<List<OrderWideListDto>> getOrderWideListDtos(String tableType, CurrencyPair currencyPair, int id, Locale locale, Map<String, String> params) {
         OrderStatus orderStatus = null;
         OperationType operationType = null;
         switch (tableType) {
@@ -558,6 +557,8 @@ public class AdminController {
                 orderStatus = OrderStatus.OPENED;
                 break;
         }
+        DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
+
         final List<OrderWideListDto> filteredOrders = orderService.getUsersOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, dataTableParams.getStart(), dataTableParams.getLength(), locale);
         final int notFilteredAmount = orderService.getUsersOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, 0, -1, locale).size();
 
