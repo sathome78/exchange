@@ -3023,6 +3023,7 @@ public class OrderServiceImplTest {
                 anyInt(),
                 anyInt(),
                 any(Locale.class))).thenReturn(Collections.singletonList(dto));
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(new CurrencyPair("BTC/USD"));
         when(request.getSession()).thenReturn(session);
         when(request.getSession()).thenReturn(session);
 
@@ -3054,6 +3055,7 @@ public class OrderServiceImplTest {
                 anyInt(),
                 anyInt(),
                 any(Locale.class));
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
     }
 
     @Ignore
@@ -3136,6 +3138,7 @@ public class OrderServiceImplTest {
                 anyInt(),
                 anyInt(),
                 any(Locale.class))).thenReturn(Collections.singletonList(dto));
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(new CurrencyPair("BTC/USD"));
 
         List<OrderWideListDto> myOrdersWithState = orderService.getMyOrdersWithState(
                 USER_EMAIL,
@@ -3160,6 +3163,7 @@ public class OrderServiceImplTest {
                 anyInt(),
                 anyInt(),
                 any(Locale.class));
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
     }
 
     @Test
@@ -4931,6 +4935,7 @@ public class OrderServiceImplTest {
                 anyInt(),
                 anyInt(),
                 any(Locale.class))).thenReturn(Collections.singletonList(dto));
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(new CurrencyPair("BTC/USD"));
 
         List<OrderWideListDto> myOrdersWithState = orderService.getUsersOrdersWithStateForAdmin(
                 1,
@@ -4953,6 +4958,7 @@ public class OrderServiceImplTest {
                 anyInt(),
                 anyInt(),
                 any(Locale.class));
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
     }
 
     @Test
@@ -4969,6 +4975,7 @@ public class OrderServiceImplTest {
                 anyInt(),
                 anyInt(),
                 any(Locale.class))).thenReturn(Collections.singletonList(dto));
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(new CurrencyPair("BTC/USD"));
 
         List<OrderWideListDto> getMyOrdersWithState = orderService.getMyOrdersWithState(
                 USER_EMAIL,
@@ -4993,6 +5000,7 @@ public class OrderServiceImplTest {
                 anyInt(),
                 anyInt(),
                 any(Locale.class));
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
     }
 
     @Test
@@ -5003,18 +5011,20 @@ public class OrderServiceImplTest {
         when(orderDao.getMyOrdersWithState(
                 anyInt(),
                 any(CurrencyPair.class),
-                anyListOf(OrderStatus.class),
+                any(OrderStatus.class),
                 any(OperationType.class),
                 any(),
                 anyInt(),
                 anyInt(),
                 any(Locale.class))).thenReturn(Collections.singletonList(dto));
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(new CurrencyPair("BTC/USD"));
 
         List<OrderWideListDto> getMyOrdersWithState = orderService.getMyOrdersWithState(
                 USER_EMAIL,
                 new CurrencyPair(),
-                Collections.singletonList(OrderStatus.CLOSED),
+                OrderStatus.CLOSED,
                 OperationType.BUY,
+                "ALL",
                 10,
                 10,
                 Locale.ENGLISH);
@@ -5026,12 +5036,13 @@ public class OrderServiceImplTest {
         verify(orderDao, atLeastOnce()).getMyOrdersWithState(
                 anyInt(),
                 any(CurrencyPair.class),
-                anyListOf(OrderStatus.class),
+                any(OrderStatus.class),
                 any(OperationType.class),
                 any(),
                 anyInt(),
                 anyInt(),
                 any(Locale.class));
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
     }
 
     @Test

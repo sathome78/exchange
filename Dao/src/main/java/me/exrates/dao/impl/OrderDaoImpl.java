@@ -906,10 +906,8 @@ public class OrderDaoImpl implements OrderDao {
                 " EXORDERS.status_id," +
                 " EXORDERS.status_modification_date," +
                 " EXORDERS.currency_pair_id," +
-                " EXORDERS.base_type," +
-                " CURRENCY_PAIR.name AS currency_pair_name " +
+                " EXORDERS.base_type" +
                 " FROM EXORDERS " +
-                " JOIN CURRENCY_PAIR ON CURRENCY_PAIR.id = EXORDERS.currency_pair_id " +
                 " WHERE status_id IN (:status_ids) " +
                 " AND operation_type_id IN (:operation_type_id) " +
                 currencyPairClause +
@@ -948,7 +946,6 @@ public class OrderDaoImpl implements OrderDao {
             orderWideListDto.setStatus(OrderStatus.convert(rs.getInt("status_id")));
             orderWideListDto.setDateStatusModification(rs.getTimestamp("status_modification_date") == null ? null : rs.getTimestamp("status_modification_date").toLocalDateTime());
             orderWideListDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
-            orderWideListDto.setCurrencyPairName(rs.getString("currency_pair_name"));
             orderWideListDto.setOrderBaseType(OrderBaseType.valueOf(rs.getString("base_type")));
             orderWideListDto.setOperationType(String.join(" ", orderWideListDto.getOperationTypeEnum().name(), orderWideListDto.getOrderBaseType().name()));
             return orderWideListDto;
@@ -991,7 +988,6 @@ public class OrderDaoImpl implements OrderDao {
 
         String sql = "SELECT COUNT(*) " +
                 "FROM EXORDERS " +
-                " JOIN CURRENCY_PAIR ON CURRENCY_PAIR.id = EXORDERS.currency_pair_id " +
                 " WHERE status_id IN (:status_ids) " +
                 " AND operation_type_id IN (:operation_type_id) " +
                 currencyPairClause +
