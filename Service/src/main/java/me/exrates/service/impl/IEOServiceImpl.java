@@ -330,6 +330,9 @@ public class IEOServiceImpl implements IEOService {
         boolean result = walletService.moveBalanceFromIeoReservedToActive(maker.getId(), "BTC");
 
         if (result) {
+            ieoDetails.setStatus(IEODetailsStatus.SUCCEEDED);
+            ieoDetailsRepository.updateSafe(ieoDetails);
+
             Email email = new Email();
             email.setTo(maker.getEmail());
             email.setMessage("Success finish IEO");
