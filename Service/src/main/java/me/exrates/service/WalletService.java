@@ -183,4 +183,6 @@ public interface WalletService {
     BigDecimal findUserCurrencyBalance(IEOClaim ieoClaim);
 
     boolean performIeoRollbackTransfer(IEOClaim ieoClaim);
+
+    boolean moveBalanceFromIeoReservedToActive(int userId, String currencyName);
 }

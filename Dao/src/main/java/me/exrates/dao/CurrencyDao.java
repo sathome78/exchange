@@ -140,4 +140,6 @@ public interface CurrencyDao {
     void updateCurrencyBalances(List<BalanceDto> balances);
 
     List<BalanceDto> getCurrencyBalances();
+
+    boolean updateCurrencyPair(CurrencyPair currencyPair);
 }

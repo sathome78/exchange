@@ -576,4 +576,9 @@ public class CurrencyServiceImpl implements CurrencyService {
     public List<BalanceDto> getCurrencyBalances() {
         return currencyDao.getCurrencyBalances();
     }
+
+    @Override
+    public boolean updateCurrencyPair(CurrencyPair currencyPair) {
+        return currencyDao.updateCurrencyPair(currencyPair);
+    }
 }
