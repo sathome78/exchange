@@ -371,7 +371,7 @@ public class IEOServiceImpl implements IEOService {
     @Transactional
     public void consumeClaimByPartition(Integer ieoId, Consumer<IEOClaim> c) {
         Collection<Integer> allIds = ieoClaimRepository.getAllSuccessClaimIdsByIeoId(ieoId);
-        int partitionSize = 50;
+        int partitionSize = 200;
         List<Integer> accumulator = new ArrayList<>(partitionSize);
         for (Integer each : allIds) {
             accumulator.add(each);
