@@ -1,5 +1,6 @@
 package me.exrates.ngcontroller;
 
+import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestParamsDto;
 import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
 import me.exrates.model.enums.OperationType;
@@ -10,9 +11,10 @@ import me.exrates.service.InputOutputService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.UserService;
+import me.exrates.service.impl.BitcoinServiceImpl;
+import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import org.hamcrest.Matchers;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -62,6 +64,8 @@ public class NgRefillControllerTest extends AngularApiCommonTest {
     private UserService userService;
     @Mock
     private GtagRefillService gtagRefillService;
+    @Mock
+    private MerchantServiceContext merchantServiceContext;
 
     @InjectMocks
     private NgRefillController ngRefillController;
@@ -187,6 +191,13 @@ public class NgRefillControllerTest extends AngularApiCommonTest {
                 .thenReturn(Collections.singletonList(getMockMerchantCurrency()));
         Mockito.when(currencyService.getWarningForCurrency(anyInt(), anyObject()))
                 .thenReturn(Collections.singletonList("TEST_WARNING_CODE_LIST"));
+        Merchant merchant = new Merchant();
+        merchant.setServiceBeanName("BitcoinServiceImpl");
+        Mockito.when(merchantService.findById(anyInt()))
+                .thenReturn(merchant);
+        Mockito.when(merchantServiceContext
+                .getMerchantService(anyString()))
+                .thenReturn(new BitcoinServiceImpl(null, null, null, null));
 
         mockMvc.perform(MockMvcRequestBuilders.get(BASE_URL + "/merchants/input")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
@@ -204,6 +215,8 @@ public class NgRefillControllerTest extends AngularApiCommonTest {
         verify(merchantService, times(1)).getAllUnblockedForOperationTypeByCurrencies(anyObject(), anyObject());
         verify(refillService, times(1)).retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(anyObject(), anyString());
         verify(currencyService, times(1)).getWarningForCurrency(anyInt(), anyObject());
+        verify(merchantService, times(1)).findById(anyInt());
+        verify(merchantServiceContext, times(1)).getMerchantService(anyString());
     }
 
     @Test
