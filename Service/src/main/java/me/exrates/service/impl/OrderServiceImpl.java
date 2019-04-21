@@ -1778,6 +1778,11 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public int getUsersOrdersWithStateForAdminCount(int id, CurrencyPair currencyPair, OrderStatus orderStatus, OperationType operationType, int offset, int limit, Locale locale) {
+        return orderDao.getUnfilteredOrdersCount(id, currencyPair, Collections.singletonList(orderStatus), operationType, SCOPE, offset, limit, locale);
+    }
+
+    @Override
     public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
                                                        OperationType operationType, String scope,
                                                        Integer offset, Integer limit, Locale locale) {

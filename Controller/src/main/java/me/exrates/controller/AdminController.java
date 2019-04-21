@@ -559,9 +559,12 @@ public class AdminController {
         }
         DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
 
-        final List<OrderWideListDto> filteredOrders = orderService.getUsersOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, dataTableParams.getStart(), dataTableParams.getLength(), locale);
-        final int notFilteredAmount = orderService.getUsersOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, 0, -1, locale).size();
+        final int notFilteredAmount = orderService.getUsersOrdersWithStateForAdminCount(id, currencyPair, orderStatus, operationType, 0, -1, locale);
 
+        List<OrderWideListDto> filteredOrders = Collections.emptyList();
+        if (notFilteredAmount > 0) {
+            filteredOrders = orderService.getUsersOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, dataTableParams.getStart(), dataTableParams.getLength(), locale);
+        }
         DataTable<List<OrderWideListDto>> result = new DataTable<>();
         result.setRecordsFiltered(notFilteredAmount);
         result.setRecordsTotal(notFilteredAmount);

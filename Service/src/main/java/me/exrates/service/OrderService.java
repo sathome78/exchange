@@ -389,6 +389,9 @@ public interface OrderService {
                                                            OperationType operationType,
                                                            Integer offset, Integer limit, Locale locale);
 
+    int getUsersOrdersWithStateForAdminCount(int id, CurrencyPair currencyPair, OrderStatus orderStatus,
+                                             OperationType operationType, int offset, int limit, Locale locale);
+
     List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
                                                 OperationType operationType, String scope,
                                                 Integer offset, Integer limit, Locale locale);

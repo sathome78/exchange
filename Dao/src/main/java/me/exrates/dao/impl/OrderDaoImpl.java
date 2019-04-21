@@ -956,6 +956,61 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
+    public int getUnfilteredOrdersCount(int id, CurrencyPair currencyPair, List<OrderStatus> statuses, OperationType operationType, String scope, int offset, int limit, Locale locale) {
+        if (StringUtils.isEmpty(scope)) {
+            scope = "OTHER";
+        }
+
+        String userFilterClause;
+        switch (scope) {
+            case "ALL":
+                userFilterClause = " AND (EXORDERS.user_id = :user_id OR EXORDERS.user_acceptor_id = :user_id) ";
+                break;
+            case "ACCEPTED":
+                userFilterClause = " AND EXORDERS.user_acceptor_id = :user_id ";
+                break;
+            default:
+                userFilterClause = " AND EXORDERS.user_id = :user_id ";
+                break;
+        }
+
+        String currencyPairClause = Objects.isNull(currencyPair) ? StringUtils.EMPTY : String.format(" AND EXORDERS.currency_pair_id = %s ", String.valueOf(currencyPair.getId()));
+
+        String limitClause = limit == -1 ? StringUtils.EMPTY : String.format(" LIMIT %s OFFSET %s ", String.valueOf(limit), String.valueOf(offset));
+
+        List<Integer> statusIds = statuses
+                .stream()
+                .map(OrderStatus::getStatus)
+                .collect(Collectors.toList());
+        List<Integer> operationTypesIds = Arrays.asList(3, 4);
+
+        String orderClause = " ORDER BY date_acception ASC, date_creation DESC ";
+        if (statusIds.size() > 1) {
+            orderClause = " ORDER BY status_modification_date DESC ";
+        }
+
+        String sql = "SELECT COUNT(*) " +
+                "FROM EXORDERS " +
+                " JOIN CURRENCY_PAIR ON CURRENCY_PAIR.id = EXORDERS.currency_pair_id " +
+                " WHERE status_id IN (:status_ids) " +
+                " AND operation_type_id IN (:operation_type_id) " +
+                currencyPairClause +
+                userFilterClause +
+                orderClause +
+                limitClause;
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("user_id", id);
+        params.put("status_ids", statusIds);
+        if (Objects.nonNull(operationType)) {
+            params.put("operation_type_id", operationType.getType());
+        } else {
+            params.put("operation_type_id", operationTypesIds);
+        }
+        return slaveForReportsTemplate.queryForObject(sql, params, Integer.class);
+    }
+
+    @Override
     public List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, String currencyName,
                                                        OrderStatus orderStatus, String scope, Integer limit, Integer offset,
                                                        Boolean hideCanceled, String sortByCreated,

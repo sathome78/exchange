@@ -102,6 +102,9 @@ public interface OrderDao {
                                                 OperationType operationType,
                                                 String scope, Integer offset, Integer limit, Locale locale);
 
+    int getUnfilteredOrdersCount(int id, CurrencyPair currencyPair, List<OrderStatus> statuses, OperationType operationType,
+                                 String scope, int offset, int limit, Locale locale);
+
     List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, List<OrderStatus> statuses,
                                                 OperationType operationType,
                                                 String scope, Integer offset, Integer limit, Locale locale);
