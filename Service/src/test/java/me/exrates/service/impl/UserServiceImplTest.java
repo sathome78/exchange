@@ -7,6 +7,7 @@ import me.exrates.dao.UserSettingsDao;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.AdminAuthorityOption;
 import me.exrates.model.Comment;
+import me.exrates.model.Email;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
@@ -775,16 +776,13 @@ public class UserServiceImplTest {
     public void sendEmailWithToken1() {
     }
 
-    @Ignore
+    @Test
     public void sendUnfamiliarIpNotificationEmail() {
-//        String var1, Object[] var2, Locale var3
-//        User user, String emailSubject, String emailText, Locale locale
-//        "admin.changePasswordTitle", "user.settings.changePassword.successful
         User user = new User();
         user.setEmail("Test@test.com");
         user.setIp("127.0.0.1");
         when(messageSource.getMessage(anyString(), any(Object[].class), any(Locale.class))).thenReturn("str");
-//        doNothing().when(sendMailService).sendInfoMail(any(Email.class));
+        doNothing().when(sendMailService).sendInfoMail(any(Email.class));
 
         userService.sendUnfamiliarIpNotificationEmail(user, "admin.changePasswordTitle", "user.settings.changePassword.successful", Locale.ENGLISH);
 

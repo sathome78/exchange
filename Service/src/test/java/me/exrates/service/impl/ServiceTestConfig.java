@@ -78,6 +78,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.support.DelegatingMessageSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
@@ -483,7 +484,7 @@ public class ServiceTestConfig {
         return Mockito.mock(PasswordEncoder.class);
     }
 
-    @Bean("XmlWebApplicationContext")
+    @Bean("StubWebApplicationContext")
     public MessageSource messageSource() {
            return Mockito.mock(MessageSource.class);
     }
@@ -497,4 +498,9 @@ public class ServiceTestConfig {
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return Mockito.mock(BCryptPasswordEncoder.class);
     }
+
+//    @Bean
+//    public DelegatingMessageSource delegatingMessageSource() {
+//        return Mockito.mock(DelegatingMessageSource.class);
+//    }
 }
