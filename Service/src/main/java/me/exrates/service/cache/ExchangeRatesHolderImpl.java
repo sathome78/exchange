@@ -307,7 +307,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     }
 
     private String calculatePercentChange(ExOrderStatisticsShortByPairsDto statistic) {
-        BigDecimal lastOrderRate = new BigDecimal(statistic.getLastOrderRate());
+        BigDecimal lastOrderRate = statistic.getLastOrderRate() == null ? BigDecimal.ZERO : new BigDecimal(statistic.getLastOrderRate());
         BigDecimal lastOrderRate24hr = nonNull(statistic.getLastOrderRate24hr())
                 ? new BigDecimal(statistic.getLastOrderRate24hr())
                 : BigDecimal.ZERO;
