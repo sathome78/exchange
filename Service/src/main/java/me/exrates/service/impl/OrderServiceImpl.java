@@ -2339,11 +2339,12 @@ public class OrderServiceImpl implements OrderService {
                 currencyName,
                 orderStatus,
                 scope,
-                limit,
-                offset,
                 hideCanceled,
                 dateTimeFrom,
                 dateTimeTo);
+        if (recordsCount > limit) {
+            recordsCount = limit;
+        }
 
         List<OrderWideListDto> orders = Collections.emptyList();
         if (recordsCount > 0) {
