@@ -1,6 +1,7 @@
 package me.exrates.ngcontroller;
 
 import me.exrates.model.Commission;
+import me.exrates.model.Currency;
 import me.exrates.model.dto.TransferDto;
 import me.exrates.model.dto.TransferRequestFlatDto;
 import me.exrates.model.dto.TransferRequestParamsDto;
@@ -376,7 +377,8 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
         when(userService.findByEmail(anyString())).thenReturn(getMockUser());
         when(g2faService.isGoogleAuthenticatorEnable(anyInt())).thenReturn(Boolean.FALSE);
         when(userService.checkPin(anyString(), anyString(), anyObject())).thenReturn(Boolean.FALSE);
-        when(secureService.sendWithdrawPincode(anyObject())).thenReturn(getMockNotificationResultDto());
+        when(secureService.sendTransferPinCode(anyObject(), anyString(), anyString())).thenReturn(getMockNotificationResultDto());
+        when(currencyService.getById(anyInt())).thenReturn(getCurrency());
 
         mockMvc.perform(post(BASE_URL + "/voucher/request/create")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
@@ -390,7 +392,7 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
         verify(userService, times(1)).findByEmail(anyString());
         verify(g2faService, times(1)).isGoogleAuthenticatorEnable(anyInt());
         verify(userService, times(1)).checkPin(anyString(), anyString(), anyObject());
-        verify(secureService, times(1)).sendWithdrawPincode(anyObject());
+        verify(secureService, times(1)).sendTransferPinCode(anyObject(), anyObject(), anyObject());
     }
 
     @Test
@@ -524,5 +526,13 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
         dto.setType("TRANSFER");
 
         return dto;
+    }
+
+    private Currency getCurrency() {
+        Currency currency = new Currency();
+        currency.setName("BTC");
+        currency.setHidden(false);
+        currency.setId(3);
+        return currency;
     }
 }
