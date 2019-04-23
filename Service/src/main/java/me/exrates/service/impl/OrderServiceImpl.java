@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CallBackLogDao;
@@ -383,7 +384,8 @@ public class OrderServiceImpl implements OrderService {
         return dto;
     }
 
-    private void processStats(List<ExOrderStatisticsShortByPairsDto> dto, Locale locale) {
+    @VisibleForTesting
+    void processStats(List<ExOrderStatisticsShortByPairsDto> dto, Locale locale) {
         dto.forEach(e -> {
             BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
             BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
@@ -476,11 +478,11 @@ public class OrderServiceImpl implements OrderService {
                 }
             }
         }
-        /*------------------*/
+
         if (orderCreateDto.getCurrencyPair().getPairType() == CurrencyPairType.ICO) {
             validateIcoOrder(errors, errorParams, orderCreateDto);
         }
-        /*------------------*/
+
         if (orderCreateDto.getAmount() != null) {
             if (orderCreateDto.getAmount().compareTo(currencyPairLimit.getMaxAmount()) > 0) {
                 String key1 = "amount_" + errors.size();
@@ -557,11 +559,11 @@ public class OrderServiceImpl implements OrderService {
                 }
             }
         }
-        /*------------------*/
+
         if (orderCreateDto.getCurrencyPair().getPairType() == CurrencyPairType.ICO) {
             validateIcoOrder(errors, errorParams, orderCreateDto);
         }
-        /*------------------*/
+
         if (orderCreateDto.getAmount() != null) {
             if (orderCreateDto.getAmount().compareTo(currencyPairLimit.getMaxAmount()) > 0) {
                 String key1 = "amount_" + errors.size();
@@ -607,7 +609,8 @@ public class OrderServiceImpl implements OrderService {
         return orderValidationDto;
     }
 
-    private void validateIcoOrder(Map<String, Object> errors, Map<String, Object[]> errorParams, OrderCreateDto orderCreateDto) {
+    @VisibleForTesting
+    void validateIcoOrder(Map<String, Object> errors, Map<String, Object[]> errorParams, OrderCreateDto orderCreateDto) {
         if (orderCreateDto.getOrderBaseType() != OrderBaseType.ICO) {
             throw new RuntimeException("unsupported type of order");
         }
@@ -730,7 +733,6 @@ public class OrderServiceImpl implements OrderService {
                 }
                 return createdOrderId;
             } else {
-                //this exception will be caught in controller, populated  with message text  and thrown further
                 throw new NotEnoughUserWalletMoneyException(StringUtils.EMPTY);
             }
         } finally {
@@ -897,7 +899,8 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    private BigDecimal acceptPartially(OrderCreateDto newOrder, ExOrder orderForPartialAccept, BigDecimal cumulativeSum, Locale locale, List<ExOrder> acceptEventsList, OrderCreationResultDto orderCreationResultDto) {
+    @VisibleForTesting
+    BigDecimal acceptPartially(OrderCreateDto newOrder, ExOrder orderForPartialAccept, BigDecimal cumulativeSum, Locale locale, List<ExOrder> acceptEventsList, OrderCreationResultDto orderCreationResultDto) {
         logTransaction("acceptPartially", "begin", orderForPartialAccept.getCurrencyPairId(), orderForPartialAccept.getId(), null);
         deleteOrderForPartialAccept(orderForPartialAccept.getId(), acceptEventsList);
         BigDecimal amountForPartialAccept = newOrder.getAmount().subtract(cumulativeSum.subtract(orderForPartialAccept.getAmountBase()));
@@ -916,17 +919,11 @@ public class OrderServiceImpl implements OrderService {
         orderCreationResultDto.setOrderIdToAccept(acceptedId);
         logTransaction("acceptPartially", "end", orderForPartialAccept.getCurrencyPairId(), acceptedId, null);
         eventPublisher.publishEvent(partiallyAcceptedOrder(orderForPartialAccept, amountForPartialAccept));
-
-   /* TODO temporary disable
-    notificationService.createLocalizedNotification(orderForPartialAccept.getUserId(), NotificationEvent.ORDER,
-        "orders.partialAccept.title", "orders.partialAccept.yourOrder",
-        new Object[]{orderForPartialAccept.getId(), amountForPartialAccept.toString(),
-            orderForPartialAccept.getAmountBase().toString(), newOrder.getCurrencyPair().getCurrency1().getName()});*/
         return amountForPartialAccept;
     }
 
-
-    private void logTransaction(String method, String part, Integer pairId, int partiallyAcceptedOrderId, List<UserOrdersDto> ordersDtos) {
+    @VisibleForTesting
+    void logTransaction(String method, String part, Integer pairId, int partiallyAcceptedOrderId, List<UserOrdersDto> ordersDtos) {
         if (pairId == null) {
             pairId = 0;
         }
@@ -957,7 +954,8 @@ public class OrderServiceImpl implements OrderService {
         txLogger.info(logMessage);
     }
 
-    private OrderEvent partiallyAcceptedOrder(ExOrder orderForPartialAccept, BigDecimal amountForPartialAccept) {
+    @VisibleForTesting
+    OrderEvent partiallyAcceptedOrder(ExOrder orderForPartialAccept, BigDecimal amountForPartialAccept) {
         orderForPartialAccept.setPartiallyAcceptedAmount(amountForPartialAccept);
         return new PartiallyAcceptedOrder(orderForPartialAccept);
     }
@@ -1050,8 +1048,8 @@ public class OrderServiceImpl implements OrderService {
         acceptOrdersList(userId, orderIds, locale, null, false);
     }
 
-
-    private void acceptOrder(int userAcceptorId, int orderId, Locale locale, boolean sendNotification, List<ExOrder> eventsList, boolean partialAccept) {
+    @VisibleForTesting
+    void acceptOrder(int userAcceptorId, int orderId, Locale locale, boolean sendNotification, List<ExOrder> eventsList, boolean partialAccept) {
         try {
             logTransaction("acceptOrder", "begin", 0, orderId, null);
             ExOrder exOrder = this.getOrderById(orderId);
@@ -1099,7 +1097,6 @@ public class OrderServiceImpl implements OrderService {
                     walletsForOrderAcceptionDto.setUserAcceptorInWalletId(createdWalletId);
                 }
             }
-            /**/
             /*calculate convert currency amount for creator - simply take stored amount from order*/
             BigDecimal amountWithComissionForCreator = getAmountWithComissionForCreator(exOrder);
             Commission comissionForCreator = new Commission();
@@ -1115,7 +1112,7 @@ public class OrderServiceImpl implements OrderService {
             } else {
                 comissionForAcceptor = commissionDao.getCommission(operationTypeForAcceptor, userService.getUserRoleFromDB(userAcceptorId));
             }
-            /*-------------------------*/
+
             BigDecimal comissionRateForAcceptor = comissionForAcceptor.getValue();
             BigDecimal amountComissionForAcceptor = BigDecimalProcessing.doAction(exOrder.getAmountConvert(), comissionRateForAcceptor, ActionType.MULTIPLY_PERCENT);
             BigDecimal amountWithComissionForAcceptor;
@@ -1138,7 +1135,7 @@ public class OrderServiceImpl implements OrderService {
                 commissionForCreatorInWallet = BigDecimal.ZERO;
                 commissionForAcceptorOutWallet = BigDecimal.ZERO;
                 commissionForAcceptorInWallet = amountComissionForAcceptor;
-                /**/
+
                 creatorForOutAmount = amountWithComissionForCreator;
                 creatorForInAmount = exOrder.getAmountBase();
                 acceptorForOutAmount = exOrder.getAmountBase();
@@ -1149,7 +1146,7 @@ public class OrderServiceImpl implements OrderService {
                 commissionForCreatorInWallet = exOrder.getCommissionFixedAmount();
                 commissionForAcceptorOutWallet = amountComissionForAcceptor;
                 commissionForAcceptorInWallet = BigDecimal.ZERO;
-                /**/
+
                 creatorForOutAmount = exOrder.getAmountBase();
                 creatorForInAmount = amountWithComissionForCreator;
                 acceptorForOutAmount = amountWithComissionForAcceptor;
@@ -1158,7 +1155,6 @@ public class OrderServiceImpl implements OrderService {
             WalletOperationData walletOperationData;
             WalletTransferStatus walletTransferStatus;
             String exceptionMessage = "";
-            /**/
             /*for creator OUT*/
             walletOperationData = new WalletOperationData();
             walletService.walletInnerTransfer(
@@ -1236,23 +1232,18 @@ public class OrderServiceImpl implements OrderService {
                 exceptionMessage = getWalletTransferExceptionMessage(walletTransferStatus, "orders.acceptsaveerror", locale);
                 throw new OrderAcceptionException(exceptionMessage);
             }
-            /**/
+
             CompanyWallet companyWallet = new CompanyWallet();
             companyWallet.setId(walletsForOrderAcceptionDto.getCompanyWalletCurrencyConvert());
             companyWallet.setBalance(walletsForOrderAcceptionDto.getCompanyWalletCurrencyConvertBalance());
             companyWallet.setCommissionBalance(walletsForOrderAcceptionDto.getCompanyWalletCurrencyConvertCommissionBalance());
             companyWalletService.deposit(companyWallet, new BigDecimal(0), exOrder.getCommissionFixedAmount().add(amountComissionForAcceptor));
-            /**/
+
             exOrder.setStatus(OrderStatus.CLOSED);
             exOrder.setDateAcception(LocalDateTime.now());
             exOrder.setUserAcceptorId(userAcceptorId);
             final Currency currency = currencyService.findCurrencyPairById(exOrder.getCurrencyPairId())
                     .getCurrency2();
-
-            /** TODO: 6/7/16 Temporarily disable the referral program
-             * referralService.processReferral(exOrder, exOrder.getCommissionFixedAmount(), currency.getId(), exOrder.getUserId()); //Processing referral for Order Creator
-             * referralService.processReferral(exOrder, amountComissionForAcceptor, currency.getId(), exOrder.getUserAcceptorId()); //Processing referral for Order Acceptor
-             */
 
             referralService.processReferral(exOrder, exOrder.getCommissionFixedAmount(), currency, exOrder.getUserId()); //Processing referral for Order Creator
             referralService.processReferral(exOrder, amountComissionForAcceptor, currency, exOrder.getUserAcceptorId()); //Processing referral for Order Acceptor
@@ -1260,11 +1251,6 @@ public class OrderServiceImpl implements OrderService {
             if (!updateOrder(exOrder)) {
                 throw new OrderAcceptionException(messageSource.getMessage("orders.acceptsaveerror", null, locale));
             }
-      /*if (sendNotification) {
-        notificationService.createLocalizedNotification(exOrder.getUserId(), NotificationEvent.ORDER, "acceptordersuccess.title",
-            "acceptorder.message", new Object[]{exOrder.getId()});
-      }*/
-
             /*  stopOrderService.onLimitOrderAccept(exOrder);*//*check stop-orders for process*/
             /*action for refresh orders*/
             eventPublisher.publishEvent(new AcceptOrderEvent(exOrder));
@@ -1280,8 +1266,8 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-
-    private void checkAcceptPermissionForUser(Integer acceptorId, Integer creatorId, Locale locale) {
+    @VisibleForTesting
+    void checkAcceptPermissionForUser(Integer acceptorId, Integer creatorId, Locale locale) {
         UserRole acceptorRole = userService.getUserRoleFromDB(acceptorId);
         UserRole creatorRole = userService.getUserRoleFromDB(creatorId);
 
@@ -1299,7 +1285,8 @@ public class OrderServiceImpl implements OrderService {
 
     }
 
-    private String getWalletTransferExceptionMessage(WalletTransferStatus status, String negativeBalanceMessageCode, Locale locale) {
+    @VisibleForTesting
+    String getWalletTransferExceptionMessage(WalletTransferStatus status, String negativeBalanceMessageCode, Locale locale) {
         String message = "";
         switch (status) {
             case CAUSED_NEGATIVE_BALANCE:
@@ -1324,15 +1311,15 @@ public class OrderServiceImpl implements OrderService {
         return message;
     }
 
-
-    private BigDecimal getAmountWithComissionForCreator(ExOrder exOrder) {
+    @VisibleForTesting
+    BigDecimal getAmountWithComissionForCreator(ExOrder exOrder) {
         if (exOrder.getOperationType() == OperationType.SELL) {
             return BigDecimalProcessing.doAction(exOrder.getAmountConvert(), exOrder.getCommissionFixedAmount(), ActionType.SUBTRACT);
         } else {
             return BigDecimalProcessing.doAction(exOrder.getAmountConvert(), exOrder.getCommissionFixedAmount(), ActionType.ADD);
         }
     }
-    /*Убрать этот костыль!!!!*/
+    // TODO: Maks Убрать этот костыль!!!!
     @Transactional
     @Override
     public boolean cancelOrder(Integer orderId) {
@@ -1441,7 +1428,8 @@ public class OrderServiceImpl implements OrderService {
         return result;
     }
 
-    private String getStatusString(OrderStatus status, Locale ru) {
+    @VisibleForTesting
+    String getStatusString(OrderStatus status, Locale ru) {
         String statusString = null;
         switch (status) {
             case INPROCESS:
@@ -1511,7 +1499,8 @@ public class OrderServiceImpl implements OrderService {
         return dto;
     }
 
-    private void setIsOrderAcceptableAndNotifications(AdminOrderInfoDto dto, Locale locale) {
+    @VisibleForTesting
+    void setIsOrderAcceptableAndNotifications(AdminOrderInfoDto dto, Locale locale) {
         UserRole orderCreatorRole = userService.getUserRoleFromDB(dto.getOrderInfo().getOrderCreatorEmail());
         UserRole userRole = userService.getUserRoleFromSecurityContext();
         if (orderCreatorRole.getRole() == UserRole.TRADER.getRole() &&
@@ -1701,7 +1690,8 @@ public class OrderServiceImpl implements OrderService {
         return result;
     }
 
-    private List<OrderListDto> aggregateOrders(List<OrderListDto> historyDtos, OperationType operationType, boolean forceUpdate) {
+    @VisibleForTesting
+    List<OrderListDto> aggregateOrders(List<OrderListDto> historyDtos, OperationType operationType, boolean forceUpdate) {
         List<OrderListDto> resultList = new ArrayList<>();
         Map<String, List<OrderListDto>> map = historyDtos
                 .stream()
@@ -1835,14 +1825,14 @@ public class OrderServiceImpl implements OrderService {
             return OrderDeleteStatus.NOT_FOUND;
         }
         int processedRows = 1;
-        /**/
+
         OrderStatus currentOrderStatus = list.get(0).getOrderStatus();
         String description = transactionDescription.get(currentOrderStatus, action);
-        /**/
+
         if (!setStatus(orderId, newOrderStatus)) {
             return OrderDeleteStatus.ORDER_UPDATE_ERROR;
         }
-        /**/
+
         for (OrderDetailDto orderDetailDto : list) {
             if (currentOrderStatus == OrderStatus.CLOSED) {
                 if (orderDetailDto.getCompanyCommission().compareTo(BigDecimal.ZERO) != 0) {
@@ -1919,7 +1909,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
-    private int unprocessReferralTransactionByOrder(int orderId, String description) {
+    @VisibleForTesting
+    int unprocessReferralTransactionByOrder(int orderId, String description) {
         List<Transaction> transactions = transactionService.getPayedRefTransactionsByOrderId(orderId);
         for (Transaction transaction : transactions) {
             WalletTransferStatus walletTransferStatus = null;
@@ -2149,7 +2140,8 @@ public class OrderServiceImpl implements OrderService {
         return new ResponseInfoCurrencyPairDto(dtos.get(0));
     }
 
-    private List<ExOrderStatisticsShortByPairsDto> processStatistic(List<ExOrderStatisticsShortByPairsDto> statisticList) {
+    @VisibleForTesting
+    List<ExOrderStatisticsShortByPairsDto> processStatistic(List<ExOrderStatisticsShortByPairsDto> statisticList) {
         statisticList = Stream.of(
                 statisticList
                         .stream()
@@ -2255,7 +2247,8 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getUserOrders(userId, currencyPairId, queryLimit, queryOffset);
     }
 
-    private String getUserEmailFromSecurityContext() {
+    @VisibleForTesting
+    String getUserEmailFromSecurityContext() {
         return userService.getUserEmailFromSecurityContext();
     }
 
@@ -2506,7 +2499,8 @@ public class OrderServiceImpl implements OrderService {
                 .build();
     }
 
-    private String getValue(Object value) {
+    @VisibleForTesting
+    String getValue(Object value) {
         if (Objects.isNull(value)) {
             return StringUtils.EMPTY;
         } else if (value instanceof LocalDate) {
@@ -2631,7 +2625,8 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getAllDataForCache(currencyPairId);
     }
 
-    private boolean safeCompareBigDecimals(BigDecimal last, BigDecimal beforeLast) {
+    @VisibleForTesting
+    boolean safeCompareBigDecimals(BigDecimal last, BigDecimal beforeLast) {
         if (Objects.isNull(last)) {
             return false;
         } else if (Objects.isNull(beforeLast)) {
@@ -2641,7 +2636,8 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    private BigDecimal getWrapperTotal(List<SimpleOrderBookItem> items) {
+    @VisibleForTesting
+    BigDecimal getWrapperTotal(List<SimpleOrderBookItem> items) {
         Optional<SimpleOrderBookItem> max = items
                 .stream()
                 .max(Comparator.comparing(SimpleOrderBookItem::getTotal));
@@ -2652,8 +2648,9 @@ public class OrderServiceImpl implements OrderService {
         return total;
     }
 
-    private List<SimpleOrderBookItem> aggregateItems(OrderType orderType, List<OrderListDto> rawItems,
-                                                     int currencyPairId, int precision) {
+    @VisibleForTesting
+    List<SimpleOrderBookItem> aggregateItems(OrderType orderType, List<OrderListDto> rawItems,
+                                             int currencyPairId, int precision) {
         MathContext mathContext = new MathContext(precision, RoundingMode.HALF_DOWN);
 
         Map<BigDecimal, List<OrderListDto>> groupByExrate = rawItems
@@ -2690,7 +2687,8 @@ public class OrderServiceImpl implements OrderService {
         return preparedItems;
     }
 
-    private void setSumAmount(List<SimpleOrderBookItem> items) {
+    @VisibleForTesting
+    void setSumAmount(List<SimpleOrderBookItem> items) {
         for (int i = 0; i < items.size(); i++) {
             SimpleOrderBookItem item = items.get(i);
             if (i == 0) {
@@ -2702,7 +2700,8 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    private void setTotal(List<SimpleOrderBookItem> preparedItems) {
+    @VisibleForTesting
+    void setTotal(List<SimpleOrderBookItem> preparedItems) {
         for (int i = 0; i < preparedItems.size(); i++) {
             SimpleOrderBookItem item = preparedItems.get(i);
             if (i == 0) {
@@ -2717,7 +2716,8 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    private String safeFormatBigDecimal(BigDecimal value) {
+    @VisibleForTesting
+    String safeFormatBigDecimal(BigDecimal value) {
         value = Objects.isNull(value)
                 ? BigDecimal.ZERO
                 : BigDecimalProcessing.normalize(value);
