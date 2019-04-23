@@ -27,13 +27,13 @@ public class OpenApiTokenServiceImpl implements OpenApiTokenService {
     @Autowired
     private UserService userService;
 
-    private final String ALIAS_REGEX = "^[a-zA-Z\\d]{4,15}$";
+    private static final String ALIAS_REGEX = "^[a-zA-Z\\d]{4,15}$";
 
 
     @Override
     public OpenApiToken generateToken(String userEmail, String alias) {
         if (StringUtils.isEmpty(alias) || !alias.matches(ALIAS_REGEX)) {
-            throw new IllegalArgumentException("Incorrect alias");
+            throw new IllegalArgumentException(String.format("Invalid format of API key alias: %s", alias));
         }
         OpenApiToken token = new OpenApiToken();
         token.setUserEmail(userEmail);
@@ -44,7 +44,6 @@ public class OpenApiTokenServiceImpl implements OpenApiTokenService {
         openApiTokenDao.saveToken(token);
         return token;
     }
-
 
 
     @Override
@@ -88,10 +87,7 @@ public class OpenApiTokenServiceImpl implements OpenApiTokenService {
     }
 
 
-
     private String generateKey() {
         return RandomStringUtils.random(KEY_LENGTH, 0, 0, true, true, null, new SecureRandom());
     }
-
-
 }

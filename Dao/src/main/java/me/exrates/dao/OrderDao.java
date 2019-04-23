@@ -102,6 +102,9 @@ public interface OrderDao {
                                                 OperationType operationType,
                                                 String scope, Integer offset, Integer limit, Locale locale);
 
+    int getUnfilteredOrdersCount(int id, CurrencyPair currencyPair, List<OrderStatus> statuses, OperationType operationType,
+                                 String scope, int offset, int limit, Locale locale);
+
     List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, List<OrderStatus> statuses,
                                                 OperationType operationType,
                                                 String scope, Integer offset, Integer limit, Locale locale);
@@ -170,6 +173,8 @@ public interface OrderDao {
     List<OrderListDto> findAllByOrderTypeAndCurrencyId(Integer currencyId, OrderType... orderType);
 
     List<ExOrderStatisticsShortByPairsDto> getRatesDataForCache(Integer currencyPairId);
+
+    ExOrderStatisticsShortByPairsDto getBeforeLastRateForCache(Integer currencyPairId);
 
     List<ExOrderStatisticsShortByPairsDto> getAllDataForCache(Integer currencyPairId);
 }

@@ -1,10 +1,12 @@
 package me.exrates.service.stomp;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.IEODetails;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.RefreshStatisticDto;
 import me.exrates.model.dto.UserNotificationMessage;
@@ -25,6 +27,7 @@ import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -57,22 +60,12 @@ public class StompMessengerImpl implements StompMessenger {
     public void sendRefreshTradeOrdersMessage(CurrencyPair currencyPair, OperationType operationType) {
         String message = orderService.getOrdersForRefresh(currencyPair.getId(), operationType, null);
         sendMessageToDestination("/app/trade_orders/".concat(String.valueOf(currencyPair.getId())), message);
-        sendMessageToDestination("/app/orders/sfwfrf442fewdf/".concat(String.valueOf(currencyPair.getId())), message);
         sendMessageToOrderBookNg(currencyPair, operationType);
+        sendMessageToDestination("/app/orders/sfwfrf442fewdf/".concat(String.valueOf(currencyPair.getId())), message);
     }
 
     private void sendMessageToOrderBookNg(CurrencyPair currencyPair, OperationType operationType) {
         String pairName = OpenApiUtils.transformCurrencyPairBack(currencyPair.getName());
-        String basePath2 = "/order_book/%s/%d";
-        List<PrecissionsEnum> finalSubscribed = new ArrayList<>();
-        Arrays.stream(PrecissionsEnum.values()).forEach(p -> {
-            String path = String.format(basePath2, pairName, p.getValue());
-            Set<SimpSubscription> subscribers = findSubscribersByDestination(path);
-            if (subscribers.size() > 0) {
-                System.out.println("added " + path);
-                finalSubscribed.add(p);
-            }
-        });
         String basePath = "/app/order_book/%s/%d";
         List<PrecissionsEnum> subscribed = Arrays.asList(PrecissionsEnum.values());
         Map<PrecissionsEnum, String> result = orderService.findAllOrderBookItemsForAllPrecissions(OrderType.fromOperationType(operationType), currencyPair.getId(), subscribed);
@@ -110,7 +103,7 @@ public class StompMessengerImpl implements StompMessenger {
         BiTuple<String, String> results = orderService.getTradesForRefresh(currencyPair.getId(), null, RefreshObjectsEnum.ALL_TRADES);
         sendMessageToDestination("/app/trades/".concat(String.valueOf(currencyPair.getId())), results.right);
         String destination = "/app/all_trades/".concat(OpenApiUtils.transformCurrencyPairBack(currencyPair.getName()));
-        System.out.println(destination);
+//        System.out.println(destination);
         sendMessageToDestination(destination, results.left);
     }
 
@@ -181,6 +174,16 @@ public class StompMessengerImpl implements StompMessenger {
     @Override
     public void sendDetailsIeo(Integer detailId, String payload) {
         sendMessageToDestination("/app/ieo/ieo_details/".concat(detailId.toString()), payload);
+    }
+
+    @Override
+    public void sendAllIeos(Collection<IEODetails> ieoDetails) {
+        try {
+            String payload = objectMapper.writeValueAsString(ieoDetails);
+            sendMessageToDestination("/app/ieo/ieo_details", payload);
+        } catch (JsonProcessingException e) {
+            log.warn("<<IEO>>>: Failed parse to json ieo details", e);
+        }
     }
 
     private Set<SimpSubscription> findSubscribersByDestination(final String destination) {

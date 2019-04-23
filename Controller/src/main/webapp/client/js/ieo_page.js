@@ -85,6 +85,21 @@ $(function () {
         sendCreateIeo()
     });
 
+    $('#ieo_approve_send').click(function () {
+        $.ajax({
+            type: "POST",
+            url: "/2a8fy7b07dxe44/ieo/approve/" + $('#id_upd').val(),
+            contentType: "application/json; charset=utf-8",
+            success: function(data) {
+                console.log(data);
+                successNoty("IEO successfully ended!");
+                loadIeoTable();
+            },
+            error: function() {
+            }
+        });
+    });
+
     $('#ieo_revert_send').click(function () {
         $.ajax({
             type: "POST",
@@ -96,7 +111,6 @@ $(function () {
                 loadIeoTable();
             },
             error: function() {
-                /*todo show error window*/
             }
         });
     });

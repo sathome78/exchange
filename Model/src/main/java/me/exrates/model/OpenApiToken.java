@@ -9,7 +9,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Getter @Setter
+@Getter
+@Setter
 @ToString
 public class OpenApiToken {
     private Long id;
@@ -18,7 +19,7 @@ public class OpenApiToken {
     private String alias;
     private String publicKey;
     private String privateKey;
-    private Boolean allowTrade = true;
+    private Boolean allowTrade = false;
     private Boolean allowWithdraw = false;
     private Boolean allowAcceptById = false;
     private LocalDateTime generationDate;

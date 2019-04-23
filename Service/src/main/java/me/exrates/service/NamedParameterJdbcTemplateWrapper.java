@@ -21,13 +21,6 @@ public class NamedParameterJdbcTemplateWrapper extends NamedParameterJdbcTemplat
         super(dataSource);
     }
 
-    private void logSql(String sql, Map<String, ?> paramMap){
-        for (Map.Entry<String, ?> entry : paramMap.entrySet()) {
-            sql = sql.replace(":" + entry.getKey(), String.valueOf(entry.getValue()));
-        }
-        log.info(sql);
-    }
-
     @Override
     public <T> T execute(String sql, Map<String, ?> paramMap, PreparedStatementCallback<T> action) throws DataAccessException {
         logSql(sql, paramMap);
@@ -55,13 +48,23 @@ public class NamedParameterJdbcTemplateWrapper extends NamedParameterJdbcTemplat
     @Override
     public <T> T queryForObject(String sql, Map<String, ?> paramMap, RowMapper<T> rowMapper) throws DataAccessException {
         logSql(sql, paramMap);
-        return super.queryForObject(sql, paramMap, rowMapper);
+        try {
+            return super.queryForObject(sql, paramMap, rowMapper);
+        } catch (DataAccessException e) {
+            log.error(e.getMessage() + "\n" + completeSql(sql, paramMap));
+            throw e;
+        }
     }
 
     @Override
     public <T> T queryForObject(String sql, Map<String, ?> paramMap, Class<T> requiredType) throws DataAccessException {
         logSql(sql, paramMap);
-        return super.queryForObject(sql, paramMap, requiredType);
+        try {
+            return super.queryForObject(sql, paramMap, requiredType);
+        } catch (DataAccessException e) {
+            log.error(e.getMessage() + "\n" + completeSql(sql, paramMap));
+            throw e;
+        }
     }
 
     @Override
@@ -92,6 +95,17 @@ public class NamedParameterJdbcTemplateWrapper extends NamedParameterJdbcTemplat
     public int update(String sql, Map<String, ?> paramMap) throws DataAccessException {
         logSql(sql, paramMap);
         return super.update(sql, paramMap);
+    }
+
+    private void logSql(String sql, Map<String, ?> paramMap){
+        log.info(completeSql(sql, paramMap));
+    }
+
+    private String completeSql(String sql, Map<String, ?> paramMap) {
+        for (Map.Entry<String, ?> entry : paramMap.entrySet()) {
+            sql = sql.replace(":" + entry.getKey(), String.valueOf(entry.getValue()));
+        }
+        return sql;
     }
 
 }

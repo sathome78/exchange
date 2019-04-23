@@ -24,6 +24,7 @@ import me.exrates.service.KYCService;
 import me.exrates.service.KYCSettingsService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.NotificationService;
+import me.exrates.service.OpenApiTokenService;
 import me.exrates.service.OrderService;
 import me.exrates.service.PageLayoutSettingsService;
 import me.exrates.service.ReferralService;
@@ -318,5 +319,10 @@ public class AngularAppTestConfig {
     @Bean
     public IEOService ieoService() {
         return Mockito.mock(IEOService.class);
+    }
+
+    @Bean
+    public OpenApiTokenService openApiTokenService() {
+        return Mockito.mock(OpenApiTokenService.class);
     }
 }

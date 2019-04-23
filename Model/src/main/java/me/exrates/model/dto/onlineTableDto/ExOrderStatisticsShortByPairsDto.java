@@ -8,6 +8,8 @@ import lombok.Setter;
 import lombok.ToString;
 import me.exrates.model.enums.CurrencyPairType;
 
+import java.time.LocalDateTime;
+
 /**
  * Created by Valk
  */
@@ -40,6 +42,9 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
 
     private boolean hidden;
     private String lastUpdateCache;
+    @JsonIgnore
+    private LocalDateTime updated;
+
 
     public ExOrderStatisticsShortByPairsDto() {
         this.needRefresh = true;

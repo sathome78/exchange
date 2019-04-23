@@ -648,7 +648,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Conditional(MonolitConditional.class)
     public EthereumCommonService b2gService() {
         return new EthereumCommonServiceImpl("merchants/bitcoiin2g.properties",
-                "B2G", "B2G", 300);
+                "B2G", "B2G", 400);
     }
 
     @Bean(name = "golServiceImpl")

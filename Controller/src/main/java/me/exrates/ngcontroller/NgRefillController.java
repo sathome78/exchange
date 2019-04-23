@@ -19,13 +19,19 @@ import me.exrates.model.ngExceptions.NgCurrencyNotFoundException;
 import me.exrates.model.ngExceptions.NgRefillException;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.security.service.CheckUserAuthority;
-import me.exrates.service.*;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagRefillService;
+import me.exrates.service.InputOutputService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.RefillService;
+import me.exrates.service.UserService;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.MerchantNotFoundException;
 import me.exrates.service.exception.MerchantServiceNotFoundException;
-import me.exrates.service.exception.UserOperationAccessException;
-import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
+import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
+import me.exrates.service.merchantStrategy.IRefillable;
+import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.userOperation.UserOperationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +42,17 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
@@ -48,9 +64,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.isNull;
 import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_CURRENCY_WARNING;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USER;
+import static me.exrates.service.util.CollectionUtil.isNotEmpty;
 
 @RestController
 @PreAuthorize("!hasRole('ICO_MARKET_MAKER')")
@@ -68,6 +86,7 @@ public class NgRefillController {
     private final RefillService refillService;
     private final UserService userService;
     private final UserOperationService userOperationService;
+    private final MerchantServiceContext merchantServiceContext;
 
     private final GtagRefillService gtagRefillService;
 
@@ -79,6 +98,7 @@ public class NgRefillController {
                               MessageSource messageSource,
                               RefillService refillService,
                               UserOperationService userOperationService,
+                              MerchantServiceContext merchantServiceContext,
                               GtagRefillService gtagRefillService) {
         this.currencyService = currencyService;
         this.inputOutputService = inputOutputService;
@@ -87,6 +107,7 @@ public class NgRefillController {
         this.messageSource = messageSource;
         this.refillService = refillService;
         this.userOperationService = userOperationService;
+        this.merchantServiceContext = merchantServiceContext;
         this.gtagRefillService = gtagRefillService;
     }
 
@@ -101,7 +122,7 @@ public class NgRefillController {
         try {
             return currencyService.getCurrencies(MerchantProcessType.CRYPTO)
                     .stream()
-                    .filter(o-> !o.getName().equalsIgnoreCase("rub"))
+                    .filter(o -> !o.getName().equalsIgnoreCase("rub"))
                     .collect(Collectors.toList());
         } catch (Exception e) {
             logger.error("Failed to get all hashed currency names");
@@ -126,7 +147,6 @@ public class NgRefillController {
     }
 
 
-
     @GetMapping("/afgssr/gtag")
     public Map<String, String> getGtagRequests() {
         Map<String, String> response = new HashMap<>();
@@ -140,7 +160,7 @@ public class NgRefillController {
     }
 
     @DeleteMapping("/afgssr/gtag")
-    public Map<String,String> resetGtagRequests(){
+    public Map<String, String> resetGtagRequests() {
         Map<String, String> response = new HashMap<>();
         try {
             String principalEmail = getPrincipalEmail();
@@ -190,6 +210,14 @@ public class NgRefillController {
         response.setWarningCodeList(warningCodeList);
         response.setIsaMountInputNeeded(merchantCurrencyData.size() > 0
                 && !merchantCurrencyData.get(0).getProcessType().equals("CRYPTO"));
+
+        int minConfirmations = 0;
+        if (isNotEmpty(merchantCurrencyData)) {
+            IRefillable merchant = (IRefillable) merchantServiceContext
+                    .getMerchantService(merchantService.findById(merchantCurrencyData.get(0).getMerchantId()).getServiceBeanName());
+            minConfirmations = isNull(merchant.minConfirmationsRefill()) ? 0 : merchant.minConfirmationsRefill();
+        }
+        response.setMinConfirmations(minConfirmations);
         return response;
     }
 

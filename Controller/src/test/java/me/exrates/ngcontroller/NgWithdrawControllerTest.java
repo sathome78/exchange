@@ -1,5 +1,6 @@
 package me.exrates.ngcontroller;
 
+import me.exrates.model.Currency;
 import me.exrates.model.dto.PinOrderInfoDto;
 import me.exrates.model.dto.WithdrawRequestParamsDto;
 import me.exrates.model.enums.OperationType;
@@ -185,7 +186,8 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         when(userService.findByEmail(anyString())).thenReturn(getMockUser());
         when(g2faService.isGoogleAuthenticatorEnable(anyInt())).thenReturn(Boolean.FALSE);
         when(userService.checkPin(anyString(), anyString(), anyObject())).thenReturn(Boolean.FALSE);
-        when(secureService.sendWithdrawPincode(anyObject())).thenReturn(getMockNotificationResultDto());
+        when(secureService.sendWithdrawPinCode(anyObject(), anyString(), anyString())).thenReturn(getMockNotificationResultDto());
+        when(currencyService.getById(anyInt())).thenReturn(getCurrency());
 
         mockMvc.perform(post(BASE_URL + "/request/create")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
@@ -200,7 +202,7 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         verify(userService, times(1)).findByEmail(anyString());
         verify(g2faService, times(1)).isGoogleAuthenticatorEnable(anyInt());
         verify(userService, times(1)).checkPin(anyString(), anyString(), anyObject());
-        verify(secureService, times(1)).sendWithdrawPincode(anyObject());
+        verify(secureService, times(1)).sendWithdrawPinCode(anyObject(), anyString(), anyString());
     }
 
     @Test
@@ -523,5 +525,13 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         warningCodeList.add("WARNING_CODE_TWO");
 
         return warningCodeList;
+    }
+
+    private Currency getCurrency() {
+        Currency currency = new Currency();
+        currency.setName("BTC");
+        currency.setHidden(false);
+        currency.setId(3);
+        return currency;
     }
 }

@@ -27,7 +27,7 @@ public class NixMoneyMerchantController {
 
     private static final Logger logger = LogManager.getLogger("merchant");
 
-    @RequestMapping(value = "payment/status", method = RequestMethod.POST)
+    @RequestMapping(value = "payment/success", method = RequestMethod.POST)
     public ResponseEntity<Void> statusPayment(@RequestParam Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
 
         final ResponseEntity<Void> responseOK = new ResponseEntity<>(OK);
@@ -42,7 +42,7 @@ public class NixMoneyMerchantController {
         }
     }
 
-    @RequestMapping(value = "payment/success", method = RequestMethod.POST)
+    @RequestMapping(value = "payment/ok", method = RequestMethod.POST)
     public RedirectView successPayment(@RequestParam Map<String, String> response) {
         logger.debug(response);
         return new RedirectView("/dashboard");

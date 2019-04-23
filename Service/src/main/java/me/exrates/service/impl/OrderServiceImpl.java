@@ -733,6 +733,7 @@ public class OrderServiceImpl implements OrderService {
                 }
                 return createdOrderId;
             } else {
+                //this exception will be caught in controller, populated  with message text  and thrown further
                 throw new NotEnoughUserWalletMoneyException(StringUtils.EMPTY);
             }
         } finally {
@@ -764,7 +765,7 @@ public class OrderServiceImpl implements OrderService {
                 throw new InsufficientCostsInWalletException("Failed as user has insufficient funds for this operation!");
             }
             errors.replaceAll((key, value) -> messageSource.getMessage(value.toString(), orderValidationDto.getErrorParams().get(key), locale));
-            throw new OrderParamsWrongException(String.join(", ", errors.values().toArray(new String [] {})));
+            throw new OrderParamsWrongException(String.join(", ", errors.values().toArray(new String[]{})));
         }
         return orderCreateDto;
     }
@@ -965,13 +966,16 @@ public class OrderServiceImpl implements OrderService {
                                                        String email, CurrencyPair currencyPair, OrderStatus status,
                                                        OperationType operationType,
                                                        String scope, Integer offset, Integer limit, Locale locale) {
-        List<OrderWideListDto> result = orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, scope, offset, limit, locale);
-        if (Cache.checkCache(cacheData, result)) {
-            result = new ArrayList<OrderWideListDto>() {{
+        List<OrderWideListDto> orders = orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, scope, offset, limit, locale);
+        if (Cache.checkCache(cacheData, orders)) {
+            orders = new ArrayList<OrderWideListDto>() {{
                 add(new OrderWideListDto(false));
             }};
         }
-        return result;
+        return orders
+                .stream()
+                .peek(order -> order.setCurrencyPairName(currencyService.findCurrencyPairById(order.getCurrencyPairId()).getName()))
+                .collect(toList());
     }
 
     @Override
@@ -1761,26 +1765,29 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderWideListDto> getUsersOrdersWithStateForAdmin(String email, CurrencyPair currencyPair, OrderStatus status,
-                                                                  OperationType operationType,
-                                                                  Integer offset, Integer limit, Locale locale) {
-        List<OrderWideListDto> result = orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, SCOPE, offset, limit, locale);
+    public List<OrderWideListDto> getUsersOrdersWithStateForAdmin(int id, CurrencyPair currencyPair, OrderStatus status,
+                                                                  OperationType operationType, Integer offset, Integer limit, Locale locale) {
+        List<OrderWideListDto> orders = orderDao.getMyOrdersWithState(id, currencyPair, status, operationType, SCOPE, offset, limit, locale);
+        return orders
+                .stream()
+                .peek(order -> order.setCurrencyPairName(currencyService.findCurrencyPairById(order.getCurrencyPairId()).getName()))
+                .collect(toList());
+    }
 
-        return result;
+    @Override
+    public int getUsersOrdersWithStateForAdminCount(int id, CurrencyPair currencyPair, OrderStatus orderStatus, OperationType operationType, int offset, int limit, Locale locale) {
+        return orderDao.getUnfilteredOrdersCount(id, currencyPair, Collections.singletonList(orderStatus), operationType, SCOPE, offset, limit, locale);
     }
 
     @Override
     public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
                                                        OperationType operationType, String scope,
                                                        Integer offset, Integer limit, Locale locale) {
-        return orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, scope, offset, limit, locale);
-    }
-
-    @Override
-    public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
-                                                       OperationType operationType,
-                                                       Integer offset, Integer limit, Locale locale) {
-        return orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, statuses, operationType, null, offset, limit, locale);
+        List<OrderWideListDto> orders = orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, scope, offset, limit, locale);
+        return orders
+                .stream()
+                .peek(order -> order.setCurrencyPairName(currencyService.findCurrencyPairById(order.getCurrencyPairId()).getName()))
+                .collect(toList());
     }
 
     @Override
@@ -2351,7 +2358,7 @@ public class OrderServiceImpl implements OrderService {
                     dateTimeTo,
                     locale);
         }
-        return Pair.of(recordsCount, orders);
+        return Pair.of(recordsCount, changeCommissionAmountDependsOnUserRole(userId, orders));
     }
 
     @Transactional
@@ -2367,7 +2374,7 @@ public class OrderServiceImpl implements OrderService {
                                                     OrderStatus orderStatus, String scope, Integer limit,
                                                     Integer offset, Boolean hideCanceled, String sortByCreated,
                                                     LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo, Locale locale) {
-        return orderDao.getMyOrdersWithState(
+        List<OrderWideListDto> orders = orderDao.getMyOrdersWithState(
                 userId,
                 currencyPair,
                 currencyName,
@@ -2380,6 +2387,21 @@ public class OrderServiceImpl implements OrderService {
                 dateTimeFrom,
                 dateTimeTo,
                 locale);
+        return changeCommissionAmountDependsOnUserRole(userId, orders);
+    }
+
+    private List<OrderWideListDto> changeCommissionAmountDependsOnUserRole(Integer userId, List<OrderWideListDto> orders) {
+        UserRole userRole = userService.getUserRoleFromDB(userId);
+
+        if (userRole == UserRole.VIP_USER) {
+            return orders
+                    .stream()
+                    .peek(order -> {
+                        order.setCommissionFixedAmount(BigDecimal.ZERO.toPlainString());
+                    })
+                    .collect(toList());
+        }
+        return orders;
     }
 
     @Override
@@ -2625,8 +2647,12 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getAllDataForCache(currencyPairId);
     }
 
-    @VisibleForTesting
-    boolean safeCompareBigDecimals(BigDecimal last, BigDecimal beforeLast) {
+    @Override
+    public ExOrderStatisticsShortByPairsDto getBeforeLastRateForCache(Integer currencyPairId) {
+        return orderDao.getBeforeLastRateForCache(currencyPairId);
+    }
+
+    private boolean safeCompareBigDecimals(BigDecimal last, BigDecimal beforeLast) {
         if (Objects.isNull(last)) {
             return false;
         } else if (Objects.isNull(beforeLast)) {

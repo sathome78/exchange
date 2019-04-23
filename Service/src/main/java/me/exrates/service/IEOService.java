@@ -28,4 +28,6 @@ public interface IEOService {
     void startRevertIEO(Integer idIeo, String email);
 
     void updateIeoStatuses();
+
+    boolean approveSuccessIeo(int ieoId, String email);
 }

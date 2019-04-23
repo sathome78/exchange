@@ -1,12 +1,15 @@
 package me.exrates.service.stomp;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.SneakyThrows;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.IEODetails;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.dto.WsMessageObject;
 import me.exrates.model.enums.OperationType;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,4 +45,6 @@ public interface StompMessenger {
     void sendPersonalDetailsIeo(String userEmail, String payload);
 
     void sendDetailsIeo(Integer detailId, String payload);
+
+    void sendAllIeos(Collection<IEODetails> ieoDetails);
 }

@@ -9,6 +9,7 @@ import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.ExOrder;
 import me.exrates.model.IEODetails;
 import me.exrates.model.User;
 import me.exrates.model.constants.ErrorApiTitles;
@@ -40,6 +41,7 @@ import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.exception.IllegalChatMessageException;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.util.IpUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,6 +66,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -72,6 +75,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.strip;
 
 @RestController
 @RequestMapping(value = "/api/public/v2",
@@ -251,6 +255,19 @@ public class NgPublicController {
         return new ResponseModel<>(result);
     }
 
+    @GetMapping("/info/rates")
+    public ResponseModel getCurrencyPairRates(@RequestParam(required = false) String namePart) {
+        Map<String, String> result = new HashMap<>();
+        for (ExOrderStatisticsShortByPairsDto dto : exchangeRatesHolder.getAllRates()) {
+            if (StringUtils.isNotEmpty(namePart) && dto.getCurrencyPairName().contains(namePart.toUpperCase())) {
+                result.put(dto.getCurrencyPairName(), dto.getLastOrderRate());
+            } else {
+                result.put(dto.getCurrencyPairName(), dto.getLastOrderRate());
+            }
+        }
+        return new ResponseModel<>(result);
+    }
+
     @GetMapping("/currencies/fast")
     @ResponseBody
     public List<ExOrderStatisticsShortByPairsDto> getCurrencyPairInfoAll() {
@@ -287,7 +304,7 @@ public class NgPublicController {
     }
 
     @GetMapping("/ieo/refresh")
-    public ResponseEntity<Void> refresh(){
+    public ResponseEntity<Void> refresh() {
         ieoService.updateIeoStatuses();
         return ResponseEntity.ok().build();
     }

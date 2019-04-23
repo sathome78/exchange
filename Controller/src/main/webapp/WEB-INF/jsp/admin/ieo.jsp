@@ -164,7 +164,7 @@
                             <div class="input-block-wrapper">
                                 <div class="col-md-3 input-block-wrapper__label-wrapper">
                                     <label class="input-block-wrapper__label">
-                                        <loc:message code="ieo.startTime"/>
+                                        <loc:message code="ieo.startTime"/> UTC
                                     </label>
                                 </div>
                                 <div class="col-md-9 input-block-wrapper__input-wrapper">
@@ -175,7 +175,7 @@
                             <div class="input-block-wrapper">
                                 <div class="col-md-3 input-block-wrapper__label-wrapper">
                                     <label class="input-block-wrapper__label">
-                                        <loc:message code="ieo.endTime"/>
+                                        <loc:message code="ieo.endTime"/> UTC
                                     </label>
                                 </div>
                                 <div class="col-md-9 input-block-wrapper__input-wrapper">
@@ -191,7 +191,7 @@
 
                 </div>
                 <br>
-                <table id="ieoTable" style="width:100%">
+                <table id="ieoTable" style="width:100%; cursor: pointer">
                     <thead>
                         <tr>
                             <th class="col-2 center blue-white"><loc:message code="ieo.coins"/></th>
@@ -200,8 +200,8 @@
                             <th class="col-2 center blue-white"><loc:message code="ieo.contributors"/></th>
                             <th class="col-3 center blue-white"><loc:message code="ieo.price"/></th>
                             <th class="col-2 center blue-white"><loc:message code="ieo.availableBalance"/></th>
-                            <th class="col-3 center blue-white"><loc:message code="ieo.startTime"/></th>
-                            <th class="col-3 center blue-white"><loc:message code="ieo.endTime"/></th>
+                            <th class="col-3 center blue-white"><loc:message code="ieo.startTime"/> UTC</th>
+                            <th class="col-3 center blue-white"><loc:message code="ieo.endTime"/> UTC</th>
                             <th class="col-3 center blue-white"><loc:message code="ieo.amount"/></th>
                             <th class="col-3 right blue-white"><loc:message code="ieo.minamount"/></th>
                             <th class="col-3 right blue-white"><loc:message code="ieo.maxAmountPerClime"/></th>
@@ -335,7 +335,7 @@
                         <div class="input-block-wrapper">
                             <div class="col-md-3 input-block-wrapper__label-wrapper">
                                 <label class="input-block-wrapper__label">
-                                    <loc:message code="ieo.startTime"/>
+                                    <loc:message code="ieo.startTime"/> UTC
                                 </label>
                             </div>
                             <div class="col-md-9 input-block-wrapper__input-wrapper">
@@ -346,7 +346,7 @@
                         <div class="input-block-wrapper">
                             <div class="col-md-3 input-block-wrapper__label-wrapper">
                                 <label class="input-block-wrapper__label">
-                                    <loc:message code="ieo.endTime"/>
+                                    <loc:message code="ieo.endTime"/> UTC
                                 </label>
                             </div>
                             <div class="col-md-9 input-block-wrapper__input-wrapper">
@@ -402,7 +402,9 @@
                                 code="button.update"/></a>
                         <a id="ieo_update_close" class="blue-box" style="cursor: pointer" ><loc:message
                                 code="ieo.close"/></a>
-                        <a id="ieo_revert_send" class="blue-box" style="cursor: pointer"><loc:message
+                        <a id="ieo_approve_send" class="blue-box" style="cursor: pointer; background-color: green"><loc:message
+                                code="ieo.success_end_ieo"/></a>
+                        <a id="ieo_revert_send" class="blue-box" style="cursor: pointer; background-color: red"><loc:message
                                 code="ieo.revert_ieo"/></a>
 
                     </form>

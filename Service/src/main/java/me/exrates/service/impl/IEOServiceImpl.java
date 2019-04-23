@@ -5,6 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.IEOClaimRepository;
 import me.exrates.dao.IeoDetailsRepository;
 import me.exrates.dao.KYCSettingsDao;
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.Email;
 import me.exrates.model.IEOClaim;
 import me.exrates.model.IEODetails;
@@ -16,6 +17,7 @@ import me.exrates.model.dto.ieo.IEOStatusInfo;
 import me.exrates.model.dto.ieo.IeoDetailsCreateDto;
 import me.exrates.model.dto.ieo.IeoDetailsUpdateDto;
 import me.exrates.model.dto.kyc.KycCountryDto;
+import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.IEODetailsStatus;
 import me.exrates.model.enums.PolicyEnum;
 import me.exrates.model.enums.UserRole;
@@ -86,13 +88,12 @@ public class IEOServiceImpl implements IEOService {
     @Transactional
     @Override
     public ClaimDto addClaim(ClaimDto claimDto, String email) {
-
         IEODetails ieoDetails = ieoDetailsRepository.findOpenIeoByCurrencyName(claimDto.getCurrencyName());
         if (ieoDetails == null) {
-            String message = String.format("Failed to create claim while IEO for %s not started",
+            String message = String.format("Failed to create claim while IEO for %s not started or already finished",
                     claimDto.getCurrencyName());
             logger.warn(message);
-            throw new IeoException(ErrorApiTitles.IEO_NOT_STARTED_YET, message);
+            throw new IeoException(ErrorApiTitles.IEO_NOT_STARTED_YET_OR_ALREADY_FINISHED, message);
         }
 
         IEOStatusInfo statusInfo = checkUserStatusForIEO(email, ieoDetails.getId());
@@ -157,7 +158,7 @@ public class IEOServiceImpl implements IEOService {
 
     @Override
     public Collection<IEODetails> findAll(User user) {
-        ieoDetailsRepository.updateIeoStatuses();
+        updateIeoStatusesForAll();
         if (Objects.isNull(user)) {
             return ieoDetailsRepository.findAll();
         } else if (user.getRole() == UserRole.ICO_MARKET_MAKER) {
@@ -182,7 +183,7 @@ public class IEOServiceImpl implements IEOService {
 
     @Override
     public IEODetails findOne(int ieoId) {
-        ieoDetailsRepository.updateIeoStatuses();
+        updateIeoStatusesForAll();
         return ieoDetailsRepository.findOne(ieoId);
     }
 
@@ -242,12 +243,19 @@ public class IEOServiceImpl implements IEOService {
     }
 
     @Override
-    public void updateIeoStatuses() {
+    public synchronized void updateIeoStatuses() {
         log.info("<<IEO>>: Starting to update IEO statuses ...");
-        boolean updateResult = ieoDetailsRepository.updateIeoStatuses();
-        log.info("<<IEO>>: Finished update IEO statuses, result: " + updateResult);
-        if (updateResult) {
-            String userEmail = userService.getUserEmailFromSecurityContext();
+        boolean updateResultToToRunning = ieoDetailsRepository.updateIeoStatusesToRunning();
+        boolean updateResultToTerminated = ieoDetailsRepository.updateIeoStatusesToRunning();
+        log.info("<<IEO>>: Finished update IEO statuses to running, result: " + updateResultToToRunning);
+        log.info("<<IEO>>: Finished update IEO statuses to terminated, result: " + updateResultToTerminated);
+        if (updateResultToToRunning || updateResultToTerminated) {
+            String userEmail = null;
+            try {
+                userEmail = userService.getUserEmailFromSecurityContext();
+            } catch (Exception e) {
+                log.debug("<<IEO>>: Principal email from Security Context not found, but we don't care ");
+            }
             log.info("<<IEO>>: Principal email from Security Context: " + userEmail);
             try {
                 if (StringUtils.isNotEmpty(userEmail)) {
@@ -256,9 +264,12 @@ public class IEOServiceImpl implements IEOService {
                     stompMessenger.sendPersonalDetailsIeo(userEmail, objectMapper.writeValueAsString(findAll(user)));
                 }
             } catch (Exception e) {
-                log.error("Failed to send personal messages as ", e);
+                log.error("<<IEO>>: Failed to send personal messages as ", e);
             }
             Collection<IEODetails> ieoDetails = ieoDetailsRepository.findAll();
+            log.info("<<IEO>>: Starting sending all ieo statuses ..... ");
+            stompMessenger.sendAllIeos(ieoDetails);
+            log.info("<<IEO>>: Finished sending all ieo statuses :) ");
             ieoDetails.forEach(ieoDetail -> {
                 try {
                     stompMessenger.sendDetailsIeo(ieoDetail.getId(), objectMapper.writeValueAsString(ieoDetail));
@@ -268,7 +279,69 @@ public class IEOServiceImpl implements IEOService {
             });
             log.info("<<IEO>>: Finished sending statuses ..... ");
         }
-        log.info("<<IEO>>: Exiting IEO statuses, result: " + updateResult);
+        log.info("<<IEO>>: Exiting IEO statuses to running, result: " + updateResultToToRunning);
+        log.info("<<IEO>>: Exiting IEO statuses to terminated, result: " + updateResultToTerminated);
+    }
+
+    @Override
+    public boolean approveSuccessIeo(int ieoId, String adminEmail) {
+        // 1. change currency to main
+        // 2. change role for maker to simple user
+        // 3. move btc amount from ieo reserved to active balance
+        logger.info("Start approve to success IEO id {}, email {}", ieoId, adminEmail);
+        User user = userService.findByEmail(adminEmail);
+        if (user.getRole() != UserRole.ADMIN_USER) {
+            String message = String.format("Error while start revert IEO, user not ADMIN %s", adminEmail);
+            logger.warn(message);
+            throw new IeoException(ErrorApiTitles.IEO_USER_NOT_ADMIN, message);
+        }
+
+        IEODetails ieoDetails = ieoDetailsRepository.findOne(ieoId);
+        if (ieoDetails == null) {
+            String message = String.format("Failed move to success state IEO %d is NULL",
+                    ieoId);
+            logger.error(message);
+            throw new IeoException(ErrorApiTitles.IEO_NOT_FOUND, message);
+        }
+
+        if (ieoDetails.getStatus() != IEODetailsStatus.RUNNING ||
+                ieoDetails.getStatus() != IEODetailsStatus.TERMINATED) {
+            String message = String.format("Failed move to success state IEO %s, status IEO is %s",
+                    ieoDetails.getCurrencyName(),
+                    ieoDetails.getStatus());
+            logger.error(message);
+            throw new IeoException(ErrorApiTitles.IEO_FAILED_MOVE_TO_SUCCESS, message);
+        }
+
+        //todo check all currency pair ??? create currency pairs ???
+        CurrencyPair ieoBtcPair = currencyService.getCurrencyPairByName(ieoDetails.getCurrencyName() + "/" + "BTC");
+        if (ieoBtcPair != null) {
+            ieoBtcPair.setPairType(CurrencyPairType.MAIN);
+            ieoBtcPair.setHidden(false);
+            ieoBtcPair.setMarket("BTC");
+            currencyService.updateCurrencyPair(ieoBtcPair);
+        }
+
+        User maker = userService.getUserById(ieoDetails.getMakerId());
+        if (maker.getRole() != UserRole.ICO_MARKET_MAKER) {
+            userService.updateUserRole(maker.getId(), UserRole.USER);
+        }
+
+        boolean result = walletService.moveBalanceFromIeoReservedToActive(maker.getId(), "BTC");
+
+        if (result) {
+            ieoDetails.setStatus(IEODetailsStatus.SUCCEEDED);
+            ieoDetailsRepository.updateSafe(ieoDetails);
+
+            Email email = new Email();
+            email.setTo(maker.getEmail());
+            email.setMessage("Success finish IEO");
+            email.setSubject(String.format("The IEO procedure for a currency %s has ended successfully, congratulations!",
+                    ieoDetails.getCurrencyName()));
+            sendMailService.sendInfoMail(email);
+        }
+
+        return result;
     }
 
     private void validateUserAmountRestrictions(IEODetails ieoDetails, User user, ClaimDto claimDto) {
@@ -298,7 +371,7 @@ public class IEOServiceImpl implements IEOService {
     @Transactional
     public void consumeClaimByPartition(Integer ieoId, Consumer<IEOClaim> c) {
         Collection<Integer> allIds = ieoClaimRepository.getAllSuccessClaimIdsByIeoId(ieoId);
-        int partitionSize = 50;
+        int partitionSize = 200;
         List<Integer> accumulator = new ArrayList<>(partitionSize);
         for (Integer each : allIds) {
             accumulator.add(each);
@@ -331,5 +404,11 @@ public class IEOServiceImpl implements IEOService {
             }
         });
         return makerIeos;
+    }
+
+
+    private void updateIeoStatusesForAll() {
+        ieoDetailsRepository.updateIeoStatusesToRunning();
+        ieoDetailsRepository.updateIeoStatusesToTerminated();
     }
 }

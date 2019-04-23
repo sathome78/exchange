@@ -15,6 +15,7 @@ import me.exrates.model.Wallet;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.dto.WsMessageObject;
+import me.exrates.model.enums.IEODetailsStatus;
 import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.service.SendMailService;
@@ -85,6 +86,7 @@ public class IEOProcessor implements Runnable {
             notificationMessage.setText(text);
             refactorClaim(availableAmount);
             availableAmount = BigDecimal.ZERO;
+            ieoDetails.setStatus(IEODetailsStatus.TERMINATED);
         } else if (ieoDetails.getMaxAmountPerUser().compareTo(BigDecimal.ZERO) > 0) {
             Wallet userIeoWallet = walletService.findByUserAndCurrency(ieoClaim.getUserId(), ieoDetails.getCurrencyName());
             if (userIeoWallet != null) {
@@ -113,7 +115,8 @@ public class IEOProcessor implements Runnable {
         }
         ieoClaimRepository.updateStatusIEOClaim(ieoClaim.getId(), ieoResult.getStatus());
         ieoResultRepository.save(ieoResult);
-        ieoDetailsRepository.updateAvailableAmount(ieoClaim.getIeoId(), availableAmount);
+        ieoDetails.setAvailableAmount(availableAmount);
+        ieoDetailsRepository.updateSafe(ieoDetails);
         ieoDetails.setAvailableAmount(availableAmount);
         ieoDetails.setPersonalAmount(walletService.findUserCurrencyBalance(ieoClaim));
         CompletableFuture.runAsync(() -> sendNotifications(principalEmail, ieoDetails, notificationMessage));

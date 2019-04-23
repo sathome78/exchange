@@ -5,6 +5,7 @@ import me.exrates.controller.annotation.CheckActiveUserStatus;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.CreditsOperation;
+import me.exrates.model.Currency;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Payment;
 import me.exrates.model.User;
@@ -220,7 +221,8 @@ public class NgTransferController {
             }
         } else {
             if (!userService.checkPin(getPrincipalEmail(), requestParamsDto.getPin(), NotificationMessageEventEnum.WITHDRAW)) {
-                secureService.sendWithdrawPincode(user);
+                Currency currency = currencyService.getById(requestParamsDto.getCurrency());
+                secureService.sendTransferPinCode(user, requestParamsDto.getSum().toPlainString(), currency.getName());
                 throw new IncorrectPinException("Incorrect pin: " + requestParamsDto.getPin());
             }
         }
