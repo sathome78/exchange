@@ -33,6 +33,7 @@ import me.exrates.service.SendMailService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.TemporalTokenService;
 import me.exrates.service.TransferService;
+import me.exrates.service.UserNotificationService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
@@ -119,6 +120,11 @@ public class AngularAppTestConfig {
     @Bean
     public Map<String, IMerchantService> merchantServiceMap() {
         return Mockito.mock(Map.class);
+    }
+
+    @Bean
+    public UserNotificationService userNotificationService() {
+        return Mockito.mock(UserNotificationService.class);
     }
 
     @Bean
