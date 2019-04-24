@@ -2013,7 +2013,7 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public Integer getMyOrdersWithStateCount(Integer userId, CurrencyPair currencyPair, String currencyName, OrderStatus orderStatus,
-                                             String scope, Integer limit, Integer offset, Boolean hideCanceled, LocalDateTime dateTimeFrom,
+                                             String scope, Boolean hideCanceled, LocalDateTime dateTimeFrom,
                                              LocalDateTime dateTimeTo) {
         String currencyPairClauseWhere = StringUtils.EMPTY;
         String currencyPairClauseWhereForStopLimit = StringUtils.EMPTY;

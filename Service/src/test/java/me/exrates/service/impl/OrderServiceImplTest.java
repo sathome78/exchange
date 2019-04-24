@@ -6436,8 +6436,6 @@ public class OrderServiceImplTest {
                 StringUtils.EMPTY,
                 OrderStatus.CLOSED,
                 StringUtils.EMPTY,
-                15,
-                0,
                 false,
                 now.minusDays(1),
                 now);
@@ -6471,7 +6469,7 @@ public class OrderServiceImplTest {
                 Locale.ENGLISH);
 
         verify(orderDao, atLeastOnce()).getMyOrdersWithStateCount(anyInt(), any(CurrencyPair.class), anyString(),
-                any(OrderStatus.class), anyString(), anyInt(), anyInt(), anyBoolean(),
+                any(OrderStatus.class), anyString(), anyBoolean(),
                 any(LocalDateTime.class), any(LocalDateTime.class));
 
         verify(orderDao, atLeastOnce()).getMyOrdersWithState(anyInt(), any(CurrencyPair.class), anyString(),
@@ -6497,8 +6495,6 @@ public class OrderServiceImplTest {
                 StringUtils.EMPTY,
                 OrderStatus.CLOSED,
                 StringUtils.EMPTY,
-                15,
-                0,
                 false,
                 now.minusDays(1),
                 now);
@@ -6518,7 +6514,7 @@ public class OrderServiceImplTest {
                 Locale.ENGLISH);
 
         verify(orderDao, atLeastOnce()).getMyOrdersWithStateCount(anyInt(), any(CurrencyPair.class), anyString(),
-                any(OrderStatus.class), anyString(), anyInt(), anyInt(), anyBoolean(),
+                any(OrderStatus.class), anyString(), anyBoolean(),
                 any(LocalDateTime.class), any(LocalDateTime.class));
 
         assertNotNull("Pair could not be null", pair);
@@ -6542,8 +6538,6 @@ public class OrderServiceImplTest {
                 anyString(),
                 any(OrderStatus.class),
                 anyString(),
-                anyInt(),
-                anyInt(),
                 anyBoolean(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class)
@@ -6591,8 +6585,6 @@ public class OrderServiceImplTest {
                 anyString(),
                 any(OrderStatus.class),
                 anyString(),
-                anyInt(),
-                anyInt(),
                 anyBoolean(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class));
@@ -6619,8 +6611,6 @@ public class OrderServiceImplTest {
                 anyString(),
                 any(OrderStatus.class),
                 anyString(),
-                anyInt(),
-                anyInt(),
                 anyBoolean(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class))).thenReturn(0);
@@ -6649,8 +6639,6 @@ public class OrderServiceImplTest {
                 anyString(),
                 any(OrderStatus.class),
                 anyString(),
-                anyInt(),
-                anyInt(),
                 anyBoolean(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class));
