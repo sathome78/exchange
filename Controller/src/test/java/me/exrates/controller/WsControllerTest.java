@@ -1,24 +1,29 @@
 package me.exrates.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.AlertDto;
 import me.exrates.model.dto.OrderBookWrapperDto;
 import me.exrates.model.dto.OrdersListWrapper;
 import me.exrates.model.dto.SimpleOrderBookItem;
+import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.RefreshObjectsEnum;
+import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.IEOService;
 import me.exrates.service.OrderService;
+import me.exrates.service.UserNotificationService;
 import me.exrates.service.UserService;
 import me.exrates.service.UsersAlertsService;
 import me.exrates.service.impl.OrderServiceImpl;
@@ -51,6 +56,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.IntStream;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
@@ -65,6 +71,7 @@ public class WsControllerTest {
     private ObjectMapper objectMapper;
     private UserService userService;
     private UsersAlertsService usersAlertsService;
+    private UserNotificationService userNotificationService;
     private IEOService ieoService;
 
     private TestMessageChannel clientOutboundChannel;
@@ -77,6 +84,7 @@ public class WsControllerTest {
         this.objectMapper = Mockito.mock(ObjectMapper.class);
         this.userService = Mockito.mock(UserService.class);
         this.usersAlertsService = Mockito.mock(UsersAlertsService.class);
+        this.userNotificationService = Mockito.mock(UserNotificationService.class);
 
         WsController wsController = new WsController(
                 orderService,
@@ -84,7 +92,7 @@ public class WsControllerTest {
                 objectMapper,
                 userService,
                 usersAlertsService,
-                ieoService
+                userNotificationService, ieoService
         );
 
         this.clientOutboundChannel = new TestMessageChannel();
@@ -589,6 +597,36 @@ public class WsControllerTest {
         new JsonPathExpectationsHelper("$.[0].data.amountConvert").assertValue(json, "TEST_AMOUNT_CONVERT");
         new JsonPathExpectationsHelper("$.[0].data.ordersIds").assertValue(json, "TEST_ORDERS_IDS");
         new JsonPathExpectationsHelper("$.[0].type").assertValue(json, "SELL");
+    }
+
+    @Test
+    public void subscribeToUserPersonalMessages() {
+        when(userNotificationService.findAllUserMessages(anyString())).thenReturn(getTestUserMessages());
+        when(userService.getEmailByPubId(anyString())).thenReturn("test@test.com");
+
+        StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
+        headers.setSubscriptionId("0");
+        headers.setDestination("/message/private/123456");
+        headers.setSessionId("0");
+        headers.setUser(new TestPrincipal("test@test.com"));
+        headers.setSessionAttributes(new HashMap<>());
+        Message<byte[]> message = MessageBuilder.withPayload(new byte[0]).setHeaders(headers).build();
+
+        this.annotationMethodHandler.handleMessage(message);
+
+        assertEquals(1, this.clientOutboundChannel.getMessages().size());
+        Message<?> reply = this.clientOutboundChannel.getMessages().get(0);
+
+        String json = new String((byte[]) reply.getPayload(), Charset.forName("UTF-8"));
+        new JsonPathExpectationsHelper("$.[0].text").assertValue(json, "message #1");
+        new JsonPathExpectationsHelper("$.[1].text").assertValue(json, "message #2");
+        new JsonPathExpectationsHelper("$.[2].text").assertValue(json, "message #3");
+    }
+
+    private List<UserNotificationMessage> getTestUserMessages() {
+        List<UserNotificationMessage> messages = Lists.newArrayList();
+        IntStream.range(1, 5).forEach(i -> messages.add(new UserNotificationMessage(WsSourceTypeEnum.IEO, UserNotificationType.SUCCESS, "message #" + i)));
+        return messages;
     }
 
     private static class TestAnnotationMethodHandler extends SimpAnnotationMethodMessageHandler {

@@ -2,12 +2,12 @@ package me.exrates.service.stomp;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import lombok.SneakyThrows;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.IEODetails;
-import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.RefreshStatisticDto;
 import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.enums.OperationType;
@@ -24,16 +24,11 @@ import org.springframework.messaging.simp.user.SimpSubscription;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 
-import javax.annotation.PostConstruct;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import static java.util.Objects.isNull;
 
@@ -108,21 +103,6 @@ public class StompMessengerImpl implements StompMessenger {
     }
 
 
-    @Override
-    public List<ChartTimeFrame> getSubscribedTimeFramesForCurrencyPair(Integer pairId) {
-        List<ChartTimeFrame> timeFrames = new ArrayList<>();
-        orderService.getChartTimeFrames().forEach(timeFrame -> {
-            String destination = String.join("/", "/app/charts", pairId.toString(),
-                    timeFrame.getResolution().toString());
-            Set<SimpSubscription> subscribers = findSubscribersByDestination(destination);
-            if (subscribers.size() > 0) {
-                timeFrames.add(timeFrame);
-            }
-        });
-        return timeFrames;
-    }
-
-
     @Synchronized
     @Override
     public void sendStatisticMessage(Set<Integer> currenciesIds) {
@@ -162,7 +142,7 @@ public class StompMessengerImpl implements StompMessenger {
     @Override
     public void sendPersonalMessageToUser(String userEmail, UserNotificationMessage message) {
         String destination = "/app/message/private/".concat(userService.getPubIdByEmail(userEmail));
-        sendMessageToDestination(destination, objectMapper.writeValueAsString(message));
+        sendMessageToDestination(destination, objectMapper.writeValueAsString(ImmutableList.of(message)));
     }
 
     @Override

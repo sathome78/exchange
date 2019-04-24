@@ -10,19 +10,19 @@ import me.exrates.model.User;
 import me.exrates.model.dto.AlertDto;
 import me.exrates.model.dto.OrderBookWrapperDto;
 import me.exrates.model.dto.OrdersListWrapper;
-import me.exrates.model.dto.WsMessageObject;
+import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.PrecissionsEnum;
 import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.model.enums.UserRole;
-import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.IEOService;
 import me.exrates.service.OrderService;
+import me.exrates.service.UserNotificationService;
 import me.exrates.service.UserService;
 import me.exrates.service.UsersAlertsService;
 import me.exrates.service.bitshares.memo.Preconditions;
@@ -51,15 +51,19 @@ public class WsController {
     private final ObjectMapper objectMapper;
     private final UserService userService;
     private final UsersAlertsService usersAlertsService;
+    private final UserNotificationService userNotificationService;
     private final IEOService ieoService;
 
     @Autowired
-    public WsController(OrderService orderService, CurrencyService currencyService, ObjectMapper objectMapper, UserService userService, UsersAlertsService usersAlertsService, IEOService ieoService) {
+    public WsController(OrderService orderService, CurrencyService currencyService, ObjectMapper objectMapper,
+                        UserService userService, UsersAlertsService usersAlertsService,
+                        UserNotificationService userNotificationService, IEOService ieoService) {
         this.orderService = orderService;
         this.currencyService = currencyService;
         this.objectMapper = objectMapper;
         this.userService = userService;
         this.usersAlertsService = usersAlertsService;
+        this.userNotificationService = userNotificationService;
         this.ieoService = ieoService;
     }
 
@@ -149,9 +153,9 @@ public class WsController {
 
 
     @SubscribeMapping("/message/private/{pubId}")
-    public WsMessageObject subscribePersonalMessages(Principal principal, @DestinationVariable String pubId) {
+    public List<UserNotificationMessage> subscribePersonalMessages(Principal principal, @DestinationVariable String pubId) {
         Preconditions.checkArgument(userService.getEmailByPubId(pubId).equals(principal.getName()));
-        return new WsMessageObject(WsSourceTypeEnum.SUBSCRIBE, principal.getName());
+        return userNotificationService.findAllUserMessages(pubId);
     }
 
     @SubscribeMapping("/ieo_details/private/{pubId}")

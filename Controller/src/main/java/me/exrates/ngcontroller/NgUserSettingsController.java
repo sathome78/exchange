@@ -33,6 +33,7 @@ import me.exrates.security.service.CheckIp;
 import me.exrates.service.NotificationService;
 import me.exrates.service.PageLayoutSettingsService;
 import me.exrates.service.SessionParamsService;
+import me.exrates.service.UserNotificationService;
 import me.exrates.service.UserService;
 import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.util.RestApiUtils;
@@ -92,8 +93,7 @@ public class NgUserSettingsController {
     private final PageLayoutSettingsService layoutSettingsService;
     private final UserVerificationService verificationService;
     private final IpBlockingService ipBlockingService;
-    private final StompMessenger stompMessenger;
-    private final ObjectMapper objectMapper;
+    private final UserNotificationService userNotificationService;
 
     @Value("${contacts.feedbackEmail}")
     String feedbackEmail;
@@ -106,8 +106,7 @@ public class NgUserSettingsController {
                                     PageLayoutSettingsService pageLayoutSettingsService,
                                     UserVerificationService userVerificationService,
                                     IpBlockingService ipBlockingService,
-                                    StompMessenger stompMessenger,
-                                    ObjectMapper objectMapper) {
+                                    UserNotificationService userNotificationService) {
         this.authTokenService = authTokenService;
         this.userService = userService;
         this.notificationService = notificationService;
@@ -115,8 +114,7 @@ public class NgUserSettingsController {
         this.layoutSettingsService = pageLayoutSettingsService;
         this.verificationService = userVerificationService;
         this.ipBlockingService = ipBlockingService;
-        this.stompMessenger = stompMessenger;
-        this.objectMapper = objectMapper;
+        this.userNotificationService = userNotificationService;
     }
 
     // /info/private/v2/settings/updateMainPassword
@@ -354,7 +352,7 @@ public class NgUserSettingsController {
             UserNotificationType messageType = UserNotificationType.valueOf(status.toUpperCase());
             message += " " + LocalDateTime.now();
             UserNotificationMessage userNotificationMessage = new UserNotificationMessage(WsSourceTypeEnum.IEO, messageType, message);
-            stompMessenger.sendPersonalMessageToUser(getPrincipalEmail(), userNotificationMessage);
+            userNotificationService.sendUserNotificationMessage(getPrincipalEmail(), userNotificationMessage);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();

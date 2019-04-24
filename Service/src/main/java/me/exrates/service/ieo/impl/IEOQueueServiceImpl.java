@@ -7,6 +7,7 @@ import me.exrates.dao.IEOResultRepository;
 import me.exrates.dao.IeoDetailsRepository;
 import me.exrates.model.IEOClaim;
 import me.exrates.service.SendMailService;
+import me.exrates.service.UserNotificationService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.ieo.IEOProcessor;
@@ -37,6 +38,7 @@ public class IEOQueueServiceImpl implements IEOQueueService {
     private final SendMailService sendMailService;
     private final StompMessenger stompMessenger;
     private final UserService userService;
+    private final UserNotificationService userNotificationService;
 
     @Autowired
     public IEOQueueServiceImpl(IEOClaimRepository claimRepository,
@@ -46,10 +48,12 @@ public class IEOQueueServiceImpl implements IEOQueueService {
                                ObjectMapper objectMapper,
                                SendMailService sendMailService,
                                StompMessenger stompMessenger,
-                               UserService userService) {
+                               UserService userService,
+                               UserNotificationService userNotificationService) {
         this.ieoDetailsRepository = ieoDetailsRepository;
         this.sendMailService = sendMailService;
         this.userService = userService;
+        this.userNotificationService = userNotificationService;
         this.claims = new ConcurrentLinkedQueue<>();
         this.executor = Executors.newSingleThreadExecutor();
         this.claimRepository = claimRepository;
@@ -71,7 +75,7 @@ public class IEOQueueServiceImpl implements IEOQueueService {
             IEOClaim claim = claims.poll();
             if (claim != null) {
                 executor.execute(new IEOProcessor(ieoResultRepository, claimRepository, ieoDetailsRepository,
-                        sendMailService, userService, claim, walletService, objectMapper, stompMessenger));
+                        sendMailService, userService, claim, walletService, objectMapper, stompMessenger, userNotificationService));
             }
         }
     }

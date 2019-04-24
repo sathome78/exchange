@@ -1,6 +1,5 @@
 package me.exrates.service.ieo;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import lombok.extern.log4j.Log4j2;
@@ -14,11 +13,11 @@ import me.exrates.model.IEOResult;
 import me.exrates.model.Wallet;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.UserNotificationMessage;
-import me.exrates.model.dto.WsMessageObject;
 import me.exrates.model.enums.IEODetailsStatus;
 import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.service.SendMailService;
+import me.exrates.service.UserNotificationService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.model.exceptions.IeoException;
@@ -40,6 +39,7 @@ public class IEOProcessor implements Runnable {
     private final IEOClaim ieoClaim;
     private final ObjectMapper objectMapper;
     private final StompMessenger stompMessenger;
+    private final UserNotificationService userNotificationService;
 
     public IEOProcessor(IEOResultRepository ieoResultRepository,
                         IEOClaimRepository ieoClaimRepository,
@@ -49,7 +49,8 @@ public class IEOProcessor implements Runnable {
                         IEOClaim ieoClaim,
                         WalletService walletService,
                         ObjectMapper objectMapper,
-                        StompMessenger stompMessenger) {
+                        StompMessenger stompMessenger,
+                        UserNotificationService userNotificationService) {
         this.ieoResultRepository = ieoResultRepository;
         this.ieoClaimRepository = ieoClaimRepository;
         this.ieoDetailsRepository = ieoDetailsRepository;
@@ -58,6 +59,7 @@ public class IEOProcessor implements Runnable {
         this.walletService = walletService;
         this.ieoClaim = ieoClaim;
         this.objectMapper = objectMapper;
+        this.userNotificationService = userNotificationService;
         this.stompMessenger = stompMessenger;
     }
 
@@ -136,7 +138,7 @@ public class IEOProcessor implements Runnable {
     private void sendNotifications(String userEmail, IEODetails ieoDetails, UserNotificationMessage message) {
         try {
             if (StringUtils.isNotEmpty(userEmail)) {
-                stompMessenger.sendPersonalMessageToUser(userEmail, message);
+                userNotificationService.sendUserNotificationMessage(userEmail, message);
                 sendMailService.sendInfoMail(prepareEmail(userEmail, message));
             }
         } catch (Exception e) {
