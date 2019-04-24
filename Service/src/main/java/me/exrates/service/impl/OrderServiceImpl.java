@@ -204,6 +204,7 @@ public class OrderServiceImpl implements OrderService {
     private final static String CONTENT_DISPOSITION = "Content-Disposition";
     private final static String ATTACHMENT = "attachment; filename=";
     private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private final static DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter FORMATTER_FOR_NAME = DateTimeFormatter.ofPattern("dd_MM_yyyy_HH_mm");
     private static final int ORDERS_QUERY_DEFAULT_LIMIT = 20;
     private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
@@ -405,7 +406,7 @@ public class OrderServiceImpl implements OrderService {
             spendCurrency = activeCurrencyPair.getCurrency2();
         }
         WalletsAndCommissionsForOrderCreationDto walletsAndCommissions = getWalletAndCommission(userEmail, spendCurrency, orderType);
-        /**/
+
         OrderCreateDto orderCreateDto = new OrderCreateDto();
         orderCreateDto.setOperationType(orderType);
         orderCreateDto.setCurrencyPair(activeCurrencyPair);
@@ -415,8 +416,8 @@ public class OrderServiceImpl implements OrderService {
         orderCreateDto.setCurrencyPair(activeCurrencyPair);
         orderCreateDto.setSourceId(sourceId);
         orderCreateDto.setOrderBaseType(baseType);
-        /*todo get 0 comission values from db*/
-        /*todo 0 comission for the edr pairs, temporary*/
+        //todo: get 0 comission values from db
+        //todo: 0 comission for the edr pairs, temporary
         if (baseType == OrderBaseType.ICO || orderCreateDto.getCurrencyPair().getName().contains("EDR")) {
             walletsAndCommissions.setCommissionValue(BigDecimal.ZERO);
             walletsAndCommissions.setCommissionId(24);
@@ -1104,7 +1105,7 @@ public class OrderServiceImpl implements OrderService {
             /*calculate convert currency amount for acceptor - calculate at the current commission rate*/
             OperationType operationTypeForAcceptor = exOrder.getOperationType() == OperationType.BUY ? OperationType.SELL : OperationType.BUY;
             Commission comissionForAcceptor;
-            /*todo: zero comissions from db*/
+            //todo: zero comissions from db
             CurrencyPair cp = currencyService.findCurrencyPairById(exOrder.getCurrencyPairId());
             exOrder.setCurrencyPair(cp);
             if (exOrder.getOrderBaseType() == OrderBaseType.ICO || exOrder.getCurrencyPair().getName().contains("EDR")) {
@@ -1538,8 +1539,7 @@ public class OrderServiceImpl implements OrderService {
             }
             throw new OrderDeletingException(result.toString());
         }
-        /*notificationService.notifyUser(order.getUserId(), NotificationEvent.ORDER,
-                "deleteOrder.notificationTitle", "deleteOrder.notificationMessage", new Object[]{order.getOrderId()});*/
+
         return (Integer) result;
     }
 
@@ -1844,7 +1844,7 @@ public class OrderServiceImpl implements OrderService {
                         return OrderDeleteStatus.COMPANY_WALLET_UPDATE_ERROR;
                     }
                 }
-                /**/
+
                 WalletOperationData walletOperationData = new WalletOperationData();
                 OperationType operationType = null;
                 if (orderDetailDto.getTransactionType() == OperationType.OUTPUT) {
@@ -1872,13 +1872,13 @@ public class OrderServiceImpl implements OrderService {
                 int processedRefRows = this.unprocessReferralTransactionByOrder(orderDetailDto.getOrderId(), description);
                 processedRows = processedRefRows + processedRows;
                 log.debug("rows after refs {}", processedRows);
-                /**/
+
                 if (!transactionService.setStatusById(
                         orderDetailDto.getTransactionId(),
                         TransactionStatus.DELETED.getStatus())) {
                     return OrderDeleteStatus.TRANSACTION_UPDATE_ERROR;
                 }
-                /**/
+
                 processedRows++;
             } else if (currentOrderStatus == OrderStatus.OPENED) {
                 WalletTransferStatus walletTransferStatus = walletService.walletInnerTransfer(
@@ -1890,7 +1890,7 @@ public class OrderServiceImpl implements OrderService {
                 if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
                     return OrderDeleteStatus.TRANSACTION_CREATE_ERROR;
                 }
-                /**/
+
                 if (!transactionService.setStatusById(
                         orderDetailDto.getTransactionId(),
                         TransactionStatus.DELETED.getStatus())) {
@@ -2034,7 +2034,7 @@ public class OrderServiceImpl implements OrderService {
         }});
         for (CandleChartItemDto candle : rows) {
             ArrayList<Object> arrayList = new ArrayList<>();
-            /*values*/
+
             arrayList.add(candle.getBeginDate().toString());
             arrayList.add(candle.getEndDate().toString());
             arrayList.add(candle.getOpenRate());
@@ -2085,7 +2085,7 @@ public class OrderServiceImpl implements OrderService {
     public RefreshStatisticDto getSomeCurrencyStatForRefresh(Set<Integer> currencyIds) {
         RefreshStatisticDto res = new RefreshStatisticDto();
         List<ExOrderStatisticsShortByPairsDto> dtos = this.getStatForSomeCurrencies(currencyIds);
-        /* List<ExOrderStatisticsShortByPairsDto> dtos = exchangeRatesHolder.getCurrenciesRates(currencyIds);*/
+
         List<ExOrderStatisticsShortByPairsDto> icos = dtos
                 .stream()
                 .filter(p -> p.getType() == CurrencyPairType.ICO)
@@ -2525,7 +2525,7 @@ public class OrderServiceImpl implements OrderService {
             return StringUtils.EMPTY;
         } else if (value instanceof LocalDate) {
             LocalDate date = (LocalDate) value;
-            return DATE_TIME_FORMATTER.format(date);
+            return DATE_FORMATTER.format(date);
         } else if (value instanceof LocalDateTime) {
             LocalDateTime localDateTime = (LocalDateTime) value;
             return DATE_TIME_FORMATTER.format(localDateTime);
