@@ -329,11 +329,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<CandleChartItemDto> getDataForCandleChart(int pairId, ChartTimeFrame timeFrame) {
         LocalDateTime endTime = LocalDateTime.now();
-//    LocalDateTime lastHalfHour = endTime.truncatedTo(ChronoUnit.HOURS)
-//            .plusMinutes(30 * (endTime.getMinute() / 30));
         LocalDateTime startTime = endTime.minus(timeFrame.getTimeValue(), timeFrame.getTimeUnit().getCorrespondingTimeUnit());
-//    LocalDateTime firstHalfHour = startTime.truncatedTo(ChronoUnit.HOURS)
-//            .plusMinutes(30 * (startTime.getMinute() / 30));
 
         return orderDao.getDataForCandleChart(currencyService.findCurrencyPairById(pairId),
                 startTime, endTime, timeFrame.getResolution().getTimeValue(),
@@ -436,7 +432,7 @@ public class OrderServiceImpl implements OrderService {
             orderCreateDto.setComissionForBuyId(walletsAndCommissions.getCommissionId());
             orderCreateDto.setComissionForBuyRate(walletsAndCommissions.getCommissionValue());
         }
-        /**/
+
         orderCreateDto.calculateAmounts();
         return orderCreateDto;
     }
@@ -2390,7 +2386,8 @@ public class OrderServiceImpl implements OrderService {
         return changeCommissionAmountDependsOnUserRole(userId, orders);
     }
 
-    private List<OrderWideListDto> changeCommissionAmountDependsOnUserRole(Integer userId, List<OrderWideListDto> orders) {
+    @VisibleForTesting
+    List<OrderWideListDto> changeCommissionAmountDependsOnUserRole(Integer userId, List<OrderWideListDto> orders) {
         UserRole userRole = userService.getUserRoleFromDB(userId);
 
         if (userRole == UserRole.VIP_USER) {
@@ -2652,7 +2649,8 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getBeforeLastRateForCache(currencyPairId);
     }
 
-    private boolean safeCompareBigDecimals(BigDecimal last, BigDecimal beforeLast) {
+    @VisibleForTesting
+    boolean safeCompareBigDecimals(BigDecimal last, BigDecimal beforeLast) {
         if (Objects.isNull(last)) {
             return false;
         } else if (Objects.isNull(beforeLast)) {
