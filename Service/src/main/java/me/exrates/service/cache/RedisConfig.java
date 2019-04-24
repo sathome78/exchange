@@ -3,6 +3,7 @@ package me.exrates.service.cache;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,8 +19,10 @@ import redis.clients.jedis.Protocol;
 @Configuration
 public class RedisConfig {
 
-    private @Value("${redis.host}") String host;
-    private @Value("${redis.port}") Integer port;
+    private @Value("${redis.host}")
+    String host;
+    private @Value("${redis.port}")
+    Integer port;
 
     @Bean
     public JedisPoolConfig poolConfig() {
@@ -30,7 +33,8 @@ public class RedisConfig {
     }
 
     @Bean
-    public JedisConnectionFactory jedisConnFactory() {
+    @Qualifier("exratesJedisConnectionFactory")
+    public JedisConnectionFactory exratesJedisConnectionFactory() {
         JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory(poolConfig());
         jedisConnFactory.setUsePool(true);
         jedisConnFactory.setHostName(host);
@@ -41,9 +45,32 @@ public class RedisConfig {
     }
 
     @Bean
-    RedisTemplate<String, Object> redisTemplate() {
+    @Qualifier("notificationsJedisConnectionFactory")
+    public JedisConnectionFactory notificationsJedisConnectionFactory() {
+        JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory(poolConfig());
+        jedisConnFactory.setUsePool(true);
+        jedisConnFactory.setHostName(host);
+        jedisConnFactory.setDatabase(Protocol.DEFAULT_DATABASE);
+        jedisConnFactory.setTimeout(3000);
+        jedisConnFactory.setPort(port);
+        return jedisConnFactory;
+    }
+
+    @Bean
+    @Qualifier("exratesRedisTemplate")
+    RedisTemplate<String, Object> exratesRedisTemplate(@Qualifier("exratesJedisConnectionFactory") JedisConnectionFactory jedisConnectionFactory) {
+        return buildRedisTemplate(jedisConnectionFactory);
+    }
+
+    @Bean
+    @Qualifier("notificationsRedisTemplate")
+    RedisTemplate<String, Object> notificationsRedisTemplate(@Qualifier("notificationsJedisConnectionFactory") JedisConnectionFactory jedisConnectionFactory) {
+        return buildRedisTemplate(jedisConnectionFactory);
+    }
+
+    private RedisTemplate<String, Object> buildRedisTemplate(JedisConnectionFactory jedisConnectionFactory) {
         final RedisTemplate<String, Object> template = new RedisTemplate<>();
-        template.setConnectionFactory(jedisConnFactory());
+        template.setConnectionFactory(jedisConnectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
         template.setHashKeySerializer(new StringRedisSerializer());
 

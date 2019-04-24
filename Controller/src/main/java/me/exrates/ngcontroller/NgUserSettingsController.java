@@ -61,6 +61,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.nio.file.NoSuchFileException;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -351,6 +352,7 @@ public class NgUserSettingsController {
                                               @RequestParam(required = false) String message) {
         try {
             UserNotificationType messageType = UserNotificationType.valueOf(status.toUpperCase());
+            message += " " + LocalDateTime.now();
             UserNotificationMessage userNotificationMessage = new UserNotificationMessage(WsSourceTypeEnum.IEO, messageType, message);
             stompMessenger.sendPersonalMessageToUser(getPrincipalEmail(), userNotificationMessage);
             return ResponseEntity.ok().build();
