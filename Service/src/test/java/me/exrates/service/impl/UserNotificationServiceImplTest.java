@@ -74,7 +74,7 @@ public class UserNotificationServiceImplTest {
 
         assertFalse(result.isViewed());
 
-        verify(stompMessenger, never()).sendPersonalMessageToUser(anyString(), anyObject());
+        verify(stompMessenger, times(1)).sendPersonalMessageToUser(anyString(), anyObject());
     }
 
 
