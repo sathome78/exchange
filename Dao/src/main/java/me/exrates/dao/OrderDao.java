@@ -160,7 +160,7 @@ public interface OrderDao {
     List<UserOrdersDto> getUserOrders(Integer userId, Integer currencyPairId, int queryLimit, int queryOffset);
 
     Integer getMyOrdersWithStateCount(Integer userId, CurrencyPair currencyPair, String currencyName, OrderStatus orderStatus,
-                                      String scope, Integer limit, Integer offset, Boolean hideCanceled, LocalDateTime dateTimeFrom,
+                                      String scope, Boolean hideCanceled, LocalDateTime dateTimeFrom,
                                       LocalDateTime dateTimeTo);
 
     List<OrderWideListDto> getAllOrders(Integer userId, OrderStatus status, CurrencyPair currencyPair, Locale locale,

@@ -910,6 +910,38 @@ public class WalletServiceImpl implements WalletService {
         return updateResult;
     }
 
+    @Override
+    public boolean moveBalanceFromIeoReservedToActive(int userId, String currencyName) {
+        Wallet wallet = walletDao.findByUserAndCurrency(userId, currencyName);
+        BigDecimal ieoReservedBalance = wallet.getIeoReserved();
+        BigDecimal activeBalance = wallet.getActiveBalance();
+
+        wallet.setActiveBalance(activeBalance.add(ieoReservedBalance));
+        wallet.setIeoReserved(BigDecimal.ZERO);
+
+        boolean result = walletDao.update(wallet);
+
+        if (result) {
+            Currency currency = currencyService.findById(wallet.getCurrencyId());
+            Transaction transaction = Transaction
+                    .builder()
+                    .userWallet(wallet)
+                    .amount(ieoReservedBalance)
+                    .commissionAmount(ZERO)
+                    .operationType(OperationType.INPUT)
+                    .invoiceStatus(IeoStatusEnum.SUCCESS_IEO)
+                    .currency(currency)
+                    .datetime(LocalDateTime.now())
+                    .activeBalanceBefore(activeBalance)
+                    .reservedBalanceBefore(ieoReservedBalance)
+                    .sourceType(TransactionSourceType.IEO)
+                    .description("Success IEO processing, finish process.")
+                    .build();
+            transactionService.save(transaction);
+        }
+        return result;
+    }
+
     private Transaction prepareTransaction(BigDecimal initialAmount, BigDecimal amount, Wallet wallet, IEOClaim ieoClaim, InvoiceStatus status) {
         Currency currency = currencyService.findById(wallet.getCurrencyId());
         String description = "Purchase of " + ieoClaim.getAmount().toPlainString() + " " + ieoClaim.getCurrencyName() + " within IEO: "

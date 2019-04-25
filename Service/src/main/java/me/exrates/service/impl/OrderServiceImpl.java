@@ -967,13 +967,16 @@ public class OrderServiceImpl implements OrderService {
                                                        String email, CurrencyPair currencyPair, OrderStatus status,
                                                        OperationType operationType,
                                                        String scope, Integer offset, Integer limit, Locale locale) {
-        List<OrderWideListDto> result = orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, scope, offset, limit, locale);
-        if (Cache.checkCache(cacheData, result)) {
-            result = new ArrayList<OrderWideListDto>() {{
+        List<OrderWideListDto> orders = orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, scope, offset, limit, locale);
+        if (Cache.checkCache(cacheData, orders)) {
+            orders = new ArrayList<OrderWideListDto>() {{
                 add(new OrderWideListDto(false));
             }};
         }
-        return result;
+        return orders
+                .stream()
+                .peek(order -> order.setCurrencyPairName(currencyService.findCurrencyPairById(order.getCurrencyPairId()).getName()))
+                .collect(toList());
     }
 
     @Override
@@ -1774,7 +1777,11 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<OrderWideListDto> getUsersOrdersWithStateForAdmin(int id, CurrencyPair currencyPair, OrderStatus status,
                                                                   OperationType operationType, Integer offset, Integer limit, Locale locale) {
-        return orderDao.getMyOrdersWithState(id, currencyPair, status, operationType, SCOPE, offset, limit, locale);
+        List<OrderWideListDto> orders = orderDao.getMyOrdersWithState(id, currencyPair, status, operationType, SCOPE, offset, limit, locale);
+        return orders
+                .stream()
+                .peek(order -> order.setCurrencyPairName(currencyService.findCurrencyPairById(order.getCurrencyPairId()).getName()))
+                .collect(toList());
     }
 
     @Override
@@ -1786,14 +1793,11 @@ public class OrderServiceImpl implements OrderService {
     public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
                                                        OperationType operationType, String scope,
                                                        Integer offset, Integer limit, Locale locale) {
-        return orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, scope, offset, limit, locale);
-    }
-
-    @Override
-    public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
-                                                       OperationType operationType,
-                                                       Integer offset, Integer limit, Locale locale) {
-        return orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, statuses, operationType, null, offset, limit, locale);
+        List<OrderWideListDto> orders = orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, scope, offset, limit, locale);
+        return orders
+                .stream()
+                .peek(order -> order.setCurrencyPairName(currencyService.findCurrencyPairById(order.getCurrencyPairId()).getName()))
+                .collect(toList());
     }
 
     @Override
@@ -2339,11 +2343,12 @@ public class OrderServiceImpl implements OrderService {
                 currencyName,
                 orderStatus,
                 scope,
-                limit,
-                offset,
                 hideCanceled,
                 dateTimeFrom,
                 dateTimeTo);
+        if (recordsCount > limit) {
+            recordsCount = limit;
+        }
 
         List<OrderWideListDto> orders = Collections.emptyList();
         if (recordsCount > 0) {

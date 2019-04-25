@@ -21,4 +21,5 @@ public class RefillPageDataDto {
     private List<MerchantCurrency> merchantCurrencyData;
     private List<String> warningCodeList;
     private boolean isaMountInputNeeded;
+    private Integer minConfirmations;
 }

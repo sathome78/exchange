@@ -1035,4 +1035,22 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 .lastUpdatedAt(rs.getTimestamp("last_updated_at").toLocalDateTime())
                 .build());
     }
+
+    @Transactional
+    @Override
+    public boolean updateCurrencyPair(CurrencyPair currencyPair) {
+        String sql = "UPDATE CURRENCY_PAIR SET currency1_id = : currency1_id, currency2_id = :currency2_id," +
+                "name = :name, hidden = :hidden, market = :market, permitted_link = :permitted_link," +
+                "type = :type WHERE id = :id";
+        Map<String, Object> params = new HashMap<>();
+        params.put("currency1_id", currencyPair.getCurrency1().getId());
+        params.put("currency2_id", currencyPair.getCurrency2().getId());
+        params.put("name", currencyPair.getName());
+        params.put("hidden", currencyPair.isHidden());
+        params.put("market", currencyPair.getMarket());
+        params.put("permitted_link", currencyPair.isPermittedLink());
+        params.put("type", currencyPair.getPairType().name());
+
+        return masterJdbcTemplate.update(sql, params) > 0;
+    }
 }

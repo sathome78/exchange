@@ -1,6 +1,5 @@
 package me.exrates.ngcontroller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.controller.annotation.CheckActiveUserStatus;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
@@ -14,7 +13,6 @@ import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.PinOrderInfoDto;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestParamsDto;
-import me.exrates.model.dto.WithdrawableDataDto;
 import me.exrates.model.dto.ngDto.WithdrawDataDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.OperationType;
@@ -35,10 +33,7 @@ import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.UserOperationAccessException;
-import me.exrates.service.merchantStrategy.IWithdrawable;
-import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.G2faService;
-import me.exrates.service.properties.InOutProperties;
 import me.exrates.service.userOperation.UserOperationService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -59,7 +54,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -142,7 +136,8 @@ public class NgWithdrawController {
             }
         } else {
             if (!userService.checkPin(getPrincipalEmail(), requestParamsDto.getSecurityCode(), NotificationMessageEventEnum.WITHDRAW)) {
-                secureService.sendWithdrawPincode(user);
+                Currency currency = currencyService.getById(requestParamsDto.getCurrency());
+                secureService.sendWithdrawPinCode(user, requestParamsDto.getSum().toPlainString(), currency.getName());
                 throw new IncorrectPinException("Incorrect pin: " + requestParamsDto.getSecurityCode());
             }
         }

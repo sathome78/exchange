@@ -396,10 +396,6 @@ public interface OrderService {
                                                 OperationType operationType, String scope,
                                                 Integer offset, Integer limit, Locale locale);
 
-    List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
-                                                OperationType operationType,
-                                                Integer offset, Integer limit, Locale locale);
-
     List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(String email,
                                                             BackDealInterval backDealInterval,
                                                             Integer limit, CurrencyPair currencyPair, Locale locale);

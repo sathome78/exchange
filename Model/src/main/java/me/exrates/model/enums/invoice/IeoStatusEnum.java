@@ -51,6 +51,11 @@ public enum IeoStatusEnum implements InvoiceStatus {
         @Override
         public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
         }
+    },
+    SUCCESS_IEO(15) {
+        @Override
+        public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+        }
     };
 
     final private Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap = new HashMap<>();
