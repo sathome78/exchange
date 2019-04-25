@@ -47,12 +47,10 @@ public class UserNotificationServiceImpl implements UserNotificationService {
             String emailFromSecurityContext = userService.getUserEmailFromSecurityContext();
             boolean sameUser = userEmail.equalsIgnoreCase(emailFromSecurityContext);
             message.setViewed(sameUser);
-            if (sameUser) {
-                stompMessenger.sendPersonalMessageToUser(userEmail, message);
-            }
         } catch (AuthenticationNotAvailableException exc) {
             log.debug("It seems - there is no authenticated user now");
         }
+        stompMessenger.sendPersonalMessageToUser(userEmail, message);
         userNotificationRepository.save(userPublicId, message);
         return message;
     }

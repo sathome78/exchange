@@ -102,7 +102,6 @@ public class StompMessengerImpl implements StompMessenger {
         sendMessageToDestination(destination, results.left);
     }
 
-
     @Synchronized
     @Override
     public void sendStatisticMessage(Set<Integer> currenciesIds) {
