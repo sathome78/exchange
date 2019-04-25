@@ -7,7 +7,9 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.SSMGetter;
+import me.exrates.aspect.HttpRequestsLogAspect;
 import me.exrates.aspect.LoggingAspect;
+import me.exrates.aspect.ServiceLayerAspect;
 import me.exrates.config.ext.JsonMimeInterceptor;
 import me.exrates.config.ext.LogableErrorHandler;
 import me.exrates.controller.filter.LoggingFilter;
@@ -89,6 +91,7 @@ import org.springframework.social.twitter.api.impl.TwitterTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.filter.CommonsRequestLoggingFilter;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
@@ -472,7 +475,19 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         interceptor.setParamName("locale");
         registry.addInterceptor(interceptor);
         registry.addInterceptor(new SecurityInterceptor());
-        registry.addInterceptor(new MDCInterceptor());
+       /* registry.addInterceptor(new MDCInterceptor());*/
+    }
+
+    @Bean
+    public CommonsRequestLoggingFilter logFilter() {
+        CommonsRequestLoggingFilter filter
+                = new CommonsRequestLoggingFilter();
+        filter.setIncludeQueryString(true);
+        filter.setIncludePayload(true);
+        filter.setMaxPayloadLength(10000);
+        filter.setIncludeHeaders(false);
+        filter.setAfterMessagePrefix("REQUEST DATA : ");
+        return filter;
     }
 
     private void addTokenInterceptor(InterceptorRegistry registry) {
@@ -586,6 +601,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean
     public LoggingAspect loggingAspect() {
         return new LoggingAspect();
+    }
+
+    /*@Bean
+    public ServiceLayerAspect serviceLayerAspect() {
+        return new ServiceLayerAspect();
+    }*/
+
+    @Bean
+    public HttpRequestsLogAspect httpRequestsLogAspect() {
+        return new HttpRequestsLogAspect();
     }
 
     @Bean(name = "nsrServiceImpl")

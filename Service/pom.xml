@@ -207,6 +207,11 @@
       <artifactId>aws-java-sdk-ssm</artifactId>
       <version>${aws-java-sdk.version}</version>
     </dependency>
+    <dependency>
+      <groupId>ProcessIDManager</groupId>
+      <artifactId>ProcessIDManager</artifactId>
+      <version>1.0.0</version>
+    </dependency>
   </dependencies>
 
   <repositories>

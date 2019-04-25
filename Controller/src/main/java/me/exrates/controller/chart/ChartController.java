@@ -1,6 +1,7 @@
 package me.exrates.controller.chart;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.controller.annotation.NoLog;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.chart.ChartResolution;
 import me.exrates.model.chart.ChartTimeFrame;
@@ -44,6 +45,7 @@ public class ChartController {
         this.currencyService = currencyService;
     }
 
+    @NoLog
     @OnlineMethod
     @RequestMapping(value = "/dashboard/history", method = RequestMethod.GET)
     public ResponseEntity getCandleChartHistoryData(

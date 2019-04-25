@@ -1,6 +1,7 @@
 package me.exrates.config;
 
 import me.exrates.controller.filter.HeaderFilter;
+import me.exrates.controller.filter.HttpLoggingFilter;
 import me.exrates.controller.filter.XssRequestFilter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -61,7 +62,7 @@ public class SpringMvcInitializer extends AbstractAnnotationConfigDispatcherServ
 
     @Override
     public Filter[] getServletFilters() {
-        return new Filter[]{new XssRequestFilter(), new HeaderFilter(), new CharacterEncodingFilter("UTF-8", true)};
+        return new Filter[]{new HttpLoggingFilter(), new XssRequestFilter(), new HeaderFilter(), new CharacterEncodingFilter("UTF-8", true)};
     }
 
     @Override

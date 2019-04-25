@@ -2,7 +2,7 @@
 <Configuration status="WARN">
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="process.id=%X{process.id}  %d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message  %n"/>
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message  %n"/>
         </Console>
         <RollingFile name="Merchants" fileName="${sys:catalina.home}/logs/merchants/merchants.log"
                      filePattern="${sys:catalina.home}/logs/merchants/merchants_%d_%i.log" append="true">
@@ -717,6 +717,42 @@
             </Policies>
             <DefaultRolloverStrategy max="1"/>
         </RollingFile>
+        <RollingFile name="http_process_logger" fileName="${sys:catalina.home}/logs/id_logs/requests_log.log"
+                     filePattern="${sys:catalina.home}/logs/id_logs/requests_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd-MM-yyyy HH:mm:ss.SSS} process-id=%X{process-id} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="1000 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="Service_layer_log" fileName="${sys:catalina.home}/logs/id_logs/service_log.log"
+                     filePattern="${sys:catalina.home}/logs/id_logs/service_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd-MM-yyyy HH:mm:ss.SSS} process-id=%X{process-id} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="1000 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="Dao_layer_log" fileName="${sys:catalina.home}/logs/id_logs/dao_log.log"
+                     filePattern="${sys:catalina.home}/logs/id_logs/dao_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd-MM-yyyy HH:mm:ss.SSS} process-id=%X{process-id} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="1000 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="Jdbc_query_log" fileName="${sys:catalina.home}/logs/id_logs/jdbc_log.log"
+                     filePattern="${sys:catalina.home}/logs/id_logs/jdbc_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd-MM-yyyy HH:mm:ss.SSS} process-id=%X{process-id} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="1000 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
     </Appenders>
     <Loggers>
         <Logger name="jdbc_logger" level="ALL" additivity="false">
@@ -1005,6 +1041,18 @@
         </logger>
         <logger name="inout" level="ALL" additivity="false">
             <AppenderRef ref="inout"/>
+        </logger>
+        <logger name="Controller_layer_log" level="ALL" additivity="false">
+            <AppenderRef ref="http_process_logger"/>
+        </logger>
+        <logger name="Service_layer_log" level="ALL" additivity="false">
+            <AppenderRef ref="service_log"/>
+        </logger>
+        <logger name="Dao_layer_log" level="ALL" additivity="false">
+            <AppenderRef ref="dao_log"/>
+        </logger>
+        <logger name="Jdbc_query_log" level="ALL" additivity="false">
+            <AppenderRef ref="jdbc_query_log"/>
         </logger>
         <Root level="INFO">
             <AppenderRef ref="Console"/>
