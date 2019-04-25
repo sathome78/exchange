@@ -136,7 +136,7 @@ public class Wallet {
         return "Wallet{" +
                 "id=" + id +
                 ", currencyId=" + currencyId +
-                ", userId=" + user.getEmail() +
+                ", userId=" + (user == null ? "" : user.getEmail()) +
                 ", activeBalance=" + activeBalance +
                 ", reservedBalance=" + reservedBalance +
                 ", name='" + name + '\'' +

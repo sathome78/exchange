@@ -69,7 +69,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 @Log4j2
 @Repository
-public final class TransactionDaoImpl implements TransactionDao {
+public class TransactionDaoImpl implements TransactionDao {
 
     private static final Logger LOGGER = LogManager.getLogger(TransactionDaoImpl.class);
 

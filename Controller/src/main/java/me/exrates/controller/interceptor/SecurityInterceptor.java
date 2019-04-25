@@ -16,7 +16,10 @@ import javax.servlet.http.HttpServletResponse;
 @Log4j2
 public class SecurityInterceptor extends HandlerInterceptorAdapter {
 
-    @Autowired
+    public SecurityInterceptor(UserSessionService userSessionService) {
+        this.userSessionService = userSessionService;
+    }
+
     private UserSessionService userSessionService;
 
     @Override

@@ -25,7 +25,7 @@ import static me.exrates.jdbc.TokenRowMapper.tokenRowMapper;
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Repository
-public final class YandexMoneyMerchantDaoImpl implements YandexMoneyMerchantDao {
+public class YandexMoneyMerchantDaoImpl implements YandexMoneyMerchantDao {
 
     @Autowired
     @Qualifier("masterHikariDataSource")

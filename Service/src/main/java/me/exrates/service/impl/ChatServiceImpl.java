@@ -4,6 +4,7 @@ import javafx.util.Pair;
 import me.exrates.dao.ChatDao;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.User;
+import me.exrates.model.annotation.NoIdLog;
 import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.model.enums.UserRole;
@@ -144,6 +145,7 @@ public class ChatServiceImpl implements ChatService {
         return result;
     }
 
+    @NoIdLog
     @Scheduled(fixedDelay = 1000L, initialDelay = 1000L)
     public void flushCache() {
         for (ChatLang lang : ChatLang.values()) {

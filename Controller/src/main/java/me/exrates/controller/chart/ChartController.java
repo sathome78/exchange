@@ -1,22 +1,18 @@
 package me.exrates.controller.chart;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.controller.annotation.NoLog;
+import me.exrates.model.annotation.NoIdLog;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.chart.ChartResolution;
-import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.CandleDto;
 import me.exrates.model.enums.ChartTimeFramesEnum;
 import me.exrates.security.annotation.OnlineMethod;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.json.Json;
@@ -24,7 +20,6 @@ import javax.json.JsonObject;
 import javax.ws.rs.QueryParam;
 import java.math.BigDecimal;
 import java.time.*;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -45,7 +40,7 @@ public class ChartController {
         this.currencyService = currencyService;
     }
 
-    @NoLog
+    @NoIdLog
     @OnlineMethod
     @RequestMapping(value = "/dashboard/history", method = RequestMethod.GET)
     public ResponseEntity getCandleChartHistoryData(

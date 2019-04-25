@@ -6,11 +6,11 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class ServiceLog {
+public class MethodsLog {
 
     private String methodName;
     private String arguments;
-    private String result;
+    private Object result;
     private String userEmail;
     private long processingTime;
     private String error;

@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.TelegramSubscriptionDao;
 import me.exrates.model.Currency;
+import me.exrates.model.annotation.NoIdLog;
 import me.exrates.model.dto.NotificationPayEventEnum;
 import me.exrates.model.dto.NotificatorSubscription;
 import me.exrates.model.dto.TelegramSubscription;
@@ -16,6 +17,7 @@ import me.exrates.service.exception.MessageUndeliweredException;
 import me.exrates.service.exception.PaymentException;
 import me.exrates.service.exception.TelegramSubscriptionException;
 import me.exrates.service.notifications.telegram.TelegramBotService;
+import me.exrates.service.notifications.telegram.TelegramBotServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -32,6 +34,7 @@ import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 /**
  * Created by Maks on 29.09.2017.
  */
+@NoIdLog
 @Log4j2(topic = "message_notify")
 @Component("telegramNotificatorServiceImpl")
 public class TelegramNotificatorServiceImpl implements NotificatorService, Subscribable {

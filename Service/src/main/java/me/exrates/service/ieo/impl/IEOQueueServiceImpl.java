@@ -66,6 +66,7 @@ public class IEOQueueServiceImpl implements IEOQueueService {
     }
 
     @Scheduled(fixedDelay = 1000)
+    @Override
     public void processClaims() {
         while (!claims.isEmpty()) {
             IEOClaim claim = claims.poll();

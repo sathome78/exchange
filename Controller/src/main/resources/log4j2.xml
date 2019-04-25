@@ -4,6 +4,9 @@
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message  %n"/>
         </Console>
+        <Socket name="Socket" host="172.10.12.132" port="4560">
+            <JsonLayout compact="true" eventEol="true" />
+        </Socket>
         <RollingFile name="Merchants" fileName="${sys:catalina.home}/logs/merchants/merchants.log"
                      filePattern="${sys:catalina.home}/logs/merchants/merchants_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
@@ -726,7 +729,7 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="Service_layer_log" fileName="${sys:catalina.home}/logs/id_logs/service_log.log"
+        <RollingFile name="service_log" fileName="${sys:catalina.home}/logs/id_logs/service_log.log"
                      filePattern="${sys:catalina.home}/logs/id_logs/service_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd-MM-yyyy HH:mm:ss.SSS} process-id=%X{process-id} %level - %message%n"/>
             <Policies>
@@ -735,7 +738,7 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="Dao_layer_log" fileName="${sys:catalina.home}/logs/id_logs/dao_log.log"
+        <RollingFile name="dao_log" fileName="${sys:catalina.home}/logs/id_logs/dao_log.log"
                      filePattern="${sys:catalina.home}/logs/id_logs/dao_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd-MM-yyyy HH:mm:ss.SSS} process-id=%X{process-id} %level - %message%n"/>
             <Policies>
@@ -744,7 +747,7 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="Jdbc_query_log" fileName="${sys:catalina.home}/logs/id_logs/jdbc_log.log"
+        <RollingFile name="jdbc_query_log" fileName="${sys:catalina.home}/logs/id_logs/jdbc_log.log"
                      filePattern="${sys:catalina.home}/logs/id_logs/jdbc_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd-MM-yyyy HH:mm:ss.SSS} process-id=%X{process-id} %level - %message%n"/>
             <Policies>

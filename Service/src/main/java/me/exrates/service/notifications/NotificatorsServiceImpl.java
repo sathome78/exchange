@@ -3,12 +3,15 @@ package me.exrates.service.notifications;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.NotificatorPriceDao;
 import me.exrates.dao.NotificatorsDao;
+import me.exrates.model.annotation.NoIdLog;
 import me.exrates.model.dto.Notificator;
 import me.exrates.model.dto.NotificatorTotalPriceDto;
 import me.exrates.model.enums.NotificationTypeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -17,6 +20,7 @@ import java.util.*;
  */
 @Log4j2(topic = "message_notify")
 @Service
+@NoIdLog
 public class NotificatorsServiceImpl implements NotificatorsService {
 
 
@@ -25,9 +29,17 @@ public class NotificatorsServiceImpl implements NotificatorsService {
     @Autowired
     private NotificatorPriceDao notificatorPriceDao;
     @Autowired
-    Map<String, NotificatorService> notificatorsMap;
-    @Autowired
-    Map<String, Subscribable> subscribableMap;
+    private ApplicationContext appContext;
+
+    private Map<String, NotificatorService> notificatorsMap;
+
+    private Map<String, Subscribable> subscribableMap;
+
+    @PostConstruct
+    private void init() {
+        notificatorsMap = appContext.getBeansOfType(NotificatorService.class);
+        subscribableMap = appContext.getBeansOfType(Subscribable.class);
+    }
 
     @Override
     public NotificatorService getNotificationService(Integer notificatorId) {

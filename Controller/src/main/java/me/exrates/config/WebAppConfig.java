@@ -1,20 +1,16 @@
 package me.exrates.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.Lists;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.SSMGetter;
-import me.exrates.aspect.HttpRequestsLogAspect;
 import me.exrates.aspect.LoggingAspect;
-import me.exrates.aspect.ServiceLayerAspect;
 import me.exrates.config.ext.JsonMimeInterceptor;
 import me.exrates.config.ext.LogableErrorHandler;
 import me.exrates.controller.filter.LoggingFilter;
 import me.exrates.controller.handler.ChatWebSocketHandler;
-import me.exrates.controller.interceptor.MDCInterceptor;
 import me.exrates.controller.interceptor.SecurityInterceptor;
 import me.exrates.controller.interceptor.TokenInterceptor;
 import me.exrates.model.condition.MicroserviceConditional;
@@ -44,6 +40,7 @@ import me.exrates.service.properties.InOutProperties;
 import me.exrates.service.properties.SsmProperties;
 import me.exrates.service.qtum.QtumTokenService;
 import me.exrates.service.qtum.QtumTokenServiceImpl;
+import me.exrates.service.session.UserSessionService;
 import me.exrates.service.stellar.StellarAsset;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
@@ -56,6 +53,7 @@ import org.flywaydb.core.Flyway;
 import org.nem.core.model.primitive.Supply;
 import org.quartz.Scheduler;
 import org.quartz.spi.JobFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
@@ -268,6 +266,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     private final InOutProperties inOutProperties;
     private final String inoutTokenValue;
 
+
     public WebAppConfig(SSMGetter ssmGetter, SsmProperties ssmProperties, InOutProperties inOutProperties) {
         this.inoutTokenValue = ssmGetter.lookup(ssmProperties.getInoutTokenPath());
         this.inOutProperties = inOutProperties;
@@ -474,8 +473,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         LocaleChangeInterceptor interceptor = new LocaleChangeInterceptor();
         interceptor.setParamName("locale");
         registry.addInterceptor(interceptor);
-        registry.addInterceptor(new SecurityInterceptor());
-       /* registry.addInterceptor(new MDCInterceptor());*/
     }
 
     @Bean
@@ -601,16 +598,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean
     public LoggingAspect loggingAspect() {
         return new LoggingAspect();
-    }
-
-    /*@Bean
-    public ServiceLayerAspect serviceLayerAspect() {
-        return new ServiceLayerAspect();
-    }*/
-
-    @Bean
-    public HttpRequestsLogAspect httpRequestsLogAspect() {
-        return new HttpRequestsLogAspect();
     }
 
     @Bean(name = "nsrServiceImpl")

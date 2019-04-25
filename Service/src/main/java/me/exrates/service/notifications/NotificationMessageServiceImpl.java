@@ -3,6 +3,7 @@ package me.exrates.service.notifications;
 import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.NotificationMessagesDao;
+import me.exrates.model.annotation.NoIdLog;
 import me.exrates.model.dto.NotificationResultDto;
 import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.dto.Notificator;
@@ -37,6 +38,7 @@ public class NotificationMessageServiceImpl implements NotificationMessageServic
             notificator = notificatorsService.getById(NotificationTypeEnum.EMAIL.getCode());
         }
         NotificatorService service = notificatorsService.getNotificationServiceByBeanName(notificator.getBeanName());
+        System.out.println("notificator service " + service);
         NotificationTypeEnum notificationTypeEnum = service.getNotificationType();
         String contactToNotify;
         log.debug("notify user {} for {}", userEmail, notificationTypeEnum);
@@ -50,6 +52,7 @@ public class NotificationMessageServiceImpl implements NotificationMessageServic
                 contactToNotify = emailService.sendMessageToUser(userEmail, message, subject);
                 notificationTypeEnum = emailService.getNotificationType();
             } else {
+                e.printStackTrace();
                 throw new MessageUndeliweredException();
             }
         }

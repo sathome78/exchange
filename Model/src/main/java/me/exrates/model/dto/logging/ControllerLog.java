@@ -7,6 +7,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class ControllerLog {
 
+    private String methodName;
     private String url;
     private String httpMethod;
     private String userEmail;

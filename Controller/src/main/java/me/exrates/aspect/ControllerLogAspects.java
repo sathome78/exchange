@@ -10,6 +10,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -28,10 +29,14 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static me.exrates.aspect.LoggingUtils.getAuthenticatedUser;
+import static me.exrates.aspect.LoggingUtils.getExecutionTime;
+import static me.exrates.aspect.LoggingUtils.getMethodName;
+
 @Log4j2(topic = "Controller_layer_log")
 @Aspect
 @Component
-public class ControllerAspects {
+public class ControllerLogAspects {
 
 
     private static final List<MediaType> VISIBLE_TYPES = Arrays.asList(
@@ -54,15 +59,15 @@ public class ControllerAspects {
 
 
     @Around("execution(* *(..)) && @annotation(org.springframework.web.bind.annotation.ExceptionHandler)")
-    public Object audit(ProceedingJoinPoint thisJoinPoint) throws Throwable {
+    public Object doBasicProfilingHandlers(ProceedingJoinPoint thisJoinPoint) throws Throwable {
         Object result = thisJoinPoint.proceed();
         log.error(result.toString());
         return result;
     }
 
 
-    @Around("controller() && allMethod() && !@annotation(me.exrates.controller.annotation.NoLog)")
-    public Object doBasicProfiling(ProceedingJoinPoint pjp) throws Throwable {
+    @Around("controller() && allMethod() && !@annotation(me.exrates.model.annotation.NoIdLog) && !execution(* me.exrates.controller.WsController..*(..))")
+    public Object doBasicProfilingControllers(ProceedingJoinPoint pjp) throws Throwable {
         RequestContextProcessor rcp = new RequestContextProcessor();
         String clientIP = rcp.getClientIP();
         String httpMethod = rcp.getHttpMethod();
@@ -89,6 +94,7 @@ public class ControllerAspects {
             throw e;
         } finally {
             log.debug(new ControllerLog(
+                    getMethodName(pjp),
                     url,
                     httpMethod,
                     getAuthenticatedUser(),
@@ -104,9 +110,6 @@ public class ControllerAspects {
         return result;
     }
 
-    private long getExecutionTime(long start) {
-        return System.currentTimeMillis() - start;
-    }
 
     private static class RequestContextProcessor {
 
@@ -215,11 +218,4 @@ public class ControllerAspects {
             return new ContentCachingRequestWrapper(request);
         }
     }
-
-
-    private String getAuthenticatedUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication == null ? null : authentication.getName();
-    }
-
 }
