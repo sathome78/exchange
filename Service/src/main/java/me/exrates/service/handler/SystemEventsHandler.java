@@ -40,7 +40,6 @@ public class SystemEventsHandler {
     @Autowired
     private UserService userService;
 
-    @Async
     @TransactionalEventListener
     public void handleAlertUsers(AlertDto alertDto) {
         userService.getLocalesList().forEach(p->{

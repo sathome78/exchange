@@ -16,23 +16,25 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
-import me.exrates.service.cache.currencyPairsInfo.CpStatisticsHolder;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CancelOrderEvent;
 import me.exrates.service.events.CreateOrderEvent;
 import me.exrates.service.events.EventsForDetailed.DetailOrderEvent;
 import me.exrates.service.events.OrderEvent;
 import me.exrates.service.events.PartiallyAcceptedOrder;
+import me.exrates.service.refreshHandlers.ChartRefreshHandler;
+import me.exrates.service.refreshHandlers.CurrencyStatisticsHandler;
+import me.exrates.service.refreshHandlers.MyTradesHandler;
+import me.exrates.service.refreshHandlers.OrdersEventsHandler;
+import me.exrates.service.refreshHandlers.OrdersReFreshHandler;
+import me.exrates.service.refreshHandlers.TradesEventsHandler;
+import me.exrates.service.refreshHandlers.UserPersonalOrdersHandler;
 import me.exrates.service.stomp.StompMessenger;
-import me.exrates.service.vo.ChartRefreshHandler;
-import me.exrates.service.vo.CurrencyStatisticsHandler;
-import me.exrates.service.vo.MyTradesHandler;
-import me.exrates.service.vo.OrdersEventsHandler;
-import me.exrates.service.vo.TradesEventsHandler;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -47,13 +49,11 @@ import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Created by Maks on 28.08.2017.
@@ -138,6 +138,7 @@ public class OrdersEventHandleService {
         }
     }
 
+    @EventListener
     @Async
     @TransactionalEventListener
     public void handleOrderPersonalEventAsync(DetailOrderEvent event){

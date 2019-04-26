@@ -1,4 +1,4 @@
-package me.exrates.service.handler;
+package me.exrates.service.refreshHandlers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Synchronized;
@@ -31,7 +31,7 @@ public class OrdersReFreshHandler {
         this.pairName = pairName;
     }
 
-    void addOrderToQueue(OrderWsDetailDto dto) {
+    public void addOrderToQueue(OrderWsDetailDto dto) {
         dtos.add(dto);
         check();
     }

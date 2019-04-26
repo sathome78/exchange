@@ -1,4 +1,4 @@
-package me.exrates.service.vo;
+package me.exrates.service.refreshHandlers;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
 import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;

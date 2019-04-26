@@ -1,4 +1,4 @@
-package me.exrates.service;
+package me.exrates.service.impl;
 
 import me.exrates.dao.IInitialExchangeOfferings;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,4 +1,4 @@
-package me.exrates.service.handler;
+package me.exrates.service.refreshHandlers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Synchronized;
@@ -77,7 +77,7 @@ public class UserPersonalOrdersHandler {
     }
 
     /*to instant send without timings and groupings*/
-    void sendInstant(List<OrderWsDetailDto> dtos, Integer userId) {
+    public void sendInstant(List<OrderWsDetailDto> dtos, Integer userId) {
         sendMessage(dtos, userId);
     }
 

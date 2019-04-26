@@ -1,4 +1,4 @@
-package me.exrates.service.vo;
+package me.exrates.service.refreshHandlers;
 
 
 import com.google.common.collect.Lists;

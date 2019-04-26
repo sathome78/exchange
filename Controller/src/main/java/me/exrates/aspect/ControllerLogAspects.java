@@ -2,7 +2,9 @@ package me.exrates.aspect;
 
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
+import me.exrates.ProcessIDManager;
 import me.exrates.model.dto.logging.ControllerLog;
+import me.exrates.model.dto.logging.MethodsLog;
 import me.exrates.service.util.IpUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
@@ -26,9 +28,11 @@ import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static me.exrates.ProcessIDManager.getProcessIdFromCurrentThread;
 import static me.exrates.aspect.LoggingUtils.getAuthenticatedUser;
 import static me.exrates.aspect.LoggingUtils.getExecutionTime;
 import static me.exrates.aspect.LoggingUtils.getMethodName;
@@ -56,6 +60,25 @@ public class ControllerLogAspects {
     @Pointcut("execution(* *.*(..)))")
     protected void allMethod() {
     }
+
+    /*@Around("execution(* *(..)) && @annotation(org.springframework.messaging.simp.annotation.SubscribeMapping)")
+    public Object doBasicProfilingHandlersOnWsSubscribe(ProceedingJoinPoint pjp) throws Throwable {
+        String method = getMethodName(pjp);
+        String args = Arrays.toString(pjp.getArgs());
+        long start = System.currentTimeMillis();
+        String user = getAuthenticatedUser();
+        ProcessIDManager.registerNewThreadForParentProcessId(getClass(),Optional.empty());
+        try {
+            Object result = pjp.proceed();
+            log.debug(new MethodsLog(method, args, result, user, getExecutionTime(start), StringUtils.EMPTY));
+            return result;
+        } catch (Throwable ex) {
+            log.debug(new MethodsLog(method, args, StringUtils.EMPTY, user, getExecutionTime(start), ex.getCause() + " " + ex.getMessage()));
+            throw ex;
+        } finally {
+            ProcessIDManager.unregisterProcessId(getClass());
+        }
+    }*/
 
 
     @Around("execution(* *(..)) && @annotation(org.springframework.web.bind.annotation.ExceptionHandler)")

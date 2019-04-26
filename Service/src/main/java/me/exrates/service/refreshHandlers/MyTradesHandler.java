@@ -1,4 +1,4 @@
-package me.exrates.service.vo;
+package me.exrates.service.refreshHandlers;
 
 import lombok.EqualsAndHashCode;
 import lombok.extern.log4j.Log4j2;
