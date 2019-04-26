@@ -7,6 +7,7 @@ import me.exrates.model.ApiAuthToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -22,10 +23,10 @@ import static java.util.Collections.singletonMap;
 public class ApiAuthTokenDaoImpl implements ApiAuthTokenDao {
 
 
-    private  NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    private NamedParameterJdbcOperations namedParameterJdbcTemplate;
 
     @Autowired
-    public ApiAuthTokenDaoImpl(NamedParameterJdbcTemplate jdbcTemplate) {
+    public ApiAuthTokenDaoImpl(NamedParameterJdbcOperations jdbcTemplate) {
         this.namedParameterJdbcTemplate = jdbcTemplate;
     }
 

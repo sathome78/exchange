@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jboss.aerogear.security.otp.api.Base32;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -15,7 +16,7 @@ import java.util.Map;
 public class G2faDaoImpl implements G2faDao {
 
     @Autowired
-    private NamedParameterJdbcTemplate jdbcTemplate;
+    private NamedParameterJdbcOperations jdbcTemplate;
 
     @Override
     public String getGoogleAuthSecretCodeByUser(Integer userId) {

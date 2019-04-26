@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -25,7 +26,7 @@ public class TelegramSubscriptionDaoImpl implements TelegramSubscriptionDao {
 
     @Autowired
     @Qualifier(value = "masterTemplate")
-    private NamedParameterJdbcTemplate jdbcTemplate;
+    private NamedParameterJdbcOperations jdbcTemplate;
 
     private static RowMapper<TelegramSubscription> telegramSubscribtionRowMapper = (rs, idx) -> {
         TelegramSubscription subscription = new TelegramSubscription();

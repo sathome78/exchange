@@ -5,6 +5,7 @@ import me.exrates.model.ngModel.UserBalancesDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -33,7 +34,7 @@ public class BalanceDaoImpl implements BalanceDao {
 
     @Autowired
     @Qualifier(value = "slaveTemplate")
-    private NamedParameterJdbcTemplate slaveJdbcTemplate;
+    private NamedParameterJdbcOperations slaveJdbcTemplate;
 
     public List<UserBalancesDto> getUserBalances(String tikerName, String sortByCreated, Integer page, Integer limit, int userId) {
         int offset = page > 1 ? page * limit : 0;

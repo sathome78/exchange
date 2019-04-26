@@ -7,6 +7,7 @@ import me.exrates.model.IEOResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -21,10 +22,10 @@ import java.util.Map;
 @Log4j
 public class IEOClaimRepositoryImpl implements IEOClaimRepository {
 
-    private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcOperations jdbcTemplate;
 
     @Autowired
-    public IEOClaimRepositoryImpl(NamedParameterJdbcTemplate jdbcTemplate) {
+    public IEOClaimRepositoryImpl(NamedParameterJdbcOperations jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 

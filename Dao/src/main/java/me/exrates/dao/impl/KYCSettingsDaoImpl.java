@@ -5,6 +5,7 @@ import me.exrates.model.dto.kyc.KycCountryDto;
 import me.exrates.model.dto.kyc.KycLanguageDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -16,7 +17,7 @@ import java.util.Map;
 public class KYCSettingsDaoImpl implements KYCSettingsDao {
 
     @Autowired
-    private NamedParameterJdbcTemplate jdbcTemplate;
+    private NamedParameterJdbcOperations jdbcTemplate;
 
     @Override
     public List<KycCountryDto> getCountriesDictionary() {

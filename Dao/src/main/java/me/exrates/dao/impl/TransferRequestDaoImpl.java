@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -65,7 +66,7 @@ public class TransferRequestDaoImpl implements TransferRequestDao {
 
   @Autowired
   @Qualifier(value = "masterTemplate")
-  private NamedParameterJdbcTemplate jdbcTemplate;
+  private NamedParameterJdbcOperations jdbcTemplate;
 
   private Optional<Integer> blockById(int id) {
     String sql = "SELECT COUNT(*) " +

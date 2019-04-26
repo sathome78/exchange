@@ -58,6 +58,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -102,14 +103,14 @@ public class OrderDaoImpl implements OrderDao {
 
     @Autowired
     @Qualifier(value = "masterTemplate")
-    private NamedParameterJdbcTemplate masterJdbcTemplate;
+    private NamedParameterJdbcOperations masterJdbcTemplate;
     @Autowired
     @Qualifier(value = "slaveTemplate")
-    private NamedParameterJdbcTemplate slaveJdbcTemplate;
+    private NamedParameterJdbcOperations slaveJdbcTemplate;
 
     @Autowired
     @Qualifier(value = "slaveForReportsTemplate")
-    private NamedParameterJdbcTemplate slaveForReportsTemplate;
+    private NamedParameterJdbcOperations slaveForReportsTemplate;
 
     @Autowired
     CommissionDao commissionDao;

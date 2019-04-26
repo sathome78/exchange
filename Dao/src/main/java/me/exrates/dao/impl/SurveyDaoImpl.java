@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
@@ -19,10 +20,7 @@ public class SurveyDaoImpl implements SurveyDao {
 
   @Autowired
   @Qualifier(value = "masterTemplate")
-  private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-
-  @Autowired
-  private JdbcTemplate jdbcTemplate;
+  private NamedParameterJdbcOperations namedParameterJdbcTemplate;
 
   @Override
   public SurveyDto findFirstActiveByLang(String lang) {

@@ -5,6 +5,7 @@ import me.exrates.dao.UserVerificationInfoDao;
 import me.exrates.model.UserVerificationInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -17,7 +18,7 @@ public class UserVerificationDocDaoImpl implements UserVerificationInfoDao {
 
     @Autowired
     @Qualifier(value = "masterTemplate")
-    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    private NamedParameterJdbcOperations namedParameterJdbcTemplate;
 
     @Override
     public UserVerificationInfo saveUserVerificationDoc(UserVerificationInfo userVerificationDoc) {

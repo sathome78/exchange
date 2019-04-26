@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -20,12 +21,12 @@ import java.util.Map;
 @Log4j2
 public class QuberaDaoImpl implements QuberaDao {
 
-    private final NamedParameterJdbcTemplate masterJdbcTemplate;
-    private final NamedParameterJdbcTemplate slaveJdbcTemplate;
+    private final NamedParameterJdbcOperations masterJdbcTemplate;
+    private final NamedParameterJdbcOperations slaveJdbcTemplate;
 
     @Autowired
-    public QuberaDaoImpl(@Qualifier("masterTemplate") NamedParameterJdbcTemplate masterJdbcTemplate,
-                         @Qualifier("slaveTemplate") NamedParameterJdbcTemplate slaveJdbcTemplate) {
+    public QuberaDaoImpl(@Qualifier("masterTemplate") NamedParameterJdbcOperations masterJdbcTemplate,
+                         @Qualifier("slaveTemplate") NamedParameterJdbcOperations slaveJdbcTemplate) {
         this.masterJdbcTemplate = masterJdbcTemplate;
         this.slaveJdbcTemplate = slaveJdbcTemplate;
     }

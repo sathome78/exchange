@@ -7,6 +7,7 @@ import me.exrates.model.dto.kyc.responces.KycStatusResponseDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -16,10 +17,10 @@ import java.util.Arrays;
 @Log4j2
 public class KycDaoImpl implements KycDao {
 
-    private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcOperations jdbcTemplate;
 
     @Autowired
-    public KycDaoImpl(NamedParameterJdbcTemplate jdbcTemplate) {
+    public KycDaoImpl(NamedParameterJdbcOperations jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 

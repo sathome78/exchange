@@ -5,7 +5,9 @@ import me.exrates.model.UserRoleSettings;
 import me.exrates.model.enums.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -25,10 +27,10 @@ public class UserRoleDaoImpl implements UserRoleDao {
 
     @Autowired
     @Qualifier(value = "masterTemplate")
-    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    private NamedParameterJdbcOperations namedParameterJdbcTemplate;
 
     @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private JdbcOperations jdbcTemplate;
 
     @Override
     public List<UserRole> findRealUserRoleIdByBusinessRoleList(String businessRoleName) {

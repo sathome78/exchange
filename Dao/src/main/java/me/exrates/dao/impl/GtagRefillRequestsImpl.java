@@ -7,6 +7,7 @@ import me.exrates.dao.GtagRefillRequests;
 import me.exrates.model.enums.OrderStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -22,7 +23,7 @@ import java.util.Map;
 @Log4j2
 public class GtagRefillRequestsImpl implements GtagRefillRequests {
     @Autowired
-    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    private NamedParameterJdbcOperations namedParameterJdbcTemplate;
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateUserRequestsCount(Integer userId) {

@@ -38,6 +38,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
@@ -301,14 +302,14 @@ public class TransactionDaoImpl implements TransactionDao {
     MessageSource messageSource;
     @Autowired
     @Qualifier(value = "masterTemplate")
-    private NamedParameterJdbcTemplate jdbcTemplate;
+    private NamedParameterJdbcOperations jdbcTemplate;
     @Autowired
     @Qualifier(value = "slaveTemplate")
-    private NamedParameterJdbcTemplate slaveJdbcTemplate;
+    private NamedParameterJdbcOperations slaveJdbcTemplate;
 
     @Autowired
     @Qualifier(value = "slaveForReportsTemplate")
-    private NamedParameterJdbcTemplate slaveForReportsTemplate;
+    private NamedParameterJdbcOperations slaveForReportsTemplate;
 
     @Override
     public Transaction create(Transaction transaction) {

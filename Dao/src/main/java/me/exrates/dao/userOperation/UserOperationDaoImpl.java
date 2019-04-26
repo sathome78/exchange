@@ -6,6 +6,7 @@ import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -21,7 +22,7 @@ import java.util.stream.Collectors;
 public class UserOperationDaoImpl implements UserOperationDao {
 
   @Autowired
-  private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+  private NamedParameterJdbcOperations namedParameterJdbcTemplate;
 
   @Override
   public boolean getStatusAuthorityForUserByOperation(int userId, UserOperationAuthority userOperationAuthority) {

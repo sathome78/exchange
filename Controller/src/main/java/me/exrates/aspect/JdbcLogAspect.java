@@ -19,11 +19,12 @@ import static me.exrates.aspect.LoggingUtils.getExecutionTime;
 import static me.exrates.aspect.LoggingUtils.getMethodName;
 
 @Log4j2(topic = "Jdbc_query_log")
-/*@Aspect
-@Component*/
+@Aspect
+@Component
 public class JdbcLogAspect {
 
-    @Pointcut("execution(* org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate..*(..)) || execution(* org.springframework.jdbc.core.JdbcTemplate..*(..))")
+    @Pointcut("execution(* org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate..*(..)) || " +
+            "(execution(* org.springframework.jdbc.core.JdbcOperations..*(..))))")
     public void jdbc() {
     }
 

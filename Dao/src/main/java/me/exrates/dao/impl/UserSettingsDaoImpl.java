@@ -4,6 +4,7 @@ import me.exrates.dao.UserSettingsDao;
 import me.exrates.model.dto.CallbackURL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -13,7 +14,7 @@ import java.util.Map;
 @Repository
 public class UserSettingsDaoImpl implements UserSettingsDao {
     @Autowired
-    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    private NamedParameterJdbcOperations namedParameterJdbcTemplate;
 
     public int addCallBackUrl(final int userId, final CallbackURL callbackURL) {
         String addCallbackQuery = "INSERT INTO CALLBACK_SETTINGS VALUES(:userId,:callbackURL,:pairId)";

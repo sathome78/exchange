@@ -3,6 +3,7 @@ package me.exrates.dao.impl;
 import me.exrates.dao.CallBackLogDao;
 import me.exrates.model.dto.CallBackLogDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -13,7 +14,7 @@ import java.util.Map;
 public class CallBackLogDaoImpl implements CallBackLogDao {
 
     @Autowired
-    NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    NamedParameterJdbcOperations namedParameterJdbcTemplate;
 
     @Override
     public void logCallBackData(CallBackLogDto callBackLogDto) {

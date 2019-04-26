@@ -7,6 +7,7 @@ import me.exrates.model.enums.ChatLang;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
@@ -28,10 +29,10 @@ import static java.util.Collections.singletonMap;
 @Repository
 public class ChatDaoImpl implements ChatDao {
 
-    private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcOperations jdbcTemplate;
 
     @Autowired
-    public ChatDaoImpl(@Qualifier(value = "masterTemplate")NamedParameterJdbcTemplate jdbcTemplate) {
+    public ChatDaoImpl(@Qualifier(value = "masterTemplate")NamedParameterJdbcOperations jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 

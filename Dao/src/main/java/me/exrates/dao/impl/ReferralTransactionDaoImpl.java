@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -46,7 +47,7 @@ public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
         result.setStatusEnum(ReferralTransactionStatusEnum.valueOf(resultSet.getString("ref_status")));
         return result;
     };
-    private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcOperations jdbcTemplate;
     private final String SELECT_ALL = " SELECT REFERRAL_TRANSACTION.id, REFERRAL_TRANSACTION.status AS ref_status, USER.email as user_email, REFERRAL_TRANSACTION.initiator_id, REFERRAL_TRANSACTION.user_id, REFERRAL_LEVEL.id, REFERRAL_LEVEL.level, REFERRAL_LEVEL.percent," +
             " TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
             " TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation, TRANSACTION.order_id, " +
@@ -71,7 +72,7 @@ public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
             " LEFT JOIN EXORDERS ON TRANSACTION.order_id = EXORDERS.id ";
 
     @Autowired
-    public ReferralTransactionDaoImpl(@Qualifier(value = "masterTemplate")final NamedParameterJdbcTemplate jdbcTemplate) {
+    public ReferralTransactionDaoImpl(@Qualifier(value = "masterTemplate")final NamedParameterJdbcOperations jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 

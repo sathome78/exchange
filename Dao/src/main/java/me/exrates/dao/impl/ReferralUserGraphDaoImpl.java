@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -27,12 +28,12 @@ import static java.util.Collections.singletonMap;
 @Repository
 public class ReferralUserGraphDaoImpl implements ReferralUserGraphDao {
 
-    private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcOperations jdbcTemplate;
 
-    private NamedParameterJdbcTemplate slaveJdbcTemplate;
+    private NamedParameterJdbcOperations slaveJdbcTemplate;
 
     @Autowired
-    public ReferralUserGraphDaoImpl(@Qualifier(value = "masterTemplate")final NamedParameterJdbcTemplate jdbcTemplate, @Qualifier(value = "slaveTemplate")NamedParameterJdbcTemplate slaveJdbcTemplate) {
+    public ReferralUserGraphDaoImpl(@Qualifier(value = "masterTemplate")final NamedParameterJdbcOperations jdbcTemplate, @Qualifier(value = "slaveTemplate")NamedParameterJdbcOperations slaveJdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
         this.slaveJdbcTemplate = slaveJdbcTemplate;
     }
