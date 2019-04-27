@@ -4,7 +4,7 @@ import me.exrates.model.User;
 import me.exrates.model.dto.NotificationResultDto;
 import me.exrates.model.dto.PinDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
-import me.exrates.security.filter.CapchaAuthorizationFilter;
+import me.exrates.security.filter_not_wrapped.CapchaAuthorizationFilter;
 import org.springframework.security.core.Authentication;
 
 import javax.servlet.http.HttpServletRequest;

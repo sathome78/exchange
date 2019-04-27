@@ -1,4 +1,4 @@
-package me.exrates.security.service;
+package me.exrates.security.apect;
 
 
 import lombok.extern.log4j.Log4j2;
@@ -6,6 +6,7 @@ import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.exceptions.OpenApiException;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
+import me.exrates.security.annotation.CheckUserAuthority;
 import me.exrates.service.UserService;
 import me.exrates.service.userOperation.UserOperationService;
 import org.aspectj.lang.JoinPoint;
@@ -28,7 +29,7 @@ public class CheckUserAuthorityAspect {
     @Autowired
     private UserOperationService userOperationService;
 
-    @Before("@annotation(CheckUserAuthority)")
+    @Before("@annotation(me.exrates.security.annotation.CheckUserAuthority)")
     public void checkIp(JoinPoint jp) {
 
         UserRole userRole = userService.getUserRoleFromSecurityContext();

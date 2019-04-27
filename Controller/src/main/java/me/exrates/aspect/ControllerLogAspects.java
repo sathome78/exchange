@@ -12,11 +12,8 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
-import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -32,10 +29,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static me.exrates.ProcessIDManager.getProcessIdFromCurrentThread;
-import static me.exrates.aspect.LoggingUtils.getAuthenticatedUser;
-import static me.exrates.aspect.LoggingUtils.getExecutionTime;
-import static me.exrates.aspect.LoggingUtils.getMethodName;
+import static me.exrates.service.logs.LoggingUtils.getAuthenticatedUser;
+import static me.exrates.service.logs.LoggingUtils.getExecutionTime;
+import static me.exrates.service.logs.LoggingUtils.getMethodName;
 
 @Log4j2(topic = "Controller_layer_log")
 @Aspect
@@ -61,7 +57,7 @@ public class ControllerLogAspects {
     protected void allMethod() {
     }
 
-    /*@Around("execution(* *(..)) && @annotation(org.springframework.messaging.simp.annotation.SubscribeMapping)")
+    @Around("execution(* *(..)) && @annotation(org.springframework.messaging.simp.annotation.SubscribeMapping)")
     public Object doBasicProfilingHandlersOnWsSubscribe(ProceedingJoinPoint pjp) throws Throwable {
         String method = getMethodName(pjp);
         String args = Arrays.toString(pjp.getArgs());
@@ -78,7 +74,7 @@ public class ControllerLogAspects {
         } finally {
             ProcessIDManager.unregisterProcessId(getClass());
         }
-    }*/
+    }
 
 
     @Around("execution(* *(..)) && @annotation(org.springframework.web.bind.annotation.ExceptionHandler)")

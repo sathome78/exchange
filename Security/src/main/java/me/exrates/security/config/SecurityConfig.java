@@ -2,12 +2,17 @@ package me.exrates.security.config;
 
 import me.exrates.model.enums.AdminAuthority;
 import me.exrates.model.enums.UserRole;
+import me.exrates.security.HttpLoggingFilter;
 import me.exrates.security.filter.*;
+import me.exrates.security.filter_not_wrapped.AjaxAwareAccessDeniedHandler;
+import me.exrates.security.filter_not_wrapped.CapchaAuthorizationFilter;
+import me.exrates.security.filter_not_wrapped.CustomConcurrentSessionFilter;
 import me.exrates.security.postprocessor.OnlineMethodPostProcessor;
-import me.exrates.security.service.impl.UserDetailsServiceImpl;
+import me.exrates.security.filter_not_wrapped.QRAuthorizationFilter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -19,8 +24,11 @@ import org.springframework.security.config.annotation.web.configurers.SessionMan
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.channel.ChannelProcessingFilter;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
@@ -41,27 +49,27 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   private static final int MAXIMUM_SESSIONS = 2;
 
   private final PasswordEncoder passwordEncoder;
-  private final UserDetailsServiceImpl userDetailsService;
+  private final UserDetailsService userDetailsService;
 
   @Autowired
-  public SecurityConfig(PasswordEncoder passwordEncoder, UserDetailsServiceImpl userDetailsService) {
+  public SecurityConfig(PasswordEncoder passwordEncoder, UserDetailsService userDetailsService) {
     SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
     this.passwordEncoder = passwordEncoder;
     this.userDetailsService = userDetailsService;
   }
 
   @Bean
-  public LoginSuccessHandler loginSuccessHandler() {
+  public AuthenticationSuccessHandler loginSuccessHandler() {
     return new LoginSuccessHandler();
   }
 
   @Bean
-  public OnlineMethodPostProcessor onlineMethodPostProcessor() {
+  public BeanPostProcessor onlineMethodPostProcessor() {
     return new OnlineMethodPostProcessor();
   }
 
   @Bean
-  public LoginFailureHandler loginFailureHandler() {
+  public AuthenticationFailureHandler loginFailureHandler() {
     return new LoginFailureHandler("/login?error");
   }
 
@@ -123,6 +131,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
+    http.addFilterBefore(new HttpLoggingFilter(), UsernamePasswordAuthenticationFilter.class);
     http.addFilterBefore(customUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
     http.addFilterBefore(customQRAuthorizationFilter(), CapchaAuthorizationFilter.class);
     http.addFilterBefore(characterEncodingFilter(), ChannelProcessingFilter.class);

@@ -2,7 +2,7 @@ package me.exrates.security.postprocessor;
 
 
 import me.exrates.security.annotation.OnlineMethod;
-import me.exrates.security.filter.CustomConcurrentSessionFilter;
+import me.exrates.security.filter_not_wrapped.CustomConcurrentSessionFilter;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -13,7 +13,6 @@ import java.lang.reflect.Method;
 /**
  * Created by ValkSam on 29.08.2016.
  */
-
 public class OnlineMethodPostProcessor implements BeanPostProcessor {
 
     @Autowired

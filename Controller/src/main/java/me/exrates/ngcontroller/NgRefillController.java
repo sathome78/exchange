@@ -18,7 +18,7 @@ import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderExceptio
 import me.exrates.model.ngExceptions.NgCurrencyNotFoundException;
 import me.exrates.model.ngExceptions.NgRefillException;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
-import me.exrates.security.service.CheckUserAuthority;
+import me.exrates.security.annotation.CheckUserAuthority;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.GtagRefillService;
 import me.exrates.service.InputOutputService;

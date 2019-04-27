@@ -16,7 +16,7 @@ import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.service.AuthTokenService;
-import me.exrates.security.service.CheckIp;
+import me.exrates.security.annotation.CheckIp;
 import me.exrates.security.service.NgUserService;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.ReferralService;

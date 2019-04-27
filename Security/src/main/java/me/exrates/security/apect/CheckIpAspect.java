@@ -1,7 +1,8 @@
-package me.exrates.security.service;
+package me.exrates.security.apect;
 
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.security.annotation.CheckIp;
 import me.exrates.security.exception.MissingHeaderException;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import org.aspectj.lang.JoinPoint;
@@ -18,7 +19,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
-import java.util.Enumeration;
 import java.util.Optional;
 
 @Log4j2(topic = "check_ip_aspect")
@@ -33,7 +33,7 @@ public class CheckIpAspect {
     @Autowired
     private IpBlockingService ipBlockingService;
 
-    @Before("@annotation(CheckIp)")
+    @Before("@annotation(me.exrates.security.annotation.CheckIp)")
     public void checkIp(JoinPoint jp) {
         MethodSignature signature = (MethodSignature) jp.getSignature();
         Method method = signature.getMethod();

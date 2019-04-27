@@ -1,8 +1,9 @@
-package me.exrates.controller.filter;
+package me.exrates.security;
 
-import lombok.extern.log4j.Log4j2;
+
+
 import me.exrates.ProcessIDManager;
-import org.springframework.security.access.prepost.PreFilter;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -11,7 +12,9 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+
 import java.io.IOException;
+import java.util.Optional;
 
 
 public class HttpLoggingFilter implements Filter {
@@ -23,7 +26,12 @@ public class HttpLoggingFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        ProcessIDManager.registerNewProcessForRequest(HttpLoggingFilter.class, (HttpServletRequest) request);
+        ProcessIDManager
+                .getProcessIdFromCurrentThread()
+                .orElseGet(() -> {
+                    ProcessIDManager.registerNewProcessForRequest(HttpLoggingFilter.class, (HttpServletRequest) request);
+                    return StringUtils.EMPTY;
+                });
         try {
             chain.doFilter(request, response);
         } finally {

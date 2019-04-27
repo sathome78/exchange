@@ -1,4 +1,4 @@
-package me.exrates.security.service;
+package me.exrates.security.annotation;
 
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
 

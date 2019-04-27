@@ -13,10 +13,10 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 
-import static me.exrates.aspect.LoggingUtils.formatException;
-import static me.exrates.aspect.LoggingUtils.getAuthenticatedUser;
-import static me.exrates.aspect.LoggingUtils.getExecutionTime;
-import static me.exrates.aspect.LoggingUtils.getMethodName;
+import static me.exrates.service.logs.LoggingUtils.formatException;
+import static me.exrates.service.logs.LoggingUtils.getAuthenticatedUser;
+import static me.exrates.service.logs.LoggingUtils.getExecutionTime;
+import static me.exrates.service.logs.LoggingUtils.getMethodName;
 
 @Log4j2(topic = "Jdbc_query_log")
 @Aspect

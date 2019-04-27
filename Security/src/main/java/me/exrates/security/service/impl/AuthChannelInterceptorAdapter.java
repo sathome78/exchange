@@ -1,9 +1,10 @@
-package me.exrates.security.service;
+package me.exrates.security.service.impl;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.exceptions.InvalidCredentialsException;
+import me.exrates.security.service.WebSocketAuthenticatorService;
 import me.exrates.service.UserService;
 import me.exrates.service.bitshares.memo.Preconditions;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -14,7 +15,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.util.StringUtils;
 
 import java.security.Principal;
+import java.util.Arrays;
 import java.util.Optional;
+import java.util.function.Supplier;
+
+import static me.exrates.service.logs.Logger.logAndExecute;
+import static me.exrates.service.logs.LoggingUtils.getMethodName;
 
 
 public class AuthChannelInterceptorAdapter extends ChannelInterceptorAdapter {
@@ -36,25 +42,26 @@ public class AuthChannelInterceptorAdapter extends ChannelInterceptorAdapter {
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
-        final StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-        if (StompCommand.CONNECT.equals(accessor.getCommand()) || StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
-            final String ip = accessor.getFirstNativeHeader(IP_HEADER);
-            if (!StringUtils.isEmpty(accessor.getFirstNativeHeader(HEADER_SIGNATURE))) {
-                final String signature = accessor.getFirstNativeHeader(HEADER_SIGNATURE);
-                final String pubKey = accessor.getFirstNativeHeader(HEADER_PUBLIC_KEY);
-                final String timestamp = accessor.getFirstNativeHeader(HEADER_TIMESTAMP);
-                final String destination = Optional.ofNullable(accessor.getDestination()).orElse(""); /*destination: for subscribe /user/queue/my_orders/1* for connect "" */
-                final String method = accessor.getCommand().name(); /*CONNECT or SUBSCRIBE*/
-                final UsernamePasswordAuthenticationToken user = webSocketAuthenticatorService.getAuthenticatedOrFailByHMAC(method, destination, Long.parseLong(timestamp), pubKey, signature);
-                accessor.setUser(user);
-            } else if (!StringUtils.isEmpty(accessor.getFirstNativeHeader(TOKEN_HEADER))) {
-                final String token = accessor.getFirstNativeHeader(TOKEN_HEADER);
-                final UsernamePasswordAuthenticationToken user = webSocketAuthenticatorService.getAuthenticatedOrFailByJwt(token, ip);
-                accessor.setUser(user);
-                if (StompCommand.SUBSCRIBE.equals(accessor.getCommand()) && accessor.getDestination().contains(PRIVATE_PATH)) {
-                    checkUserAuth(accessor);
-                }
-            } /*else if (!StringUtils.isEmpty(accessor.getFirstNativeHeader(USERNAME_HEADER)) && !StringUtils.isEmpty(accessor.getFirstNativeHeader(PASSWORD_HEADER))) {
+        Supplier<Message<?>> supplier = ()-> {
+            final StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+            if (StompCommand.CONNECT.equals(accessor.getCommand()) || StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
+                final String ip = accessor.getFirstNativeHeader(IP_HEADER);
+                if (!StringUtils.isEmpty(accessor.getFirstNativeHeader(HEADER_SIGNATURE))) {
+                    final String signature = accessor.getFirstNativeHeader(HEADER_SIGNATURE);
+                    final String pubKey = accessor.getFirstNativeHeader(HEADER_PUBLIC_KEY);
+                    final String timestamp = accessor.getFirstNativeHeader(HEADER_TIMESTAMP);
+                    final String destination = Optional.ofNullable(accessor.getDestination()).orElse(""); /*destination: for subscribe /user/queue/my_orders/1* for connect "" */
+                    final String method = accessor.getCommand().name(); /*CONNECT or SUBSCRIBE*/
+                    final UsernamePasswordAuthenticationToken user = webSocketAuthenticatorService.getAuthenticatedOrFailByHMAC(method, destination, Long.parseLong(timestamp), pubKey, signature);
+                    accessor.setUser(user);
+                } else if (!StringUtils.isEmpty(accessor.getFirstNativeHeader(TOKEN_HEADER))) {
+                    final String token = accessor.getFirstNativeHeader(TOKEN_HEADER);
+                    final UsernamePasswordAuthenticationToken user = webSocketAuthenticatorService.getAuthenticatedOrFailByJwt(token, ip);
+                    accessor.setUser(user);
+                    if (StompCommand.SUBSCRIBE.equals(accessor.getCommand()) && accessor.getDestination().contains(PRIVATE_PATH)) {
+                        checkUserAuth(accessor);
+                    }
+                } /*else if (!StringUtils.isEmpty(accessor.getFirstNativeHeader(USERNAME_HEADER)) && !StringUtils.isEmpty(accessor.getFirstNativeHeader(PASSWORD_HEADER))) {
                 final String email = accessor.getLogin();
                 String password = accessor.getFirstNativeHeader(PASSWORD_HEADER);
                 System.out.println("login: " + email + "  password: " + password);
@@ -62,8 +69,13 @@ public class AuthChannelInterceptorAdapter extends ChannelInterceptorAdapter {
                 accessor.setUser(user);
             }*/
 
-        }
-        return message;
+            }
+            return message;
+        };
+        return (Message<?>) logAndExecute(supplier,
+                getMethodName(getClass().getName(), Thread.currentThread().getStackTrace()[1].getMethodName()),
+                getClass(),
+                Arrays.toString(new Object[]{message, channel}));
     }
 
     private void checkUserAuth(StompHeaderAccessor accessor) {

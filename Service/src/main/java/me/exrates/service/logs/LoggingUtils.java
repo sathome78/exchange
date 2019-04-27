@@ -1,4 +1,4 @@
-package me.exrates.aspect;
+package me.exrates.service.logs;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
@@ -22,7 +22,11 @@ public class LoggingUtils {
     public static String getMethodName(ProceedingJoinPoint pjp) {
         MethodSignature signature = (MethodSignature) pjp.getSignature();
         String fullClassName = signature.getDeclaringTypeName();
-        return String.join("#", fullClassName.substring(fullClassName.lastIndexOf(".") + 1), signature.getMethod().getName());
+        return getMethodName(fullClassName, signature.getMethod().getName());
+    }
+
+    public static String getMethodName(String fullClassName, String methodName) {
+        return String.join("#", fullClassName.substring(fullClassName.lastIndexOf(".") + 1), methodName);
     }
 
     public static String formatException(Throwable throwable) {

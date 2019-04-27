@@ -11,7 +11,7 @@ import me.exrates.model.dto.PinDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.NotificationTypeEnum;
 import me.exrates.security.exception.PinCodeCheckNeedException;
-import me.exrates.security.filter.CapchaAuthorizationFilter;
+import me.exrates.security.filter_not_wrapped.CapchaAuthorizationFilter;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.UserService;
 import me.exrates.service.notifications.NotificationMessageService;

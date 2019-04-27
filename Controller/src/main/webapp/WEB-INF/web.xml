@@ -8,7 +8,7 @@
 
     <filter>
         <filter-name>HttpLoggingFilter</filter-name>
-        <filter-class>me.exrates.controller.filter.HttpLoggingFilter</filter-class>
+        <filter-class>me.exrates.security.HttpLoggingFilter</filter-class>
     </filter>
 
     <filter-mapping>

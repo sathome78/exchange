@@ -1,4 +1,4 @@
-package me.exrates.security.filter;
+package me.exrates.security.filter_not_wrapped;
 
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.events.QRLoginEvent;

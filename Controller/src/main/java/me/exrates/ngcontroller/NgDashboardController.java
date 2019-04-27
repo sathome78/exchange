@@ -22,7 +22,7 @@ import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.model.ngUtil.PagedResult;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.ngService.NgOrderService;
-import me.exrates.security.service.CheckUserAuthority;
+import me.exrates.security.annotation.CheckUserAuthority;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
 import me.exrates.service.OrderService;

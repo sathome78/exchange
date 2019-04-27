@@ -1,4 +1,4 @@
-package me.exrates.security.filter;
+package me.exrates.security.filter_not_wrapped;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;

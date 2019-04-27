@@ -1,7 +1,8 @@
 package me.exrates.security.config;
 
-import me.exrates.security.service.AuthChannelInterceptorAdapter;
 import me.exrates.security.service.WebSocketAuthenticatorService;
+import me.exrates.security.service.impl.AuthChannelInterceptorAdapter;
+import me.exrates.security.service.impl.WebSocketAuthenticatorServiceImpl;
 import me.exrates.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
@@ -9,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.messaging.simp.config.ChannelRegistration;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 
@@ -34,7 +36,8 @@ public class WebSocketAuthSecurityConfig extends AbstractWebSocketMessageBrokerC
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(new AuthChannelInterceptorAdapter(webSocketAuthenticatorService, userService));
+        ChannelInterceptor interceptor = new AuthChannelInterceptorAdapter(webSocketAuthenticatorService, userService);
+        registration.interceptors(interceptor);
     }
 }
 

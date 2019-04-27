@@ -2,6 +2,7 @@ package me.exrates.service.stopOrder;
 
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.ProcessIDManager;
 import me.exrates.dao.StopOrderDao;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
@@ -47,6 +48,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.NavigableSet;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
@@ -237,8 +239,24 @@ public class StopOrderServiceImpl implements StopOrderService {
         log.debug("orderAccepted");
         ExOrder exOrder = (ExOrder) event.getSource();
         ratesHolder.onRateChange(exOrder.getCurrencyPairId(), exOrder.getOperationType(), exOrder.getExRate());
-        checkExecutors.execute(() -> checkOrders(exOrder, OperationType.BUY));
-        checkExecutors.execute(() -> checkOrders(exOrder, OperationType.SELL));
+        Optional<String> pid = ProcessIDManager.getProcessIdFromCurrentThread();
+        checkExecutors.execute(() -> {
+            ProcessIDManager.registerNewThreadForParentProcessId(getClass(), pid);
+            try {
+                checkOrders(exOrder, OperationType.BUY);
+            } finally {
+                ProcessIDManager.unregisterProcessId(getClass());
+            }
+
+        });
+        checkExecutors.execute(() -> {
+            ProcessIDManager.registerNewThreadForParentProcessId(getClass(), pid);
+            try {
+                checkOrders(exOrder, OperationType.SELL);
+            } finally {
+                ProcessIDManager.unregisterProcessId(getClass());
+            }
+        });
     }
 
 

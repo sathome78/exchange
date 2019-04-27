@@ -15,9 +15,9 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static me.exrates.aspect.LoggingUtils.getAuthenticatedUser;
-import static me.exrates.aspect.LoggingUtils.getExecutionTime;
-import static me.exrates.aspect.LoggingUtils.getMethodName;
+import static me.exrates.service.logs.LoggingUtils.getAuthenticatedUser;
+import static me.exrates.service.logs.LoggingUtils.getExecutionTime;
+import static me.exrates.service.logs.LoggingUtils.getMethodName;
 
 @Log4j2(topic = "Service_layer_log")
 @Aspect
@@ -41,8 +41,10 @@ public class ServiceLayerLogAspect {
             "|| execution(* me.exrates.service.merchantStrategy..*(..))" +
             "|| execution(* me.exrates.service.stomp..*(..))" +
             "|| execution(* me.exrates.service.refreshHandlers..*(..))" +
-            "|| execution(* me.exrates.service.handler..*(..))" /*+
-            "|| execution(* me.exrates.security.service.impl..*(..))"*/)
+            "|| execution(* me.exrates.service.handler..*(..))" +
+            "|| execution(* me.exrates.security.service..*(..))" +
+            "|| execution(* me.exrates.security.ipsecurity..*(..))" +
+            "|| execution(* me.exrates.security.filter..*(..))")
     protected void allMethods() {
     }
 
@@ -75,14 +77,12 @@ public class ServiceLayerLogAspect {
         long start = System.currentTimeMillis();
         String user = getAuthenticatedUser();
         AtomicReference<Optional<String>> id = new AtomicReference<>();
-        System.out.println("args " + Arrays.toString(pjp.getArgs()));
         Arrays.stream(pjp.getArgs()).forEach(p-> {
             if (p instanceof ApplicationEventWithProcessId) {
                 ApplicationEventWithProcessId event = (ApplicationEventWithProcessId) p;
                 id.set(event.getProcessId());
             }
         });
-        System.out.println("process id from parent thread " + id.get().orElse("no id!!"));
         ProcessIDManager.registerNewThreadForParentProcessId(getClass(), id.get());
         try {
             Object result = pjp.proceed();
@@ -94,7 +94,26 @@ public class ServiceLayerLogAspect {
         } finally {
             ProcessIDManager.unregisterProcessId(getClass());
         }
+    }
 
+    @Around(" execution(* me.exrates.service..*(..)) " +
+            "&& @annotation(org.springframework.scheduling.annotation.Async) ")
+    public Object doBasicProfilingOfAsync(ProceedingJoinPoint pjp) throws Throwable {
+        String method = getMethodName(pjp);
+        String args = Arrays.toString(pjp.getArgs());
+        long start = System.currentTimeMillis();
+        String user = getAuthenticatedUser();
+        ProcessIDManager.registerNewThreadForParentProcessId(getClass(), Optional.empty());
+        try {
+            Object result = pjp.proceed();
+            log.debug(new MethodsLog(method, args, result, user, getExecutionTime(start), StringUtils.EMPTY));
+            return result;
+        } catch (Throwable ex) {
+            log.debug(new MethodsLog(method, args, StringUtils.EMPTY, user, getExecutionTime(start), ex.getCause() + " " + ex.getMessage()));
+            throw ex;
+        } finally {
+            ProcessIDManager.unregisterProcessId(getClass());
+        }
     }
 
 }

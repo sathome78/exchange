@@ -29,7 +29,7 @@ import me.exrates.model.ngModel.response.ResponseCustomError;
 import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.security.exception.IncorrectPinException;
-import me.exrates.security.service.CheckUserAuthority;
+import me.exrates.security.annotation.CheckUserAuthority;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.InputOutputService;

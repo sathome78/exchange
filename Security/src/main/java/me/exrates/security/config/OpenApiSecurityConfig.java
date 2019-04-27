@@ -1,5 +1,6 @@
 package me.exrates.security.config;
 
+import me.exrates.security.HttpLoggingFilter;
 import me.exrates.security.entryPoint.OpenApiAuthenticationEntryPoint;
 import me.exrates.security.filter.OpenApiAuthenticationFilter;
 import me.exrates.security.filter.RestAlterdiceFilterExp;
@@ -49,6 +50,7 @@ public class OpenApiSecurityConfig extends WebSecurityConfigurerAdapter {
                 .exceptionHandling()
                 .authenticationEntryPoint(authenticationEntryPoint())
                 .and()
+                .addFilterBefore(new HttpLoggingFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new RestAlterdiceFilterExp(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(openApiAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)

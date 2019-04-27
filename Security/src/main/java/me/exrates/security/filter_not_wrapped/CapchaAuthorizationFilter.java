@@ -1,4 +1,4 @@
-package me.exrates.security.filter;
+package me.exrates.security.filter_not_wrapped;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.PinDto;
@@ -7,6 +7,7 @@ import me.exrates.model.enums.UserStatus;
 import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.UnconfirmedUserException;
+import me.exrates.security.filter.NotVerifiedCaptchaError;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.UserService;
