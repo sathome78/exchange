@@ -1,22 +1,20 @@
 package web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.appengine.api.search.checkers.Preconditions;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import com.medxoom.Migration;
-import com.stripe.Stripe;
-import com.stripe.model.Token;
-import conf.DatabaseConfig;
 import framework.model.BasePresentBodyRequest;
 import framework.model.Block;
 import framework.model.HttpMethodBlock;
+import framework.model.Operation;
 import framework.model.Response;
 import framework.model.impl.Config;
 import framework.model.impl.auth.Authentication;
@@ -26,19 +24,20 @@ import framework.model.impl.instructruction.Break;
 import framework.model.impl.mock.When;
 import framework.model.impl.variable.Variable;
 import framework.parser.ConfigCollector;
-import mock.MockPokitDokAPIImpl;
-import framework.model.Operation;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.imagination.comparator.Comparator;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ContextConfiguration;
@@ -49,8 +48,6 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-import persistence.dao.interfaces.UserDAO;
-import service.api.pokitdok.PokitDokAPI;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -59,18 +56,39 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static web.Parameters.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.fileUpload;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static web.Parameters.FILE_NAME_PATCH_DEFAULT;
+import static web.Parameters.FOLDER_CONFIGS;
+import static web.Parameters.FOLDER_CREDENTIALS;
+import static web.Parameters.FOLDER_PATCHES;
+import static web.Parameters.FOLDER_SCENARIOS;
+import static web.Parameters.FOLDER_SCENARIOS_ERROR;
+import static web.Parameters.FOLDER_TEST;
+import static web.Parameters.PATTERN_DIR_FILTER;
+import static web.Parameters.ROOT;
+import static web.Parameters.SETTINGS_STOP_ON_ERROR;
 
 @RunWith(Parameterized.class)
-@ContextConfiguration(locations = {
-        "classpath:testApplicationContext.xml"
-})
+@ContextConfiguration(classes = {DBConfig.class})
 @WebAppConfiguration
 public class RootTest {
 
@@ -85,7 +103,7 @@ public class RootTest {
 
     private static final List<Transformation> TRANSFORMATION_LIST = new ArrayList<Transformation>() {
         {
-            add(new RandomStripeToken());
+
         }
     };
 
@@ -120,15 +138,10 @@ public class RootTest {
     protected WebApplicationContext ctx;
 
     @Autowired
-    @Qualifier("dbConf")
     protected DatabaseConfig databaseConfig;
 
     @Autowired
-    @Qualifier("source")
     protected DataSource dataSource;
-
-    @Autowired
-    protected PokitDokAPI pokitDokAPI;
 
     @Autowired
     protected AutowireCapableBeanFactory beanFactory;
@@ -180,7 +193,7 @@ public class RootTest {
 
         if (result.isOk()) {
             Config config = result.config.get();
-            if (config.getActive()){
+            if (config.getActive()) {
                 new DatabaseMigrationRunner(dataSource, databaseConfig).execute();
             } else {
                 Assume.assumeTrue(config.getDescription(), false);
@@ -253,8 +266,8 @@ public class RootTest {
         abstract String getSQLs();
 
         FluentIterable<String> iterator() {
-
-            return FluentIterable.from(getSQLs().split(SQL_DELIMITER)).filter(new Predicate<String>() {
+            List<String> split = Arrays.asList(getSQLs().split(SQL_DELIMITER));
+            return FluentIterable.from(split).filter(new Predicate<String>() {
                 @Override
                 public boolean apply(String s) {
                     return s.trim().length() > 0;
@@ -461,21 +474,11 @@ public class RootTest {
                 throw new StopSignal();
             } else if (each instanceof When) {
                 When when = (When) each;
-
-                if (when.getService().equals("pokitdok")) {
-                    if (pokitDokAPI instanceof MockPokitDokAPIImpl) {
-                        String query = FileUtils.readFileToString(when.getRequest());
-                        String content = FileUtils.readFileToString(when.getResponse());
-
-                        LOGGER.info(String.format("%-8s", "Warm up pokitdok with argument \n" + query));
-                        ((MockPokitDokAPIImpl) pokitDokAPI).put(query, content);
-                    }
-                }
             } else if (each instanceof ExecuteOperation) {
                 pos.incrementAndGet();
 
                 ExecuteOperation operation = (ExecuteOperation) each;
-                LOGGER.info(String.format("%2s. %-8s", String.valueOf(pos.get()), "ExecuteOperation on "+ operation.getClassName()));
+                LOGGER.info(String.format("%2s. %-8s", String.valueOf(pos.get()), "ExecuteOperation on " + operation.getClassName()));
 
                 Operation op = (Operation) Class.forName(operation.getClassName()).newInstance();
                 beanFactory.autowireBean(op);
@@ -514,7 +517,7 @@ public class RootTest {
             private List<String> result = new ArrayList<>();
 
             TestValidator validateAndSave(int expectedCode,
-                                                 int actualCode) throws Exception {
+                                          int actualCode) throws Exception {
                 try {
                     Assert.assertEquals(expectedCode, actualCode);
                 } catch (Throwable e) {
@@ -526,7 +529,7 @@ public class RootTest {
             }
 
             TestValidator validateAndSave(Map<String, String> expectedHeaders,
-                                                 Map<String, String> actualHeaders) throws Exception {
+                                          Map<String, String> actualHeaders) throws Exception {
                 try {
                     for (Map.Entry<String, String> entry : expectedHeaders.entrySet()) {
                         String value = actualHeaders.get(entry.getKey());
@@ -543,7 +546,7 @@ public class RootTest {
             }
 
             TestValidator validateAndSave(Optional<File> expectedBodyFile,
-                                                 String actualBody) throws Exception {
+                                          String actualBody) throws Exception {
                 Optional<String> expectedBody = expectedBodyFile.transform(new Function<File, String>() {
                     @Override
                     public String apply(File file) {
@@ -628,7 +631,7 @@ public class RootTest {
             } else if ("POST".equalsIgnoreCase(name)) {
                 BasePresentBodyRequest body = (BasePresentBodyRequest) method;
 
-                if (body.getMultipart() || !body.getFiles().isEmpty()){
+                if (body.getMultipart() || !body.getFiles().isEmpty()) {
                     return fileUpload(url);
                 } else {
                     return post(url);
@@ -681,7 +684,7 @@ public class RootTest {
 
                 if (!b.getFiles().isEmpty()) {
                     for (Map.Entry<String, File> entry : b.getFiles().entrySet()) {
-                        request = ((MockMultipartHttpServletRequestBuilder)request).
+                        request = ((MockMultipartHttpServletRequestBuilder) request).
                                 file(entry.getKey(), FileUtils.readFileToByteArray(entry.getValue()));
                     }
                 }
@@ -697,8 +700,8 @@ public class RootTest {
             private String content;
 
             WsResponse(int code,
-                              Map<String, String> headers,
-                              String content) {
+                       Map<String, String> headers,
+                       String content) {
                 this.code = code;
                 this.headers = headers;
                 this.content = content;
@@ -739,7 +742,8 @@ public class RootTest {
                     Object json = mapper.readValue(actual, Object.class);
                     return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json);
                 }
-            } catch (Exception ignore) {}
+            } catch (Exception ignore) {
+            }
             return actual;
         }
 
@@ -758,7 +762,7 @@ public class RootTest {
             }
         }
 
-        String recursiveInject(String original){
+        String recursiveInject(String original) {
             Matcher m = routePattern.matcher(original);
             if (m.find()) {
                 return original.substring(0, m.start()) + ctx.get(m.group(1)) + original.substring(m.end(), original.length());
@@ -865,38 +869,12 @@ public class RootTest {
     }
 
 
-
     interface Transformation {
         boolean matches(String input);
+
         String apply(String input);
     }
 
-    private static class RandomStripeToken implements Transformation {
-
-        @Override
-        public boolean matches(String input) {
-            return "randomStripeToken".equals(input);
-        }
-
-        @Override
-        public String apply(String input) {
-            Stripe.apiKey = "sk_test_8k0anL37BA4sBr3NcqILktGY";
-
-            Map<String, Object> tokenParams = new HashMap<>();
-            Map<String, Object> cardParams = new HashMap<>();
-            cardParams.put("number", "4242424242424242");
-            cardParams.put("exp_month", 10);
-            cardParams.put("exp_year", 2020);
-            cardParams.put("cvc", "121");
-            tokenParams.put("card", cardParams);
-
-            try {
-                return Token.create(tokenParams).getId();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
 
     public static class Table {
         public final String sql;
