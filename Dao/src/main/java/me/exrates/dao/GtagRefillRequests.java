@@ -5,7 +5,7 @@ public interface GtagRefillRequests {
 
     void updateUserRequestsCount(Integer username);
 
-    Integer getUserRequestsCount(Integer username);
+    Integer getUserRequestsCount(Integer userId);
 
     void resetCount(Integer username);
 

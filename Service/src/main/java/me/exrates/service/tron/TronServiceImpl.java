@@ -12,7 +12,6 @@ import me.exrates.model.dto.TronNewAddressDto;
 import me.exrates.model.dto.TronReceivedTransactionDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.condition.MonolitConditional;
-import me.exrates.model.dto.*;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
@@ -27,7 +26,6 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -157,9 +155,9 @@ public class TronServiceImpl implements TronService {
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
         refillService.autoAcceptRefillRequest(requestAcceptDto);
-        final String username = refillService.getUsernameByRequestId(id);
+        final String gaTag = refillService.getUserGAByRequestId(id);
         log.debug("Process of sending data to Google Analytics...");
-        gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
+        gtagService.sendGtagEvents(amount.toString(), currency.getName(), gaTag);
     }
 
     @Override

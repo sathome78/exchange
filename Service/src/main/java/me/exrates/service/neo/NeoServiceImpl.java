@@ -296,10 +296,9 @@ public class NeoServiceImpl implements NeoService {
                     refillService.autoAcceptRefillRequest(requestAcceptDto);
                     transferCostsToMainAccount(assetId, dto.getAmount());
 
-                    final String username = refillService.getUsernameByRequestId(requestId);
-
+                    final String gaTag = refillService.getUserGAByRequestId(requestId);
                     log.debug("Process of sending data to Google Analytics...");
-                    gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), mainCurency.getName(), username);
+                    gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), mainCurency.getName(), gaTag);
                 }
             }
         } catch (RefillRequestAppropriateNotFoundException e) {

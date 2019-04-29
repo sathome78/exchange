@@ -1372,10 +1372,10 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Transactional(readOnly = true)
-    public Integer getUserIdByGa(String email) {
-        String sql = "SELECT u.ID FROM USER u WHERE u.email =:email";
+    public Integer getUserIdByGaTag(String gaTag) {
+        String sql = "SELECT u.id FROM USER u WHERE u.ga =:ga";
 
-        return masterTemplate.queryForObject(sql, Collections.singletonMap("email", email), Integer.class);
+        return masterTemplate.queryForObject(sql, Collections.singletonMap("ga", gaTag), Integer.class);
 
     }
 

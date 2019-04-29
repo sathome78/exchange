@@ -21,9 +21,6 @@ import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestIdNeededException;
 import me.exrates.service.exception.RefillRequestNotFoundException;
 import me.exrates.model.condition.MonolitConditional;
-import me.exrates.model.dto.*;
-import me.exrates.service.*;
-import me.exrates.service.exception.*;
 import me.exrates.service.util.WithdrawUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -239,10 +236,10 @@ public class InterkassaServiceImpl implements InterkassaService {
 
             refillService.autoAcceptRefillRequest(requestAcceptDto);
 
-            final String username = refillService.getUsernameByRequestId(requestId);
+            final String gaTag = refillService.getUserGAByRequestId(requestId);
 
             logger.debug("Process of sending data to Google Analytics...");
-            gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
+            gtagService.sendGtagEvents(amount.toString(), currency.getName(), gaTag);
         }
     }
 

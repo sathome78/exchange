@@ -131,10 +131,10 @@ public class OkPayServiceImpl implements OkPayService {
             refillService.autoAcceptRefillRequest(requestAcceptDto);
             logger.info("Okpay processPayment: after autoAcceptRefillRequest");
 
-            final String username = refillService.getUsernameByRequestId(requestId);
+            final String gaTag = refillService.getUserGAByRequestId(requestId);
 
             logger.debug("Process of sending data to Google Analytics...");
-            gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
+            gtagService.sendGtagEvents(amount.toString(), currency.getName(), gaTag);
         }
 
     }

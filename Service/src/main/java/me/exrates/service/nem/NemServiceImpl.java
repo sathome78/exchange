@@ -13,7 +13,6 @@ import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.condition.MonolitConditional;
-import me.exrates.model.dto.*;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.AlgorithmService;
@@ -197,7 +196,7 @@ public class NemServiceImpl implements NemService {
         } else {
             refillService.autoAcceptRefillRequest(requestAcceptDto);
 
-            final String username = refillService.getUsernameByRequestId(requestId);
+            final String username = refillService.getUserGAByRequestId(requestId);
 
             log.debug("Process of sending data to Google Analytics...");
             gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
@@ -245,7 +244,7 @@ public class NemServiceImpl implements NemService {
                 } else {
                     refillService.autoAcceptRefillRequest(requestAcceptDto);
 
-                    final String username = refillService.getUsernameByRequestId(requestId);
+                    final String username = refillService.getUserGAByRequestId(requestId);
 
                     log.debug("Process of sending data to Google Analytics...");
                     gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
@@ -281,7 +280,7 @@ public class NemServiceImpl implements NemService {
 
             refillService.autoAcceptRefillRequest(requestAcceptDto);
 
-            final String username = refillService.getUsernameByRequestId(requestId);
+            final String username = refillService.getUserGAByRequestId(requestId);
 
             log.debug("Process of sending data to Google Analytics...");
             gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), currency.getName(), username);
