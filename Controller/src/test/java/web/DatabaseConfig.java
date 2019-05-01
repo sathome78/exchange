@@ -1,6 +1,7 @@
 package web;
 
 public interface DatabaseConfig {
+
     String getSchema();
 
     String getUrl();
