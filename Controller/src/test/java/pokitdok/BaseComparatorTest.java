@@ -1,10 +1,10 @@
 package pokitdok;
 
 import org.apache.commons.io.FileUtils;
-import org.imagination.comparator.Comparator;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
-
+import org.imagination.comparator.Comparator;
 import java.io.File;
 import java.io.IOException;
 
