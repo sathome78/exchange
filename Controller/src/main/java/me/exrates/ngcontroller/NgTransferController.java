@@ -220,7 +220,7 @@ public class NgTransferController {
                 throw new IncorrectPinException("Incorrect Google 2FA oauth code: " + requestParamsDto.getPin());
             }
         } else {
-            if (!userService.checkPin(getPrincipalEmail(), requestParamsDto.getPin(), NotificationMessageEventEnum.WITHDRAW)) {
+            if (!userService.checkPin(getPrincipalEmail(), requestParamsDto.getPin(), NotificationMessageEventEnum.TRANSFER)) {
                 Currency currency = currencyService.getById(requestParamsDto.getCurrency());
                 secureService.sendTransferPinCode(user, requestParamsDto.getSum().toPlainString(), currency.getName());
                 throw new IncorrectPinException("Incorrect pin: " + requestParamsDto.getPin());

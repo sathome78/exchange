@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -101,10 +100,10 @@ public class PayeerServiceImpl implements PayeerService {
 
     refillService.autoAcceptRefillRequest(requestAcceptDto);
 
-    final String username = refillService.getUsernameByRequestId(requestId);
+    final String gaTag = refillService.getUserGAByRequestId(requestId);
 
     logger.debug("Process of sending data to Google Analytics...");
-    gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
+    gtagService.sendGtagEvents(amount.toString(), currency.getName(), gaTag);
   }
 
   private void checkSign(Map<String, String> params) {

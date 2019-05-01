@@ -11,7 +11,6 @@ import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
 import me.exrates.model.dto.RefillRequestSetConfirmationsNumberDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.condition.MonolitConditional;
-import me.exrates.model.dto.*;
 import me.exrates.model.dto.merchants.lisk.LiskAccount;
 import me.exrates.model.dto.merchants.lisk.LiskTransaction;
 import me.exrates.service.CurrencyService;
@@ -213,10 +212,9 @@ public class LiskServiceImpl implements LiskService {
                 RefillRequestFlatDto flatDto = refillService.getFlatById(requestId);
                 sendTransaction(flatDto.getBrainPrivKey(), dto.getAmount(), mainAddress);
 
-                final String username = refillService.getUsernameByRequestId(requestId);
-
+                final String gaTag = refillService.getUserGAByRequestId(requestId);
                 log.debug("Process of sending data to Google Analytics...");
-                gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), currencyName, username);
+                gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), currencyName, gaTag);
             }
         } catch (RefillRequestAppropriateNotFoundException e) {
             log.error(e);

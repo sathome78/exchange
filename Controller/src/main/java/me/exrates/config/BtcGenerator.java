@@ -94,7 +94,15 @@ public class BtcGenerator {
             "INSERT IGNORE INTO COMPANY_EXTERNAL_WALLET_BALANCES (currency_id)\n" +
             "SELECT cur.id\n" +
             "FROM CURRENCY cur\n" +
-            "WHERE cur.name IN ('TCR');";
+            "WHERE cur.name IN ('TCR');" +
+            "INSERT IGNORE INTO CURRENT_CURRENCY_RATES (currency_id, currency_name)\n" +
+            "SELECT cur.id, cur.name\n" +
+            "FROM CURRENCY cur\n" +
+            "WHERE cur.name = 'TCR';" +
+            "INSERT IGNORE INTO CURRENT_CURRENCY_BALANCES (currency_id, currency_name)\n" +
+            "SELECT cur.id, cur.name\n" +
+            "FROM CURRENCY cur\n" +
+            "WHERE cur.name = 'TCR';";
 
     private static final String WALLET_SCRIPT_PROPERTIES =
             "backup.folder=/data/backup/\n" +

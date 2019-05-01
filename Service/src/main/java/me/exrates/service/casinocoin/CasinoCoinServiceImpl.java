@@ -15,8 +15,6 @@ import me.exrates.service.RefillService;
 import me.exrates.service.exception.CheckDestinationTagException;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.NotImplimentedMethod;
-import me.exrates.service.exception.WithdrawRequestPostException;
-import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.util.WithdrawUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -128,10 +126,10 @@ public class CasinoCoinServiceImpl implements CasinoCoinService {
 
         int requestId = refillService.createAndAutoAcceptRefillRequest(requestAcceptDto);
 
-        final String username = refillService.getUsernameByRequestId(requestId);
+        final String gaTag = refillService.getUserGAByRequestId(requestId);
 
         log.debug("Process of sending data to Google Analytics...");
-        gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
+        gtagService.sendGtagEvents(amount.toString(), currency.getName(), gaTag);
     }
 
     private Integer generateUniqDestinationTag(int userId) {

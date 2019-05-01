@@ -35,7 +35,6 @@ import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Log4j2(topic = "qtum_log")
 @Service("qtumServiceImpl")
@@ -141,10 +140,9 @@ public class QtumServiceImpl implements QtumService {
 
         refillService.autoAcceptRefillRequest(requestAcceptDto);
 
-        final String username = refillService.getUsernameByRequestId(requestId);
-
+        final String gaTag = refillService.getUserGAByRequestId(requestId);
         log.debug("Process of sending data to Google Analytics...");
-        gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
+        gtagService.sendGtagEvents(amount.toString(), currency.getName(), gaTag);
     }
 
     @Override
