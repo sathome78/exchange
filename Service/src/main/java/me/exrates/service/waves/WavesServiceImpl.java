@@ -315,7 +315,7 @@ public class WavesServiceImpl implements WavesService {
 
             refillService.autoAcceptRefillRequest(requestAcceptDto);
 
-            final String username = refillService.getUsernameByRequestId(requestId);
+            final String username = refillService.getUserGAByRequestId(requestId);
 
             log.debug("Process of sending data to Google Analytics...");
             gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), currencyBase.getName(), username);

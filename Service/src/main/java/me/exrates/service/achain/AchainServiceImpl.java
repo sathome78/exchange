@@ -120,10 +120,10 @@ public class AchainServiceImpl implements AchainService {
 
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         }
-        final String username = refillService.getUsernameByRequestId(requestId);
+        final String gaTag = refillService.getUserGAByRequestId(requestId);
 
         log.debug("Process of sending data to Google Analytics...");
-        gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
+        gtagService.sendGtagEvents(amount.toString(), currency.getName(), gaTag);
     }
 
     private boolean isTransactionDuplicate(String hash, int currencyId, int merchantId) {

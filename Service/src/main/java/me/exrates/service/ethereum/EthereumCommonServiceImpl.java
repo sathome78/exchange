@@ -475,10 +475,10 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
             refillService.updateAddressNeedTransfer(requestAcceptDto.getAddress(), merchantService.findByName(merchantName).getId(), currencyService.findByName(currencyName).getId(), true);
 
-            final String username = refillService.getUsernameByRequestId(requestId);
+            final String gaTag = refillService.getUserGAByRequestId(requestId);
 
             log.debug("Process of sending data to Google Analytics...");
-            gtagService.sendGtagEvents(refillRequestInfoDto.get().getAmount().toString(), currencyName, username);
+            gtagService.sendGtagEvents(refillRequestInfoDto.get().getAmount().toString(), currencyName, gaTag);
         } catch (Exception e) {
             log.error(e);
         }
