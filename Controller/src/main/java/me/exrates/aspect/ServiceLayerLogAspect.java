@@ -85,13 +85,13 @@ public class ServiceLayerLogAspect {
             "&& !@annotation(org.springframework.scheduling.annotation.Async) " +
             "&& !@annotation(org.springframework.scheduling.annotation.Scheduled)")
     public Object doBasicProfiling(ProceedingJoinPoint pjp) throws Throwable {
-        return doBaseProfiling(pjp, getClass());
+        return doBaseProfiling(pjp, log);
     }
 
     @Around(" execution(* me.exrates.service..*(..)) " +
             "&& @annotation(org.springframework.scheduling.annotation.Async) ")
     public Object doBasicProfilingOfAsync(ProceedingJoinPoint pjp) throws Throwable {
-        return doBaseProfilingWithRegisterAndUnregister(pjp, getClass());
+        return doBaseProfilingWithRegisterAndUnregister(pjp, getClass(), log);
     }
 
 }

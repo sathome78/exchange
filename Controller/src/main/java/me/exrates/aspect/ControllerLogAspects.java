@@ -57,7 +57,7 @@ public class ControllerLogAspects {
 
     @Around("execution(* *(..)) && @annotation(org.springframework.messaging.simp.annotation.SubscribeMapping)")
     public Object doBasicProfilingHandlersOnWsSubscribe(ProceedingJoinPoint pjp) throws Throwable {
-      return doBaseProfilingWithRegisterAndUnregister(pjp, getClass());
+      return doBaseProfilingWithRegisterAndUnregister(pjp, getClass(), log);
     }
 
 

@@ -31,6 +31,6 @@ public class JdbcLogAspect {
 
     @Around("jdbc()")
     public Object doBasicProfiling(ProceedingJoinPoint pjp) throws Throwable {
-       return doBaseProfiling(pjp, getClass());
+       return doBaseProfiling(pjp, log);
     }
 }

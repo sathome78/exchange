@@ -1,6 +1,6 @@
 package me.exrates.service.logs;
 
-import lombok.extern.log4j.Log4j2;
+
 import me.exrates.ProcessIDManager;
 import me.exrates.model.dto.logging.MethodsLog;
 import org.apache.commons.lang3.StringUtils;
@@ -12,7 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.Arrays;
 import java.util.Optional;
 
-@Log4j2(topic = "Controller_layer_log")
+
 public class LoggingUtils {
 
     private LoggingUtils() {
@@ -23,7 +23,7 @@ public class LoggingUtils {
     }
 
 
-    public static Object doBaseProfiling(ProceedingJoinPoint pjp, Class clazz) throws Throwable {
+    public static Object doBaseProfiling(ProceedingJoinPoint pjp, org.apache.logging.log4j.Logger log) throws Throwable {
         String method = getMethodName(pjp);
         String args = Arrays.toString(pjp.getArgs());
         long start = System.currentTimeMillis();
@@ -39,7 +39,7 @@ public class LoggingUtils {
     }
 
 
-    public static Object doBaseProfilingWithRegisterAndUnregister(ProceedingJoinPoint pjp, Class clazz) throws Throwable {
+    public static Object doBaseProfilingWithRegisterAndUnregister(ProceedingJoinPoint pjp, Class clazz, org.apache.logging.log4j.Logger log) throws Throwable {
         String method = getMethodName(pjp);
         String args = Arrays.toString(pjp.getArgs());
         long start = System.currentTimeMillis();

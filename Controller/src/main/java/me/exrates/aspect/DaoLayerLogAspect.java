@@ -27,6 +27,6 @@ public class DaoLayerLogAspect {
 
     @Around("service() && !@annotation(me.exrates.model.annotation.NoIdLog)")
     public Object doBasicProfiling(ProceedingJoinPoint pjp) throws Throwable {
-        return doBaseProfiling(pjp, getClass());
+        return doBaseProfiling(pjp, log);
     }
 }
