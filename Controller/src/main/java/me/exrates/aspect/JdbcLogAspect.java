@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 
+import static me.exrates.service.logs.LoggingUtils.doBaseProfiling;
 import static me.exrates.service.logs.LoggingUtils.formatException;
 import static me.exrates.service.logs.LoggingUtils.getAuthenticatedUser;
 import static me.exrates.service.logs.LoggingUtils.getExecutionTime;
@@ -30,19 +31,6 @@ public class JdbcLogAspect {
 
     @Around("jdbc()")
     public Object doBasicProfiling(ProceedingJoinPoint pjp) throws Throwable {
-        String method = getMethodName(pjp);
-        String args = Arrays.toString(pjp.getArgs());
-        long start = System.currentTimeMillis();
-        String user = getAuthenticatedUser();
-        try {
-            Object result = pjp.proceed();
-            log.debug(new MethodsLog(method, args, result, user, getExecutionTime(start), StringUtils.EMPTY));
-            return result;
-        } catch (Throwable ex) {
-            log.debug(new MethodsLog(method, args, StringUtils.EMPTY, user, getExecutionTime(start), formatException(ex)));
-            throw ex;
-        }
+       return doBaseProfiling(pjp, getClass());
     }
-
-
 }

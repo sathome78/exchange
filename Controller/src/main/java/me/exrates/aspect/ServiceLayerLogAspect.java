@@ -15,6 +15,8 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static me.exrates.service.logs.LoggingUtils.doBaseProfiling;
+import static me.exrates.service.logs.LoggingUtils.doBaseProfilingWithRegisterAndUnregister;
 import static me.exrates.service.logs.LoggingUtils.getAuthenticatedUser;
 import static me.exrates.service.logs.LoggingUtils.getExecutionTime;
 import static me.exrates.service.logs.LoggingUtils.getMethodName;
@@ -48,24 +50,6 @@ public class ServiceLayerLogAspect {
     protected void allMethods() {
     }
 
-    @Around("allMethods() " +
-            "&& !@annotation(me.exrates.model.annotation.NoIdLog) " +
-            "&& !@annotation(org.springframework.scheduling.annotation.Async) " +
-            "&& !@annotation(org.springframework.scheduling.annotation.Scheduled)")
-    public Object doBasicProfiling(ProceedingJoinPoint pjp) throws Throwable {
-        String method = getMethodName(pjp);
-        String args = Arrays.toString(pjp.getArgs());
-        long start = System.currentTimeMillis();
-        String user = getAuthenticatedUser();
-        try {
-            Object result = pjp.proceed();
-            log.debug(new MethodsLog(method, args, result, user, getExecutionTime(start), StringUtils.EMPTY));
-            return result;
-        } catch (Throwable ex) {
-            log.debug(new MethodsLog(method, args, StringUtils.EMPTY, user, getExecutionTime(start), ex.getCause() + " " + ex.getMessage()));
-            throw ex;
-        }
-    }
 
     @Around(" execution(* me.exrates.service..*(..)) " +
             "&& (@annotation(org.springframework.transaction.event.TransactionalEventListener) " +
@@ -96,24 +80,18 @@ public class ServiceLayerLogAspect {
         }
     }
 
+    @Around("allMethods() " +
+            "&& !@annotation(me.exrates.model.annotation.NoIdLog) " +
+            "&& !@annotation(org.springframework.scheduling.annotation.Async) " +
+            "&& !@annotation(org.springframework.scheduling.annotation.Scheduled)")
+    public Object doBasicProfiling(ProceedingJoinPoint pjp) throws Throwable {
+        return doBaseProfiling(pjp, getClass());
+    }
+
     @Around(" execution(* me.exrates.service..*(..)) " +
             "&& @annotation(org.springframework.scheduling.annotation.Async) ")
     public Object doBasicProfilingOfAsync(ProceedingJoinPoint pjp) throws Throwable {
-        String method = getMethodName(pjp);
-        String args = Arrays.toString(pjp.getArgs());
-        long start = System.currentTimeMillis();
-        String user = getAuthenticatedUser();
-        ProcessIDManager.registerNewThreadForParentProcessId(getClass(), Optional.empty());
-        try {
-            Object result = pjp.proceed();
-            log.debug(new MethodsLog(method, args, result, user, getExecutionTime(start), StringUtils.EMPTY));
-            return result;
-        } catch (Throwable ex) {
-            log.debug(new MethodsLog(method, args, StringUtils.EMPTY, user, getExecutionTime(start), ex.getCause() + " " + ex.getMessage()));
-            throw ex;
-        } finally {
-            ProcessIDManager.unregisterProcessId(getClass());
-        }
+        return doBaseProfilingWithRegisterAndUnregister(pjp, getClass());
     }
 
 }

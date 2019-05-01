@@ -1,10 +1,18 @@
 package me.exrates.service.logs;
 
+import lombok.extern.log4j.Log4j2;
+import me.exrates.ProcessIDManager;
+import me.exrates.model.dto.logging.MethodsLog;
+import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.Arrays;
+import java.util.Optional;
+
+@Log4j2(topic = "Controller_layer_log")
 public class LoggingUtils {
 
     private LoggingUtils() {
@@ -13,6 +21,42 @@ public class LoggingUtils {
     public static long getExecutionTime(long start) {
         return System.currentTimeMillis() - start;
     }
+
+
+    public static Object doBaseProfiling(ProceedingJoinPoint pjp, Class clazz) throws Throwable {
+        String method = getMethodName(pjp);
+        String args = Arrays.toString(pjp.getArgs());
+        long start = System.currentTimeMillis();
+        String user = getAuthenticatedUser();
+        try {
+            Object result = pjp.proceed();
+            log.debug(new MethodsLog(method, args, result, user, getExecutionTime(start), StringUtils.EMPTY));
+            return result;
+        } catch (Throwable ex) {
+            log.debug(new MethodsLog(method, args, StringUtils.EMPTY, user, getExecutionTime(start), formatException(ex)));
+            throw ex;
+        }
+    }
+
+
+    public static Object doBaseProfilingWithRegisterAndUnregister(ProceedingJoinPoint pjp, Class clazz) throws Throwable {
+        String method = getMethodName(pjp);
+        String args = Arrays.toString(pjp.getArgs());
+        long start = System.currentTimeMillis();
+        String user = getAuthenticatedUser();
+        ProcessIDManager.registerNewThreadForParentProcessId(clazz, Optional.empty());
+        try {
+            Object result = pjp.proceed();
+            log.debug(new MethodsLog(method, args, result, user, getExecutionTime(start), StringUtils.EMPTY));
+            return result;
+        } catch (Throwable ex) {
+            log.debug(new MethodsLog(method, args, StringUtils.EMPTY, user, getExecutionTime(start), ex.getCause() + " " + ex.getMessage()));
+            throw ex;
+        } finally {
+            ProcessIDManager.unregisterProcessId(clazz);
+        }
+    }
+
 
     public static String getAuthenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
