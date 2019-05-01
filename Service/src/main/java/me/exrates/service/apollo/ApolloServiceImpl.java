@@ -143,7 +143,7 @@ public class ApolloServiceImpl implements ApolloService {
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
         refillService.autoAcceptRefillRequest(requestAcceptDto);
-        final String username = refillService.getUsernameByRequestId(id);
+        final String username = refillService.getUserGAByRequestId(id);
         log.debug("Process of sending data to Google Analytics...");
         gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
     }

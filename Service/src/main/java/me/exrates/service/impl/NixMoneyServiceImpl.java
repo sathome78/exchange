@@ -138,10 +138,10 @@ public class NixMoneyServiceImpl implements NixMoneyService {
 
                 refillService.autoAcceptRefillRequest(requestAcceptDto);
 
-                final String username = refillService.getUsernameByRequestId(requestId);
+                final String gaTag = refillService.getUserGAByRequestId(requestId);
 
                 logger.debug("Process of sending data to Google Analytics...");
-                gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
+                gtagService.sendGtagEvents(amount.toString(), currency.getName(), gaTag);
             }
         } catch (Throwable e){
             log.error(ExceptionUtils.getStackTrace(e));
