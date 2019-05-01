@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 
+import static me.exrates.service.logs.LoggingUtils.doBaseProfiling;
+
 @Log4j2(topic = "Dao_layer_log")
 @Aspect
 @Component
@@ -25,33 +27,6 @@ public class DaoLayerLogAspect {
 
     @Around("service() && !@annotation(me.exrates.model.annotation.NoIdLog)")
     public Object doBasicProfiling(ProceedingJoinPoint pjp) throws Throwable {
-        String method = getMethodName(pjp);
-        String args = Arrays.toString(pjp.getArgs());
-        long start = System.currentTimeMillis();
-        String user = getAuthenticatedUser();
-        try {
-            Object result = pjp.proceed();
-            log.debug(new MethodsLog(method, args, result, user, getExecutionTime(start), StringUtils.EMPTY));
-            return result;
-        } catch (Throwable ex) {
-            log.debug(new MethodsLog(method, args, StringUtils.EMPTY, user, getExecutionTime(start), ex.getMessage()));
-            throw ex;
-        }
-
-    }
-
-
-    private long getExecutionTime(long start) {
-        return System.currentTimeMillis() - start;
-    }
-
-    private String getAuthenticatedUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication == null ? null : authentication.getName();
-    }
-
-    private String getMethodName(ProceedingJoinPoint pjp) {
-        MethodSignature signature = (MethodSignature) pjp.getSignature();
-        return String.join("#", signature.getDeclaringTypeName(), signature.getMethod().getName());
+        return doBaseProfiling(pjp, getClass());
     }
 }
