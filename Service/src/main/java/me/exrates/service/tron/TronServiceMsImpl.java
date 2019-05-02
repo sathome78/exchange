@@ -17,6 +17,7 @@ import java.util.Set;
 @Conditional(MicroserviceConditional.class)
 @RequiredArgsConstructor
 //Class for method countSpecCommission
+
 public class TronServiceMsImpl implements TronService {
 
     @Override
@@ -30,7 +31,7 @@ public class TronServiceMsImpl implements TronService {
     }
 
     @Override
-    public void putOnBchExam(RefillRequestAcceptDto requestAcceptDto) {
+    public void createAndPutOnBchExam(TronReceivedTransactionDto tronDto) {
 
     }
 

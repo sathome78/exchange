@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
@@ -117,8 +118,10 @@ public class TronServiceImpl implements TronService {
         return requestAcceptDto;
     }
 
+    @Transactional
     @Override
-    public void putOnBchExam(RefillRequestAcceptDto requestAcceptDto) {
+    public void createAndPutOnBchExam(TronReceivedTransactionDto tronDto) {
+        RefillRequestAcceptDto requestAcceptDto = createRequest(tronDto);
         try {
             refillService.putOnBchExamRefillRequest(
                     RefillRequestPutOnBchExamDto.builder()

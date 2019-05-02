@@ -95,12 +95,10 @@ public class TronReceiveServiceImpl {
                         default: throw new RuntimeException("unsupported tx type");
                     }
                     setAdditionalTxInfo(p);
-                    RefillRequestAcceptDto dto = tronService.createRequest(p);
-                    p.setId(dto.getRequestId());
                     if (p.isConfirmed()) {
-                        tronTransactionsService.processTransaction(p);
+                        tronTransactionsService.createAndProcessTransaction(p);
                     } else {
-                        tronService.putOnBchExam(dto);
+                        tronService.createAndPutOnBchExam(p);
                     }
                 } catch (Exception e) {
                     log.error(e);
