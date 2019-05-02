@@ -3,6 +3,7 @@ package me.exrates.service.impl;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
+import me.exrates.model.annotation.NoIdLog;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
@@ -67,6 +68,7 @@ public class AisiServiceImpl implements AisiService {
         }};
     }
 
+    @NoIdLog
     public void checkAddressForTransactionReceive(List<String> listOfAddress, Transaction transaction){
       try {
           if (listOfAddress.contains(transaction.getRecieverAddress())) {

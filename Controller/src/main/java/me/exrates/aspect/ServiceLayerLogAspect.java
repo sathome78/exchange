@@ -8,7 +8,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -25,30 +24,6 @@ import static me.exrates.service.logs.LoggingUtils.getMethodName;
 @Aspect
 @Component
 public class ServiceLayerLogAspect {
-
-    @Pointcut("within(@org.springframework.stereotype.Service *) || within(@org.springframework.stereotype.Component *) *)")
-    public void service() {
-    }
-
-    @Pointcut("execution(* me.exrates.service.impl..*(..))  " +
-            "|| execution(* me.exrates.ngService..*(..))" +
-            "|| execution(* me.exrates.service.session..*(..))" +
-            "|| execution(* me.exrates.service.openapi..*(..))" +
-            "|| execution(* me.exrates.service.stopOrder..*(..))" +
-            "|| execution(* me.exrates.service.userOperation..*(..))" +
-            "|| execution(* me.exrates.service.ieo..*(..))" +
-            "|| execution(* me.exrates.service.notifications..*(..))" +
-            "|| execution(* me.exrates.service.newsExt..*(..))" +
-            "|| execution(* me.exrates.service.kyc..*(..))" +
-            "|| execution(* me.exrates.service.merchantStrategy..*(..))" +
-            "|| execution(* me.exrates.service.stomp..*(..))" +
-            "|| execution(* me.exrates.service.refreshHandlers..*(..))" +
-            "|| execution(* me.exrates.service.handler..*(..))" +
-            "|| execution(* me.exrates.security.service..*(..))" +
-            "|| execution(* me.exrates.security.ipsecurity..*(..))" +
-            "|| execution(* me.exrates.security.filter..*(..))")
-    protected void allMethods() {
-    }
 
 
     @Around(" execution(* me.exrates.service..*(..)) " +
@@ -80,10 +55,14 @@ public class ServiceLayerLogAspect {
         }
     }
 
-    @Around("allMethods() " +
+    @Around(" (execution(* me.exrates.service.impl..*(..))  " +
+            "  || execution(* me.exrates.ngService..*(..)) " +
+            "  || execution(* me.exrates.security.service..*(..)) " +
+            "  || execution(* me.exrates.security.ipsecurity..*(..)) " +
+            "  || execution(* me.exrates.security.filter..*(..))) " +
             "&& !@annotation(me.exrates.model.annotation.NoIdLog) " +
             "&& !@annotation(org.springframework.scheduling.annotation.Async) " +
-            "&& !@annotation(org.springframework.scheduling.annotation.Scheduled)")
+            "&& !@annotation(org.springframework.scheduling.annotation.Scheduled) ")
     public Object doBasicProfiling(ProceedingJoinPoint pjp) throws Throwable {
         return doBaseProfiling(pjp, log);
     }

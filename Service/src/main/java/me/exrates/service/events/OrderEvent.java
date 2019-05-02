@@ -2,11 +2,6 @@ package me.exrates.service.events;
 
 import me.exrates.model.ExOrder;
 import me.exrates.model.enums.OrderEventEnum;
-import org.springframework.context.ApplicationEvent;
-
-import java.util.Optional;
-
-import static me.exrates.ProcessIDManager.getProcessIdFromCurrentThread;
 
 /**
  * Created by Maks on 30.08.2017.
