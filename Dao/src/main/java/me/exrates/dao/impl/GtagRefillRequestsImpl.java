@@ -4,16 +4,13 @@ package me.exrates.dao.impl;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.GtagRefillRequests;
-import me.exrates.model.enums.OrderStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
@@ -25,7 +22,7 @@ public class GtagRefillRequestsImpl implements GtagRefillRequests {
     @Autowired
     private NamedParameterJdbcOperations namedParameterJdbcTemplate;
 
-    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional
     public void updateUserRequestsCount(Integer userId) {
 
         SqlParameterSource namedParameters = new MapSqlParameterSource("userId", userId);
@@ -39,7 +36,7 @@ public class GtagRefillRequestsImpl implements GtagRefillRequests {
         }
     }
 
-    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional
     public Integer getUserRequestsCount(Integer userId) {
 
         Map<String, Object> params = new HashMap<String, Object>() {{
