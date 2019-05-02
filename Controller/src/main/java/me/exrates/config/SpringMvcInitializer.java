@@ -61,7 +61,7 @@ public class SpringMvcInitializer extends AbstractAnnotationConfigDispatcherServ
 
     @Override
     public Filter[] getServletFilters() {
-        return new Filter[]{/*new HttpLoggingFilter(),*/ new XssRequestFilter(), new HeaderFilter(), new CharacterEncodingFilter("UTF-8", true)};
+        return new Filter[]{ new XssRequestFilter(), new HeaderFilter(), new CharacterEncodingFilter("UTF-8", true)};
     }
 
     @Override

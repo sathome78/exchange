@@ -472,18 +472,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         registry.addInterceptor(interceptor);
     }
 
-    @Bean
-    public CommonsRequestLoggingFilter logFilter() {
-        CommonsRequestLoggingFilter filter
-                = new CommonsRequestLoggingFilter();
-        filter.setIncludeQueryString(true);
-        filter.setIncludePayload(true);
-        filter.setMaxPayloadLength(10000);
-        filter.setIncludeHeaders(false);
-        filter.setAfterMessagePrefix("REQUEST DATA : ");
-        return filter;
-    }
-
     private void addTokenInterceptor(InterceptorRegistry registry) {
 
         log.info("Password from ssm with path = " + inoutTokenValue + " is " + inoutTokenValue.charAt(0) + "***" + inoutTokenValue.charAt(inoutTokenValue.length() - 1));
