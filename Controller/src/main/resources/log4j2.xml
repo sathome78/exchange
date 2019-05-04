@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
+    <Properties>
+        <Property name="socket.host">${bundle:logs:elk.host}</Property>
+        <Property name="socket.port">${bundle:logs:elk.port}</Property>
+        <Property name="socket.log.level">${bundle:logs:socket.logging}</Property>
+    </Properties>
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message  %n"/>
         </Console>
-        <Socket name="Socket" host="172.10.12.132" port="4560">
+        <Socket name="Socket" host="${socket.host}" port="${socket.port}">
             <JsonLayout compact="true" eventEol="true" />
+            <ThresholdFilter level="${socket.log.level}"/>
         </Socket>
         <RollingFile name="Merchants" fileName="${sys:catalina.home}/logs/merchants/merchants.log"
                      filePattern="${sys:catalina.home}/logs/merchants/merchants_%d_%i.log" append="true">

@@ -4,7 +4,8 @@ import org.springframework.context.ApplicationEvent;
 
 import java.util.Optional;
 
-import static me.exrates.ProcessIDManager.getProcessIdFromCurrentThread;
+import static processIdManager.ProcessIDManager.getProcessIdFromCurrentThread;
+
 
 public class ApplicationEventWithProcessId extends ApplicationEvent {
 

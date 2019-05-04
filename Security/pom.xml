@@ -28,6 +28,11 @@
         </dependency>
         <dependency>
             <groupId>kds</groupId>
+            <artifactId>Commons</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>kds</groupId>
             <artifactId>JDBC</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>

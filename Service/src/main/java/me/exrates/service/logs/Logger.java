@@ -1,9 +1,9 @@
 package me.exrates.service.logs;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.ProcessIDManager;
 import me.exrates.model.dto.logging.MethodsLog;
 import org.apache.commons.lang3.StringUtils;
+import processIdManager.ProcessIDManager;
 
 import java.util.Optional;
 import java.util.function.Supplier;

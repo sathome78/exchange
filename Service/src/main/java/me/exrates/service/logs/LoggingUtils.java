@@ -1,13 +1,13 @@
 package me.exrates.service.logs;
 
 
-import me.exrates.ProcessIDManager;
 import me.exrates.model.dto.logging.MethodsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import processIdManager.ProcessIDManager;
 
 import java.util.Arrays;
 import java.util.Optional;

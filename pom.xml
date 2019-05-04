@@ -14,6 +14,7 @@
         <module>Dao</module>
         <module>JDBC</module>
         <module>Controller</module>
+        <module>Commons</module>
     </modules>
 
     <properties>

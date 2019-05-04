@@ -1,7 +1,6 @@
 package me.exrates.aspect;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.ProcessIDManager;
 import me.exrates.model.dto.logging.MethodsLog;
 import me.exrates.service.events.ApplicationEventWithProcessId;
 import org.apache.commons.lang3.StringUtils;
@@ -9,6 +8,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
+import processIdManager.ProcessIDManager;
 
 import java.util.Arrays;
 import java.util.Optional;

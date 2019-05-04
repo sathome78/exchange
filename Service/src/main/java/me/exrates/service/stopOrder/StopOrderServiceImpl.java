@@ -2,7 +2,6 @@ package me.exrates.service.stopOrder;
 
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.ProcessIDManager;
 import me.exrates.dao.StopOrderDao;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
@@ -33,7 +32,6 @@ import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.exception.IncorrectCurrentUserException;
 import me.exrates.service.exception.StopOrderNoConditionException;
 import me.exrates.service.exception.process.NotCreatableOrderException;
-import me.exrates.service.exception.process.OrderAcceptionException;
 import me.exrates.service.exception.process.OrderCancellingException;
 import me.exrates.service.util.Cache;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +39,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
+import processIdManager.ProcessIDManager;
 
 import javax.annotation.PreDestroy;
 import java.math.BigDecimal;

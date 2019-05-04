@@ -27,6 +27,11 @@
       <artifactId>Dao</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>kds</groupId>
+      <artifactId>Commons</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
 
     <dependency>
       <groupId>joda-time</groupId>
@@ -206,11 +211,6 @@
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-ssm</artifactId>
       <version>${aws-java-sdk.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>ProcessIDManager</groupId>
-      <artifactId>ProcessIDManager</artifactId>
-      <version>1.0.1</version>
     </dependency>
   </dependencies>
 

@@ -1,9 +1,8 @@
 package me.exrates.security;
 
 
-
-import me.exrates.ProcessIDManager;
 import org.apache.commons.lang3.StringUtils;
+import processIdManager.ProcessIDManager;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -12,9 +11,7 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
-
 import java.io.IOException;
-import java.util.Optional;
 
 
 public class HttpLoggingFilter implements Filter {
