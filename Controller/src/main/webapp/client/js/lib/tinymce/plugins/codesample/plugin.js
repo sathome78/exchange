@@ -616,7 +616,7 @@ Prism.languages.css = {
 	'punctuation': /[(){};:]/
 };
 
-Prism.languages.css['atrule'].inside.rest = Prism.util.clone(Prism.languages.css);
+Prism.languages.css['atrule'].inside.rest = me.exrates.dao.util.clone(Prism.languages.css);
 
 if (Prism.languages.markup) {
 	Prism.languages.insertBefore('markup', 'tag', {
@@ -941,7 +941,7 @@ Prism.languages.python= {
 				pattern: /^#\{|\}$/,
 				alias: 'tag'
 			},
-			rest: Prism.util.clone(Prism.languages.ruby)
+			rest: me.exrates.dao.util.clone(Prism.languages.ruby)
 		}
 	};
 

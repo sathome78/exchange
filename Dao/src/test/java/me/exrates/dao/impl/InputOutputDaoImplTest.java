@@ -1,7 +1,7 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.InputOutputDao;
-import me.exrates.dao.configuration.TestConfiguration;
+import me.exrates.dao.util.AbstractDatabaseContextTest;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
@@ -24,7 +24,7 @@ import java.util.Locale;
 import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {TestConfiguration.class, InputOutputDaoImplTest.InnerConf.class})
+@ContextConfiguration(classes = {AbstractDatabaseContextTest.AppContextConfig.class, InputOutputDaoImplTest.InnerConf.class})
 public class InputOutputDaoImplTest {
 
     private static final String EMAIL = "shvets.k@gmail.com";

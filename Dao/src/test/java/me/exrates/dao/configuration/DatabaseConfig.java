@@ -1,8 +1,6 @@
-package web;
+package me.exrates.dao.configuration;
 
 public interface DatabaseConfig {
-
-    String getSchema();
 
     String getUrl();
 

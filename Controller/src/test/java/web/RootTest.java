@@ -88,7 +88,7 @@ import static web.Parameters.ROOT;
 import static web.Parameters.SETTINGS_STOP_ON_ERROR;
 
 @RunWith(Parameterized.class)
-@ContextConfiguration(classes = {DBConfig.class})
+@ContextConfiguration(classes = {TestDatabaseConfig.class})
 @WebAppConfiguration
 public class RootTest {
 
