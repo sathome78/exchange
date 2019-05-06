@@ -5,6 +5,7 @@ import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.InvalidNumberParamException;
 import me.exrates.dao.exception.notfound.NotFoundException;
 import me.exrates.model.UserFile;
+import me.exrates.model.exceptions.IeoException;
 import me.exrates.model.exceptions.OpenApiException;
 import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.security.exception.BannedIpException;
@@ -13,7 +14,6 @@ import me.exrates.security.exception.MissingHeaderException;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.AuthenticationNotAvailableException;
 import me.exrates.service.exception.CallBackUrlAlreadyExistException;
-import me.exrates.model.exceptions.IeoException;
 import me.exrates.service.exception.IncorrectCurrentUserException;
 import me.exrates.service.exception.NoPermissionForOperationException;
 import me.exrates.service.exception.OrderDeletingException;
@@ -112,15 +112,6 @@ public class GlobalControllerExceptionHandler {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
-//    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-//    @ExceptionHandler(Exception.class)
-//    @ResponseBody
-//    public ModelAndView OtherErrorsHandler(HttpServletRequest req, Exception exception) {
-//        log.error("URL: " + req.getRequestURL() + " | Exception " + exception);
-//        exception.printStackTrace();
-//        return new ModelAndView("errorPages/generalErrorPage");
-//    }
-
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(BannedIpException.class)
     @ResponseBody
@@ -137,8 +128,6 @@ public class GlobalControllerExceptionHandler {
         String message = "Cause: " + exception.getLocalizedMessage();
         return new ErrorInfo(message, exception);
     }
-
-    //Handlers for open API
 
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(AuthenticationNotAvailableException.class)

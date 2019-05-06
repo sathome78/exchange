@@ -7,9 +7,6 @@ import lombok.Setter;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by ValkSam
- */
 @Getter @Setter
 public class SurveyDto {
   private Integer id;

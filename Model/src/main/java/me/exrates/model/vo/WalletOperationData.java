@@ -12,9 +12,6 @@ import me.exrates.model.enums.TransactionSourceType;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
-/**
- * Created by Valk on 24.05.2016.
- */
 @Getter @Setter
 @EqualsAndHashCode
 @NoArgsConstructor
@@ -32,7 +29,6 @@ public class WalletOperationData implements Serializable {
     private String description;
     private int currencyId;
 
-    /**/
     public enum BalanceType {
         ACTIVE,
         RESERVED

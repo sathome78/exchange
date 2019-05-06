@@ -17,9 +17,6 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-/**
- * Created by OLEG on 31.03.2017.
- */
 @Aspect
 @Component
 public class LoggingAspect {

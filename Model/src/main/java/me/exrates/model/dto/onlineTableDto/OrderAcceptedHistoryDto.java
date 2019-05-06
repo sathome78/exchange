@@ -6,9 +6,6 @@ import me.exrates.model.enums.OperationType;
 
 import java.sql.Timestamp;
 
-/**
- * Created by Valk on 03.06.2016.
- */
 @Getter @Setter
 public class OrderAcceptedHistoryDto extends OnlineTableDto {
   private Integer orderId;

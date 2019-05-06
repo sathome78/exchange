@@ -9,9 +9,6 @@ import me.exrates.model.serializer.LocalDateTimeSerializer;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * Created by Valk on 11.05.2016.
- */
 @Getter @Setter
 @ToString
 public class OrderInfoDto {
@@ -35,5 +32,5 @@ public class OrderInfoDto {
     private String companyCommission;
     private Integer source;
     private List<Integer> children;
-};
+}
 

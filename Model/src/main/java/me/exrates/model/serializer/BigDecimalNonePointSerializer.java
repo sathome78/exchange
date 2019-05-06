@@ -9,9 +9,6 @@ import me.exrates.model.util.BigDecimalProcessing;
 import java.io.IOException;
 import java.math.BigDecimal;
 
-/**
- * Created by OLEG on 20.03.2017.
- */
 public class BigDecimalNonePointSerializer extends JsonSerializer<BigDecimal> {
   
   @Override

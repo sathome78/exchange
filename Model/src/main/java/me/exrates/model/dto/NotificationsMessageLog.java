@@ -6,9 +6,6 @@ import me.exrates.model.enums.NotificationMessageEventEnum;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * Created by Maks on 29.09.2017.
- */
 @Data
 public class NotificationsMessageLog {
 

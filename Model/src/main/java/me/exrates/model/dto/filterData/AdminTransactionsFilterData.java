@@ -16,9 +16,6 @@ import java.util.stream.Collectors;
 import static me.exrates.model.dto.filterData.FilterDataItem.DATE_FORMAT;
 import static me.exrates.model.dto.filterData.FilterDataItem.IN_FORMAT;
 
-/**
- * Created by OLEG on 14.04.2017.
- */
 @Getter @Setter
 @NoArgsConstructor
 @ToString

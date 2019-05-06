@@ -3,7 +3,6 @@ package me.exrates.controller.openAPI;
 import me.exrates.controller.exception.InvalidNumberParamException;
 import me.exrates.controller.model.BaseResponse;
 import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
-import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.openAPI.OpenApiCommissionDto;
 import me.exrates.model.dto.openAPI.TransactionDto;
@@ -11,7 +10,6 @@ import me.exrates.model.dto.openAPI.UserOrdersDto;
 import me.exrates.model.dto.openAPI.UserTradeHistoryDto;
 import me.exrates.model.dto.openAPI.WalletBalanceDto;
 import me.exrates.model.exceptions.OpenApiException;
-import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
@@ -26,9 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static java.util.Objects.nonNull;
 import static me.exrates.service.util.OpenApiUtils.transformCurrencyPair;
@@ -133,13 +129,4 @@ public class OpenApiUserInfoController {
         return ResponseEntity.ok(BaseResponse.success(orderService.getOrderTransactions(orderId)));
     }
 
-//    @GetMapping(value = "/info/email/exists", produces = MediaType.APPLICATION_JSON_VALUE)
-//    public ResponseEntity<Map<String, Boolean>> checkEmailExistence(@RequestParam("email") String email) {
-//        try {
-//            userService.findByEmail(email);
-//            return ResponseEntity.ok(Collections.singletonMap("status", Boolean.TRUE));
-//        } catch (UserNotFoundException ex) {
-//            return ResponseEntity.ok(Collections.singletonMap("status", Boolean.FALSE));
-//        }
-//    }
 }

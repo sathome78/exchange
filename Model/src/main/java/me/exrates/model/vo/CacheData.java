@@ -2,14 +2,10 @@ package me.exrates.model.vo;
 
 import javax.servlet.http.HttpServletRequest;
 
-/**
- * Created by Valk on 20.06.2016.
- */
 public class CacheData {
     private HttpServletRequest request;
     private String cacheKey;
     private Boolean forceUpdate;
-    /*constructor*/
 
     public CacheData(HttpServletRequest request, String cacheKey, Boolean forceUpdate) {
         this.request = request;
@@ -25,8 +21,6 @@ public class CacheData {
                 ", forceUpdate=" + forceUpdate +
                 '}';
     }
-
-    /*getters*/
 
     public HttpServletRequest getRequest() {
         return request;

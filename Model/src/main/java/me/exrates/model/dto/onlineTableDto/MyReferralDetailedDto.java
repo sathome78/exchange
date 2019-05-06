@@ -5,9 +5,6 @@ import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
 
-/**
- * Created by Valk
- */
 public class MyReferralDetailedDto extends OnlineTableDto {
     private Integer transactionId;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
@@ -28,16 +25,12 @@ public class MyReferralDetailedDto extends OnlineTableDto {
         this.needRefresh = needRefresh;
     }
 
-    /*hash*/
-
     @Override
     public int hashCode() {
         int result = transactionId != null ? transactionId.hashCode() : 0;
         result = 31 * result + (amount != null ? amount.hashCode() : 0);
         return result;
     }
-
-    /*getters setters*/
 
     public Integer getTransactionId() {
         return transactionId;

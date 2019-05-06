@@ -5,7 +5,6 @@ import me.exrates.service.SurveyService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,8 +22,7 @@ public class SurveyController {
 
     private static final Logger log_result = LogManager.getLogger("survey_result");
     private static final Logger log = LogManager.getLogger("survey");
-    @Autowired
-    private MessageSource messageSource;
+
     @Autowired
     private SurveyService surveyService;
 

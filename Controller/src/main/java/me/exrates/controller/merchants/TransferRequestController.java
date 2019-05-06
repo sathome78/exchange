@@ -5,20 +5,22 @@ import com.google.gson.JsonObject;
 import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.annotation.CheckActiveUserStatus;
 import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.model.User;
-import me.exrates.model.enums.NotificationMessageEventEnum;
-import me.exrates.model.userOperation.enums.UserOperationAuthority;
-import me.exrates.security.exception.IncorrectPinException;
-import me.exrates.security.exception.PinCodeCheckNeedException;
-import me.exrates.security.service.SecureService;
 import me.exrates.controller.exception.RequestsLimitExceedException;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Merchant;
 import me.exrates.model.Payment;
-import me.exrates.model.dto.*;
+import me.exrates.model.User;
+import me.exrates.model.dto.PinDto;
+import me.exrates.model.dto.TransferDto;
+import me.exrates.model.dto.TransferRequestCreateDto;
+import me.exrates.model.dto.TransferRequestFlatDto;
+import me.exrates.model.dto.TransferRequestParamsDto;
+import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
+import me.exrates.model.dto.VoucherAdminTableDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.VoucherFilterData;
+import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
@@ -26,9 +28,20 @@ import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.model.util.BigDecimalProcessing;
-import me.exrates.service.*;
-import me.exrates.service.exception.*;
+import me.exrates.security.exception.IncorrectPinException;
+import me.exrates.security.exception.PinCodeCheckNeedException;
+import me.exrates.security.service.SecureService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.InputOutputService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.TransferService;
+import me.exrates.service.UserService;
+import me.exrates.service.exception.IllegalOperationTypeException;
+import me.exrates.service.exception.InvalidAmountException;
+import me.exrates.service.exception.InvalidNicknameException;
+import me.exrates.service.exception.UserOperationAccessException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import me.exrates.service.userOperation.UserOperationService;
@@ -41,7 +54,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -50,7 +68,13 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.security.Principal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.OperationType.USER_TRANSFER;
@@ -58,9 +82,6 @@ import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.PRESENT_VOUCH
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
-/**
- * created by ValkSam
- */
 @Controller
 public class TransferRequestController {
 

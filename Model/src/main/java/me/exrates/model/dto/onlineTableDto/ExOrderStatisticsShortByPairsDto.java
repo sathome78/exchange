@@ -10,9 +10,6 @@ import me.exrates.model.enums.CurrencyPairType;
 
 import java.time.LocalDateTime;
 
-/**
- * Created by Valk
- */
 @Builder(builderClassName = "Builder", toBuilder = true)
 @AllArgsConstructor
 @Getter

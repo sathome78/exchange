@@ -2,9 +2,6 @@ package me.exrates.model.enums;
 
 import java.util.stream.Stream;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 public enum ChatLang {
 
     EN("EN"),

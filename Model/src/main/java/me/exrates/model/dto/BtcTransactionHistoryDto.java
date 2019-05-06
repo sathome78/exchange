@@ -11,9 +11,6 @@ import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
 
-/**
- * Created by OLEG on 24.03.2017.
- */
 @Getter @Setter
 @ToString
 @NoArgsConstructor

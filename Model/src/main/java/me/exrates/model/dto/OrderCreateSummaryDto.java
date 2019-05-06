@@ -4,10 +4,6 @@ import me.exrates.model.util.BigDecimalProcessing;
 
 import java.util.Locale;
 
-/**
- * Created by Valk
- */
-
 public class OrderCreateSummaryDto {
     private OrderCreateDto orderCreateDto;
     private String currencyPairName;
@@ -20,8 +16,6 @@ public class OrderCreateSummaryDto {
     private String totalWithComission;
     private String stop;
     private String baseType;
-
-    /*constructors*/
 
     public OrderCreateSummaryDto() {
     }
@@ -39,8 +33,6 @@ public class OrderCreateSummaryDto {
         this.baseType = orderCreateDto.getOrderBaseType().name();
         this.orderCreateDto = orderCreateDto;
     }
-
-    /*getters setters*/
 
     public String getCurrencyPairName() {
         return currencyPairName;

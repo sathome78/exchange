@@ -14,36 +14,41 @@ import me.exrates.model.enums.invoice.WithdrawRequestTableViewTypeEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
-import me.exrates.service.*;
-import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.RequestLimitExceededException;
+import me.exrates.service.UserService;
+import me.exrates.service.WithdrawService;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
+import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
-/**
- * created by ValkSam
- */
 @Controller
 public class WithdrawRequestAdminController {
 
     private static final Logger log = LogManager.getLogger("withdraw");
-
-    @Autowired
-    private MessageSource messageSource;
 
     @Autowired
     WithdrawService withdrawService;

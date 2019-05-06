@@ -9,9 +9,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.NotNull;
 
-/**
- * Created by OLEG on 07.02.2017.
- */
 @Getter @Setter
 @NoArgsConstructor
 @ToString

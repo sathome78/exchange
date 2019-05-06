@@ -7,9 +7,6 @@ import me.exrates.model.enums.OperationType;
 
 import java.math.BigDecimal;
 
-/**
- * Created by Maks on 15.05.2018.
- */
 @Getter@Setter
 public class MerchantCurrencyShortDto {
     private int merchantId;

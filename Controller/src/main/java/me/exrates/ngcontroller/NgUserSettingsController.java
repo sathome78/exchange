@@ -92,7 +92,6 @@ public class NgUserSettingsController {
     private final UserVerificationService verificationService;
     private final IpBlockingService ipBlockingService;
     private final StompMessenger stompMessenger;
-    private final ObjectMapper objectMapper;
 
     @Value("${contacts.feedbackEmail}")
     String feedbackEmail;
@@ -105,8 +104,7 @@ public class NgUserSettingsController {
                                     PageLayoutSettingsService pageLayoutSettingsService,
                                     UserVerificationService userVerificationService,
                                     IpBlockingService ipBlockingService,
-                                    StompMessenger stompMessenger,
-                                    ObjectMapper objectMapper) {
+                                    StompMessenger stompMessenger) {
         this.authTokenService = authTokenService;
         this.userService = userService;
         this.notificationService = notificationService;
@@ -115,7 +113,6 @@ public class NgUserSettingsController {
         this.verificationService = userVerificationService;
         this.ipBlockingService = ipBlockingService;
         this.stompMessenger = stompMessenger;
-        this.objectMapper = objectMapper;
     }
 
     // /info/private/v2/settings/updateMainPassword
@@ -150,7 +147,6 @@ public class NgUserSettingsController {
         newPassword = RestApiUtils.decodePassword(newPassword);
         user.setPassword(newPassword);
         user.setConfirmPassword(newPassword);
-        //   registerFormValidation.validateResetPassword(user, result, locale);
         if (userService.update(getUpdateUserDto(user), locale)) {
             ipBlockingService.successfulProcessing(request.getHeader("X-Forwarded-For"), IpTypesOfChecking.UPDATE_MAIN_PASSWORD);
             return new ResponseEntity<>(HttpStatus.OK);
@@ -195,7 +191,7 @@ public class NgUserSettingsController {
             SessionParams sessionParams = new SessionParams(interval, SessionLifeTypeEnum.INACTIVE_COUNT_LIFETIME.getTypeId());
             if (sessionService.isSessionTimeValid(sessionParams.getSessionTimeMinutes())) {
                 sessionService.saveOrUpdate(sessionParams, getPrincipalEmail());
-//                sessionService.setSessionLifeParams(request);
+
                 //todo inform user to logout to implement params next time
                 return new ResponseEntity<>(HttpStatus.OK);
             } else {
@@ -252,13 +248,6 @@ public class NgUserSettingsController {
             return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
         }
     }
-
-//    @GetMapping(COLOR_SCHEME)
-//    @ResponseBody
-//    public ColorScheme getUserColorScheme() {
-//        User user = userService.findByEmail(getPrincipalEmail());
-//        return this.layoutSettingsService.getColorScheme(user);
-//    }
 
     @PutMapping(value = COLOR_SCHEME, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateUserColorScheme(@RequestBody Map<String, String> params) {

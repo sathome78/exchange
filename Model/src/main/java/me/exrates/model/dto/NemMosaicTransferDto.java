@@ -6,9 +6,6 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.util.Map;
 
-/**
- * Created by Maks on 27.02.2018.
- */
 @Data
 public class NemMosaicTransferDto {
 

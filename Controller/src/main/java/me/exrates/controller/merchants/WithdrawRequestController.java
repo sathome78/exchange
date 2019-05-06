@@ -20,8 +20,17 @@ import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.PinCodeCheckNeedException;
 import me.exrates.security.service.SecureService;
-import me.exrates.service.*;
-import me.exrates.service.exception.*;
+import me.exrates.service.InputOutputService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.RequestLimitExceededException;
+import me.exrates.service.UserService;
+import me.exrates.service.WithdrawService;
+import me.exrates.service.exception.AbsentFinPasswordException;
+import me.exrates.service.exception.CheckDestinationTagException;
+import me.exrates.service.exception.InvalidAmountException;
+import me.exrates.service.exception.NotConfirmedFinPasswordException;
+import me.exrates.service.exception.UserOperationAccessException;
+import me.exrates.service.exception.WrongFinPasswordException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
@@ -34,7 +43,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
@@ -50,9 +64,6 @@ import static me.exrates.model.enums.OperationType.OUTPUT;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
-/**
- * created by ValkSam
- */
 @Controller
 public class WithdrawRequestController {
 
@@ -171,7 +182,6 @@ public class WithdrawRequestController {
     @ResponseBody
     public WithdrawRequestInfoDto getWithdrawRequestInfo(@RequestParam Integer requestId, Principal principal, HttpServletRequest request) {
         WithdrawRequestInfoDto infoDto = withdrawService.getWithdrawalInfo(requestId, localeResolver.resolveLocale(request));
-        /*Preconditions.checkArgument(principal.getName().equalsIgnoreCase(infoDto.getUserEmail()));*/
         return infoDto;
     }
 

@@ -8,9 +8,6 @@ import lombok.ToString;
 import java.math.BigDecimal;
 import java.util.function.Predicate;
 
-/**
- * @author ValkSam
- */
 @Builder
 @Getter
 @Setter

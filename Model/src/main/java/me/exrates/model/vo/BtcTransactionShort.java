@@ -4,9 +4,6 @@ import lombok.*;
 
 import java.math.BigDecimal;
 
-/**
- * Created by OLEG on 19.03.2017.
- */
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor

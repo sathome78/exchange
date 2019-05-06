@@ -1,6 +1,5 @@
 package me.exrates.model.dto;
 
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import me.exrates.model.enums.TransactionSourceType;

@@ -5,9 +5,6 @@ import me.exrates.model.serializer.LocalDateSerializer;
 
 import java.time.LocalDate;
 
-/**
- * Created by Valk on 27.05.2016.
- */
 public class NewsDto extends OnlineTableDto {
     private Integer id;
     private String title;
@@ -30,8 +27,6 @@ public class NewsDto extends OnlineTableDto {
     public int hashCode() {
         return id != null ? id.hashCode() : 0;
     }
-
-    /*getters setters*/
 
     public boolean isNeedRefresh() {
         return needRefresh;

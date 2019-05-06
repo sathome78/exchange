@@ -2,16 +2,28 @@ package me.exrates.model.enums.invoice;
 
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.exceptions.*;
+import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
+import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
+import me.exrates.model.exceptions.UnsupportedInvoiceStatusForActionException;
+import me.exrates.model.exceptions.UnsupportedWithdrawRequestStatusIdException;
+import me.exrates.model.exceptions.UnsupportedWithdrawRequestStatusNameException;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.InvoiceActionParamsValue;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.POST;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.POSTPONE;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.PRESENT_VOUCHER;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REVOKE;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REVOKE_ADMIN;
 
-/**
- * Created by ValkSam
- */
 @Log4j2
 public enum TransferStatusEnum implements InvoiceStatus {
   CREATED_USER(1) {

@@ -12,9 +12,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-/**
- * Created by ValkSam
- */
 @Getter
 @Setter
 @PropertySource(value = {"classpath:/news.properties"})

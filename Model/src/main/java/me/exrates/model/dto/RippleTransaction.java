@@ -9,9 +9,6 @@ import me.exrates.model.enums.RippleTransactionType;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * Created by maks on 10.05.2017.
- */
 @Data
 @Builder(toBuilder = true)
 public class RippleTransaction {

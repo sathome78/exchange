@@ -9,9 +9,6 @@ import lombok.ToString;
 
 import java.math.BigDecimal;
 
-/**
- * Created by OLEG on 28.11.2016.
- */
 @Getter @Setter
 @Builder(builderClassName = "Builder")
 @NoArgsConstructor

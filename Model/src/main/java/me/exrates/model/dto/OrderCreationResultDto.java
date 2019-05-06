@@ -9,9 +9,6 @@ import lombok.ToString;
 import java.math.BigDecimal;
 import java.util.List;
 
-/**
- * Created by OLEG on 21.11.2016.
- */
 @Getter@Setter@ToString
 public class OrderCreationResultDto {
     @JsonInclude(JsonInclude.Include.NON_NULL)

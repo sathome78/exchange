@@ -761,9 +761,6 @@
         <Logger name="me.exrates.controller.filter.XssRequestFilter" level="ERROR" additivity="false">
             <AppenderRef ref="SessionLog"/>
         </Logger>
-        <Logger name="me.exrates.controller.listener.StoreSessionListenerImpl" level="DEBUG" additivity="false">
-            <AppenderRef ref="SessionLog"/>
-        </Logger>
         <Logger name="mobileAPI" level="DEBUG" additivity="false">
             <AppenderRef ref="MobileAPILog"/>
         </Logger>

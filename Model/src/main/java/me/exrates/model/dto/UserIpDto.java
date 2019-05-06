@@ -4,9 +4,6 @@ import me.exrates.model.enums.UserIpState;
 
 import java.time.LocalDateTime;
 
-/**
- * Created by Valk on 03.05.2016.
- */
 public class UserIpDto {
     private int userId;
     private UserIpState userIpState;
@@ -14,15 +11,12 @@ public class UserIpDto {
     private LocalDateTime confirmDate;
     private LocalDateTime LastRegistrationDate;
 
-    /*constructors*/
     private UserIpDto(){};
 
     public UserIpDto(int userId) {
         this.userId = userId;
         this.userIpState = UserIpState.NEW;
     }
-
-    /*getters setters*/
 
     public int getUserId() {
         return userId;

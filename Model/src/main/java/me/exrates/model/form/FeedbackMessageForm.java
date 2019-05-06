@@ -1,8 +1,5 @@
 package me.exrates.model.form;
 
-/**
- * Created by ogolv on 09.08.2016.
- */
 public class FeedbackMessageForm {
 
     private String senderName;

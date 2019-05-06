@@ -3,9 +3,6 @@ package me.exrates.model;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 public class BTCTransaction {
 
     private String hash;

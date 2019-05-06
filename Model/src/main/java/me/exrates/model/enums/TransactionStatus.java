@@ -2,9 +2,6 @@ package me.exrates.model.enums;
 
 import me.exrates.model.exceptions.UnsupportedTransactionStatusException;
 
-/**
- * Created by Valk on 16.05.2016.
- */
 public enum TransactionStatus {
 
     CREATED(1),

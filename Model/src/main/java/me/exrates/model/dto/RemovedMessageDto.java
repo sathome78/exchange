@@ -1,8 +1,5 @@
 package me.exrates.model.dto;
 
-/**
- * Created by ogolv on 22.07.2016.
- */
 public class RemovedMessageDto {
     private Long id;
     private final boolean isRemoved = true;

@@ -17,9 +17,6 @@ import java.time.LocalDateTime;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class IeoDetailsUpdateDto {
 
-   /* @NotNull(message = "Description must not be null")
-    private String description;*/
-    /*  private String currencyToPairWith;*/
     @NotNull(message = "Description must not be null")
     private String description;
     @NotNull(message = "Status must not be null")

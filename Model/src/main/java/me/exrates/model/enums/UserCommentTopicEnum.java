@@ -7,9 +7,6 @@ import me.exrates.model.exceptions.UnsupportedUserCommentTopicNameException;
 
 import java.util.Arrays;
 
-/**
- * Created by ValkSam
- */
 @Log4j2
 public enum UserCommentTopicEnum {
   GENERAL(1),

@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
-import java.io.IOException;
 import java.util.Properties;
 
 @Log4j2

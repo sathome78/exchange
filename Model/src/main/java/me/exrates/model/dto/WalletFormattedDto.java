@@ -8,9 +8,6 @@ import me.exrates.model.Wallet;
 
 import java.math.BigDecimal;
 
-/**
- * Created by OLEG on 23.03.2017.
- */
 @Getter @Setter
 @ToString
 @JsonInclude(JsonInclude.Include.NON_NULL)

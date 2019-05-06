@@ -22,15 +22,11 @@ import static org.springframework.http.HttpStatus.OK;
 @Controller
 @RequestMapping("/merchants/okpay")
 public class OkPayMerchantController {
-    @Autowired
-    private MerchantService merchantService;
 
     @Autowired
     private OkPayService okPayService;
 
     private static final Logger logger = LogManager.getLogger("merchant");
-
-    private static final String merchantInputErrorPage = "redirect:/merchants/input";
 
     @RequestMapping(value = "payment/status", method = RequestMethod.POST)
     public ResponseEntity<Void> statusPayment(@RequestParam Map<String, String> params) throws RefillRequestAppropriateNotFoundException {

@@ -8,9 +8,6 @@ import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
 
-/**
- * Created by Valk on 19.04.16.
- */
 public class OrderWideListDto extends OnlineTableDto{
     private int id;
     private int userId;
@@ -37,16 +34,13 @@ public class OrderWideListDto extends OnlineTableDto{
     private LocalDateTime dateModification; /* for stop orders*/
     private String commissionAmountForAcceptor;
     private String amountWithCommissionForAcceptor;
-    /**/
+
     private int currencyPairId;
     private String currencyPairName;
     private String statusString;
     private OrderBaseType orderBaseType;
 
     private Double commissionValue;
-
-
-    /*constructors*/
 
     public OrderWideListDto() {
         this.needRefresh = true;
@@ -56,8 +50,6 @@ public class OrderWideListDto extends OnlineTableDto{
         this.needRefresh = needRefresh;
     }
 
-    /*hash*/
-
     @Override
     public int hashCode() {
         int result = id;
@@ -65,7 +57,6 @@ public class OrderWideListDto extends OnlineTableDto{
         result = 31 * result + (status != null ? status.hashCode() : 0);
         return result;
     }
-    /*getters setters*/
 
     public int getPage() {
         return page;

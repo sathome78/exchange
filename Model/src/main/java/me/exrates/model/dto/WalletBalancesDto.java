@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import me.exrates.model.dto.api.RateDto;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 

@@ -5,9 +5,6 @@ import lombok.Data;
 import java.io.Serializable;
 import java.util.Date;
 
-/**
- * Created by Maks on 14.06.2018.
- */
 @Data
 public class ActBlock implements Serializable {
 

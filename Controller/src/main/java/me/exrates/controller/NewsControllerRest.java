@@ -1,6 +1,10 @@
 package me.exrates.controller;
 
-import me.exrates.controller.exception.*;
+import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.controller.exception.FileLoadingException;
+import me.exrates.controller.exception.NewsCreationException;
+import me.exrates.controller.exception.NewsRemovingException;
+import me.exrates.controller.exception.NoFileForLoadingException;
 import me.exrates.model.News;
 import me.exrates.model.dto.NewsSummaryDto;
 import me.exrates.model.form.NewsEditorCreationForm;
@@ -12,7 +16,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.LocaleResolver;
 
@@ -22,7 +33,11 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -32,7 +47,6 @@ import java.util.zip.ZipInputStream;
 @PropertySource(value = {"classpath:/news.properties"})
 public class NewsControllerRest {
     private static final Logger LOG = LogManager.getLogger(NewsControllerRest.class);
-    private final int DEAFAULT_PAGE_SIZE = 20;
     private final String TITLE_DESCRIPTION_FILE_NAME = "title.md";
     private final String BRIEF_DESCRIPTION_FILE_NAME = "brief.md";
 
@@ -66,7 +80,6 @@ public class NewsControllerRest {
             News news = new News();
             news.setId(newsId);
             if (newsId == null) {
-                /*new News. Requires date.*/
                 try {
                     news.setDate(LocalDate.parse(date));
                 } catch (Exception e) {
@@ -118,12 +131,12 @@ public class NewsControllerRest {
                         }
                     }
                 }
-                /**/
+
                 if (variants.isEmpty()) {
                     throw new FileLoadingException("");
                 }
                 newsService.uploadNews(variants.values(), multipartFile, newsLocationDir);
-                /**/
+
             } catch (NewsCreationException e) {
                 throw new NewsCreationException(messageSource.getMessage("news.errorcreate", null, localeResolver.resolveLocale(request)));
             } catch (FileLoadingException | IOException e) {

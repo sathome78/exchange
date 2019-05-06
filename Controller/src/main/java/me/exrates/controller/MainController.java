@@ -365,22 +365,6 @@ public class MainController {
 
     }
 
-    /*@ResponseBody
-    @RequestMapping(value = "/login/new_pin_send", method = RequestMethod.POST)
-    public ResponseEntity<String> sendLoginPinAgain(HttpServletRequest request, HttpServletResponse response) {
-        response.setCharacterEncoding("UTF-8");
-        Object auth = request.getSession().getAttribute("authentication");
-        if (auth == null) {
-            return ResponseEntity.badRequest().contentType(MediaType.APPLICATION_JSON_UTF8).body("error");
-        }
-        Authentication authentication = (Authentication) auth;
-        org.springframework.security.core.userdetails.User principal = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
-        String res = secureService.reSendLoginMessage(request, authentication.getName(), true).getMessage();
-        return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_JSON_UTF8)
-                .body(res);
-    }*/
-
     @ResponseBody
     @RequestMapping(value = "/register/new_link_to_confirm", method = RequestMethod.POST)
     public void sendRegisterLinkAgain(@ModelAttribute("unconfirmedUserEmail") String unconfirmedUserEmail, @RequestParam(required = false) String source, Locale locale) {
@@ -405,10 +389,6 @@ public class MainController {
         ModelAndView modelAndView = new ModelAndView("/globalPages/aboutUs", "captchaType", CAPTCHA_TYPE);
         return modelAndView;
     }
-
-    /*
-    error handlers for this controller
-    * */
 
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     @ExceptionHandler(WrongFinPasswordException.class)

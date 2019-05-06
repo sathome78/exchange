@@ -11,9 +11,6 @@ import me.exrates.model.serializer.LocalDateTimeSerializer;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * Created by ValkSam
- */
 @Getter @Setter
 @ToString
 public class TransferRequestFlatDto {

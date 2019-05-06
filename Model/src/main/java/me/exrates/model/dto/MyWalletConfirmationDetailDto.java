@@ -1,14 +1,10 @@
 package me.exrates.model.dto;
 
-/**
- * Created by Valk
- */
 public class MyWalletConfirmationDetailDto {
     private String amount;
     private String commission;
     private String total;
     private String stage;
-    /*getters setters*/
 
     public String getAmount() {
         return amount;

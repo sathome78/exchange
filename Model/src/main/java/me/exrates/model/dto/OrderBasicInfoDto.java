@@ -8,9 +8,6 @@ import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
 
-/**
- * Created by ogolv on 30.07.2016.
- */
 @Getter @Setter
 @ToString
 public class OrderBasicInfoDto {

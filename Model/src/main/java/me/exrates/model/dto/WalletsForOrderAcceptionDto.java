@@ -8,41 +8,37 @@ import java.math.BigDecimal;
  * - IDs the wallets -
  * - balances the wallets of participants the order: user-creator, user-acceptor, company
  * - status the order
- *
- * @author ValkSam
  */
 public class WalletsForOrderAcceptionDto {
     int orderId;
     int orderStatusId;
-    /**/
+
     int currencyBase;
     int currencyConvert;
-    /**/
+
     int companyWalletCurrencyBase;
     BigDecimal companyWalletCurrencyBaseBalance;
     BigDecimal companyWalletCurrencyBaseCommissionBalance;
-    /**/
+
     int companyWalletCurrencyConvert;
     BigDecimal companyWalletCurrencyConvertBalance;
     BigDecimal companyWalletCurrencyConvertCommissionBalance;
-    /**/
+
     int userCreatorInWalletId;
     BigDecimal userCreatorInWalletActiveBalance;
     BigDecimal userCreatorInWalletReservedBalance;
-    /**/
+
     int userCreatorOutWalletId;
     BigDecimal userCreatorOutWalletActiveBalance;
     BigDecimal userCreatorOutWalletReservedBalance;
-    /**/
+
     int userAcceptorInWalletId;
     BigDecimal userAcceptorInWalletActiveBalance;
     BigDecimal userAcceptorInWalletReservedBalance;
-    /**/
+
     int userAcceptorOutWalletId;
     BigDecimal userAcceptorOutWalletActiveBalance;
     BigDecimal userAcceptorOutWalletReservedBalance;
-
-    /*getters setters*/
 
     public int getOrderId() {
         return orderId;

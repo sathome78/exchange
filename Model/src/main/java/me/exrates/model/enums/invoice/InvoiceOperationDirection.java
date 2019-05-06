@@ -5,9 +5,6 @@ import me.exrates.model.exceptions.UnsupportedInvoiceOperationDirectionException
 
 import java.util.stream.Stream;
 
-/**
- * Created by OLEG on 28.02.2017.
- */
 @ToString
 public enum InvoiceOperationDirection {
     REFILL(1), WITHDRAW(2), TRANSFER_VOUCHER(3);

@@ -6,9 +6,6 @@ import me.exrates.model.enums.NewsTypeEnum;
 
 import java.util.List;
 
-/**
- * Created by ValkSam
- */
 @Getter @Setter
 public abstract class NewsDto {
     protected Integer id;

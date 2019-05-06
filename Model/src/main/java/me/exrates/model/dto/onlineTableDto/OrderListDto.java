@@ -6,13 +6,8 @@ import lombok.ToString;
 import me.exrates.model.enums.OperationType;
 import org.springframework.util.StringUtils;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 
-/**
- * Created by Valk on 14.04.16.
- */
 @ToString
 @Getter @Setter
 public class OrderListDto extends OnlineTableDto {

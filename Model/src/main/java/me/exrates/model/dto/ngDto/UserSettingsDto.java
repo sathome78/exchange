@@ -10,9 +10,6 @@ import me.exrates.model.form.NotificationOptionsForm;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by Maks on 07.02.2018.
- */
 @Data
 public class UserSettingsDto {
 

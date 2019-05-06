@@ -8,9 +8,6 @@ import java.math.BigDecimal;
 
 import static me.exrates.model.dto.filterData.FilterDataItem.DATE_FORMAT;
 
-/**
- * Created by OLEG on 02.03.2017.
- */
 @Getter @Setter
 @ToString
 public class AdminOrderFilterData extends TableFilterData {

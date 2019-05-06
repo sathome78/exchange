@@ -22,9 +22,7 @@ import java.util.stream.Stream;
 
 import static me.exrates.model.enums.invoice.WithdrawStatusEnum.POSTED_AUTO;
 import static me.exrates.model.enums.invoice.WithdrawStatusEnum.POSTED_MANUAL;
-/**
- * Created by Ajet on 23.07.2016.
- */
+
 @Getter @Setter
 @EqualsAndHashCode
 @ToString

@@ -5,11 +5,10 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.util.List;
 
-import static me.exrates.model.dto.filterData.FilterDataItem.*;
+import static me.exrates.model.dto.filterData.FilterDataItem.DATE_FORMAT;
+import static me.exrates.model.dto.filterData.FilterDataItem.IN_FORMAT;
+import static me.exrates.model.dto.filterData.FilterDataItem.LIKE_FORMAT_MIDDLE;
 
-/**
- * Created by maks on 30.06.2017.
- */
 @Data
 public class VoucherFilterData extends TableFilterData {
 

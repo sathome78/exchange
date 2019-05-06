@@ -32,10 +32,9 @@ public class NewsEditorCreationFormDto {
   @JsonDeserialize(using = LocalDateDeserializer.class)
   private LocalDate calendarDate;
   private Boolean noTitleImg;
-  /**/
+
   private String callbackMessage;
 
-  /**/
   public NewsEditorCreationFormDto(News news, NewsVariant newsVariant, NewsEditorCreationFormDto newsEditorCreationFormDto) {
     this.id = news.getId();
     this.date = news.getDate().toString();

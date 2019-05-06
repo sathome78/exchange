@@ -5,9 +5,6 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 
-/**
- * Created by ValkSam
- */
 @Getter @Setter
 public class RefillRequestFlatAdditionalDataDto {
   private String userEmail;

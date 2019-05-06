@@ -1,7 +1,5 @@
 package me.exrates.controller;
 
-import me.exrates.dao.IInitialExchangeOfferings;
-import me.exrates.dao.impl.InitialExchangeOfferingsDao;
 import me.exrates.service.IInitialExchangeOfferingsService;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;

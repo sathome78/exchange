@@ -7,15 +7,11 @@ import me.exrates.model.enums.TransactionSourceType;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * Created by ValkSam
- */
 @Getter @Setter
 public class PendingPaymentFlatForReportDto {
   private int invoiceId;
   private String transactionHash;
   private String address;
-//  private PendingPaymentStatusEnum pendingPaymentStatus;
   private LocalDateTime statusUpdateDate;
   private LocalDateTime acceptanceTime;
   private String hash;

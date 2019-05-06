@@ -1,9 +1,5 @@
 package me.exrates.model.enums;
 
-/**
- * Created by OLEG on 20.09.2016.
- */
-
 import me.exrates.model.exceptions.TransactionLabelTypeAmountParamNeededException;
 import me.exrates.model.exceptions.TransactionLabelTypeMoreThenOneResultException;
 import me.exrates.model.exceptions.TransactionLabelTypeNotResolvedException;
@@ -14,7 +10,10 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static me.exrates.model.enums.TransactionSourceType.*;
+import static me.exrates.model.enums.TransactionSourceType.ORDER;
+import static me.exrates.model.enums.TransactionSourceType.REFILL;
+import static me.exrates.model.enums.TransactionSourceType.USER_TRANSFER;
+import static me.exrates.model.enums.TransactionSourceType.WITHDRAW;
 
 public enum TransactionType {
   REFILL_IN(REFILL, null),

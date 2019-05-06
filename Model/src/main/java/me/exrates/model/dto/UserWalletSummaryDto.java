@@ -8,9 +8,6 @@ import me.exrates.model.util.BigDecimalProcessing;
 
 import java.math.BigDecimal;
 
-/**
- * Created by Valk on 04.05.2016.
- */
 @Getter @Setter
 @NoArgsConstructor
 public class UserWalletSummaryDto {

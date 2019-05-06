@@ -3,11 +3,6 @@ package me.exrates.model.dto;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 
-/**
- * Created by Valk on 12.04.16.
- *
- * this DTO is for update user and consists modifiable fields only
- */
 public class UpdateUserDto {
 	private int id;
 	private String email;
@@ -17,12 +12,9 @@ public class UpdateUserDto {
 	private String finpassword;
 	private UserRole role;
 
-	/*constructors*/
 	public UpdateUserDto(int id) {
 		this.id = id;
 	}
-
-	/*getters setters*/
 
 	public int getId() {
 		return id;

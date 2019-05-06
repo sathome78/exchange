@@ -12,9 +12,6 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Created by ogolv on 09.08.2016.
- */
 @Component
 public class FeedbackMessageFormValidator implements Validator {
     private Pattern pattern;

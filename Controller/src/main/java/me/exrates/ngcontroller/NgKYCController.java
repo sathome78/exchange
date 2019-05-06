@@ -94,8 +94,6 @@ public class NgKYCController {
         return ResponseEntity.ok().build();
     }
 
-    // /private/v2/shufti-pro/verification-url/step/{stepNumber}
-
     /**
      * /info/private/v2/verification-url/{step}
      *

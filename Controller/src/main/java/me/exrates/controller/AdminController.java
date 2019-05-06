@@ -695,9 +695,9 @@ public class AdminController {
 
             model.setViewName("redirect:/2a8fy7b07dxe44");
         }
-        /**/
+
         model.addObject("user", user);
-        /**/
+
         return model;
     }
 
@@ -759,7 +759,7 @@ public class AdminController {
     public DataTable<List<OrderBasicInfoDto>> searchOrderByAdmin(AdminOrderFilterData adminOrderFilterData,
                                                                  @RequestParam Map<String, String> params,
                                                                  HttpServletRequest request) {
-        //
+
         try {
             adminOrderFilterData.initFilterItems();
             DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
@@ -1591,10 +1591,7 @@ public class AdminController {
                                                         @RequestBody List<BtcWalletPaymentItemDto> payments,
                                                         HttpServletRequest request) {
         LOG.debug(payments);
-    /*long uniqueAddressesCount = payments.stream().map(BtcWalletPaymentItemDto::getAddress).distinct().count();
-    if (uniqueAddressesCount != payments.size()) {
-      throw new InvalidBtcPaymentDataException("Only unique addresses allowed in single payment!");
-    }*/
+
         BitcoinService walletService = getBitcoinServiceByMerchantName(merchantName);
         HttpSession session = request.getSession();
         List<BtcPreparedTransactionDto> preparedTransactions = (List<BtcPreparedTransactionDto>) session.getAttribute("PREPARED_RAW_TXES");

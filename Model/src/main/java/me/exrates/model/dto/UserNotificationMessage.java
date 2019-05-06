@@ -7,8 +7,6 @@ import lombok.NoArgsConstructor;
 import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.WsSourceTypeEnum;
 
-import java.time.LocalDateTime;
-
 @NoArgsConstructor
 @Data
 @AllArgsConstructor

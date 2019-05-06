@@ -1,8 +1,5 @@
 package me.exrates.model.dto.onlineTableDto;
 
-/**
- * Created by Valk
- */
 public class MyWalletsStatisticsDto extends OnlineTableDto {
     private String currencyName;
     private String description;
@@ -16,8 +13,6 @@ public class MyWalletsStatisticsDto extends OnlineTableDto {
     public MyWalletsStatisticsDto(boolean needRefresh) {
         this.needRefresh = needRefresh;
     }
-
-    /*hash*/
 
     @Override
     public boolean equals(Object o) {

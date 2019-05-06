@@ -2,9 +2,6 @@ package me.exrates.model.dto.mobileApiDto;
 
 import java.time.LocalDateTime;
 
-/**
- * Created by OLEG on 09.09.2016.
- */
 public class TemporaryPasswordDto {
     private Long id;
     private Integer userId;

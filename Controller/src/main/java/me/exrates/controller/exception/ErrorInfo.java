@@ -1,10 +1,10 @@
 package me.exrates.controller.exception;
 
 import lombok.ToString;
+import me.exrates.model.exceptions.IeoException;
 import me.exrates.model.exceptions.OpenApiException;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngExceptions.NgResponseException;
-import me.exrates.model.exceptions.IeoException;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindException;
@@ -15,9 +15,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Created by Valk on 04.04.16.
- */
 @ToString
 public class ErrorInfo {
     public final String url;

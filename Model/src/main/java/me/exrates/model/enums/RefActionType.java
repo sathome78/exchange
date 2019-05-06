@@ -2,9 +2,6 @@ package me.exrates.model.enums;
 
 import java.util.Arrays;
 
-/**
- * Created by maks on 14.04.2017.
- */
 public enum  RefActionType {
     init, search, toggle;
 

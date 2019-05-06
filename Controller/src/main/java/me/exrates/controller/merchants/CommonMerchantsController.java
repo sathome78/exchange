@@ -42,9 +42,6 @@ import static me.exrates.model.enums.UserCommentTopicEnum.TRANSFER_CURRENCY_WARN
 import static me.exrates.model.enums.UserCommentTopicEnum.WITHDRAW_CURRENCY_WARNING;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Controller
 public class CommonMerchantsController {
 
@@ -176,8 +173,6 @@ public class CommonMerchantsController {
             modelAndView.addObject("merchantCurrencyData", merchantCurrencyData);
             boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(principal.getName()), UserOperationAuthority.TRANSFER);
             modelAndView.addObject("accessToOperationForUser", accessToOperationForUser);
-     /* List<String> initialWarningCodeList = currencyService.getWarningForCurrency(currency.getId(), INITIAL_TRANSFER_CURRENCY_WARNING);
-      modelAndView.addObject("initialWarningCodeList", initialWarningCodeList);*/
             List<String> warningCodeList = currencyService.getWarningsByTopic(TRANSFER_CURRENCY_WARNING);
             modelAndView.addObject("warningCodeList", warningCodeList);
             boolean checkingZeroBalance = wallet.getActiveBalance().signum() == 0;

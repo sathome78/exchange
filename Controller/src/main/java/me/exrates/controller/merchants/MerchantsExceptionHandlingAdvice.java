@@ -15,9 +15,6 @@ import org.springframework.web.servlet.view.RedirectView;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @ControllerAdvice
 public class MerchantsExceptionHandlingAdvice {
 
@@ -50,7 +47,7 @@ public class MerchantsExceptionHandlingAdvice {
     }
 
 
-    //// TODO: 3/8/16 In this case block user acc and tell him about it
+    // TODO: 3/8/16 In this case block user acc and tell him about it
     @ExceptionHandler(NotEnoughCompanyWalletMoneyException.class)
     public RedirectView handleNotEnoughUserWalletMoneyException(NotEnoughUserWalletMoneyException e, HttpServletRequest request, HttpServletResponse response) {
 
@@ -72,14 +69,4 @@ public class MerchantsExceptionHandlingAdvice {
         }
         return redirectView;
     }
-
-//    @ExceptionHandler(InvalidAmountException.class)
-//    public RedirectView handleInvalidPayeeWalletException(InvalidAmountException e, HttpServletRequest request,HttpServletResponse response) {
-//        final RedirectView redirectView = new RedirectView("/merchants/output");
-//        final FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
-//        if (flashMap != null) {
-//            flashMap.put("error","merchants.incorrectPaymentDetails");
-//        }
-//        return redirectView;
-//    }
 }

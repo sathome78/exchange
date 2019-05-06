@@ -21,9 +21,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
 
-/**
- * Created by maks on 27.03.2017.
- */
 @Log4j2
 @Component
 public class FinPassCheckInterceptor extends HandlerInterceptorAdapter {

@@ -1,8 +1,5 @@
 package me.exrates.model.form;
 
-/**
- * Created by OLEG on 21.10.2016.
- */
 public class NewsEditorCreationForm {
     private Integer id;
     private String title;

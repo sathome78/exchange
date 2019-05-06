@@ -18,9 +18,6 @@ import java.time.LocalDateTime;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
-/**
- * Created by OLEG on 21.02.2017.
- */
 @Getter @Setter
 @NoArgsConstructor
 @ToString

@@ -7,7 +7,6 @@ import me.exrates.model.ChatMessage;
 import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.dto.RemovedMessageDto;
 import me.exrates.model.enums.ChatLang;
-import me.exrates.model.enums.UserRole;
 import me.exrates.service.ChatService;
 import me.exrates.service.UserService;
 import me.exrates.service.annotation.ThreadSafe;
@@ -28,7 +27,11 @@ import org.springframework.web.socket.TextMessage;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.*;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
@@ -38,9 +41,6 @@ import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @ThreadSafe
 @RestController
 public class ChatController {
@@ -48,7 +48,6 @@ public class ChatController {
     private final ChatService chatService;
     private final MessageSource messageSource;
     private final EnumMap<ChatLang, ChatWebSocketHandler> handlers;
-    //   private final Gson gson = new Gson();
     private final ObjectMapper mapper = new ObjectMapper();
     private final Logger LOG = LogManager.getLogger(ChatController.class);
 

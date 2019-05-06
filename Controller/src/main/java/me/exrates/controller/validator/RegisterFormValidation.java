@@ -28,12 +28,9 @@ public class RegisterFormValidation implements Validator {
 
     private static final String EMAIL_PATTERN = "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
             + "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
-    String ID_PATTERN = "[0-9]+";
-    String STRING_PATTERN = "[a-zA-Z]+";
     String MOBILE_PATTERN = "[0-9]{12}";
     private static final String PASSWORD_PATTERN = "((?=.*\\d)(?=.*[a-zA-Z]).{8,20})";
     private static final String NICKNAME_PATTERN = "^\\D+[\\w\\d\\-_.]+";
-    //    private static final Locale ru = new Locale("ru");
     private Locale ru = new Locale("en");
 
     @Autowired
@@ -95,8 +92,6 @@ public class RegisterFormValidation implements Validator {
         if (!userService.ifEmailIsUnique(user.getEmail())) {
             errors.rejectValue("email", "email.exists", emailExists);
         }
-//		  ValidationUtils.rejectIfEmptyOrWhitespace(errors, "phone",  
-//		    "required.phone", "Phone is required.");  
 //		  
         // phone number validation
 
@@ -236,38 +231,6 @@ public class RegisterFormValidation implements Validator {
                         phoneIncorrect);
             }
         }
-
-        /*if (!(user.getPassword() != null && user.getPassword().isEmpty())) {
-            pattern = Pattern.compile(PASSWORD_PATTERN);
-            matcher = pattern.matcher(user.getPassword());
-            if (!matcher.matches()) {
-                errors.rejectValue("password", "password.incorrect", passwordIncorrect);
-            }
-        }*/
-    }
-
-    public void validateResetPassword(Object target, Errors errors, Locale ru) {
-        User user = (User) target;
-
-        String passwordRequired = messageSource.getMessage("validation.passwordrequired", null, ru);
-        String passwordMismatch = messageSource.getMessage("validation.passwordmismatch", null, ru);
-        String passwordIncorrect = messageSource.getMessage("validation.passwordincorrect", null, ru);
-
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "password",
-                "required.password", passwordRequired);
-
-//        if (!user.getPassword().equals(user.getConfirmPassword())) {
-//            errors.rejectValue("confirmPassword", "password.mismatch",
-//                    passwordMismatch);
-//        }
-
-        if (!(user.getPassword() != null && user.getPassword().isEmpty())) {
-            pattern = Pattern.compile(PASSWORD_PATTERN);
-            matcher = pattern.matcher(user.getPassword());
-            if (!matcher.matches()) {
-                errors.rejectValue("password", "password.incorrect", passwordIncorrect);
-            }
-        }
     }
 
     public void validateChangePassword(ChangePasswordDto changePasswordDto, Errors errors, Locale locale) {
@@ -280,30 +243,6 @@ public class RegisterFormValidation implements Validator {
             matcher = pattern.matcher(changePasswordDto.getConfirmPassword());
             if (!matcher.matches()) {
                 errors.rejectValue("password", "password.incorrect", passwordIncorrect);
-            }
-        }
-    }
-
-    public void validateResetFinPassword(Object target, Errors errors, Locale ru) {
-        User user = (User) target;
-
-        String passwordRequired = messageSource.getMessage("validation.passwordrequired", null, ru);
-        String passwordMismatch = messageSource.getMessage("validation.passwordmismatch", null, ru);
-        String passwordIncorrect = messageSource.getMessage("validation.passwordincorrect", null, ru);
-
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "finpassword",
-                "required.password", passwordRequired);
-
-        if (!user.getFinpassword().equals(user.getConfirmFinPassword())) {
-            errors.rejectValue("confirmFinPassword", "password.mismatch",
-                    passwordMismatch);
-        }
-
-        if (!(user.getFinpassword() != null && user.getFinpassword().isEmpty())) {
-            pattern = Pattern.compile(PASSWORD_PATTERN);
-            matcher = pattern.matcher(user.getFinpassword());
-            if (!matcher.matches()) {
-                errors.rejectValue("finpassword", "password.incorrect", passwordIncorrect);
             }
         }
     }

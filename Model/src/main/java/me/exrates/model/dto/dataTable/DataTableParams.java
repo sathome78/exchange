@@ -8,9 +8,6 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-/**
- * Created by OLEG on 21.02.2017.
- */
 @Log4j2
 public class DataTableParams {
     

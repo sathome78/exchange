@@ -6,9 +6,6 @@ import me.exrates.model.serializer.LocalDateTimeSerializer;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 public class ChatMessage implements Comparable<ChatMessage> {
 
     private Integer userId;

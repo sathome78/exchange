@@ -5,9 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Locale;
 
-/**
- * Created by OLEG on 24.08.2016.
- */
 public class AuthTokenDto {
     private String token;
     private String nickname;

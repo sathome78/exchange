@@ -16,9 +16,6 @@ import java.io.IOException;
 import java.nio.charset.CodingErrorAction;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Created by Maks on 14.06.2018.
- */
 @Configuration
 public class HttpClient {
 

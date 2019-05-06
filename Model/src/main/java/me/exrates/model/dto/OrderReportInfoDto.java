@@ -1,11 +1,13 @@
 package me.exrates.model.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter @Setter
 @ToString

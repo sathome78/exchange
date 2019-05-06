@@ -10,9 +10,6 @@ import org.springframework.web.socket.server.HandshakeInterceptor;
 
 import java.util.Map;
 
-/**
- * Created by Maks on 13.12.2017.
- */
 @Log4j2
 public class WsHandshakeInterceptor implements HandshakeInterceptor {
 
@@ -21,16 +18,6 @@ public class WsHandshakeInterceptor implements HandshakeInterceptor {
 
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
-      /*  log.error("begin handshake");
-        Locale locale;
-        if (request instanceof ServletServerHttpRequest) {
-            ServletServerHttpRequest servletRequest = (ServletServerHttpRequest) request;
-            locale =  localeResolver.resolveLocale(servletRequest.getServletRequest());
-        } else {
-            locale = Locale.ENGLISH;
-        }
-        attributes.put("locale", locale);
-        log.error("wsLocale {}", locale);*/
         return true;
     }
 

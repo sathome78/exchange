@@ -2,9 +2,6 @@ package me.exrates.model.dto;
 
 import lombok.Data;
 
-/**
- * Created by Maks on 21.12.2017.
- */
 @Data
 public class AlertTimesDto {
 

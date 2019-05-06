@@ -2,31 +2,30 @@ package me.exrates.controller.chart;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.chart.ChartResolution;
-import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.CandleDto;
 import me.exrates.model.enums.ChartTimeFramesEnum;
 import me.exrates.security.annotation.OnlineMethod;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.ws.rs.QueryParam;
 import java.math.BigDecimal;
-import java.time.*;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Log4j2
@@ -36,7 +35,6 @@ public class ChartController {
     private OrderService orderService;
 
     private CurrencyService currencyService;
-    private HashMap<String, Object> responseCache = new HashMap<>();
 
     @Autowired
     public ChartController(OrderService orderService, CurrencyService currencyService) {
@@ -51,18 +49,6 @@ public class ChartController {
             @QueryParam("to") Long to,
             @QueryParam("from") Long from,
             @QueryParam("resolution") String resolution) {
-
- /*       String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd ";
-        LocalDateTime startTime = LocalDateTime.ofEpochSecond(from, 0, ZoneOffset.UTC);
-        LocalDateTime endTime = LocalDateTime.ofEpochSecond(to, 0, ZoneOffset.UTC);
-        ChartResolution resolution1 = ChartTimeFramesEnum.ofResolution(resolution).getTimeFrame().getResolution();
-        ChartTimeFrame timeFrame = ChartTimeFramesEnum.ofResolution(resolution).getTimeFrame();
-        LocalDateTime startFrameTime = endTime.minus(timeFrame.getTimeValue() + 1, timeFrame.getTimeUnit().getCorrespondingTimeUnit());
-
-        LocalDateTime fromDate = Instant.ofEpochMilli(36000000L).atZone(ZoneId.systemDefault()).toLocalDateTime();
-        String starDay = fromDate.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
-        String endDay = endTime.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));*/
-
 
         CurrencyPair currencyPair = currencyService.getCurrencyPairByName(symbol);
         List<CandleDto> result = new ArrayList<>();
@@ -100,65 +86,6 @@ public class ChartController {
     public ResponseEntity getChartSymbol(@QueryParam("symbol") String symbol) {
         return new ResponseEntity(getSymbolInfo(symbol).toString(), HttpStatus.OK);
     }
-
- /*   @OnlineMethod
-    @RequestMapping(value = "/ico_dashboard/history", method = RequestMethod.GET)
-    public ResponseEntity getCandleChartHistoryData2(
-            @QueryParam("symbol") String symbol,
-            @QueryParam("to") Long to,
-            @QueryParam("from") Long from,
-            @QueryParam("resolution") String resolution) {
-
-*//*        String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd";
-
-        LocalDateTime startTime = LocalDateTime.ofEpochSecond(from, 0, ZoneOffset.UTC);
-        LocalDateTime endTime = LocalDateTime.ofEpochSecond(to, 0, ZoneOffset.UTC);
-        ChartResolution resolution1 = ChartTimeFramesEnum.ofResolution(resolution).getTimeFrame().getResolution();
-        ChartTimeFrame timeFrame = ChartTimeFramesEnum.ofResolution(resolution).getTimeFrame();
-        LocalDateTime startFrameTime = endTime.minus(timeFrame.getTimeValue() + 1, timeFrame.getTimeUnit().getCorrespondingTimeUnit());
-
-        LocalDateTime fromDate = Instant.ofEpochMilli(36000000L).atZone(ZoneId.systemDefault()).toLocalDateTime();
-        String starDay = fromDate.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
-        String endDay = endTime.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));*//*
-
-
-        CurrencyPair currencyPair = currencyService.getCurrencyPairByName(symbol);
-        List<CandleDto> result = new ArrayList<>();
-        if (currencyPair == null) {
-            HashMap<String, Object> errors = new HashMap<>();
-            errors.putAll(filterDataPeriod(result, from, to, resolution));
-            errors.put("s", "error");
-            errors.put("errmsg", "can not find currencyPair");
-            return new ResponseEntity(errors, HttpStatus.NOT_FOUND_ERROR);
-        }
-        String rsolutionForChartTime = (resolution.equals("W") || resolution.equals("M")) ? "D" : resolution;
-        result = orderService.getCachedDataForCandle(currencyPair,
-                ChartTimeFramesEnum.ofResolution(rsolutionForChartTime).getTimeFrame())
-                .stream().map(CandleDto::new).collect(Collectors.toList());
-        return new ResponseEntity(filterDataPeriod(result, from, to, resolution), HttpStatus.OK);
-
-    }*/
-
-
-/*    @OnlineMethod
-    @RequestMapping(value = "/ico_dashboard/time", method = RequestMethod.GET)
-    public ResponseEntity getChartTime2() {
-        return new ResponseEntity(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC), HttpStatus.OK);
-    }*/
-
-/*
-    @OnlineMethod
-    @RequestMapping(value = "/ico_dashboard/config", method = RequestMethod.GET)
-    public ResponseEntity getChartConfig2() {
-        return new ResponseEntity(getConfig().toString(), HttpStatus.OK);
-    }
-*/
-
-/*    @OnlineMethod
-    @RequestMapping(value = "/ico_dashboard/symbols", method = RequestMethod.GET)
-    public ResponseEntity getChartSymbol2(@QueryParam("symbol") String symbol) {
-        return new ResponseEntity(getSymbolInfo(symbol).toString(), HttpStatus.OK);
-    }*/
 
     private JsonObject getSymbolInfo(@QueryParam("symbol") String symbol) {
 

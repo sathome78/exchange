@@ -1,8 +1,5 @@
 package me.exrates.model;
 
-/**
- * Created by OLEG on 13.02.2017.
- */
 public class ClientBank {
 
     private Integer id;

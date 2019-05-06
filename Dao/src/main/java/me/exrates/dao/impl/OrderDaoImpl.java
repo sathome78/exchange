@@ -7,7 +7,7 @@ import me.exrates.dao.WalletDao;
 import me.exrates.dao.exception.OrderDaoException;
 import me.exrates.dao.exception.notfound.CommissionsNotFoundException;
 import me.exrates.dao.exception.notfound.WalletNotFoundException;
-import me.exrates.jdbc.OrderRowMapper;
+import me.exrates.dao.order.OrderRowMapper;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;

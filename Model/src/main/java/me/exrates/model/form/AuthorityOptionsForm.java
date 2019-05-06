@@ -4,9 +4,6 @@ import me.exrates.model.AdminAuthorityOption;
 
 import java.util.List;
 
-/**
- * Created by OLEG on 18.11.2016.
- */
 public class AuthorityOptionsForm {
     private List<AdminAuthorityOption> options;
     private Integer userId;

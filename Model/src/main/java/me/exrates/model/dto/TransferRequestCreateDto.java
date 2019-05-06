@@ -13,9 +13,6 @@ import java.util.Locale;
 
 import static me.exrates.model.enums.ActionType.ADD;
 
-/**
- * @author ValkSam
- */
 @Getter @Setter
 @ToString
 @NoArgsConstructor
@@ -44,7 +41,7 @@ public class TransferRequestCreateDto {
     this.currencyId = paramsDto.getCurrency();
     this.amount = paramsDto.getSum();
     this.merchantId = paramsDto.getMerchant();
-    /**/
+
     this.userId = creditsOperation.getUser().getId();
     this.userEmail = creditsOperation.getUser().getEmail();
     this.userWalletId = creditsOperation.getWallet().getId();
@@ -56,9 +53,9 @@ public class TransferRequestCreateDto {
     this.recipientWalletId = creditsOperation.getRecipientWallet() == null ? null : creditsOperation.getRecipientWallet().getId();
     this.serviceBeanName = creditsOperation.getMerchant().getServiceBeanName();
     this.merchantDescription = creditsOperation.getMerchant().getDescription();
-    /**/
+
     this.statusId = status.getCode();
-    /**/
+
     this.locale = locale;
   }
 

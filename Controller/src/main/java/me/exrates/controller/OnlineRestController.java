@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.CurrentParams;
 import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.OrderCommissionsDto;
@@ -73,18 +72,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.security.web.csrf.CsrfToken;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
@@ -92,7 +79,6 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
@@ -118,22 +104,12 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
  * IMPORTANT!
  * The OnlineRestController can contain not online methods. But all online methods must be placed in the OnlineRestController
  * Online methods must be annotated with @OnlineMethod
- *
- * @author ValkSam
  */
 @Log4j2
 @PropertySource(value = {"classpath:/mobile.properties", "classpath:session.properties"})
 @RestController
 public class OnlineRestController {
     private static final Logger LOGGER = LogManager.getLogger(OnlineRestController.class);
-    /* if SESSION_LIFETIME_HARD set, session will be killed after time expired, regardless of activity the session
-    set SESSION_LIFETIME_HARD = 0 to ignore it*/
-    /* public static final long SESSION_LIFETIME_HARD = Math.round(90 * 60); //SECONDS*/
-    /* if SESSION_LIFETIME_INACTIVE set, session will be killed if it is inactive during the time
-     * set SESSION_LIFETIME_INACTIVE = 0 to ignore it and session lifetime will be set to default value (30 mins)
-     * The time of end the current session is stored in session param "sessionEndTime", which calculated in millisec as
-     * new Date().getTime() + SESSION_LIFETIME_HARD * 1000*/
-    /*public static final int SESSION_LIFETIME_INACTIVE = 0; //SECONDS*/
     /*default depth the interval for chart*/
     final public static BackDealInterval BACK_DEAL_INTERVAL_DEFAULT = new BackDealInterval("24 HOUR");
     /*depth the accepted order history*/
@@ -177,9 +153,6 @@ public class OnlineRestController {
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private NotificationService notificationService;
 
     @Autowired
     MessageSource messageSource;
@@ -326,109 +299,6 @@ public class OnlineRestController {
 
     }
 
-
-    /**
-     * this method do two function:
-     * - one of online methods. Retrieves current statistics (states) for all currency pairs
-     * - controls the session state and start new session when necessary
-     * <p>
-     * control the session state:
-     * the method is being called by EACH of main pages (main pages are mapped in class EntryController).
-     * Therefore in it we process the change the session.
-     * <p>
-     * For changing the session two variants a used:
-     * - session lives during fixed time (set in SESSION_LIFETIME_HARD)
-     * - session lives while it is active (lifetime is set in SESSION_LIFETIME_INACTIVE).
-     * As after the start of a new session, it can be intercepted by any of onlne methods in which necessary
-     * data have not been populated, then we use the session parameter "firstEntry", which indicates that new session
-     * starts in correct sequence.
-     * <p>
-     * Sequence of session start is:
-     * url "/dashboard"
-     * -> leftSider.js: LeftSiderClass.init()
-     * -> url "/dashboard/firstentry"  (here the session parameter "firstEntry" will be set)
-     * -> leftSider.js: getStatisticsForAllCurrencies()
-     * -> url "/dashboard/currencyPairStatistic" (mappet to this method)
-     *
-     * @param refreshIfNeeded - if set true, method returns data of currency pair statistics only if data has been changed in DB.
-     *                        if data has not been changed in DB, method returns corresponding
-     *                        info (field class OnlineTableDto.needRefresh" = false) and view on browser will not be repainted
-     *                        - if set false, method returns data of currency pair statistics in any cases (data has been changed in DB or not)
-     *                        and view on browser will be repainted
-     * @param request
-     * @return map with one of two keys:
-     * - "redirect": if new session has started
-     * - "list": data of currency pairs statistics
-     * @throws IOException
-     * @author ValkSam
-     */
-    /*@OnlineMethod
-    @RequestMapping(value = "/dashboard/currencyPairStatistic", method = RequestMethod.GET)
-    public Map<String, ?> getCurrencyPairStatisticsForAllCurrencies(
-            @RequestParam(required = false) Boolean refreshIfNeeded,
-            HttpServletRequest request, Principal principal) throws IOException {
-        try {
-            HttpSession session = request.getSession(true);
-     *//* if (session.getAttribute("sessionEndTime") == null) {
-        session.setAttribute("sessionEndTime", new Date().getTime() + SESSION_LIFETIME_HARD * 1000);
-      }
-      String s = "";
-      if (SESSION_LIFETIME_HARD != 0) {
-        if (session.getAttribute("sessionEndTime") != null) {
-          s = " Remain to SESSION_LIFETIME_HARD killing: " + ((Long) session.getAttribute("sessionEndTime") - new Date().getTime()) / 1000 + " sec";
-        }
-      }
-      LOGGER.trace(" SESSION: " + session.getId() + " firstEntry: " + session.getAttribute("firstEntry") + s);
-      if ((!session.isNew()) &&
-          (SESSION_LIFETIME_HARD != 0) &&
-          new Date().getTime() >= (Long) session.getAttribute("sessionEndTime")) {
-        long st = (Long) session.getAttribute("sessionEndTime");
-        try {
-          request.logout();
-        } catch (ServletException e) {
-          e.printStackTrace();
-        }
-        session = request.getSession(true);
-        LOGGER.debug(" SESSION_LIFETIME_HARD. NEW SESSION STARTED: " + session.getId() + " by time: " + st + " new time: " + session.getAttribute("sessionEndTime"));
-      }*//*
-     *//* if (session.isNew() || session.getAttribute("firstEntry") == null) {
-
-            "session.isNew() == true" indicates that "/dashboard/currencyPairStatistic" is called first after previous
-            session has expired, and opened new session (by calling request.getSession(true))
-            "firstEntry" == null indicates that new session was started by other online method
-            * and "/dashboard/currencyPairStatistic" ought to start new session and redirect to "/dashboard"
-        session.setAttribute("sessionEndTime", new Date().getTime() + SESSION_LIFETIME_HARD * 1000);
-        LOGGER.debug(" REDIRECT to /dashboard. SESSION: " + session.getId() + " is new: " + session.isNew() + " firstEntry: " + session.getAttribute("firstEntry"));
-        return new HashMap<String, HashMap<String, String>>() {{
-          put("redirect", new HashMap<String, String>() {{
-            put("url", "/dashboard");
-            put("urlParam1", messageSource.getMessage("session.expire", null, localeResolver.resolveLocale(request)));
-          }});
-        }};
-      }*//*
-            *//*if (session.getAttribute("QR_LOGGED_IN") != null) {
-             *//**//*after authentication via QR main page must be reloaded*//**//*
-        session.removeAttribute("QR_LOGGED_IN");
-        LOGGER.debug(" REDIRECT to /dashboard. SESSION: " + session.getId() + " is new: " + session.isNew() + " firstEntry: " + session.getAttribute("firstEntry"));
-        return new HashMap<String, HashMap<String, String>>() {{
-          put("redirect", new HashMap<String, String>() {{
-            put("url", "/dashboard");
-            put("successQR", messageSource.getMessage("dashboard.qrLogin.successful", null, localeResolver.resolveLocale(request)));
-          }});
-        }};
-      }*//*
-            String cacheKey = "currencyPairStatistic" + request.getHeader("windowid");
-            refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
-            CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-            return new HashMap<String, List<ExOrderStatisticsShortByPairsDto>>() {{
-                put("list", orderService.getOrdersStatisticByPairs(cacheData, localeResolver.resolveLocale(request)));
-            }};
-        } catch (Exception e) {
-            LOGGER.error(ExceptionUtils.getStackTrace(e));
-            throw e;
-        }
-    }*/
-
     /**
      * when session has expired, any of online methods can start new session (through calling the request.getSession())
      * But in this case the started session will not be populated with necessary data.
@@ -448,92 +318,7 @@ public class OnlineRestController {
         HttpSession session = request.getSession();
         session.setAttribute("firstEntry", true);
         LOGGER.debug(" SESSION: " + session.getId() + " firstEntry: " + session.getAttribute("firstEntry"));
-
-   /* if (SESSION_LIFETIME_INACTIVE != 0) {
-      session.setMaxInactiveInterval(SESSION_LIFETIME_INACTIVE);
-    }*/
     }
-
-    /**
-     * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
-     * returns the data for graphic
-     * method has not param "refreshIfNeeded", but it is called if the data, which indicates that graphic must be repainted, has been changed
-     *
-     * @param request
-     * @return: "null" if user is not login. List the data of user's wallet current statistics
-     * @author ValkSam
-     */
-    /*@OnlineMethod
-    @RequestMapping(value = "/dashboard/chartArray/{type}", method = RequestMethod.GET)
-    public ArrayList chartArray(HttpServletRequest request) {
-        CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
-        if (currencyPair == null) {
-            return new ArrayList();
-        }
-        final BackDealInterval backDealInterval = (BackDealInterval) request.getSession().getAttribute("currentBackDealInterval");
-        ChartType chartType = (ChartType) request.getSession().getAttribute("chartType");
-        log.error("chartType {}", chartType);
-        *//**//*
-        ArrayList<List> arrayListMain = new ArrayList<>();
-        *//*in first row return backDealInterval - to synchronize period menu with it*//*
-        arrayListMain.add(new ArrayList<Object>() {{
-            add(backDealInterval);
-        }});
-        *//**//*
-        if (chartType == ChartType.AREA) {
-            *//*GOOGLE*//*
-            List<Map<String, Object>> rows = orderService.getDataForAreaChart(currencyPair, backDealInterval);
-            for (Map<String, Object> row : rows) {
-                Timestamp dateAcception = (Timestamp) row.get("dateAcception");
-                BigDecimal exrate = (BigDecimal) row.get("exrate");
-                BigDecimal volume = (BigDecimal) row.get("volume");
-                if (dateAcception != null) {
-                    ArrayList<Object> arrayList = new ArrayList<>();
-                    *//*values*//*
-                    arrayList.add(dateAcception.toString());
-                    arrayList.add(exrate.doubleValue());
-                    arrayList.add(volume.doubleValue());
-                    *//*titles of values for chart tip*//*
-                    arrayList.add(messageSource.getMessage("orders.date", null, localeResolver.resolveLocale(request)));
-                    arrayList.add(messageSource.getMessage("orders.exrate", null, localeResolver.resolveLocale(request)));
-                    arrayList.add(messageSource.getMessage("orders.volume", null, localeResolver.resolveLocale(request)));
-                    arrayListMain.add(arrayList);
-                }
-            }
-        } else if (chartType == ChartType.CANDLE) {
-            *//*GOOGLE*//*
-            List<CandleChartItemDto> rows = orderService.getDataForCandleChart(currencyPair, backDealInterval);
-            for (CandleChartItemDto candle : rows) {
-                ArrayList<Object> arrayList = new ArrayList<>();
-                *//*values*//*
-                arrayList.add(candle.getBeginPeriod().toString());
-                arrayList.add(candle.getEndPeriod().toString());
-                arrayList.add(candle.getOpenRate());
-                arrayList.add(candle.getCloseRate());
-                arrayList.add(candle.getLowRate());
-                arrayList.add(candle.getHighRate());
-                arrayList.add(candle.getBaseVolume());
-                arrayListMain.add(arrayList);
-            }
-        } else if (chartType == ChartType.STOCK) {
-            *//*AMCHARTS*//*
-            List<CandleChartItemDto> rows = orderService.getDataForCandleChart(currencyPair, backDealInterval);
-            for (CandleChartItemDto candle : rows) {
-                ArrayList<Object> arrayList = new ArrayList<>();
-                *//*values*//*
-                arrayList.add(candle.getBeginDate().toString());
-                arrayList.add(candle.getEndDate().toString());
-                arrayList.add(candle.getOpenRate());
-                arrayList.add(candle.getCloseRate());
-                arrayList.add(candle.getLowRate());
-                arrayList.add(candle.getHighRate());
-                arrayList.add(candle.getBaseVolume());
-                arrayListMain.add(arrayList);
-            }
-        }
-        request.getSession().setAttribute("currentBackDealInterval", backDealInterval);
-        return arrayListMain;
-    }*/
 
     /**
      * Sets (init or reset) and returns current params:
@@ -559,7 +344,7 @@ public class OnlineRestController {
         CurrencyPair currencyPair = getPairFormSessionOrRequest(request, currencyPairName, currencyPairType);
         currencyPair = resolveCurrentOrDefaultPairForType(currencyPair, currencyPairType);
         request.getSession().setAttribute("currentCurrencyPair", currencyPair);
-        /**/
+
         if (showAllPairs == null) {
             if (request.getSession().getAttribute("showAllPairs") == null) {
                 showAllPairs = false;
@@ -568,7 +353,7 @@ public class OnlineRestController {
             }
         }
         request.getSession().setAttribute("showAllPairs", showAllPairs);
-        /**/
+
         BackDealInterval backDealInterval;
         if (period == null) {
             backDealInterval = (BackDealInterval) request.getSession().getAttribute("currentBackDealInterval");
@@ -579,7 +364,7 @@ public class OnlineRestController {
             backDealInterval = new BackDealInterval(period);
         }
         request.getSession().setAttribute("currentBackDealInterval", backDealInterval);
-        /**/
+
         ChartType chartType;
         if (chart == null) {
             chartType = (ChartType) request.getSession().getAttribute("chartType");
@@ -590,7 +375,7 @@ public class OnlineRestController {
             chartType = ChartType.convert(chart);
         }
         request.getSession().setAttribute("chartType", chartType);
-        /**/
+
         if (orderRoleFilterEnabled == null) {
             if (request.getSession().getAttribute("orderRoleFilterEnabled") == null) {
                 orderRoleFilterEnabled = false;
@@ -671,14 +456,14 @@ public class OnlineRestController {
             @RequestParam(required = false) Integer limitValue,
             @RequestParam(required = false) OrderStatus orderStatusValue,
             HttpServletRequest request) {
-        /**/
+
         String attributeName = tableId + "Params";
         TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
         if (tableParams == null) {
             tableParams = new TableParams();
             tableParams.setTableId(tableId);
         }
-        /**/
+
         Integer limit;
         if (limitValue == null) {
             limit = tableParams.getPageSize();
@@ -689,7 +474,7 @@ public class OnlineRestController {
             limit = limitValue;
         }
         tableParams.setPageSize(limit);
-        /**/
+
         request.getSession().setAttribute(attributeName, tableParams);
         return tableParams;
     }
@@ -710,7 +495,7 @@ public class OnlineRestController {
             return null;
         }
         BackDealInterval backDealInterval = (BackDealInterval) request.getSession().getAttribute("currentBackDealInterval");
-        /**/
+
         ExOrderStatisticsDto exOrderStatisticsDto = orderService.getOrderStatistic(currencyPair, backDealInterval, localeResolver.resolveLocale(request));
         return exOrderStatisticsDto;
     }
@@ -918,12 +703,12 @@ public class OnlineRestController {
             return Collections.EMPTY_LIST;
         }
         Boolean showAllPairs = (Boolean) request.getSession().getAttribute("showAllPairs");
-        /**/
+
         String attributeName = tableId + "Params";
         TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
         Assert.requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
         tableParams.setOffsetAndLimitForSql(page, direction);
-        /**/
+
         String cacheKey = "myOrdersData" + tableId + status + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
@@ -1003,12 +788,12 @@ public class OnlineRestController {
             return null;
         }
         String email = principal.getName();
-        /**/
+
         String attributeName = tableId + "Params";
         TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
         Assert.requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
         tableParams.setOffsetAndLimitForSql(page, direction);
-        /**/
+
         String cacheKey = "myReferralData" + tableId + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
@@ -1043,12 +828,12 @@ public class OnlineRestController {
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) PagingDirection direction,
             HttpServletRequest request) {
-        /**/
+
         String attributeName = tableId + "Params";
         TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
         Assert.requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
         tableParams.setOffsetAndLimitForSql(page, direction);
-        /**/
+
         String cacheKey = "myAccountStatement" + tableId + walletId + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
@@ -1085,12 +870,12 @@ public class OnlineRestController {
             return null;
         }
         String email = principal.getName();
-        /**/
+
         String attributeName = tableId + "Params";
         TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
         Assert.requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
         tableParams.setOffsetAndLimitForSql(page, direction);
-        /**/
+
         String cacheKey = "myInputoutputData" + tableId + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
@@ -1144,18 +929,7 @@ public class OnlineRestController {
                                                          @RequestParam(required = false) Integer page,
                                                          Principal principal,
                                                          HttpServletRequest request) {
-    /*long before = System.currentTimeMillis();
-    String attributeName = tableId + "Params";
-    TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
-    Assert.requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
-    Integer offset = page == null || tableParams.getPageSize() == -1 ? 0 : (page - 1) * tableParams.getPageSize();
-    String cacheKey = "notifications" + request.getHeader("windowid");
-    refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
-    CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-    List<NotificationDto> result = notificationService.findByUser(principal.getName(), cacheData, offset, tableParams.getPageSize());
-    long after = System.currentTimeMillis();
-    LOGGER.debug("completed... ms: " + (after - before));
-    return result;*/
+
         return Collections.emptyList();
     }
 
@@ -1171,7 +945,7 @@ public class OnlineRestController {
             return null;
         }
         String email = principal.getName();
-        /**/
+
         RefsListContainer container = referralService.getRefsContainerForReq(action, userId,
                 userService.getIdByEmail(email), onPage, page, refFilterData);
         hideEmails(container.getReferralInfoDtos());

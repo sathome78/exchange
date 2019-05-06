@@ -3,9 +3,6 @@ package me.exrates.model.enums.invoice;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by ValkSam
- */
 public enum InvoiceActionTypeButtonEnum {
   CONFIRM_USER_BUTTON {{
     getProperty().put("tableIdListOnly", new String[]{"inputoutput-table", "unconfirmed-refills-table"});

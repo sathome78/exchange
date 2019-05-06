@@ -15,17 +15,14 @@ import java.util.stream.Stream;
 public class UserRoleTotalBalancesReportDto<T extends Enum & RealCheckableRole> {
 
     private String currency;
-    //wolper 19.04.2018
     //currency id added
     private int curId;
     private Map<String, BigDecimal> balances;
     private Class<T> enumClass;
-    //wolper 24.04.18
     private BigDecimal rateToUSD;
 
     private String totalReal = BigDecimalProcessing.formatNoneComma(BigDecimal.ZERO, false);
 
-    //wolper 19.04.18
     public UserRoleTotalBalancesReportDto(String currency, int id, Map<String, BigDecimal> balances, Class<T> enumClass) {
         this(currency, balances, enumClass);
         this.curId=id;

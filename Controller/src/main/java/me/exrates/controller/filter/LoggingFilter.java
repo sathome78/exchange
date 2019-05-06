@@ -2,7 +2,6 @@ package me.exrates.controller.filter;
 
 import javax.ws.rs.client.ClientRequestContext;
 import javax.ws.rs.client.ClientRequestFilter;
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

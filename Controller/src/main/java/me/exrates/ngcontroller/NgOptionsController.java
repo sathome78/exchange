@@ -20,7 +20,6 @@ public class NgOptionsController {
 
     @RequestMapping(value= "/api/**", method=RequestMethod.OPTIONS)
     public void corsHeaders(HttpServletResponse response) {
-//        response.addHeader("Access-Control-Allow-Origin", "*");
         response.addHeader("Access-Control-Allow-Methods", String.join(", ", angularAllowedMethods));
         response.addHeader("Access-Control-Allow-Headers", String.join(", ", angularAllowedHeaders));
         response.addHeader("Access-Control-Max-Age", "3600");

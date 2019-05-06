@@ -11,9 +11,6 @@ import lombok.ToString;
 import java.math.BigDecimal;
 import java.util.List;
 
-/**
- * Created by OLEG on 13.10.2016.
- */
 @Getter @Setter
 @NoArgsConstructor
 @ToString

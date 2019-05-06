@@ -8,9 +8,6 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Component
 public class ChatWebSocketHandler extends TextWebSocketHandler {
 

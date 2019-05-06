@@ -19,7 +19,7 @@ import java.sql.Date;
 import java.time.LocalDate;
 import java.util.*;
 
-import static me.exrates.jdbc.TokenRowMapper.tokenRowMapper;
+import static me.exrates.dao.order.TokenRowMapper.tokenRowMapper;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)

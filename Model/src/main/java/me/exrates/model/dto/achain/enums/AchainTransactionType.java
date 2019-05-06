@@ -2,9 +2,6 @@ package me.exrates.model.dto.achain.enums;
 
 import java.util.Arrays;
 
-/**
- * Created by Maks on 18.06.2018.
- */
 public enum AchainTransactionType {
 
     CONTRACT_CALL("call_contract_op_type"),

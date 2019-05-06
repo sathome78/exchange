@@ -6,8 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import me.exrates.model.Transaction;
 
-import java.sql.Timestamp;
-
 @NoArgsConstructor
 @Data
 @AllArgsConstructor

@@ -9,9 +9,6 @@ import me.exrates.model.serializer.LocalDateTimeSerializer;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * Created by OLEG on 25.05.2017.
- */
 @Getter @Setter
 @ToString
 public class RefillRequestBtcInfoDto {

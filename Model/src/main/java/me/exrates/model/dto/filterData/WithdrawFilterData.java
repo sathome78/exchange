@@ -8,11 +8,10 @@ import lombok.ToString;
 import java.math.BigDecimal;
 import java.util.List;
 
-import static me.exrates.model.dto.filterData.FilterDataItem.*;
+import static me.exrates.model.dto.filterData.FilterDataItem.DATE_FORMAT;
+import static me.exrates.model.dto.filterData.FilterDataItem.IN_FORMAT;
+import static me.exrates.model.dto.filterData.FilterDataItem.LIKE_FORMAT_MIDDLE;
 
-/**
- * Created by OLEG on 28.02.2017.
- */
 @Getter @Setter
 @NoArgsConstructor
 @ToString

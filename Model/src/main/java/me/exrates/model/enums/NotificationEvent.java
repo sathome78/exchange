@@ -5,9 +5,6 @@ import org.springframework.context.MessageSource;
 
 import java.util.Locale;
 
-/**
- * Created by OLEG on 09.11.2016.
- */
 public enum NotificationEvent {
     CUSTOM(1), ADMIN(2), ACCOUNT(3), ORDER(4), IN_OUT(5);
 

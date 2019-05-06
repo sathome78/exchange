@@ -6,9 +6,6 @@ import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-/**
- * Created by Maks on 25.06.2018.
- */
 @Data
 public class WithdrawRequestInfoDto {
 

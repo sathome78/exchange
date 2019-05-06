@@ -5,9 +5,6 @@ import org.springframework.context.MessageSource;
 
 import java.util.Locale;
 
-/**
- * Created by OLEG on 18.11.2016.
- */
 public class AdminAuthorityOption {
     AdminAuthority adminAuthority;
     Boolean enabled;

@@ -19,9 +19,6 @@ import java.util.Map;
 
 import static me.exrates.model.enums.TransactionSourceType.WITHDRAW;
 
-/**
- * Created by ValkSam
- */
 @Getter @Setter
 @ToString
 public class WithdrawRequestsAdminTableDto extends OnlineTableDto {

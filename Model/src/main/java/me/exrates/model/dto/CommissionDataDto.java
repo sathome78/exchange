@@ -8,9 +8,6 @@ import me.exrates.model.Commission;
 
 import java.math.BigDecimal;
 
-/**
- * @author ValkSam
- */
 @Getter
 @ToString
 @AllArgsConstructor

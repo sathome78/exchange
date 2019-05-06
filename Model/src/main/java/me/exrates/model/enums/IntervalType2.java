@@ -4,9 +4,6 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
 import java.util.Arrays;
 
-/**
- * Created by Valk on 27.04.2016.
- */
 public enum IntervalType2 {
     HOUR(ChronoUnit.HOURS, 3L, true, "H"),
     DAY(ChronoUnit.DAYS, 5L, true, "D"),

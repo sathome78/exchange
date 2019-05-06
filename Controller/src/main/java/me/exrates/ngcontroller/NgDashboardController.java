@@ -1,6 +1,5 @@
 package me.exrates.ngcontroller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.Currency;
@@ -30,7 +29,6 @@ import me.exrates.service.UserService;
 import me.exrates.service.exception.process.OrderAcceptionException;
 import me.exrates.service.exception.process.OrderCancellingException;
 import me.exrates.service.stopOrder.StopOrderService;
-import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.util.DateUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -81,9 +79,7 @@ public class NgDashboardController {
     private final UserService userService;
     private final LocaleResolver localeResolver;
     private final NgOrderService ngOrderService;
-    private final ObjectMapper objectMapper;
     private final StopOrderService stopOrderService;
-    private final UserOperationService userOperationService;
 
 
     @Autowired
@@ -93,18 +89,14 @@ public class NgDashboardController {
                                  UserService userService,
                                  LocaleResolver localeResolver,
                                  NgOrderService ngOrderService,
-                                 ObjectMapper objectMapper,
-                                 StopOrderService stopOrderService,
-                                 UserOperationService userOperationService) {
+                                 StopOrderService stopOrderService) {
         this.dashboardService = dashboardService;
         this.currencyService = currencyService;
         this.orderService = orderService;
         this.userService = userService;
         this.localeResolver = localeResolver;
         this.ngOrderService = ngOrderService;
-        this.objectMapper = objectMapper;
         this.stopOrderService = stopOrderService;
-        this.userOperationService = userOperationService;
     }
 
     @PostMapping("/order")
@@ -145,36 +137,6 @@ public class NgDashboardController {
     public ResponseEntity updateOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
 
         throw new NgDashboardException("Update orders is not supported");
-
-//        if (inputOrder.getOrderId() == null) {
-//            throw new OrderParamsWrongException();
-//        }
-//
-//        String userName = userService.getUserEmailFromSecurityContext();
-//        User user = userService.findByEmail(userName);
-//
-//        OrderBaseType baseType = OrderBaseType.convert(inputOrder.getBaseType());
-//        boolean result;
-//
-//        switch (baseType) {
-//            case STOP_LIMIT:
-//                result = ngOrderService.processUpdateStopOrder(user, inputOrder);
-//                break;
-//            case LIMIT:
-//                result = ngOrderService.processUpdateOrder(user, inputOrder);
-//                break;
-//            case ICO:
-//                throw new NgDashboardException("Not supported type - ICO");
-//            default:
-//                throw new NgDashboardException("Unknown type - " + baseType);
-//        }
-//
-//        if (result) {
-//            String destination = "/topic/myorders/".concat(userName);
-//            simpMessagingTemplate.convertAndSend(destination, fromResult(result));
-//            return ResponseEntity.ok().build();
-//        }
-//        return ResponseEntity.badRequest().build();
     }
 
     @GetMapping("/balance/{currency}")
@@ -430,14 +392,5 @@ public class NgDashboardController {
     @ResponseBody
     public ErrorInfo OtherErrorsHandlerMethodArgumentNotValidException(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
-    }
-
-    private String fromResult(boolean result) {
-        try {
-            return objectMapper.writeValueAsString(result);
-        } catch (Exception e) {
-            logger.info("Failed to convert result value {}", result);
-            return "";
-        }
     }
 }

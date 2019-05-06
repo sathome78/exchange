@@ -4,9 +4,6 @@ import me.exrates.model.NotificationOption;
 
 import java.util.List;
 
-/**
- * Created by OLEG on 15.11.2016.
- */
 public class NotificationOptionsForm {
     private List<NotificationOption> options;
 

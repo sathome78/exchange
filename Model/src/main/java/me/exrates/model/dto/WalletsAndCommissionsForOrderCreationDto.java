@@ -8,18 +8,13 @@ import java.math.BigDecimal;
  * - IDs the wallets -
  * - balances the wallets of participants the order: user-creator, user-acceptor, company
  * - status the order
- *
- * @author ValkSam
  */
 public class WalletsAndCommissionsForOrderCreationDto {
     int userId;
-    /**/
     int spendWalletId;
     BigDecimal spendWalletActiveBalance;
     int commissionId;
     BigDecimal commissionValue;
-
-    /*getters setters*/
 
     public int getUserId() {
         return userId;

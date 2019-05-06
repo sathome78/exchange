@@ -8,7 +8,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static me.exrates.model.vo.openApiDoc.OpenApiMethodGroup.*;
+import static me.exrates.model.vo.openApiDoc.OpenApiMethodGroup.ORDERS;
+import static me.exrates.model.vo.openApiDoc.OpenApiMethodGroup.PUBLIC;
+import static me.exrates.model.vo.openApiDoc.OpenApiMethodGroup.USER_INFO;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
 

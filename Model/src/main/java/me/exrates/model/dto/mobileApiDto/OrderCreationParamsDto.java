@@ -5,9 +5,6 @@ import me.exrates.model.enums.OperationType;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
-/**
- * Created by OLEG on 01.09.2016.
- */
 public class OrderCreationParamsDto {
     @NotNull
     private Integer currencyPairId;

@@ -18,9 +18,6 @@ import java.util.Map;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.OK;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Controller
 @RequestMapping("/merchants/perfectmoney")
 public class PerfectMoneyMerchantController {

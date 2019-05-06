@@ -6,9 +6,6 @@ import lombok.ToString;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 
-/**
- * Created by ValkSam
- */
 @ToString
 @Getter @Setter
 public class UserCurrencyOperationPermissionDto {

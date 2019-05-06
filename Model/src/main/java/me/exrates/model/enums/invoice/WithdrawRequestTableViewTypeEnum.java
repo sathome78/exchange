@@ -6,11 +6,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static me.exrates.model.enums.invoice.WithdrawStatusEnum.*;
+import static me.exrates.model.enums.invoice.WithdrawStatusEnum.DECLINED_ADMIN;
+import static me.exrates.model.enums.invoice.WithdrawStatusEnum.DECLINED_ERROR;
+import static me.exrates.model.enums.invoice.WithdrawStatusEnum.IN_WORK_OF_ADMIN;
+import static me.exrates.model.enums.invoice.WithdrawStatusEnum.POSTED_AUTO;
+import static me.exrates.model.enums.invoice.WithdrawStatusEnum.POSTED_MANUAL;
+import static me.exrates.model.enums.invoice.WithdrawStatusEnum.TAKEN_FOR_WITHDRAW;
+import static me.exrates.model.enums.invoice.WithdrawStatusEnum.WAITING_AUTO_POSTING;
+import static me.exrates.model.enums.invoice.WithdrawStatusEnum.WAITING_CONFIRMATION;
+import static me.exrates.model.enums.invoice.WithdrawStatusEnum.WAITING_CONFIRMED_POSTING;
+import static me.exrates.model.enums.invoice.WithdrawStatusEnum.WAITING_MANUAL_POSTING;
+import static me.exrates.model.enums.invoice.WithdrawStatusEnum.WAITING_REVIEWING;
 
-/**
- * Created by ValkSam on 21.03.2017.
- */
 public enum WithdrawRequestTableViewTypeEnum {
 
     ALL,

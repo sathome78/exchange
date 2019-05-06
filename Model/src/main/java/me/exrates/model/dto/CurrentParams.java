@@ -5,9 +5,6 @@ import lombok.Setter;
 import lombok.ToString;
 import me.exrates.model.CurrencyPair;
 
-/**
- * Created by Valk on 02.06.2016.
- */
 @Getter @Setter
 @ToString
 public class CurrentParams {

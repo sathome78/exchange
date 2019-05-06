@@ -7,10 +7,6 @@ import org.springframework.context.MessageSource;
 
 import java.util.Locale;
 
-/**
- * @author Vlad Dziubak
- * Date: 30.07.2018
- */
 @Getter @Setter
 public class UserOperationAuthorityOption {
     private UserOperationAuthority userOperationAuthority;

@@ -8,9 +8,6 @@ import lombok.ToString;
 
 import java.math.BigDecimal;
 
-/**
- * Created by OLEG on 23.03.2017.
- */
 @Getter @Setter
 @ToString
 @JsonIgnoreProperties(ignoreUnknown = true)

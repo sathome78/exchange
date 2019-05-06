@@ -8,9 +8,6 @@ import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
 
-/**
- * @author Ajet
- */
 @Getter @Setter
 @ToString
 public class RefillRequestAddressDto {

@@ -4,13 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import me.exrates.model.enums.ActionType;
-import me.exrates.model.util.BigDecimalProcessing;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
-import static java.util.Objects.isNull;
 
 @Data
 @Builder(builderClassName = "Builder", toBuilder = true)

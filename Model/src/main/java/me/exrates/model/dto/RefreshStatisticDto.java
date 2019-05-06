@@ -1,9 +1,7 @@
 package me.exrates.model.dto;
 
 import lombok.Data;
-import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 
-import java.util.List;
 import java.util.Map;
 
 @Data

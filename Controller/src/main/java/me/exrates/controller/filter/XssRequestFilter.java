@@ -4,13 +4,17 @@ package me.exrates.controller.filter;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Whitelist;
 
-import javax.servlet.*;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
-
 
 public class XssRequestFilter implements Filter {
 

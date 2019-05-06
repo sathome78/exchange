@@ -27,8 +27,6 @@ public class AdvcashMerchantController {
 
     private static final Logger logger = LogManager.getLogger("merchant");
 
-    private static final String merchantInputErrorPage = "redirect:/merchants/input";
-
     @RequestMapping(value = "payment/status", method = RequestMethod.POST)
     public ResponseEntity<Void> statusPayment(@RequestParam Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
 

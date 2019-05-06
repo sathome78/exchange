@@ -10,9 +10,6 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
-/**
- * Created by OLEG on 07.09.2016.
- */
 public class LocalDateTimeToLongSerializer extends JsonSerializer<LocalDateTime> {
 
 

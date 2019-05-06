@@ -8,9 +8,6 @@ import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 
 import java.math.BigDecimal;
 
-/**
- * @author ValkSam
- */
 @Getter @Setter
 @ToString
 public class WithdrawRequestCreateDto {

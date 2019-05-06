@@ -12,16 +12,12 @@ import me.exrates.model.serializer.BigDecimalToDoubleSerializer;
 import java.math.BigDecimal;
 import java.util.List;
 
-/**
- * Created by Maks on 07.03.2018.
- */
 @Data
 @Builder(builderClassName = "Builder")
 @NoArgsConstructor
 @AllArgsConstructor
 public class WithdrawDataDto {
 
-    /*  private Currency currency;*/
     private BigDecimal activeBalance;
     private String balanceAndName;
     private int userId;

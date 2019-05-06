@@ -8,9 +8,6 @@ import me.exrates.model.Payment;
 import java.math.BigDecimal;
 import java.util.List;
 
-/**
- * Created by Maks on 07.03.2018.
- */
 @Data
 public class RefillPageDataDto {
 

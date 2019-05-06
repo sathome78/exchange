@@ -2,12 +2,18 @@ package me.exrates.controller;
 
 import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.validator.RegisterFormValidation;
-import me.exrates.service.TemporalTokenService;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.UserRole;
-import me.exrates.service.*;
+import me.exrates.service.CommissionService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.DashboardService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.OrderService;
+import me.exrates.service.TemporalTokenService;
+import me.exrates.service.UserService;
+import me.exrates.service.WalletService;
 import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.session.UserSessionService;
 import org.apache.commons.lang3.StringUtils;
@@ -17,14 +23,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
@@ -35,7 +43,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
 import java.security.Principal;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
 import static java.util.Objects.isNull;
 
@@ -197,7 +208,6 @@ public class DashboardController {
 
   @RequestMapping(value = "/dashboard/updatePasswordbytoken", method = RequestMethod.POST)
   public ModelAndView updatePassword(@RequestParam("token") String temporalToken, @RequestParam("password") String password, RedirectAttributes attr, Locale locale) {
-    //registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
 
     User userUpdate = userService.getUserByTemporalToken(temporalToken);
 

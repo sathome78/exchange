@@ -1,7 +1,6 @@
 package me.exrates.controller;
 
 import me.exrates.model.dto.ChartTimeFrameDto;
-import me.exrates.service.OrderService;
 import me.exrates.service.StockChartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -16,9 +15,6 @@ public class StockChartController {
 
     @Autowired
     private StockChartService stockChartService;
-
-    @Autowired
-    private OrderService orderService;
 
     @ResponseBody
     @RequestMapping(value = "/stockChart/timeFrames", method = RequestMethod.GET)

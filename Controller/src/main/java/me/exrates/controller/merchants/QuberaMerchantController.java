@@ -2,8 +2,8 @@ package me.exrates.controller.merchants;
 
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.dto.AccountCreateDto;
-import me.exrates.model.dto.qubera.AccountInfoDto;
 import me.exrates.model.dto.AccountQuberaResponseDto;
+import me.exrates.model.dto.qubera.AccountInfoDto;
 import me.exrates.model.dto.qubera.PaymentRequestDto;
 import me.exrates.model.dto.qubera.QuberaRequestDto;
 import me.exrates.model.dto.qubera.ResponsePaymentDto;

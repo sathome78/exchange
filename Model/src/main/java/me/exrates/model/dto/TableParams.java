@@ -5,9 +5,6 @@ import me.exrates.model.enums.PagingDirection;
 
 import java.util.List;
 
-/**
- * Created by Valk on 06.06.2016.
- */
 public class TableParams {
     private String tableId;
     private Integer pageSize;
@@ -16,8 +13,6 @@ public class TableParams {
     private Integer offset;
     private Integer limit;
 
-    /**/
-    /*service methods*/
     public void setOffsetAndLimitForSql(Integer requestedPageNumber, PagingDirection requestedDirection) {
         requestedPageNumber = requestedPageNumber == null ?
                 pageNumber == null ? 1 : pageNumber
@@ -35,7 +30,7 @@ public class TableParams {
                 }
                 requestedPageNumber = Math.max(requestedPageNumber, 1);
             }
-            /**/
+
             offset = (requestedPageNumber - 1) * pageSize;
             limit = pageSize;
         }
@@ -60,8 +55,6 @@ public class TableParams {
             }
         }
     }
-
-    /*getters setters*/
 
     public String getTableId() {
         return tableId;

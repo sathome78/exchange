@@ -7,9 +7,6 @@ import me.exrates.model.exceptions.UnsupportedTransferProcessTypeIdException;
 
 import java.util.Arrays;
 
-/**
- * Created by ValkSam
- */
 @Log4j2
 public enum TransferProcessTypeEnum {
   TRANSFER(1),

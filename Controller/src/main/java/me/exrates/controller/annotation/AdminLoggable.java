@@ -1,9 +1,5 @@
 package me.exrates.controller.annotation;
 
-/**
- * Created by Maks on 21.09.2017.
- */
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

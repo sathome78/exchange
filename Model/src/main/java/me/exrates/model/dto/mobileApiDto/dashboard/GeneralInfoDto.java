@@ -9,9 +9,6 @@ import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 
 import java.util.List;
 
-/**
- * Created by OLEG on 29.06.2017.
- */
 @Getter @Setter
 @ToString
 public class GeneralInfoDto {

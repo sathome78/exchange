@@ -1,10 +1,12 @@
 package me.exrates.model.dto.filterData;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-/**
- * Created by OLEG on 28.02.2017.
- */
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor

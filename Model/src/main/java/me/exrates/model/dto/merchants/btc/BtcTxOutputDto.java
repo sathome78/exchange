@@ -14,7 +14,6 @@ public class BtcTxOutputDto {
     private final String txId;
     private final Integer vout;
 
-    // EQUALS AND HASH CODE -- IMPORTANT!!!
 
 
     @Override

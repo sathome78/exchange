@@ -10,9 +10,6 @@ import me.exrates.model.enums.invoice.RefillStatusEnum;
 import java.math.BigDecimal;
 import java.util.Locale;
 
-/**
- * @author ValkSam
- */
 @Getter
 @Setter
 @ToString

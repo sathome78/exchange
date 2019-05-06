@@ -8,7 +8,6 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -26,8 +25,6 @@ public class PayeerMerchantController {
     private PayeerService payeerService;
 
     private static final Logger logger = LogManager.getLogger("merchant");
-
-    private static final String merchantInputErrorPage = "redirect:/merchants/input";
 
     @RequestMapping(value = "/merchants/payeer/payment/status", method = RequestMethod.POST)
     public ResponseEntity<String> statusPayment(@RequestParam Map<String, String> params) throws RefillRequestAppropriateNotFoundException {

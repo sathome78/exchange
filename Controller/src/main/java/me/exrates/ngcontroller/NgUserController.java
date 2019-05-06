@@ -97,7 +97,6 @@ public class NgUserController {
     }
 
     @PostMapping(value = "/authenticate")
-//    @CheckIp(value = IpTypesOfChecking.LOGIN)
     public ResponseEntity<AuthTokenDto> authenticate(@RequestBody @Valid UserAuthenticationDto authenticationDto,
                                                      HttpServletRequest request) throws Exception {
 
@@ -135,7 +134,6 @@ public class NgUserController {
             }
         }
         AuthTokenDto authTokenDto = createToken(authenticationDto, request, user);
-//        ipBlockingService.successfulProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK); // 200
     }
 
@@ -231,7 +229,6 @@ public class NgUserController {
             user = userService.findByEmail(authenticationDto.getEmail());
             userService.updateGaTag(getCookie(request.getHeader("GACookies")), user.getEmail());
         } catch (UserNotFoundException esc) {
-//            ipBlockingService.failureProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
             String message = String.format("User with email %s not found", authenticationDto.getEmail());
             logger.warn(message, esc);
             throw new NgResponseException(ErrorApiTitles.USER_EMAIL_NOT_FOUND, message);
@@ -281,12 +278,4 @@ public class NgUserController {
         return request.getScheme() + "://" + request.getServerName() +
                 ":" + request.getServerPort() + "/rest";
     }
-//
-//    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-//    @ExceptionHandler({NullPointerException.class})
-//    @ResponseBody
-//    public ErrorInfo npeHandler(HttpServletRequest req, Exception exception) {
-//        logger.error(exception);
-//        return new ErrorInfo(req.getRequestURL(), exception);
-//    }
 }

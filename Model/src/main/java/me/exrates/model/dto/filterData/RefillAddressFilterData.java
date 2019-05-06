@@ -9,9 +9,6 @@ import java.util.List;
 import static me.exrates.model.dto.filterData.FilterDataItem.IN_FORMAT;
 import static me.exrates.model.dto.filterData.FilterDataItem.LIKE_FORMAT_MIDDLE;
 
-/**
- * Created by Maks on 26.12.2017.
- */
 @Getter
 @Setter
 @NoArgsConstructor

@@ -7,9 +7,6 @@ import lombok.ToString;
 
 import java.math.BigDecimal;
 
-/**
- * Created by OLEG on 25.05.2017.
- */
 @Getter @Setter
 @Builder
 @ToString

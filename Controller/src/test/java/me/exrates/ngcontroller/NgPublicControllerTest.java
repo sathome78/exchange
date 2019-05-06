@@ -72,7 +72,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-//https://www.baeldung.com/integration-testing-in-spring
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {AngularAppTestConfig.class})
 @WebAppConfiguration

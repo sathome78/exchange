@@ -85,7 +85,6 @@ public class NgRefillController {
     private final MessageSource messageSource;
     private final RefillService refillService;
     private final UserService userService;
-    private final UserOperationService userOperationService;
     private final MerchantServiceContext merchantServiceContext;
 
     private final GtagRefillService gtagRefillService;
@@ -97,7 +96,6 @@ public class NgRefillController {
                               MerchantService merchantService,
                               MessageSource messageSource,
                               RefillService refillService,
-                              UserOperationService userOperationService,
                               MerchantServiceContext merchantServiceContext,
                               GtagRefillService gtagRefillService) {
         this.currencyService = currencyService;
@@ -106,7 +104,6 @@ public class NgRefillController {
         this.merchantService = merchantService;
         this.messageSource = messageSource;
         this.refillService = refillService;
-        this.userOperationService = userOperationService;
         this.merchantServiceContext = merchantServiceContext;
         this.gtagRefillService = gtagRefillService;
     }
@@ -311,5 +308,4 @@ public class NgRefillController {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
-    // added new branch
 }

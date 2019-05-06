@@ -13,11 +13,13 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 
 import java.util.EnumMap;
 
-import static me.exrates.model.enums.ChatLang.*;
+import static me.exrates.model.enums.ChatLang.AR;
+import static me.exrates.model.enums.ChatLang.CN;
+import static me.exrates.model.enums.ChatLang.EN;
+import static me.exrates.model.enums.ChatLang.IN;
+import static me.exrates.model.enums.ChatLang.KO;
+import static me.exrates.model.enums.ChatLang.RU;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Configuration
 @PropertySource(value = "classpath:/websocket.properties")
 @EnableWebSocket

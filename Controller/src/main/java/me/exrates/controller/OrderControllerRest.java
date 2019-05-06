@@ -110,7 +110,7 @@ public class OrderControllerRest {
             if (amount == null) amount = BigDecimal.ZERO;
             if (rate == null) rate = BigDecimal.ZERO;
             if (baseType == null) baseType = OrderBaseType.LIMIT;
-            /* CurrencyPair activeCurrencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");*/
+
             CurrencyPair activeCurrencyPair = currencyService.getNotHiddenCurrencyPairByName(currencyPair);
             if (activeCurrencyPair == null) {
                 throw new RuntimeException("Wrong currency pair");
@@ -121,7 +121,7 @@ public class OrderControllerRest {
             OrderCreateDto orderCreateDto = orderService.prepareNewOrder(activeCurrencyPair, orderType, principal.getName(), amount, rate, baseType);
             orderCreateDto.setOrderBaseType(baseType);
             orderCreateDto.setStop(stop);
-            /**/
+
             OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto, false, null);
             Map<String, Object> errorMap = orderValidationDto.getErrors();
             orderCreateSummaryDto = new OrderCreateSummaryDto(orderCreateDto, localeResolver.resolveLocale(request));
@@ -134,7 +134,6 @@ public class OrderControllerRest {
                 request.getSession().setAttribute("orderCreationError", errorMap);
                 throw new OrderParamsWrongException();
             } else {
-                /*protect orderCreateDto*/
                 request.getSession().setAttribute("/order/submitnew/orderCreateDto", orderCreateDto);
             }
             return orderCreateSummaryDto;
@@ -313,10 +312,6 @@ public class OrderControllerRest {
     public Map orderParamsWrongExceptionHandler(HttpServletRequest req, Exception exception) {
         return (Map) req.getSession().getAttribute("orderCreationError");
     }
-
-    /*
-    error handlers for this controller
-    * */
 
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     @ExceptionHandler(NotEnoughMoneyException.class)

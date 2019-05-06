@@ -1,12 +1,13 @@
 package me.exrates.model.dto.mobileApiDto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import me.exrates.model.MerchantCurrency;
 
-/**
- * Created by OLEG on 27.06.2017.
- */
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor

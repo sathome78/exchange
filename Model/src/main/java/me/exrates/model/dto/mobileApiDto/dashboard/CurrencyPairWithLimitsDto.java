@@ -9,9 +9,6 @@ import me.exrates.model.enums.CurrencyPairType;
 
 import java.math.BigDecimal;
 
-/**
- * Created by OLEG on 10.04.2017.
- */
 @Getter @Setter
 @ToString
 public class CurrencyPairWithLimitsDto {

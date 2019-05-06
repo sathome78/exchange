@@ -3,9 +3,6 @@ package me.exrates.model.dto;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * Created by ValkSam
- */
 @Getter @Setter
 public class WithdrawRequestFlatAdditionalDataDto {
   private String userEmail;

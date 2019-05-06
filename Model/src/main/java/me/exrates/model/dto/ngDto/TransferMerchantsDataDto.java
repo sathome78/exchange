@@ -9,9 +9,6 @@ import me.exrates.model.Wallet;
 import java.math.BigDecimal;
 import java.util.List;
 
-/**
- * Created by Maks on 08.02.2018.
- */
 @Data
 public class TransferMerchantsDataDto {
 

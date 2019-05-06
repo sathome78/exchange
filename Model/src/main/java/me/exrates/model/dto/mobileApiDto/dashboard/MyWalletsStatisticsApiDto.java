@@ -4,9 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.math.BigDecimal;
 
-/**
- * Created by Valk
- */
 public class MyWalletsStatisticsApiDto {
     @JsonProperty(value = "id")
     private Integer walletId;

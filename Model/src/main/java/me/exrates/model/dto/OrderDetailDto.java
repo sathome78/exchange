@@ -5,9 +5,6 @@ import me.exrates.model.enums.OrderStatus;
 
 import java.math.BigDecimal;
 
-/**
- * Created by Valk on 16.05.2016.
- */
 public class OrderDetailDto {
     private int orderId;
     private OrderStatus orderStatus;
@@ -34,8 +31,6 @@ public class OrderDetailDto {
         this.companyWalletId = companyWalletId;
         this.companyCommission = companyCommission;
     }
-
-    /*getters setters*/
 
     public int getOrderId() {
         return orderId;

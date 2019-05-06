@@ -1,14 +1,9 @@
 package me.exrates.model.enums.invoice;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-/**
- * Created by ValkSam on 18.02.2017.
- */
 public interface InvoiceStatus {
 
   default Optional<InvoiceStatus> nextState(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap, InvoiceActionTypeEnum action) {

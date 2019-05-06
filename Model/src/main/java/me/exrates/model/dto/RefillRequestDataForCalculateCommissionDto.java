@@ -6,9 +6,6 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 
-/**
- * Created by ValkSam
- */
 @Getter @Setter
 @AllArgsConstructor
 public class RefillRequestDataForCalculateCommissionDto {

@@ -7,11 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import me.exrates.model.dto.kyc.DocTypeEnum;
-import me.exrates.model.exceptions.KycException;
 import org.apache.commons.lang3.RandomStringUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 

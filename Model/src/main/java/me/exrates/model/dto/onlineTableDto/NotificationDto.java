@@ -6,9 +6,6 @@ import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
 
-/**
- * Created by OLEG on 14.11.2016.
- */
 public class NotificationDto extends OnlineTableDto {
     private Long id;
     @JsonIgnore

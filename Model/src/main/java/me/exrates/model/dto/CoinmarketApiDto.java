@@ -5,9 +5,6 @@ import me.exrates.model.util.BigDecimalProcessing;
 
 import java.math.BigDecimal;
 
-/**
- * Created by Valk on 10.05.2016.
- */
 public class CoinmarketApiDto {
     private Integer currencyPairId;
     private String currency_pair_name;
@@ -29,7 +26,6 @@ public class CoinmarketApiDto {
     public void setCurrencyPairId(Integer currencyPairId) {
         this.currencyPairId = currencyPairId;
     }
-    /*constructor*/
 
     public CoinmarketApiDto() {
     }
@@ -52,8 +48,6 @@ public class CoinmarketApiDto {
                 ", \"low24hr\":" + BigDecimalProcessing.formatNonePointQuoted(low24hr, true) +
                 '}';
     }
-
-    /*getters setters*/
 
     public String getCurrency_pair_name() {
         return currency_pair_name;

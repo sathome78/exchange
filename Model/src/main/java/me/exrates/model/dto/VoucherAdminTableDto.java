@@ -17,10 +17,6 @@ import java.util.Map;
 
 import static me.exrates.model.enums.TransactionSourceType.USER_TRANSFER;
 
-/**
- * Created by maks on 30.06.2017.
- */
-
 @Data
 public class VoucherAdminTableDto extends OnlineTableDto {
 

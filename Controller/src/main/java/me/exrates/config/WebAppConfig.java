@@ -1,7 +1,6 @@
 package me.exrates.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.Lists;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -14,7 +13,6 @@ import me.exrates.controller.filter.LoggingFilter;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.controller.interceptor.MDCInterceptor;
 import me.exrates.controller.interceptor.SecurityInterceptor;
-import me.exrates.controller.interceptor.TokenInterceptor;
 import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.converter.CurrencyPairConverter;
@@ -45,7 +43,6 @@ import me.exrates.service.qtum.QtumTokenServiceImpl;
 import me.exrates.service.stellar.StellarAsset;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
-import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.http.Header;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -305,16 +302,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new PropertySourcesPlaceholderConfigurer();
     }
 
-    /*@Bean(name = "dataSource")*/
-    public DataSource dataSource() {
-        final BasicDataSource dataSource = new BasicDataSource();
-        dataSource.setDriverClassName(dbMasterClassname);
-        dataSource.setUrl(dbMasterUrl);
-        dataSource.setUsername(dbMasterUser);
-        dataSource.setPassword(dbMasterPassword);
-        return dataSource;
-    }
-
     @Bean(name = "masterHikariDataSource")
     public DataSource masterHikariDataSource() {
         HikariConfig hikariConfig = new HikariConfig();
@@ -475,13 +462,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         registry.addInterceptor(new MDCInterceptor());
     }
 
-    private void addTokenInterceptor(InterceptorRegistry registry) {
-
-        log.info("Password from ssm with path = " + inoutTokenValue + " is " + inoutTokenValue.charAt(0) + "***" + inoutTokenValue.charAt(inoutTokenValue.length() - 1));
-        registry.addInterceptor(new TokenInterceptor(inoutTokenValue)).addPathPatterns("/inout/**");
-    }
-
-
     @Override
     public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
         configurer.setDefaultTimeout(120_000L);
@@ -575,13 +555,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public StandardServletMultipartResolver resolver() {
         return new StandardServletMultipartResolver();
     }
-
-
-    /*@Bean
-    public StoreSessionListener storeSessionListener() {
-        return new StoreSessionListenerImpl();
-    }*/
-
 
     @Bean
     public LoggingAspect loggingAspect() {
@@ -678,17 +651,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthereumCommonServiceImpl("merchants/eti.properties",
                 "ETI", "ETI", 50);
     }
-
-//    @Bean(name = "eosServiceImpl")
-//    @Conditional(MonolitConditional.class)
-//    public EthTokenService EosService() {
-//        List<String> tokensList = new ArrayList<>();
-//        tokensList.add("0x86fa049857e0209aa7d9e616f7eb3b3b78ecfdb0");
-//        return new EthTokenServiceImpl(
-//                tokensList,
-//                "EOS",
-//                "EOS", true, ExConvert.Unit.ETHER);
-//    }
 
     @Bean(name = "repServiceImpl")
     @Conditional(MonolitConditional.class)

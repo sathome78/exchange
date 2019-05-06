@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-//wolper 24.04.18
 
 @Getter
 @Setter

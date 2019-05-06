@@ -11,9 +11,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Locale;
 
-/**
- * Created by Valk on 28.06.2016.
- */
 public class AccountStatementApiDto {
     @JsonSerialize(using = LocalDateTimeToLongSerializer.class)
     private LocalDateTime datetime;

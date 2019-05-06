@@ -13,7 +13,6 @@ import java.util.Locale;
 
 /**
  * Contained constans and methods to operate with BigDecimal value
- * Created by Valk on 30.04.2016.
  */
 
 public class BigDecimalProcessing {

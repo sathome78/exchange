@@ -5,9 +5,6 @@ import me.exrates.model.exceptions.UnsupportedBusinessUserRoleNameException;
 
 import java.util.Arrays;
 
-/**
- * Created by ValkSam
- */
 @NoArgsConstructor
 public enum BusinessUserRoleEnum {
   ADMIN,

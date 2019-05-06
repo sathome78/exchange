@@ -14,11 +14,6 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
-import java.util.Arrays;
-
-/**
- * Created by Maks on 24.08.2017.
- */
 @PropertySource(value = "classpath:/websocket.properties")
 @Configuration
 @EnableWebSocketMessageBroker

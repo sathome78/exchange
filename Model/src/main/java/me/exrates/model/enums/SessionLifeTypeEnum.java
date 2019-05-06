@@ -2,9 +2,6 @@ package me.exrates.model.enums;
 
 import java.util.Arrays;
 
-/**
- * Created by maks on 31.03.2017.
- */
 public enum SessionLifeTypeEnum {
     FIXED_LIFETIME(1, false),
     INACTIVE_COUNT_LIFETIME(2, true);/*default type of session life, applied when others disabled*/

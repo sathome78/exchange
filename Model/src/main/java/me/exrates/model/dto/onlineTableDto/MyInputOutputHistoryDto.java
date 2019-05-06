@@ -17,11 +17,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-import static me.exrates.model.enums.TransactionSourceType.*;
+import static me.exrates.model.enums.TransactionSourceType.IEO;
+import static me.exrates.model.enums.TransactionSourceType.REFILL;
+import static me.exrates.model.enums.TransactionSourceType.USER_TRANSFER;
+import static me.exrates.model.enums.TransactionSourceType.WITHDRAW;
 
-/**
- * Created by Ajet on 23.07.2016.
- */
 @Log4j2
 @Getter
 @Setter

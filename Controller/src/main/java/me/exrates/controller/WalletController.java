@@ -5,7 +5,11 @@ import me.exrates.controller.exception.CheckFinPassException;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.dto.MyWalletConfirmationDetailDto;
-import me.exrates.service.*;
+import me.exrates.service.CompanyWalletService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.UserRoleService;
+import me.exrates.service.UserService;
+import me.exrates.service.WalletService;
 import me.exrates.service.exception.AbsentFinPasswordException;
 import me.exrates.service.exception.NotConfirmedFinPasswordException;
 import me.exrates.service.exception.WrongFinPasswordException;
@@ -14,7 +18,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -38,9 +46,6 @@ public class WalletController {
 
     @Autowired
     CompanyWalletService companyWalletService;
-
-    @Autowired
-    private CommissionService commissionService;
 
     @Autowired
     MessageSource messageSource;

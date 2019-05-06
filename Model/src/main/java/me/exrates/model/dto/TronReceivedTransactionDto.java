@@ -1,7 +1,6 @@
 package me.exrates.model.dto;
 
 import lombok.Data;
-import org.json.JSONObject;
 
 @Data
 public class TronReceivedTransactionDto {

@@ -9,9 +9,6 @@ import me.exrates.model.enums.invoice.RefillStatusEnum;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * Created by ValkSam
- */
 @Getter @Setter
 @ToString
 public class RefillRequestFlatDto extends RequestWithRemarkAbstractDto {

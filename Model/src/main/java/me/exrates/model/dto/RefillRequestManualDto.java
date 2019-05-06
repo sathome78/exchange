@@ -6,9 +6,6 @@ import me.exrates.model.enums.OperationType;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
-/**
- * Created by Maks on 24.10.2017.
- */
 @Data
 public class RefillRequestManualDto {
 

@@ -1,4 +1,4 @@
-package me.exrates.jdbc;
+package me.exrates.dao.order;
 
 import org.springframework.jdbc.core.RowMapper;
 

@@ -9,7 +9,6 @@ import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.ExOrder;
 import me.exrates.model.IEODetails;
 import me.exrates.model.User;
 import me.exrates.model.constants.ErrorApiTitles;
@@ -75,7 +74,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.strip;
 
 @RestController
 @RequestMapping(value = "/api/public/v2",
@@ -282,12 +280,6 @@ public class NgPublicController {
         return orderService.getOrderAcceptedForPeriodEx(null, new BackDealInterval("24 HOUR"),
                 25, cp, Locale.ENGLISH);
     }
-
-//    @GetMapping("/currencies/fromdb")
-//    @ResponseBody
-//    public List<StatisticForMarket> getCurrencyPairInfoAllFromDb() {
-//        return marketRatesHolder.getAllFromDb();
-//    }
 
     @GetMapping("/pair/{part}/{name}")
     public ResponseEntity getPairsByPartName(@PathVariable String name,

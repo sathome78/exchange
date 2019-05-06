@@ -7,9 +7,6 @@ import me.exrates.model.StockExchangeStats;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by OLEG on 15.12.2016.
- */
 public class StockExchangeRateDto {
     @JsonProperty(value = "currencyPair")
     private String currencyPairName;

@@ -8,9 +8,6 @@ import me.exrates.model.newsEntity.NewsType;
 
 import java.util.Arrays;
 
-/**
- * Created by ValkSam
- */
 @Log4j2
 public enum NewsTypeEnum {
   NEWS(1),

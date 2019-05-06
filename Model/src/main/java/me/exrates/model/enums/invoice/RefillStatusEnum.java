@@ -4,16 +4,30 @@ package me.exrates.model.enums.invoice;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Merchant;
 import me.exrates.model.enums.MerchantProcessType;
-import me.exrates.model.exceptions.*;
+import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
+import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
+import me.exrates.model.exceptions.UnsupportedInvoiceStatusForActionException;
+import me.exrates.model.exceptions.UnsupportedWithdrawRequestStatusIdException;
+import me.exrates.model.exceptions.UnsupportedWithdrawRequestStatusNameException;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.ACCEPT_AUTO;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_FACT;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USER;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.InvoiceActionParamsValue;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.PUT_FOR_CONFIRM_USER;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.PUT_FOR_PENDING;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REQUEST_INNER_TRANSFER;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.START_BCH_EXAMINE;
 
-/**
- * Created by ValkSam
- */
 @Log4j2
 public enum RefillStatusEnum implements InvoiceStatus {
   X_STATE(0) {

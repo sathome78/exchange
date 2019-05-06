@@ -3,9 +3,6 @@ package me.exrates.model.dto.newsDto;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * Created by ValkSam
- */
 @Getter @Setter
 public class NewsDeleteDto {
     private Integer id;

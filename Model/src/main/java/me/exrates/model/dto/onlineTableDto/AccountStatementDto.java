@@ -6,9 +6,6 @@ import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
 
-/**
- * Created by Valk on 28.06.2016.
- */
 public class AccountStatementDto extends OnlineTableDto {
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime datetime;
@@ -37,8 +34,6 @@ public class AccountStatementDto extends OnlineTableDto {
         this.needRefresh = needRefresh;
     }
 
-    /*hash*/
-
     @Override
     public int hashCode() {
         int result = transactionId != null ? transactionId.hashCode() : 0;
@@ -51,8 +46,6 @@ public class AccountStatementDto extends OnlineTableDto {
         result = 31 * result + (transactionStatus != null ? transactionStatus.hashCode() : 0);
         return result;
     }
-
-    /*getters setters*/
 
     public LocalDateTime getDatetime() {
         return datetime;

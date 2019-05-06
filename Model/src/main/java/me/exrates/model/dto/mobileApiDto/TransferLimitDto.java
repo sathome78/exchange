@@ -2,9 +2,6 @@ package me.exrates.model.dto.mobileApiDto;
 
 import java.math.BigDecimal;
 
-/**
- * Created by OLEG on 13.02.2017.
- */
 public class TransferLimitDto {
     private Integer currencyId;
     private BigDecimal transferMinLimit;

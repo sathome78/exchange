@@ -4,11 +4,6 @@ import me.exrates.model.util.BigDecimalProcessing;
 
 import java.math.BigDecimal;
 
-/**
- * Created by ajet on 28.02.2017.
- * <p/>
- * class is used for upload data
- */
 public class UserSummaryOrdersByCurrencyPairsDto {
     private String operationType;
     private String date;
@@ -49,8 +44,6 @@ public class UserSummaryOrdersByCurrencyPairsDto {
                 BigDecimalProcessing.formatNoneComma(exrate, false) +
                 "\r\n";
     }
-
-    /*getters setters*/
 
     public String getOperationType() {
         return operationType;

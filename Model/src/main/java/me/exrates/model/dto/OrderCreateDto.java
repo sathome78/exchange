@@ -11,10 +11,6 @@ import java.math.BigDecimal;
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
 import static me.exrates.model.util.BigDecimalProcessing.normalize;
 
-/**
- * Created by Valk on 13.04.16.
- */
-
 public class OrderCreateDto {
     /*this field filled from existing order*/
     private int orderId;
@@ -58,12 +54,9 @@ To determine which of these forms to be filled, we must set field operationType
     private Integer sourceId;
     private Long tradeId;
 
-    /*constructors*/
-
     public OrderCreateDto() {
     }
 
-    /*service methods*/
     public OrderCreateDto calculateAmounts() {
         if (operationType == null) {
             return this;
@@ -113,7 +106,6 @@ To determine which of these forms to be filled, we must set field operationType
                 '}';
     }
 
-    /*getters setters*/
     public int getUserId() {
         return userId;
     }

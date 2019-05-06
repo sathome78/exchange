@@ -14,7 +14,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import static me.exrates.service.impl.inout.RefillServiceMsImpl.API_MERCHANT_GET_MIN_CONFIRMATIONS_REFILL;
 
@@ -94,8 +98,6 @@ public class PropertyEditor {
             }
         }
 
-//        System.out.println(messagesCodes.contains("message.modal.recomend.turn2fa"));
-//        System.out.println(messagesCodes2.contains("message.modal.recomend.turn2fa"));
         for (String messagesCode : messagesCodes2) {
             if (!messagesCodes.contains(messagesCode)) {
                 System.out.println(codeAndFullLine2.get(messagesCode));

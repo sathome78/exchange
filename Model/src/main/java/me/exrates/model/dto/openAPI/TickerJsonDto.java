@@ -10,9 +10,6 @@ import me.exrates.model.serializer.BigDecimalToDoubleSerializer;
 
 import java.math.BigDecimal;
 
-/**
- * Created by OLEG on 20.03.2017.
- */
 @Getter @Setter
 @EqualsAndHashCode
 @ToString

@@ -23,9 +23,6 @@ import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.PUT_FOR_AUTO;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.PUT_FOR_CONFIRM;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.PUT_FOR_MANUAL;
 
-/**
- * Created by ValkSam
- */
 @Log4j2
 public enum WithdrawStatusEnum implements InvoiceStatus {
     CREATED_USER(1) {

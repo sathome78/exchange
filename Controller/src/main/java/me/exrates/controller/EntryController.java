@@ -131,13 +131,7 @@ public class EntryController {
     @Autowired
     private SessionParamsService sessionService;
     @Autowired
-    private NotificationService notificationService;
-    @Autowired
     private UserRoleService userRoleService;
-    @Autowired
-    private NotificationsSettingsService settingsService;
-    @Autowired
-    private NotificatorsService notificatorService;
     @Autowired
     private ReferralService referralService;
     @Autowired
@@ -310,29 +304,25 @@ public class EntryController {
         final ModelAndView mav = new ModelAndView("globalPages/settings");
         final List<UserFile> userFile = userService.findUserDoc(user.getId());
         final Map<String, ?> map = RequestContextUtils.getInputFlashMap(request);
-     /*   List<NotificationOption> notificationOptions = notificationService.getNotificationOptionsByUser(user.getId());
-        notificationOptions.forEach(option -> option.localize(messageSource, localeResolver.resolveLocale(request)));
-        NotificationOptionsForm notificationOptionsForm = new NotificationOptionsForm();
-        notificationOptionsForm.setOptions(notificationOptions);*/
+
         if (request.getParameter("2fa") != null) {
             mav.addObject("activeTabId", "2fa-options-wrapper");
         }
         mav.addObject("user", user);
         mav.addObject("tabIdx", tabIdx);
         mav.addObject("sectionid", map != null && map.containsKey("sectionid") ? map.get("sectionid") : null);
-        //mav.addObject("errorNoty", map != null ? map.get("msg") : msg);
+
         mav.addObject("userFiles", userFile);
-        /* mav.addObject("notificationOptionsForm", notificationOptionsForm);*/
+
         mav.addObject("sessionSettings", sessionService.getByEmailOrDefault(user.getEmail()));
         mav.addObject("sessionLifeTimeTypes", sessionService.getAllByActive(true));
         mav.addObject("sessionMinTime", sessionService.getMinSessionTime());
         mav.addObject("sessionMaxTime", sessionService.getMaxSessionTime());
-       /* mav.addObject("tBotName", TBOT_NAME);
-        mav.addObject("tBotUrl", TBOT_URL);*/
+
         return mav;
     }
 
-    /*todo move this method from admin controller*/
+    //todo: move this method from admin controller
     @RequestMapping(value = "/settings/uploadFile", method = POST)
     public RedirectView uploadUserDocs(final @RequestParam("file") MultipartFile[] multipartFiles,
                                        RedirectAttributes redirectAttributes,
@@ -392,7 +382,7 @@ public class EntryController {
         }}.toString();
     }
 
-    /*todo move this method from admin controller*/
+    //todo: move this method from admin controller
     @RequestMapping(value = "settings/changeNickname/submit", method = POST)
     public ModelAndView submitsettingsNickname(@Valid @ModelAttribute User user, @RequestParam("nickname") String newNickName, BindingResult result,
                                                HttpServletRequest request, RedirectAttributes redirectAttributes, Principal principal) {
@@ -431,35 +421,6 @@ public class EntryController {
         return model;
     }
 
-
-    /* @RequestMapping("/settings/notificationOptions/submit")
-     public RedirectView submitNotificationOptions(@ModelAttribute NotificationOptionsForm notificationOptionsForm, RedirectAttributes redirectAttributes,
-                                                   HttpServletRequest request, Principal principal) {
-         notificationOptionsForm.getOptions().forEach(LOGGER::debug);
-         RedirectView redirectView = new RedirectView("/settings");
-         int userId = userService.getIdByEmail(principal.getName());
-         List<NotificationOption> notificationOptions = notificationOptionsForm.getOptions().
-                 stream().
-                 map(option ->
-                         {
-                             option.setUserId(userId);
-                             return option;
-                         }
-                 ).
-                 collect(toList());
-         //TODO uncomment after turning notifications on
-         *//*if (notificationOptions.stream().anyMatch(option -> !option.isSendEmail() && !option.isSendNotification())) {
-            redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("notifications.invalid", null,
-                    localeResolver.resolveLocale(request)));
-            return redirectView;
-
-        }*//*
-
-        notificationService.updateUserNotifications(notificationOptions);
-        redirectAttributes.addFlashAttribute("activeTabId", "notification-options-wrapper");
-        return redirectView;
-    }
-*/
     @RequestMapping("/settings/sessionOptions/submit")
     public RedirectView submitNotificationOptions(@ModelAttribute SessionParams sessionParams, RedirectAttributes redirectAttributes,
                                                   HttpServletRequest request, Principal principal) {
@@ -570,7 +531,6 @@ public class EntryController {
             modelAndView.setViewName("globalPages/newstopic");
             String path = request.getServletPath(); //   /news/2015/MAY/27/48/ru/newstopic.html
             int newsId = Integer.valueOf(path.split("\\/\\p{Alpha}+\\/{1}[^\\/]*$")[0].split("^.*[\\/]")[1]); // =>  /news/2015/MAY/27/48  => 48
-//            String locale = path.split("\\/{1}[^\\/]*$")[0].split("^.*[\\/]")[1];
             News news = newsService.getNews(newsId, new Locale(newsVariant));
             if (news != null) {
                 String newsContentPath = new StringBuilder()
@@ -603,145 +563,6 @@ public class EntryController {
             return null;
         }
     }
-
-    /*@ResponseBody
-    @RequestMapping(value = "/settings/2FaOptions/submit", method = POST)
-    public void submitNotificationOptionsPin(HttpServletRequest request, Principal principal) {
-        Map<Integer, Integer> paramsMap = new HashMap<>();
-        Arrays.stream(NotificationMessageEventEnum.values()).filter(NotificationMessageEventEnum::isChangable).forEach(p->{
-            paramsMap.put(p.getCode(), Integer.parseInt(request.getParameter(String.valueOf(p.getCode()))));
-
-        });
-        request.getSession().setAttribute("2fa_newParams", paramsMap);
-        secureService.checkEventAdditionalPin(request, principal.getName(), NotificationMessageEventEnum.CHANGE_2FA_SETTING, "");
-    }*/
-
-    /*@ResponseBody
-    @RequestMapping("/settings/2FaOptions/change")
-    public String submitNotificationOptions(String pin, HttpServletRequest request, Principal principal) {
-        Map<Integer, Integer> params = (Map<Integer, Integer>) request.getSession().getAttribute("2fa_newParams");
-        request.getSession().removeAttribute("2fa_newParams");
-        Preconditions.checkArgument(pin.length() > 2 && pin.length() < 15);
-        if (userService.checkPin(principal.getName(), pin, NotificationMessageEventEnum.CHANGE_2FA_SETTING)) {
-            try {
-                int userId = userService.getIdByEmail(principal.getName());
-                Map<Integer, NotificationsUserSetting> settingsMap = settingsService.getSettingsMap(userId);
-                settingsMap.forEach((k, v) -> {
-                    if (NotificationMessageEventEnum.convert(k).isChangable()) {
-                        Integer notificatorId = params.get(k);
-                        if (v == null) {
-                            NotificationsUserSetting setting = NotificationsUserSetting.builder()
-                                    .userId(userId)
-                                    .notificatorId(notificatorId)
-                                    .notificationMessageEventEnum(NotificationMessageEventEnum.convert(k))
-                                    .build();
-                            settingsService.createOrUpdate(setting);
-                        } else if (v.getNotificatorId() == null || !v.getNotificatorId().equals(notificatorId)) {
-                            v.setNotificatorId(notificatorId);
-                            settingsService.createOrUpdate(v);
-                        }
-                    }
-                });
-                return messageSource.getMessage("message.settings_successfully_saved", null,
-                        localeResolver.resolveLocale(request));
-            } catch (Exception e) {
-                log.error(e);
-                *//*throw new RuntimeException(messageSource.getMessage("message.error_saving_settings", null,
-                        localeResolver.resolveLocale(request)));*//*
-                throw e;
-            }
-        } else {
-            PinDto res = secureService.resendEventPin(request, principal.getName(), NotificationMessageEventEnum.CHANGE_2FA_SETTING, "");
-            throw new IncorrectPinException(res);
-        }
-    }*/
-
-    /*@ResponseBody
-    @RequestMapping("/settings/2FaOptions/getNotyPrice")
-    public NotificatorTotalPriceDto getNotyPrice(@RequestParam int id, Principal principal) {
-        Preconditions.checkArgument(id == NotificationTypeEnum.TELEGRAM.getCode());
-        Subscribable subscribable = Preconditions.checkNotNull(notificatorService.getByNotificatorId(id));
-        Object subscription = subscribable.getSubscription(userService.getIdByEmail(principal.getName()));
-        UserRole role = userService.getUserRoleFromDB(principal.getName());
-        NotificatorTotalPriceDto dto = notificatorService.getPrices(id, role.getRole());
-        if (subscription != null && subscription instanceof TelegramSubscription) {
-            if (!((TelegramSubscription) subscription).getSubscriptionState().isBeginState()) {
-                throw new IllegalStateException();
-            }
-            dto.setCode(((TelegramSubscription) subscription).getCode());
-        }
-        return dto;
-    }*/
-
-    /*@ResponseBody
-    @RequestMapping("/settings/2FaOptions/preconnect_sms")
-    public String preconnectSms(@RequestParam String number, Principal principal, HttpServletRequest request) {
-        number = number.replaceAll("\\+", "").replaceAll("\\-", "").replaceAll("\\.", "").replaceAll(" ", "");
-        if (!NumberUtils.isDigits(number)) {
-            throw new UnoperableNumberException();
-        }
-        Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.SMS.getCode());
-        int userId = userService.getIdByEmail(principal.getName());
-        SmsSubscriptionDto subscriptionDto = SmsSubscriptionDto.builder()
-                .userId(userId)
-                .newContact(number)
-                .build();
-        return subscribable.prepareSubscription(subscriptionDto).toString();
-    }
-
-    @ResponseBody
-    @RequestMapping("/settings/2FaOptions/confirm_connect_sms")
-    public String connectSms(Principal principal) {
-        Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.SMS.getCode());
-        subscribable.createSubscription(principal.getName());
-        return "ok";
-    }
-
-    @ResponseBody
-    @RequestMapping("/settings/2FaOptions/verify_connect_sms")
-    public String verifyConnectSms(@RequestParam String code, Principal principal) {
-        Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.SMS.getCode());
-        int userId = userService.getIdByEmail(principal.getName());
-        SmsSubscriptionDto subscriptionDto = SmsSubscriptionDto.builder()
-                .code(code)
-                .userId(userId)
-                .build();
-        return subscribable.subscribe(subscriptionDto).toString();
-    }*/
-
-   /* @ResponseBody
-    @RequestMapping("/settings/2FaOptions/connect_telegram")
-    public String getNotyPrice(Principal principal) {
-        Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.TELEGRAM.getCode());
-        return subscribable.createSubscription(principal.getName()).toString();
-    }*/
-
-    /*@ResponseBody
-    @RequestMapping("/settings/2FaOptions/reconnect_telegram")
-    public String reconnectTelegram(Principal principal) {
-        Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.TELEGRAM.getCode());
-        return subscribable.reconnect(principal.getName()).toString();
-    }*/
-
-
-
-    /*@ResponseBody
-    @RequestMapping("/settings/2FaOptions/contact_info")
-    public String getInfo(@RequestParam int id, Principal principal) {
-        Subscribable subscribable = notificatorService.getByNotificatorId(id);
-        Preconditions.checkNotNull(subscribable);
-        NotificatorSubscription subscription = subscribable.getSubscription(userService.getIdByEmail(principal.getName()));
-        Preconditions.checkState(subscription.isConnected());
-        String contact = Preconditions.checkNotNull(subscription.getContactStr());
-        int roleId = userService.getUserRoleFromSecurityContext().getRole();
-        BigDecimal feePercent = notificatorService.getMessagePrice(id, roleId);
-        BigDecimal price = doAction(doAction(subscription.getPrice(), feePercent, ActionType.MULTIPLY_PERCENT), subscription.getPrice(), ActionType.ADD);
-        return new JSONObject() {{
-            put("contact", contact);
-            put("price", price);
-        }}.toString();
-    }*/
-
 
     @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
     @ExceptionHandler(NoFileForLoadingException.class)

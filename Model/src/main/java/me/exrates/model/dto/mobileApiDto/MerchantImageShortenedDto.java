@@ -1,8 +1,5 @@
 package me.exrates.model.dto.mobileApiDto;
 
-/**
- * Created by OLEG on 13.10.2016.
- */
 public class MerchantImageShortenedDto {
     private Integer id;
     private String imagePath;

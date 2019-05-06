@@ -5,9 +5,6 @@ import me.exrates.model.enums.OperationType;
 
 import java.math.BigDecimal;
 
-/**
- * Created by OLEG on 30.01.2017.
- */
 @ToString
 public class CommissionShortEditDto {
     private OperationType operationType;

@@ -1,13 +1,11 @@
 package me.exrates.model.dto.ieo;
 
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import me.exrates.model.IEODetails;
-import me.exrates.model.enums.IEODetailsStatus;
 import me.exrates.model.serializer.LocalDateTimeDeserializer;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 

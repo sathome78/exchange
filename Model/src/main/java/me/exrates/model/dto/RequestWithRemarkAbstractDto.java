@@ -3,9 +3,6 @@ package me.exrates.model.dto;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * Created by ValkSam
- */
 @Getter
 public abstract class RequestWithRemarkAbstractDto {
   private String remark;

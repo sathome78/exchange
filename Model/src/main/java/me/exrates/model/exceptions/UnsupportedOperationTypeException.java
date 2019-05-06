@@ -1,8 +1,5 @@
 package me.exrates.model.exceptions;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 public class UnsupportedOperationTypeException extends RuntimeException {
 
     public UnsupportedOperationTypeException(int tupleId) {

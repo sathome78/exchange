@@ -5,10 +5,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import me.exrates.model.enums.NewsTypeEnum;
 
-
-/**
- * Created by ValkSam
- */
 @Getter @Setter
 @NoArgsConstructor
 public class NewsType {

@@ -9,9 +9,6 @@ import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * Created by ValkSam
- */
 @Getter
 @Setter
 @ToString

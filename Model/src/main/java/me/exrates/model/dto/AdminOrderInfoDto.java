@@ -4,9 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-/**
- * Created by maks on 10.07.2017.
- */
 @Getter
 @Setter
 @ToString

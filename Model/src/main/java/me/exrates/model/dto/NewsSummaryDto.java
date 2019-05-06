@@ -7,9 +7,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by OLEG on 28.10.2016.
- */
 public class NewsSummaryDto {
     private Integer id;
     private String title;

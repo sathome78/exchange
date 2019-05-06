@@ -23,7 +23,6 @@ public class IeoDetailsCreateDto {
     private String currencyName;
     @NotNull(message = "Description must not be null")
     private String description;
-    /*  private String currencyToPairWith;*/
     @NotNull(message = "Maker email must not be null")
     private String makerEmail;
     @NotNull(message = "Rate must not be null")

@@ -2,9 +2,6 @@ package me.exrates.model.enums;
 
 import java.util.Arrays;
 
-/**
- * Created by Maks on 29.09.2017.
- */
 public enum NotificationTypeEnum {
 
     EMAIL(1, false, true, null), SMS(2, true, true, "message_price"), TELEGRAM(3, true, true, "subscribe_price"),

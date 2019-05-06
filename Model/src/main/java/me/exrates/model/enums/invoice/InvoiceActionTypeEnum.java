@@ -4,18 +4,32 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import me.exrates.model.exceptions.*;
+import me.exrates.model.exceptions.AuthorisedUserIsHolderParamNeededForThisActionException;
+import me.exrates.model.exceptions.AvailableForCurrentContextParamNeededForThisActionException;
+import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
+import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrentContextException;
+import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
+import me.exrates.model.exceptions.PermittedOperationParamNeededForThisActionException;
+import me.exrates.model.exceptions.UnsupportedInvoiceActionTypeNameException;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static me.exrates.model.enums.invoice.InvoiceActionTypeButtonEnum.*;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeButtonEnum.ACCEPT_BUTTON;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeButtonEnum.ACCEPT_HOLDED_BUTTON;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeButtonEnum.CONFIRM_ADMIN_BUTTON;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeButtonEnum.CONFIRM_USER_BUTTON;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeButtonEnum.DECLINE_BUTTON;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeButtonEnum.DECLINE_HOLDED_BUTTON;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeButtonEnum.POST_HOLDED_BUTTON;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeButtonEnum.RETURN_FROM_WORK_BUTTON;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeButtonEnum.REVOKE_ADMIN_BUTTON;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeButtonEnum.REVOKE_BUTTON;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeButtonEnum.SHOW_CODE_BUTTON;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeButtonEnum.TAKE_TO_WORK_BUTTON;
 import static me.exrates.model.enums.invoice.InvoiceOperationPermission.ACCEPT_DECLINE;
 
-/**
- * Created by ValkSam on 18.02.2017.
- */
 @NoArgsConstructor
 public enum InvoiceActionTypeEnum {
   CONFIRM_USER {{
