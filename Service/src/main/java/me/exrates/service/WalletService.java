@@ -138,15 +138,7 @@ public interface WalletService {
 
     List<ExternalWalletBalancesDto> getExternalWalletBalances();
 
-    void updateExternalMainWalletBalances();
-
-    void updateExternalReservedWalletBalances();
-
     List<InternalWalletBalancesDto> getInternalWalletBalances();
-
-    void updateInternalWalletBalances();
-
-    List<InternalWalletBalancesDto> getWalletBalances();
 
     void createWalletAddress(int currencyId);
 

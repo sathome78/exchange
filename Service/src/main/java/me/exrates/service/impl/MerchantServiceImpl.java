@@ -559,53 +559,6 @@ public class MerchantServiceImpl implements MerchantService {
         return merchantDao.setPropertyRecalculateCommissionLimitToUsd(merchantName, currencyName, recalculateToUsd);
     }
 
-    @Transactional
-    @Override
-    public void updateMerchantCommissionsLimits() {
-        StopWatch stopWatch = StopWatch.createStarted();
-        LOG.info("Process of updating merchant commissions limits start...");
-
-        List<MerchantCurrencyOptionsDto> merchantCommissionsLimits = merchantDao.getAllMerchantCommissionsLimits();
-        if (isEmpty(merchantCommissionsLimits)) {
-            return;
-        }
-
-        final Map<String, RateDto> rates = exchangeApi.getRates();
-        if (rates.isEmpty()) {
-            LOG.info("Exchange api did not return data");
-            return;
-        }
-
-        for (MerchantCurrencyOptionsDto merchantCommissionsLimit : merchantCommissionsLimits) {
-            final String currencyName = merchantCommissionsLimit.getCurrencyName();
-            final boolean recalculateToUsd = merchantCommissionsLimit.isRecalculateToUsd();
-            BigDecimal minFixedCommissionUsdRate = merchantCommissionsLimit.getMinFixedCommissionUsdRate();
-            BigDecimal minFixedCommission = merchantCommissionsLimit.getMinFixedCommission();
-
-            RateDto rateDto = rates.get(currencyName);
-            if (isNull(rateDto)) {
-                continue;
-            }
-
-            final BigDecimal usdRate = rateDto.getUsdRate();
-            if (usdRate.compareTo(BigDecimal.ZERO) == 0) {
-                continue;
-            }
-
-            merchantCommissionsLimit.setCurrencyUsdRate(usdRate);
-
-            if (recalculateToUsd) {
-                minFixedCommission = converter.convert(minFixedCommissionUsdRate.divide(usdRate, RoundingMode.HALF_UP));
-                merchantCommissionsLimit.setMinFixedCommission(minFixedCommission);
-            } else {
-                minFixedCommissionUsdRate = minFixedCommission.multiply(usdRate);
-                merchantCommissionsLimit.setMinFixedCommissionUsdRate(minFixedCommissionUsdRate);
-            }
-        }
-        merchantDao.updateMerchantCommissionsLimits(merchantCommissionsLimits);
-        LOG.info("Process of updating merchant commissions limits end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
-    }
-
     @Override
     public boolean checkAvailableRefill(Integer currencyId, Integer merchantId) {
         return merchantDao.checkAvailable(currencyId, merchantId);

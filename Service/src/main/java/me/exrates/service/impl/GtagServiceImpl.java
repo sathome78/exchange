@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.GtagRefillRequests;
 import me.exrates.dao.UserDao;
 import me.exrates.model.dto.api.RateDto;
+import me.exrates.service.CurrencyService;
 import me.exrates.service.GtagService;
 import me.exrates.service.api.ExchangeApi;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,7 @@ public class GtagServiceImpl implements GtagService {
     @Autowired
     private Client client;
     @Autowired
-    private ExchangeApi exchangeApi;
+    private CurrencyService currencyService;
 
 
     @Autowired
@@ -45,7 +46,7 @@ public class GtagServiceImpl implements GtagService {
     public void sendGtagEvents(String coinsCount, String tiker, String gaTag) {
         if (!enable) return;
         try {
-            RateDto rateDto = exchangeApi.getRates().getOrDefault(tiker, RateDto.zeroRate(tiker));
+            RateDto rateDto = currencyService.getRates().getOrDefault(tiker, RateDto.zeroRate(tiker));
             String price = rateDto.getUsdRate().multiply(new BigDecimal(coinsCount)).toString();
             String transactionId = sendTransactionHit(gaTag, price, tiker);
             log.info("Successfully send transaction hit to gtag");

@@ -115,10 +115,6 @@ public interface CurrencyDao {
 
     boolean setPropertyCalculateLimitToUsd(int currencyId, OperationType operationType, List<Integer> roleIds, Boolean recalculateToUsd);
 
-    List<CurrencyLimit> getAllCurrencyLimits();
-
-    void updateWithdrawLimits(List<CurrencyLimit> currencyLimits);
-
     List<Currency> getCurrencies(MerchantProcessType... processType);
 
     List<CurrencyPair> findAllCurrenciesByFirstPartName(String partName);
@@ -133,11 +129,7 @@ public interface CurrencyDao {
 
     void addCurrencyPair(Currency currency1, Currency currency2, String newPairName, CurrencyPairType type, Market market, String tiker, boolean hidden);
 
-    void updateCurrencyExchangeRates(List<RateDto> rates);
-
     List<RateDto> getCurrencyRates();
-
-    void updateCurrencyBalances(List<BalanceDto> balances);
 
     List<BalanceDto> getCurrencyBalances();
 

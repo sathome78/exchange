@@ -41,7 +41,6 @@ import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
-import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.job.report.ReportMailingJob;
 import me.exrates.service.util.ReportEightExcelGeneratorUtil;
 import me.exrates.service.util.ReportFiveExcelGeneratorUtil;
@@ -55,7 +54,6 @@ import me.exrates.service.util.ReportThreeExcelGeneratorUtil;
 import me.exrates.service.util.ReportTwoExcelGeneratorUtil;
 import me.exrates.service.util.ZipUtil;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.StopWatch;
 import org.quartz.CronScheduleBuilder;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
@@ -77,20 +75,17 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.zip.DataFormatException;
 
 import static java.util.Comparator.comparing;
 import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -151,10 +146,6 @@ public class ReportServiceImpl implements ReportService {
     @Autowired
     ObjectMapper objectMapper;
 
-    @Autowired
-    ExchangeApi exchangeApi;
-
-
     private final String MAIL_JOB_NAME = "REPORT_MAIL_JOB";
     private final String MAIL_TRIGGER_NAME = "REPORT_MAIL_TRIGGER";
 
@@ -191,7 +182,7 @@ public class ReportServiceImpl implements ReportService {
     public List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> getWalletBalancesSummaryByGroups() {
         List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> report = walletService.getWalletBalancesSummaryByGroups();
 
-        Map<String, RateDto> rates = exchangeApi.getRates();
+        Map<String, RateDto> rates = currencyService.getRates();
 
         report.forEach(s -> {
             final RateDto rateDto = rates.get(s.getCurrency());
@@ -261,54 +252,6 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public void generateWalletBalancesReportObject() {
-        StopWatch stopWatch = StopWatch.createStarted();
-        log.info("Process of generating report object as byte array start...");
-
-        List<Currency> currencies = currencyService.findAllCurrenciesWithHidden();
-
-        final Map<String, ExternalWalletBalancesDto> externalWalletBalances = walletService.getExternalWalletBalances()
-                .stream()
-                .collect(Collectors.toMap(
-                        ExternalWalletBalancesDto::getCurrencyName,
-                        Function.identity()));
-        final Map<String, List<InternalWalletBalancesDto>> internalWalletBalances = walletService.getInternalWalletBalances()
-                .stream()
-                .collect(groupingBy(InternalWalletBalancesDto::getCurrencyName));
-
-        final Map<String, RateDto> rates = exchangeApi.getRates();
-
-        List<WalletBalancesDto> balances = currencies.stream()
-                .map(currency ->
-                        currency.isHidden()
-                                ? WalletBalancesDto.buildForHiddenCurrency(currency.getId(), currency.getName())
-                                : WalletBalancesDto.builder()
-                                .currencyName(currency.getName())
-                                .external(externalWalletBalances.get(currency.getName()))
-                                .internals(internalWalletBalances.get(currency.getName()))
-                                .rate(rates.get(currency.getName()))
-                                .build())
-                .filter(walletBalancesDto -> nonNull(walletBalancesDto.getExternal())
-                        && nonNull(walletBalancesDto.getInternals())
-                        && nonNull(walletBalancesDto.getRate()))
-                .collect(toList());
-
-        byte[] zippedBytes;
-        try {
-            byte[] balancesBytes = objectMapper.writeValueAsBytes(balances);
-
-            zippedBytes = ZipUtil.zip(balancesBytes);
-        } catch (IOException ex) {
-            log.warn("Problem with write balances object to byte array", ex);
-            return;
-        }
-        final String fileName = String.format("report_balances_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME));
-
-        reportDao.addNewBalancesReportObject(zippedBytes, fileName);
-        log.info("Process of generating report object as byte array end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
-    }
-
-    @Override
     public List<BalancesDto> getBalancesSliceStatistic() {
         List<Currency> currencies = currencyService.getAllCurrencies();
 
@@ -321,7 +264,7 @@ public class ReportServiceImpl implements ReportService {
                 .stream()
                 .collect(groupingBy(InternalWalletBalancesDto::getCurrencyName));
 
-        final Map<String, RateDto> rates = exchangeApi.getRates();
+        final Map<String, RateDto> rates = currencyService.getRates();
 
         final LocalDateTime lastUpdated = LocalDateTime.now().withNano(0);
 
@@ -407,34 +350,6 @@ public class ReportServiceImpl implements ReportService {
                 .build();
     }
 
-    @Override
-    public void generateInputOutputSummaryReportObject() {
-        StopWatch stopWatch = StopWatch.createStarted();
-        log.info("Process of generating report object as byte array start...");
-
-        LocalDateTime now = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
-
-        final LocalDateTime startTime = now.minusHours(1);
-        final LocalDateTime endTime = now.minusNanos(1);
-        final List<UserRole> roles = Arrays.stream(UserRole.values()).collect(toList());
-
-        List<InOutReportDto> inOut = transactionService.getInOutSummaryByPeriodAndRoles(startTime, endTime, roles);
-
-        byte[] zippedBytes;
-        try {
-            byte[] inOutBytes = objectMapper.writeValueAsBytes(inOut);
-
-            zippedBytes = ZipUtil.zip(inOutBytes);
-        } catch (IOException ex) {
-            log.warn("Problem with write in/out object to byte array", ex);
-            return;
-        }
-        final String fileName = String.format("report_input_output_%s-%s", startTime.format(FORMATTER_FOR_NAME), endTime.format(FORMATTER_FOR_NAME));
-
-        reportDao.addNewInOutReportObject(zippedBytes, fileName);
-        log.info("Process of generating report object as byte array end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
-    }
-
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
     public List<ReportDto> getArchiveInputOutputReports(LocalDate date) {
@@ -451,7 +366,7 @@ public class ReportServiceImpl implements ReportService {
 
         Map<String, InOutReportDto> inOutMap = getInOutSummary(zippedBytes);
 
-        final Map<String, RateDto> rates = exchangeApi.getRates();
+        final Map<String, RateDto> rates = currencyService.getRates();
 
         return inOutReport.toBuilder()
                 .content(ReportTwoExcelGeneratorUtil.generate(
@@ -482,7 +397,7 @@ public class ReportServiceImpl implements ReportService {
                         InOutReportDto::getCurrencyName,
                         Function.identity()));
 
-        final Map<String, RateDto> ratesMap = exchangeApi.getRates();
+        final Map<String, RateDto> ratesMap = currencyService.getRates();
 
         return ReportDto.builder()
                 .fileName(String.format("input_output_summary_%s-%s", startTime.format(FORMATTER_FOR_NAME), endTime.format(FORMATTER_FOR_NAME)))
@@ -521,7 +436,7 @@ public class ReportServiceImpl implements ReportService {
 
         Map<String, WalletBalancesDto> secondBalancesMap = getWalletBalances(zippedBytes);
 
-        final Map<String, RateDto> rates = exchangeApi.getRates();
+        final Map<String, RateDto> rates = currencyService.getRates();
 
         return ReportDto.builder()
                 .fileName(String.format("report_difference_between_balances_%s-%s", startTime.format(FORMATTER_FOR_NAME), endTime.format(FORMATTER_FOR_NAME)))
@@ -577,7 +492,7 @@ public class ReportServiceImpl implements ReportService {
                         InOutReportDto::getCurrencyName,
                         Function.identity()));
 
-        final Map<String, RateDto> rates = exchangeApi.getRates();
+        final Map<String, RateDto> rates = currencyService.getRates();
 
         return ReportDto.builder()
                 .fileName(String.format("report_imbalance_of_coins_%s-%s", startTime.format(FORMATTER_FOR_NAME), endTime.format(FORMATTER_FOR_NAME)))
@@ -630,7 +545,7 @@ public class ReportServiceImpl implements ReportService {
                     roles.stream().map(UserRole::getName).collect(joining(", "))));
         }
 
-        final Map<String, RateDto> rates = exchangeApi.getRates();
+        final Map<String, RateDto> rates = currencyService.getRates();
 
         return ReportDto.builder()
                 .fileName(String.format("report_user_orders_summary_data_%s-%s", startTime.format(FORMATTER_FOR_NAME), endTime.format(FORMATTER_FOR_NAME)))
@@ -665,7 +580,7 @@ public class ReportServiceImpl implements ReportService {
                     roles.stream().map(UserRole::getName).collect(joining(", "))));
         }
 
-        final Map<String, RateDto> rates = exchangeApi.getRates();
+        final Map<String, RateDto> rates = currencyService.getRates();
 
         return ReportDto.builder()
                 .fileName(String.format("report_input_output_data_%s-%s", startTime.format(FORMATTER_FOR_NAME), endTime.format(FORMATTER_FOR_NAME)))
@@ -692,7 +607,7 @@ public class ReportServiceImpl implements ReportService {
                     roles.stream().map(UserRole::getName).collect(joining(", "))));
         }
 
-        final Map<String, RateDto> rates = exchangeApi.getRates();
+        final Map<String, RateDto> rates = currencyService.getRates();
 
         return ReportDto.builder()
                 .fileName(String.format("currency_pairs_turnover_%s-%s", startTime.format(FORMATTER_FOR_NAME), endTime.format(FORMATTER_FOR_NAME)))

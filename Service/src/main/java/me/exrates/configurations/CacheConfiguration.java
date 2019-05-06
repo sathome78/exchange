@@ -16,6 +16,7 @@ public class CacheConfiguration {
     public static final String CURRENCY_PAIR_BY_NAME_CACHE = "cache.currencyPairByName";
     public static final String CURRENCY_PAIR_BY_ID_CACHE = "cache.currencyPairById";
     public static final String CURRENCY_PAIRS_LIST_BY_TYPE_CACHE = "cache.currencyPairListByType";
+    public static final String CURRENCY_EXCHANGE_RATES_CACHE = "cache.currencyExchangeRates";
 
     @Bean(CURRENCY_BY_NAME_CACHE)
     public Cache cacheCurrencyByName() {
@@ -49,6 +50,13 @@ public class CacheConfiguration {
     public Cache cacheCurrencyPairListByType() {
         return new GuavaCache(CURRENCY_PAIRS_LIST_BY_TYPE_CACHE, CacheBuilder.newBuilder()
                 .expireAfterWrite(5, TimeUnit.MINUTES)
+                .build());
+    }
+
+    @Bean(CURRENCY_EXCHANGE_RATES_CACHE)
+    public Cache cacheCurrencyExchangeRates() {
+        return new GuavaCache(CURRENCY_EXCHANGE_RATES_CACHE, CacheBuilder.newBuilder()
+                .expireAfterWrite(30, TimeUnit.MINUTES)
                 .build());
     }
 }

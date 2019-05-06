@@ -22,7 +22,6 @@ import me.exrates.model.exceptions.UnsupportedTransferProcessTypeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -31,12 +30,9 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -714,31 +710,6 @@ public class MerchantDaoImpl implements MerchantDao {
         return masterJdbcTemplate.update(sql, params) > 0;
     }
 
-    @Transactional(readOnly = true)
-    @Override
-    public List<MerchantCurrencyOptionsDto> getAllMerchantCommissionsLimits() {
-        String sql = "SELECT " +
-                "MERCHANT_CURRENCY.merchant_id, " +
-                "MERCHANT_CURRENCY.currency_id, " +
-                "CURRENCY.name AS currency_name, " +
-                "MERCHANT_CURRENCY.merchant_fixed_commission, " +
-                "MERCHANT_CURRENCY.merchant_fixed_commission_usd, " +
-                "MERCHANT_CURRENCY.usd_rate, " +
-                "MERCHANT_CURRENCY.recalculate_to_usd " +
-                "FROM MERCHANT_CURRENCY " +
-                "JOIN CURRENCY ON MERCHANT_CURRENCY.currency_id = CURRENCY.id";
-
-        return slaveJdbcTemplate.query(sql, (rs, row) -> MerchantCurrencyOptionsDto.builder()
-                .merchantId(rs.getInt("merchant_id"))
-                .currencyId(rs.getInt("currency_id"))
-                .currencyName(rs.getString("currency_name"))
-                .minFixedCommission(rs.getBigDecimal("merchant_fixed_commission"))
-                .minFixedCommissionUsdRate(rs.getBigDecimal("merchant_fixed_commission_usd"))
-                .currencyUsdRate(rs.getBigDecimal("usd_rate"))
-                .recalculateToUsd(rs.getBoolean("recalculate_to_usd"))
-                .build());
-    }
-
     @Override
     public boolean checkAvailable(Integer currencyId, Integer merchantId) {
         String sql = "SELECT refill_block FROM MERCHANT_CURRENCY WHERE currency_id = :currency_id AND merchant_id = :merchant_id";
@@ -795,34 +766,6 @@ public class MerchantDaoImpl implements MerchantDao {
             merchantCurrency.setFixedMinCommission(resultSet.getBigDecimal("merchant_fixed_commission"));
             merchantCurrency.setProcessType(resultSet.getString("process_type"));
             return merchantCurrency;
-        });
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    @Override
-    public void updateMerchantCommissionsLimits(List<MerchantCurrencyOptionsDto> merchantCommissionsLimits) {
-        String sql = "UPDATE MERCHANT_CURRENCY " +
-                "SET merchant_fixed_commission = ?, " +
-                "merchant_fixed_commission_usd = ?, " +
-                "usd_rate = ? " +
-                "WHERE merchant_id = ? AND currency_id = ?";
-
-        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
-
-            @Override
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
-                MerchantCurrencyOptionsDto dto = merchantCommissionsLimits.get(i);
-                ps.setBigDecimal(1, dto.getMinFixedCommission());
-                ps.setBigDecimal(2, dto.getMinFixedCommissionUsdRate());
-                ps.setBigDecimal(3, dto.getCurrencyUsdRate());
-                ps.setInt(4, dto.getMerchantId());
-                ps.setInt(5, dto.getCurrencyId());
-            }
-
-            @Override
-            public int getBatchSize() {
-                return merchantCommissionsLimits.size();
-            }
         });
     }
 }

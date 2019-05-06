@@ -29,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -38,14 +37,10 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -790,35 +785,6 @@ public class CurrencyDaoImpl implements CurrencyDao {
         return masterJdbcTemplate.update(sql, params) > 0;
     }
 
-    @Transactional(readOnly = true)
-    @Override
-    public List<CurrencyLimit> getAllCurrencyLimits() {
-        String sql = "SELECT DISTINCT " +
-                "CURRENCY_LIMIT.id, " +
-                "CURRENCY_LIMIT.currency_id, " +
-                "CURRENCY.name, " +
-                "CURRENCY_LIMIT.min_sum, " +
-                "CURRENCY_LIMIT.min_sum_usd, " +
-                "CURRENCY_LIMIT.usd_rate, " +
-                "CURRENCY_LIMIT.recalculate_to_usd " +
-                "FROM CURRENCY_LIMIT " +
-                "JOIN CURRENCY ON CURRENCY_LIMIT.currency_id = CURRENCY.id";
-
-        return masterJdbcTemplate.query(sql, (rs, row) -> {
-            Currency currency = new Currency(rs.getInt("currency_id"));
-            currency.setName(rs.getString("name"));
-
-            return CurrencyLimit.builder()
-                    .id(rs.getInt("id"))
-                    .currency(currency)
-                    .minSum(rs.getBigDecimal("min_sum"))
-                    .minSumUsdRate(rs.getBigDecimal("min_sum_usd"))
-                    .currencyUsdRate(rs.getBigDecimal("usd_rate"))
-                    .recalculateToUsd(rs.getBoolean("recalculate_to_usd"))
-                    .build();
-        });
-    }
-
     @Override
     public List<Currency> getCurrencies(MerchantProcessType... types) {
         String sql = "SELECT C.id, C.name, C.description FROM CURRENCY C " +
@@ -869,31 +835,6 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 .name(rs.getString("C.name"))
                 .description(rs.getString("C.description"))
                 .build();
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    @Override
-    public void updateWithdrawLimits(List<CurrencyLimit> currencyLimits) {
-        String sql = "UPDATE CURRENCY_LIMIT " +
-                "SET min_sum = ?, min_sum_usd = ?, usd_rate = ? " +
-                "WHERE id = ?";
-
-        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
-
-            @Override
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
-                CurrencyLimit dto = currencyLimits.get(i);
-                ps.setBigDecimal(1, dto.getMinSum());
-                ps.setBigDecimal(2, dto.getMinSumUsdRate());
-                ps.setBigDecimal(3, dto.getCurrencyUsdRate());
-                ps.setInt(4, dto.getId());
-            }
-
-            @Override
-            public int getBatchSize() {
-                return currencyLimits.size();
-            }
-        });
     }
 
     @Override
@@ -969,29 +910,6 @@ public class CurrencyDaoImpl implements CurrencyDao {
     }
 
     @Override
-    public void updateCurrencyExchangeRates(List<RateDto> rates) {
-        final String sql = "UPDATE CURRENT_CURRENCY_RATES " +
-                "SET usd_rate = ?, btc_rate = ? " +
-                "WHERE currency_name = ?";
-
-        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
-
-            @Override
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
-                RateDto rateDto = rates.get(i);
-                ps.setBigDecimal(1, rateDto.getUsdRate());
-                ps.setBigDecimal(2, rateDto.getBtcRate());
-                ps.setString(3, rateDto.getCurrencyName());
-            }
-
-            @Override
-            public int getBatchSize() {
-                return rates.size();
-            }
-        });
-    }
-
-    @Override
     public List<RateDto> getCurrencyRates() {
         final String sql = "SELECT currency_name, usd_rate, btc_rate FROM CURRENT_CURRENCY_RATES";
 
@@ -1000,29 +918,6 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 .usdRate(rs.getBigDecimal("usd_rate"))
                 .btcRate(rs.getBigDecimal("btc_rate"))
                 .build());
-    }
-
-    @Override
-    public void updateCurrencyBalances(List<BalanceDto> balances) {
-        final String sql = "UPDATE CURRENT_CURRENCY_BALANCES " +
-                "SET balance = ?, last_updated_at = ? " +
-                "WHERE currency_name = ?";
-
-        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
-
-            @Override
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
-                BalanceDto balanceDto = balances.get(i);
-                ps.setBigDecimal(1, balanceDto.getBalance());
-                ps.setTimestamp(2, Timestamp.valueOf(balanceDto.getLastUpdatedAt()));
-                ps.setString(3, balanceDto.getCurrencyName());
-            }
-
-            @Override
-            public int getBatchSize() {
-                return balances.size();
-            }
-        });
     }
 
     @Override

@@ -32,7 +32,6 @@ import me.exrates.service.aspect.CheckCurrencyPairVisibility;
 import me.exrates.service.bitshares.memo.Preconditions;
 import me.exrates.service.exception.ScaleForAmountNotSetException;
 import me.exrates.service.util.BigDecimalConverter;
-import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
@@ -41,20 +40,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.util.Objects.isNull;
-import static me.exrates.service.util.CollectionUtil.isEmpty;
+import static java.util.stream.Collectors.toMap;
 import static me.exrates.configurations.CacheConfiguration.CURRENCY_BY_NAME_CACHE;
+import static me.exrates.configurations.CacheConfiguration.CURRENCY_EXCHANGE_RATES_CACHE;
 import static me.exrates.configurations.CacheConfiguration.CURRENCY_PAIRS_LIST_BY_TYPE_CACHE;
 import static me.exrates.configurations.CacheConfiguration.CURRENCY_PAIR_BY_ID_CACHE;
 import static me.exrates.configurations.CacheConfiguration.CURRENCY_PAIR_BY_NAME_CACHE;
@@ -96,6 +95,10 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Autowired
     @Qualifier(CURRENCY_PAIRS_LIST_BY_TYPE_CACHE)
     private Cache currencyPairsListByTypeCache;
+
+    @Autowired
+    @Qualifier(CURRENCY_EXCHANGE_RATES_CACHE)
+    private Cache ratesCache;
 
     private static final Set<String> CRYPTO = new HashSet<String>() {
         {
@@ -455,54 +458,6 @@ public class CurrencyServiceImpl implements CurrencyService {
         return currencyDao.setPropertyCalculateLimitToUsd(currencyId, operationType, userRoleService.getRealUserRoleIdByBusinessRoleList(roleName), recalculateToUsd);
     }
 
-    @Transactional
-    @Override
-    public void updateWithdrawLimits() {
-        StopWatch stopWatch = StopWatch.createStarted();
-        log.info("Process of updating withdraw limits start...");
-
-        List<CurrencyLimit> currencyLimits = currencyDao.getAllCurrencyLimits();
-        if (isEmpty(currencyLimits)) {
-            return;
-        }
-
-        final Map<String, RateDto> rates = exchangeApi.getRates();
-        if (rates.isEmpty()) {
-            log.info("Exchange api did not return data");
-            return;
-        }
-
-        for (CurrencyLimit currencyLimit : currencyLimits) {
-            final String currencyName = currencyLimit.getCurrency().getName();
-            final boolean recalculateToUsd = currencyLimit.isRecalculateToUsd();
-            BigDecimal minSumUsdRate = currencyLimit.getMinSumUsdRate();
-            BigDecimal minSum = currencyLimit.getMinSum();
-
-            RateDto rateDto = rates.get(currencyName);
-            if (isNull(rateDto)) {
-                continue;
-            }
-
-            final BigDecimal usdRate = rateDto.getUsdRate();
-            if (usdRate.compareTo(BigDecimal.ZERO) == 0) {
-                continue;
-            }
-
-            currencyLimit.setCurrencyUsdRate(usdRate);
-
-            if (recalculateToUsd) {
-                minSum = converter.convert(minSumUsdRate.divide(usdRate, RoundingMode.HALF_UP));
-                currencyLimit.setMinSum(minSum);
-            } else {
-                minSumUsdRate = minSum.multiply(usdRate);
-                currencyLimit.setMinSumUsdRate(minSumUsdRate);
-            }
-        }
-        currencyDao.updateWithdrawLimits(currencyLimits);
-
-        log.info("Process of updating withdraw limits end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
-    }
-
     @Override
     public List<Currency> getCurrencies(MerchantProcessType... processType) {
         return currencyDao.getCurrencies(processType);
@@ -547,28 +502,10 @@ public class CurrencyServiceImpl implements CurrencyService {
         throw new RuntimeException("pair allready exist");
     }
 
-    @Transactional
-    @Override
-    public void updateCurrencyExchangeRates(List<RateDto> rates) {
-        if (isEmpty(rates)) {
-            return;
-        }
-        currencyDao.updateCurrencyExchangeRates(rates);
-    }
-
     @Transactional(readOnly = true)
     @Override
     public List<RateDto> getCurrencyRates() {
         return currencyDao.getCurrencyRates();
-    }
-
-    @Transactional
-    @Override
-    public void updateCurrencyBalances(List<BalanceDto> balances) {
-        if (isEmpty(balances)) {
-            return;
-        }
-        currencyDao.updateCurrencyBalances(balances);
     }
 
     @Transactional(readOnly = true)
@@ -580,5 +517,11 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Override
     public boolean updateCurrencyPair(CurrencyPair currencyPair) {
         return currencyDao.updateCurrencyPair(currencyPair);
+    }
+
+    @Override
+    public Map<String, RateDto> getRates() {
+        return ratesCache.get(CURRENCY_EXCHANGE_RATES_CACHE, this::getCurrencyRates).stream()
+                .collect(toMap(RateDto::getCurrencyName, Function.identity()));
     }
 }

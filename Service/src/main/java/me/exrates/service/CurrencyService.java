@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -142,8 +143,6 @@ public interface CurrencyService {
 
     boolean setPropertyCalculateLimitToUsd(int currencyId, OperationType operationType, String roleName, Boolean recalculateToUsd);
 
-    void updateWithdrawLimits();
-
     List<Currency> getCurrencies(MerchantProcessType... processType);
 
     List<CurrencyPair> getPairsByFirstPartName(String partName);
@@ -158,13 +157,11 @@ public interface CurrencyService {
     @Transactional
     void addCurrencyPairForIco(String firstCurrencyName, String secondCurrencyName);
 
-    void updateCurrencyExchangeRates(List<RateDto> rates);
-
     List<RateDto> getCurrencyRates();
-
-    void updateCurrencyBalances(List<BalanceDto> balances);
 
     List<BalanceDto> getCurrencyBalances();
 
     boolean updateCurrencyPair(CurrencyPair currencyPair);
+
+    Map<String, RateDto> getRates();
 }

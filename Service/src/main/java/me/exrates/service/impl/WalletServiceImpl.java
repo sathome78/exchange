@@ -557,94 +557,9 @@ public class WalletServiceImpl implements WalletService {
 
     }
 
-
     @Override
     public int getWalletIdAndBlock(Integer userId, Integer currencyId) {
         return walletDao.getWalletIdAndBlock(userId, currencyId);
-    }
-
-    @Transactional
-    @Override
-    public void updateExternalMainWalletBalances() {
-        StopWatch stopWatch = StopWatch.createStarted();
-        log.info("Process of updating external main wallets start...");
-
-        List<Currency> currencies = currencyService.getAllCurrencies();
-
-        final Map<String, RateDto> rates = exchangeApi.getRates();
-        final Map<String, BalanceDto> balances = walletsApi.getBalances();
-        final Map<String, ExternalWalletBalancesDto> mainBalancesMap = walletDao.getExternalMainWalletBalances()
-                .stream()
-                .collect(toMap(
-                        ExternalWalletBalancesDto::getCurrencyName,
-                        Function.identity()
-                ));
-
-        if (rates.isEmpty() || balances.isEmpty() || mainBalancesMap.isEmpty()) {
-            log.info("Exchange or wallet api did not return any data");
-            return;
-        }
-
-        for (Currency currency : currencies) {
-            final String currencyName = currency.getName();
-
-            RateDto rateDto = rates.getOrDefault(currencyName, RateDto.zeroRate(currencyName));
-            BalanceDto balanceDto = balances.getOrDefault(currencyName, BalanceDto.zeroBalance(currencyName));
-
-            BigDecimal usdRate = rateDto.getUsdRate();
-            BigDecimal btcRate = rateDto.getBtcRate();
-
-            BigDecimal mainBalance = balanceDto.getBalance();
-            LocalDateTime lastBalanceUpdate = balanceDto.getLastUpdatedAt();
-
-            ExternalWalletBalancesDto exWallet = mainBalancesMap.get(currencyName);
-
-            if (isNull(exWallet)) {
-                continue;
-            }
-            ExternalWalletBalancesDto.Builder builder = exWallet.toBuilder()
-                    .usdRate(usdRate)
-                    .btcRate(btcRate)
-                    .mainBalance(mainBalance);
-
-            if (nonNull(lastBalanceUpdate)) {
-                builder.lastUpdatedDate(lastBalanceUpdate);
-            }
-            exWallet = builder.build();
-            walletDao.updateExternalMainWalletBalances(exWallet);
-        }
-        log.info("Process of updating external main wallets end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
-    }
-
-    @Transactional
-    @Override
-    public void updateExternalReservedWalletBalances() {
-        StopWatch stopWatch = StopWatch.createStarted();
-        log.info("Process of updating external reserved wallets start...");
-
-        final Map<String, BigDecimal> reservedBalances = walletsApi.getReservedBalances();
-
-        if (reservedBalances.isEmpty()) {
-            log.info("Wallet api did not return any data");
-            return;
-        }
-
-        for (Map.Entry<String, BigDecimal> entry : reservedBalances.entrySet()) {
-            final String compositeKey = entry.getKey();
-            final BigDecimal balance = entry.getValue();
-
-            String[] data = compositeKey.split("\\|\\|");
-            final String currencySymbol = data[0];
-            final String walletAddress = data[1];
-            final LocalDateTime lastReservedBalanceUpdate = StringUtils.isNotEmpty(data[3])
-                    ? LocalDateTime.parse(data[3], FORMATTER)
-                    : null;
-
-            Currency currency = currencyService.findByName(currencySymbol);
-
-            walletDao.updateExternalReservedWalletBalances(currency.getId(), walletAddress, balance, lastReservedBalanceUpdate);
-        }
-        log.info("Process of updating external reserved wallets end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
     }
 
     @Transactional(readOnly = true)
@@ -653,57 +568,10 @@ public class WalletServiceImpl implements WalletService {
         return walletDao.getExternalMainWalletBalances();
     }
 
-    @Transactional
-    @Override
-    public void updateInternalWalletBalances() {
-        StopWatch stopWatch = StopWatch.createStarted();
-        log.info("Process of updating internal wallets start...");
-
-        List<Currency> currencies = currencyService.getAllCurrencies();
-
-        final Map<String, RateDto> rates = exchangeApi.getRates();
-        final Map<String, List<InternalWalletBalancesDto>> balances = this.getWalletBalances()
-                .stream()
-                .collect(groupingBy(InternalWalletBalancesDto::getCurrencyName));
-
-        if (rates.isEmpty() || balances.isEmpty()) {
-            log.info("Exchange or wallet api did not return any data");
-            return;
-        }
-
-        for (Currency currency : currencies) {
-            final String currencyName = currency.getName();
-
-            RateDto rateDto = rates.getOrDefault(currencyName, RateDto.zeroRate(currencyName));
-            List<InternalWalletBalancesDto> balancesByRoles = balances.get(currencyName);
-
-            if (isNull(balancesByRoles)) {
-                continue;
-            }
-            final BigDecimal usdRate = rateDto.getUsdRate();
-            final BigDecimal btcRate = rateDto.getBtcRate();
-
-            for (InternalWalletBalancesDto balance : balancesByRoles) {
-                balance = balance.toBuilder()
-                        .usdRate(usdRate)
-                        .btcRate(btcRate)
-                        .build();
-                walletDao.updateInternalWalletBalances(balance);
-            }
-        }
-        log.info("Process of updating internal wallets end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
-    }
-
     @Transactional(readOnly = true)
     @Override
     public List<InternalWalletBalancesDto> getInternalWalletBalances() {
         return walletDao.getInternalWalletBalances();
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public List<InternalWalletBalancesDto> getWalletBalances() {
-        return walletDao.getWalletBalances();
     }
 
     @Override

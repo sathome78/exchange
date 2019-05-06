@@ -35,13 +35,9 @@ public interface ReportService {
 
     List<BalancesDto> getBalancesSliceStatistic();
 
-    void generateWalletBalancesReportObject();
-
     List<ReportDto> getArchiveBalancesReports(LocalDate date);
 
     ReportDto getArchiveBalancesReportFile(Integer id) throws Exception;
-
-    void generateInputOutputSummaryReportObject();
 
     List<ReportDto> getArchiveInputOutputReports(LocalDate date);
 

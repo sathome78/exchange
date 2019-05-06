@@ -20,15 +20,11 @@ public interface ReportDao {
 
     void deleteReportSubscriber(String email);
 
-    void addNewBalancesReportObject(byte[] zippedBytes, String fileName);
-
     List<ReportDto> getBalancesReportsNames(LocalDateTime fromDate, LocalDateTime toDate);
 
     ReportDto getBalancesReportById(int id);
 
     ReportDto getBalancesReportByTime(LocalDateTime fromTime, LocalDateTime toTime);
-
-    void addNewInOutReportObject(byte[] zippedBytes, String fileName);
 
     List<ReportDto> getInOutReportsNames(LocalDateTime fromDate, LocalDateTime toDate);
 

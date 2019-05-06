@@ -81,19 +81,6 @@ public class ReportDaoImpl implements ReportDao {
     }
 
     @Override
-    public void addNewBalancesReportObject(byte[] zippedBytes, String fileName) {
-        final String sql = "INSERT INTO BALANCES_REPORT (file_name, content, created_at) VALUES (:file_name, :content, CURRENT_TIMESTAMP)";
-
-        final Map<String, Object> params = new HashMap<String, Object>() {
-            {
-                put("file_name", fileName);
-                put("content", zippedBytes);
-            }
-        };
-        namedParameterJdbcTemplate.update(sql, params);
-    }
-
-    @Override
     public List<ReportDto> getBalancesReportsNames(LocalDateTime fromDate, LocalDateTime toDate) {
         String sql = "SELECT br.id, br.file_name" +
                 " FROM BALANCES_REPORT br" +
@@ -151,19 +138,6 @@ public class ReportDaoImpl implements ReportDao {
         } catch (EmptyResultDataAccessException ex) {
             return null;
         }
-    }
-
-    @Override
-    public void addNewInOutReportObject(byte[] zippedBytes, String fileName) {
-        final String sql = "INSERT INTO INPUT_OUTPUT_REPORT (file_name, content, created_at) VALUES (:file_name, :content, CURRENT_TIMESTAMP)";
-
-        final Map<String, Object> params = new HashMap<String, Object>() {
-            {
-                put("file_name", fileName);
-                put("content", zippedBytes);
-            }
-        };
-        namedParameterJdbcTemplate.update(sql, params);
     }
 
     @Override
