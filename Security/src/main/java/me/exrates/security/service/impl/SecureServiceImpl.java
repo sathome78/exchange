@@ -28,10 +28,6 @@ import org.springframework.web.servlet.LocaleResolver;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Locale;
 
-
-/**
- * Created by Maks on 28.09.2017.
- */
 @Log4j2
 @Service("secureServiceImpl")
 @PropertySource(value = {"classpath:session.properties", "classpath:/security.properties"})

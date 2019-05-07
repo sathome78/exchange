@@ -14,15 +14,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 
-import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
-/**
- * Created by OLEG on 22.08.2016.
- */
 public class AuthenticationTokenProcessingFilter extends AbstractAuthenticationProcessingFilter {
 
     private final String HEADER_SECURITY_TOKEN = "Exrates-Rest-Token";

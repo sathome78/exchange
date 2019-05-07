@@ -30,14 +30,6 @@ import java.util.Set;
 
 import static org.apache.commons.lang.time.DateUtils.MILLIS_PER_MINUTE;
 
-/**
- * Created from ConcurrentSessionFilter by maks on 31.03.2017.
- */
-
-//@PropertySources({
-//        @PropertySource("classpath:session.properties"),
-//        @PropertySource("classpath:angular.properties")
-//})
 @PropertySource(value = {
         "classpath:session.properties"
 })
@@ -45,9 +37,6 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
 
     @Autowired
     private SessionParamsService sessionParamsService;
-
-    /*@Autowired
-    private Map<String, String> angularProperties;*/
 
     private SessionRegistry sessionRegistry;
     private String expiredUrl;
@@ -61,9 +50,6 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
     private @Value("${session.lastRequestParamName}") String sessionLastRequestParamName;
 
 
-
-    // ~ Methods
-    // ========================================================================================================
 
     public CustomConcurrentSessionFilter(SessionRegistry sessionRegistry) {
         Assert.notNull(sessionRegistry, "SessionRegistry required");
@@ -108,12 +94,8 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
                 }
                 else {
                     if(isSessionExpired(session)) {
-                        /*JsonObject object = sessionParamsService.getSessionEndString(request);*/
                         if (isAjax(request)) {
                             response.setStatus(419);
-                            /*PrintWriter writer = response.getWriter();
-                            writer.print(object.toString());
-                            writer.close();*/
                         } else {
                             response.sendRedirect("/dashboard?sessionEnd");
                         }
@@ -179,19 +161,6 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
 
     public Set<String> getOnlineMethods() {
         return onlineMethods;
-    }
-
-    public void setOnlineMethods(Set<String> onlineMethods) {
-        this.onlineMethods = onlineMethods;
-    }
-
-    public void setLogoutHandlers(LogoutHandler[] handlers) {
-        Assert.notNull(handlers);
-        this.handlers = handlers;
-    }
-
-    public void setRedirectStrategy(RedirectStrategy redirectStrategy) {
-        this.redirectStrategy = redirectStrategy;
     }
 
 }

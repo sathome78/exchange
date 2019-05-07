@@ -10,9 +10,6 @@ import org.springframework.security.core.Authentication;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Locale;
 
-/**
- * Created by Maks on 10.10.2017.
- */
 public interface SecureService {
 
     void checkLoginAuth(HttpServletRequest request, Authentication authentication,

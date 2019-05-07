@@ -10,10 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.lang.reflect.Method;
 
-/**
- * Created by ValkSam on 29.08.2016.
- */
-
 public class OnlineMethodPostProcessor implements BeanPostProcessor {
 
     @Autowired

@@ -3,8 +3,6 @@ package me.exrates.security.config;
 import me.exrates.security.entryPoint.OpenApiAuthenticationEntryPoint;
 import me.exrates.security.filter.OpenApiAuthenticationFilter;
 import me.exrates.security.filter.RestAlterdiceFilterExp;
-import me.exrates.service.openapi.OpenApiCommonService;
-import me.exrates.service.openapi.impl.OpenApiCommonServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;

@@ -23,9 +23,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
-/**
- * Created by OLEG on 11.10.2016.
- */
 public class QRAuthorizationFilter extends GenericFilterBean {
 
     @Autowired
@@ -46,7 +43,6 @@ public class QRAuthorizationFilter extends GenericFilterBean {
                 Object mutex = WebUtils.getSessionMutex(session);
                 synchronized (mutex) {
                     session.removeAttribute("USER_DETAIL_TOKEN");
-                  /*  session.setAttribute("QR_LOGGED_IN", true);*/
                 }
                 Authentication auth = new UsernamePasswordAuthenticationToken(userDetails,
                         null, userDetails.getAuthorities());
@@ -59,10 +55,6 @@ public class QRAuthorizationFilter extends GenericFilterBean {
 
         }
         chain.doFilter(request, response);
-    }
-
-    public SessionAuthenticationStrategy getAuthenticationStrategy() {
-        return authenticationStrategy;
     }
 
     public void setAuthenticationStrategy(SessionAuthenticationStrategy authenticationStrategy) {

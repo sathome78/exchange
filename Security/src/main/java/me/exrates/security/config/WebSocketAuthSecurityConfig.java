@@ -37,6 +37,3 @@ public class WebSocketAuthSecurityConfig extends AbstractWebSocketMessageBrokerC
         registration.interceptors(new AuthChannelInterceptorAdapter(webSocketAuthenticatorService, userService));
     }
 }
-
-// Solution from: https://stackoverflow.com/questions/45405332/websocket-authentication-and-authorization-in-spring
-// https://stackoverflow.com/questions/30887788/json-web-token-jwt-with-spring-based-sockjs-stomp-web-socket/39456274#39456274

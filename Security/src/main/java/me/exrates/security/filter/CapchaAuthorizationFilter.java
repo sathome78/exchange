@@ -29,9 +29,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.util.HashMap;
 
-/**
- * Created by Valk on 31.03.16.
- */
 @Log4j2
 @PropertySource("classpath:session.properties")
 public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFilter {
@@ -64,7 +61,7 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
         /*----------------------------*/
         String ipAddress = IpUtils.getClientIpAddress(request);
         try {
-//            ipBlockingService.checkIp(ipAddress, IpTypesOfChecking.LOGIN);
+
         } catch (BannedIpException e) {
             long banDuration = e.getBanDurationSeconds();
             String durationMessage;
@@ -128,22 +125,13 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
         if(userService.findByEmail(request.getParameter("username")).getUserStatus()==UserStatus.REGISTERED){
             throw new UnconfirmedUserException(userService.findByEmail(request.getParameter("username")).getEmail());
         }
-        /*---------------*/
+
         Authentication authentication = super.attemptAuthentication(request, response);
-        /*-------------------*/
+
         session.setAttribute("raw_password", request.getParameter("password"));
-        /*-------------------*/
+
         secureServiceImpl.checkLoginAuth(request, authentication, this);
-        /* old impl
-        User principal = (User) authentication.getPrincipal();
-        if (userService.isGlobal2FaActive() || userService.getUse2Fa(principal.getUsername())) {
-            userService.createSendAndSaveNewPinForUser(principal.getUsername(), request);
-            request.getSession().setAttribute(checkPinParam, "");
-            request.getSession().setAttribute(authenticationParamName, authentication);
-            request.getSession().setAttribute(passwordParam, request.getParameter(super.getPasswordParameter()));
-            authentication.setAuthenticated(false);
-            throw new PinCodeCheckNeedException("");
-        }*/
+
         return authentication;
     }
 

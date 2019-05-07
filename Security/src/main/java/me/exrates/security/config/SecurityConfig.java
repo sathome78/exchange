@@ -2,7 +2,12 @@ package me.exrates.security.config;
 
 import me.exrates.model.enums.AdminAuthority;
 import me.exrates.model.enums.UserRole;
-import me.exrates.security.filter.*;
+import me.exrates.security.filter.AjaxAwareAccessDeniedHandler;
+import me.exrates.security.filter.CapchaAuthorizationFilter;
+import me.exrates.security.filter.CustomConcurrentSessionFilter;
+import me.exrates.security.filter.LoginFailureHandler;
+import me.exrates.security.filter.LoginSuccessHandler;
+import me.exrates.security.filter.QRAuthorizationFilter;
 import me.exrates.security.postprocessor.OnlineMethodPostProcessor;
 import me.exrates.security.service.impl.UserDetailsServiceImpl;
 import org.apache.logging.log4j.LogManager;
@@ -28,7 +33,9 @@ import org.springframework.security.web.session.ConcurrentSessionFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
-import static me.exrates.model.enums.AdminAuthority.*;
+import static me.exrates.model.enums.AdminAuthority.MANAGE_ACCESS;
+import static me.exrates.model.enums.AdminAuthority.PROCESS_INVOICE;
+import static me.exrates.model.enums.AdminAuthority.PROCESS_WITHDRAW;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
 

@@ -8,7 +8,4 @@ public class InvalidTimestampException extends AuthenticationException {
         super(message);
     }
 
-    public InvalidTimestampException(String msg, Throwable t) {
-        super(msg, t);
-    }
 }

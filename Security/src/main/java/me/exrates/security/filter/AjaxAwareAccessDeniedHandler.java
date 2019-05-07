@@ -21,9 +21,6 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by OLEG on 08.12.2016.
- */
 public class AjaxAwareAccessDeniedHandler implements AccessDeniedHandler {
 
     private static final Logger LOGGER = LogManager.getLogger(AjaxAwareAccessDeniedHandler.class);

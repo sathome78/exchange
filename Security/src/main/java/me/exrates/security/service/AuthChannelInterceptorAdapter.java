@@ -3,7 +3,6 @@ package me.exrates.security.service;
 import me.exrates.model.exceptions.InvalidCredentialsException;
 import me.exrates.service.UserService;
 import me.exrates.service.bitshares.memo.Preconditions;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -54,13 +53,7 @@ public class AuthChannelInterceptorAdapter extends ChannelInterceptorAdapter {
                 if (StompCommand.SUBSCRIBE.equals(accessor.getCommand()) && accessor.getDestination().contains(PRIVATE_PATH)) {
                     checkUserAuth(accessor);
                 }
-            } /*else if (!StringUtils.isEmpty(accessor.getFirstNativeHeader(USERNAME_HEADER)) && !StringUtils.isEmpty(accessor.getFirstNativeHeader(PASSWORD_HEADER))) {
-                final String email = accessor.getLogin();
-                String password = accessor.getFirstNativeHeader(PASSWORD_HEADER);
-                System.out.println("login: " + email + "  password: " + password);
-                final UsernamePasswordAuthenticationToken user = webSocketAuthenticatorService.getAuthenticatedOrFailByUsernamePassword(email, password);
-                accessor.setUser(user);
-            }*/
+            }
 
         }
         return message;

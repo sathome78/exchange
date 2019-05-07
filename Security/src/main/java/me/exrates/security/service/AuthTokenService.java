@@ -8,9 +8,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Optional;
 
-/**
- * Created by OLEG on 23.08.2016.
- */
 public interface AuthTokenService {
 
     Optional<AuthTokenDto> retrieveToken(String username, String password);

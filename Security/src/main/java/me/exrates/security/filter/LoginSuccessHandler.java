@@ -30,9 +30,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
 import java.util.Locale;
 
-/**
- * Created by Valk on 28.04.2016.
- */
 @Log4j2
 @PropertySource("classpath:/job.properties")
 public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
@@ -63,10 +60,10 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
             sessionParamsService.setSessionLifeParams(request);
             Locale locale = new Locale(userService.getPreferedLang(userService.getIdByEmail(principal.getUsername())));
             localeResolver.setLocale(request, response, locale);
-        /**/
+
             request.getSession().removeAttribute("errorNoty");
             request.getSession().removeAttribute("successNoty");
-        /**/
+
             String email = authentication.getName();
             String ip = request.getHeader("X-FORWARDED-FOR");
             if (ip == null) {

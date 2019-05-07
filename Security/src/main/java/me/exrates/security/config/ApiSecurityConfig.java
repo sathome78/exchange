@@ -22,9 +22,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import javax.servlet.Filter;
 import java.util.Arrays;
 
-/**
- * Created by OLEG on 22.08.2016.
- */
 @Configuration
 @Order(value = 1)
 @EnableWebSecurity
@@ -61,11 +58,6 @@ public class ApiSecurityConfig extends WebSecurityConfigurerAdapter {
         final CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(angularAllowedOrigins));
         configuration.setAllowedMethods(Arrays.asList(angularAllowedMethods));
-        // setAllowCredentials(true) is important, otherwise:
-        // The value of the 'Access-Control-Allow-Origin' header in the response must not be the wildcard '*' when the request's credentials mode is 'include'.
-//        configuration.setAllowCredentials(true);
-        // setAllowedHeaders is important! Without it, OPTIONS preflight request
-        // will fail with 403 Invalid CORS request
         configuration.setAllowedHeaders(Arrays.asList(angularAllowedHeaders));
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", configuration);

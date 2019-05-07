@@ -3,9 +3,6 @@ package me.exrates.security.exception;
 import me.exrates.model.dto.PinDto;
 import org.springframework.security.core.AuthenticationException;
 
-/**
- * Created by maks on 02.07.2017.
- */
 public class IncorrectPinException extends AuthenticationException {
 
     private final String REASON_CODE = "message.pin_code.incorrect";

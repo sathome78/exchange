@@ -139,7 +139,6 @@ public class NgUserServiceImpl implements NgUserService {
             }
 
             authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
-//            ipBlockingService.successfulProcessing(IpUtils.getClientIpAddress(request), IpTypesOfChecking.LOGIN);
             userService.deleteTempTokenByValue(tempToken);
             return authTokenDto;
         } else {

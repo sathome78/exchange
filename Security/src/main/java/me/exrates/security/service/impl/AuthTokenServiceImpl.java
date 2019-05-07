@@ -40,12 +40,14 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Created by OLEG on 23.08.2016.
- */
 @Log4j2
 @Service
 @PropertySource(value = {"classpath:/mobile.properties"})
@@ -244,9 +246,6 @@ public class AuthTokenServiceImpl implements AuthTokenService {
             }
             /*temporary disabled check for ip, need testing*/
             log.debug("request ip {}", ip);
-            /*if (ip != null && !ip.equals(currentIp)) {
-                throw new TokenException("Invalid token", ErrorCode.INVALID_AUTHENTICATION_TOKEN);
-            }*/
             LocalDateTime expiration = savedToken.getLastRequest().plusSeconds(TOKEN_DURATION_TIME);
             LocalDateTime finalExpiration = new Date(claims.get("expiration", Long.class)).toInstant()
                     .atZone(ZoneId.systemDefault()).toLocalDateTime();

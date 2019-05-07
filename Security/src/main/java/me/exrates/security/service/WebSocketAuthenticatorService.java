@@ -45,10 +45,6 @@ public class WebSocketAuthenticatorService {
             logger.info("Failed to retrieve user by token as " + e.getMessage());
             throw new TokenException(e.getMessage());
         }
-//		logger.error("$$$$$$ Registered user: " + SecurityContextHolder.getContext().getAuthentication().getName());
-//		if(!(user.getUsername().equals(SecurityContextHolder.getContext().getAuthentication().getName()))){
-//			throw new BadCredentialsException("Current principal is not the same with user (username) " + user.getUsername());
-//		}
         return new UsernamePasswordAuthenticationToken(user, user.getPassword(), user.getAuthorities());
     }
 
