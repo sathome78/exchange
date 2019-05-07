@@ -2,6 +2,8 @@ package me.exrates.config;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.rabbit.annotation.RabbitListenerConfigurer;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
@@ -18,10 +20,22 @@ import org.springframework.messaging.handler.annotation.support.DefaultMessageHa
 import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
 
 @Configuration
-@PropertySource(value = {"classpath:/rabbit.properties"})
+@PropertySource(value = {"classpath:/rabbit.properties", "classpath:/mail.properties"})
 public class RabbitConfig implements RabbitListenerConfigurer {
 
     private final Logger logger = LogManager.getLogger(RabbitConfig.class);
+
+    @Value("${email-info-queue}")
+    private String EMAIL_INFO_QUEUE;
+
+    @Value("${email-mandrill-queue}")
+    private String EMAIL_MANDRILL_QUEUE;
+
+    @Value("${email-queue}")
+    private String EMAIL_QUEUE;
+
+    @Value("${email-listing-email-queue}")
+    private String EMAIL_LISTING_REQUEST_QUEUE;
 
     @Value("${rabbit.host}")
     private String host;
@@ -42,6 +56,34 @@ public class RabbitConfig implements RabbitListenerConfigurer {
         factory.setUsername(username);
         factory.setPassword(password);
         return factory;
+    }
+
+    @Bean
+    public Queue emailMandrillQueue() {
+        return QueueBuilder
+                .durable(EMAIL_MANDRILL_QUEUE)
+                .build();
+    }
+
+    @Bean
+    public Queue emailInfoQueue() {
+        return QueueBuilder
+                .durable(EMAIL_INFO_QUEUE)
+                .build();
+    }
+
+    @Bean
+    public Queue emailListingRequestQueue() {
+        return QueueBuilder
+                .durable(EMAIL_LISTING_REQUEST_QUEUE)
+                .build();
+    }
+
+    @Bean
+    public Queue emailQueue() {
+        return QueueBuilder
+                .durable(EMAIL_QUEUE)
+                .build();
     }
 
     @Bean(name = "rabbitListenerContainerFactory")
