@@ -2040,6 +2040,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(tokensList, "FST","FST", true, ExConvert.Unit.MWEI);
     }
 
+    @Bean(name = "rvtServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService rvtServiceImpl(){
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x4eef32781db07a9b7d9d36bb9ba81fa08af9d3ab");
+        return new EthTokenServiceImpl(tokensList, "RVT","RVT", true, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     @Conditional(MonolitConditional.class)
