@@ -82,44 +82,11 @@ public class StockExchangeDaoImpl implements StockExchangeDao {
     });
 
     @Override
-    public void saveStockExchangeStats(StockExchangeStats stockExchangeRate) {
-        Map<String, Number> params = new HashMap<>();
-        params.put("currency_pair_id", stockExchangeRate.getCurrencyPairId());
-        params.put("stock_exchange_id", stockExchangeRate.getStockExchange().getId());
-        params.put("price_last", stockExchangeRate.getPriceLast());
-        params.put("price_buy", stockExchangeRate.getPriceBuy());
-        params.put("price_sell", stockExchangeRate.getPriceSell());
-        params.put("price_low", stockExchangeRate.getPriceLow());
-        params.put("price_high", stockExchangeRate.getPriceHigh());
-        params.put("volume", stockExchangeRate.getVolume());
-        jdbcTemplate.update(CREATE_STOCK_EXRATE, params);
-    }
-
-    @Override
-    public void saveStockExchangeStatsList(List<StockExchangeStats> stockExchangeRates) {
-        Map<String, Object>[] batchValues = stockExchangeRates.stream().map(stockExchangeRate -> {
-            Map<String, Object> values = new HashMap<String, Object>() {{
-                put("currency_pair_id", stockExchangeRate.getCurrencyPairId());
-                put("stock_exchange_id", stockExchangeRate.getStockExchange().getId());
-                put("stock_exchange_id", stockExchangeRate.getStockExchange().getId());
-                put("price_last", stockExchangeRate.getPriceLast());
-                put("price_buy", stockExchangeRate.getPriceBuy());
-                put("price_sell", stockExchangeRate.getPriceSell());
-                put("price_low", stockExchangeRate.getPriceLow());
-                put("price_high", stockExchangeRate.getPriceHigh());
-                put("volume", stockExchangeRate.getVolume());
-            }};
-            return values;
-        }).collect(Collectors.toList()).toArray(new Map[stockExchangeRates.size()]);
-        jdbcTemplate.batchUpdate(CREATE_STOCK_EXRATE, batchValues);
-    }
-
-    @Override
     public Optional<StockExchange> findStockExchangeByName(String name) {
         String sql = SELECT_STOCK_EXCHANGE +
                 "WHERE SE.name = :name";
         Map<String, String> params = Collections.singletonMap("name", name);
-        List<StockExchange> result =  jdbcTemplate.query(sql, params, stockExchangeResultSetExtractor);
+        List<StockExchange> result = jdbcTemplate.query(sql, params, stockExchangeResultSetExtractor);
         if (result.size() != 1) {
             return Optional.empty();
         }
@@ -169,11 +136,4 @@ public class StockExchangeDaoImpl implements StockExchangeDao {
             return stockExchangeStats;
         });
     }
-
-
-
-
-
-
-
 }
