@@ -2,6 +2,8 @@ package me.exrates.service.handler;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import httpClient.CommonHttpClient;
+import httpClient.HttpResponseWithEntity;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.ExOrder;
 import me.exrates.model.OrderWsDetailDto;
@@ -31,6 +33,8 @@ import me.exrates.service.refreshHandlers.TradesEventsHandler;
 import me.exrates.service.refreshHandlers.UserPersonalOrdersHandler;
 import me.exrates.service.stomp.StompMessenger;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -71,8 +75,6 @@ public class OrdersEventHandleService {
     @Autowired
     private CurrencyStatisticsHandler currencyStatisticsHandler;
     @Autowired
-    private RestTemplate restTemplate;
-    @Autowired
     private UserService userService;
     @Autowired
     private OrderService orderService;
@@ -81,9 +83,9 @@ public class OrdersEventHandleService {
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
-    private DefaultSimpUserRegistry registry;
-    @Autowired
     private CurrencyService currencyService;
+    @Autowired
+    private CommonHttpClient commonHttpClient;
 
     private final Object handlerSync = new Object();
 
@@ -216,14 +218,12 @@ public class OrdersEventHandleService {
         callbackLog.setRequestJson(new ObjectMapper().writeValueAsString(order));
         callbackLog.setRequestDate(LocalDateTime.now());
         callbackLog.setUserId(userId);
-
-        ResponseEntity<String> responseEntity;
+        HttpResponseWithEntity response;
         try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<String> entity = new HttpEntity<>(callbackLog.getRequestJson(), headers);
-
-            responseEntity = restTemplate.postForEntity(url, entity, String.class);
+            HttpPost httpPost = new HttpPost(url);
+            httpPost.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8.getType());
+            httpPost.setEntity(new StringEntity(callbackLog.getRequestJson()));
+            response = commonHttpClient.execute(httpPost);
         } catch (Exception e) {
             e.printStackTrace();
             callbackLog.setResponseCode(999);
@@ -231,8 +231,8 @@ public class OrdersEventHandleService {
             callbackLog.setResponseDate(LocalDateTime.now());
             return callbackLog;
         }
-        callbackLog.setResponseCode(responseEntity.getStatusCodeValue());
-        callbackLog.setResponseJson(responseEntity.getBody());
+        callbackLog.setResponseCode(response.getStatus());
+        callbackLog.setResponseJson(response.getResponseEntity());
         callbackLog.setResponseDate(LocalDateTime.now());
         return callbackLog;
     }
@@ -252,14 +252,12 @@ public class OrdersEventHandleService {
 
         callbackLog.setRequestDate(LocalDateTime.now());
         callbackLog.setUserId(id);
-
-        ResponseEntity<String> responseEntity;
+        HttpResponseWithEntity response;
         try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<String> entity = new HttpEntity<>(callbackLog.getRequestJson(), headers);
-
-            responseEntity = restTemplate.postForEntity(url, entity, String.class);
+            HttpPost httpPost = new HttpPost(url);
+            httpPost.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8.getType());
+            httpPost.setEntity(new StringEntity(callbackLog.getRequestJson()));
+            response = commonHttpClient.execute(httpPost);
         } catch (Exception e) {
             e.printStackTrace();
             callbackLog.setResponseCode(999);
@@ -267,8 +265,8 @@ public class OrdersEventHandleService {
             callbackLog.setResponseDate(LocalDateTime.now());
             return callbackLog;
         }
-        callbackLog.setResponseCode(responseEntity.getStatusCodeValue());
-        callbackLog.setResponseJson(responseEntity.getBody());
+        callbackLog.setResponseCode(response.getStatus());
+        callbackLog.setResponseJson(response.getResponseEntity());
         callbackLog.setResponseDate(LocalDateTime.now());
         return callbackLog;
     }

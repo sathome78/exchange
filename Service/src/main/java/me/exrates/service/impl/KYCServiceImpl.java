@@ -6,8 +6,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import httpClient.CommonHttpClient;
+import httpClient.HttpResponseWithEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import me.exrates.dao.KYCSettingsDao;
 import me.exrates.dao.UserVerificationInfoDao;
@@ -36,6 +39,7 @@ import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.service.KYCService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
+import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.exception.ShuftiProException;
 import me.exrates.service.kyc.http.KycHttpClient;
 import me.exrates.service.stomp.StompMessenger;
@@ -44,11 +48,17 @@ import me.exrates.service.util.ShuftiProUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.auth.BasicScheme;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.support.BasicAuthorizationInterceptor;
 import org.springframework.stereotype.Component;
@@ -90,7 +100,7 @@ public class KYCServiceImpl implements KYCService {
     private final List<String> documentSupportedTypes;
     private final List<String> addressSupportedTypes;
 
-    private final RestTemplate restTemplate;
+    private final CommonHttpClient commonHttpClient;
 
     private final UserService userService;
     private final SendMailService sendMailService;
@@ -98,6 +108,9 @@ public class KYCServiceImpl implements KYCService {
     private final UserVerificationInfoDao userVerificationInfoDao;
     private final KYCSettingsDao kycSettingsDao;
     private final StompMessenger stompMessenger;
+    private final ObjectMapper objectMapper;
+
+    private final UsernamePasswordCredentials creds;
 
     @Value("${server-host}")
     private String host;
@@ -121,7 +134,7 @@ public class KYCServiceImpl implements KYCService {
                           KycHttpClient kycHttpClient,
                           UserVerificationInfoDao userVerificationInfoDao,
                           KYCSettingsDao kycSettingsDao,
-                          StompMessenger stompMessenger) {
+                          StompMessenger stompMessenger, ObjectMapper objectMapper, CommonHttpClient commonHttpClient) {
         this.verificationUrl = verificationUrl;
         this.statusUrl = statusUrl;
         this.callbackUrl = callbackUrl;
@@ -140,30 +153,31 @@ public class KYCServiceImpl implements KYCService {
         this.userVerificationInfoDao = userVerificationInfoDao;
         this.kycSettingsDao = kycSettingsDao;
         this.stompMessenger = stompMessenger;
-        this.restTemplate = new RestTemplate();
-        this.restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(username, password));
+        this.creds = new UsernamePasswordCredentials("John", "pass");
+        this.objectMapper = objectMapper;
+        this.commonHttpClient = commonHttpClient;
     }
 
+    @SneakyThrows
     @Override
     public String getVerificationUrl(int stepNumber, String languageCode, String countryCode) {
         final String userEmail = userService.getUserEmailFromSecurityContext();
-
         VerificationRequest verificationRequest = buildVerificationRequest(userEmail, languageCode, countryCode, stepNumber);
-
-        HttpEntity<VerificationRequest> requestEntity = new HttpEntity<>(verificationRequest);
-
-        ResponseEntity<String> responseEntity;
+        HttpResponseWithEntity httpResponse;
+        HttpPost httpPost = new HttpPost(verificationUrl);
+        httpPost.addHeader(new BasicScheme().authenticate(creds, httpPost, null));
+        StringEntity entity = new StringEntity(objectMapper.writeValueAsString(verificationRequest));
+        httpPost.setEntity(entity);
         try {
-            responseEntity = restTemplate.postForEntity(verificationUrl, requestEntity, String.class);
-            if (responseEntity.getStatusCodeValue() != 200) {
+            httpResponse = commonHttpClient.execute(httpPost);
+            if (httpResponse.getStatus() != 200) {
                 throw new ShuftiProException("ShuftiPro KYC verification service is not available");
             }
         } catch (Exception ex) {
             throw new ShuftiProException("ShuftiPro KYC verification service is not available");
         }
-
-        final String signature = responseEntity.getHeaders().get(SIGNATURE).get(0);
-        final String response = responseEntity.getBody();
+        final String signature = httpResponse.getCloseableHttpResponse().getFirstHeader(SIGNATURE).getValue();
+        final String response = httpResponse.getResponseEntity();
         validateMerchantSignature(signature, response);
 
         JSONObject verificationObject = new JSONObject(response);
@@ -252,31 +266,29 @@ public class KYCServiceImpl implements KYCService {
         return status;
     }
 
+    @SneakyThrows
     private EventStatus getVerificationStatus(String reference) {
         if (isNull(reference)) {
             throw new ShuftiProException("Process of verification data has not started. Reference id is undefined");
         }
-
         StatusRequest statusRequest = buildStatusRequest(reference);
-
-        HttpEntity<StatusRequest> requestEntity = new HttpEntity<>(statusRequest);
-
-        ResponseEntity<String> responseEntity;
+        HttpResponseWithEntity httpResponse;
+        HttpPost httpPost = new HttpPost(verificationUrl);
+        httpPost.addHeader(new BasicScheme().authenticate(creds, httpPost, null));
+        StringEntity entity = new StringEntity(objectMapper.writeValueAsString(statusRequest));
+        httpPost.setEntity(entity);
         try {
-            responseEntity = restTemplate.postForEntity(statusUrl, requestEntity, String.class);
-            if (responseEntity.getStatusCodeValue() != 200) {
+            httpResponse = commonHttpClient.execute(httpPost);
+            if (httpResponse.getStatus() != 200) {
                 throw new ShuftiProException("ShuftiPro KYC status service is not available");
             }
         } catch (Exception ex) {
             throw new ShuftiProException("ShuftiPro KYC status service is not available");
         }
-
-        final String signature = responseEntity.getHeaders().get(SIGNATURE).get(0);
-        final String response = responseEntity.getBody();
+        final String signature = httpResponse.getCloseableHttpResponse().getFirstHeader(SIGNATURE).getValue();
+        final String response = httpResponse.getResponseEntity();
         validateMerchantSignature(signature, response);
-
         JSONObject statusObject = new JSONObject(response);
-
         return EventStatus.of(statusObject.getString(EVENT));
     }
 

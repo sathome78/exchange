@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import httpClient.CommonHttpClient;
+import httpClient.CommonHttpClientImpl;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.SSMGetter;
 import me.exrates.aspect.LoggingAspect;
@@ -2242,6 +2244,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         restTemplate.setErrorHandler(errorHandler);
         restTemplate.setInterceptors(Collections.singletonList(new JsonMimeInterceptor()));
         return restTemplate;
+    }
+
+
+    @Bean
+    public CommonHttpClient commonHttpClient() {
+        return new CommonHttpClientImpl();
     }
 
     @Bean

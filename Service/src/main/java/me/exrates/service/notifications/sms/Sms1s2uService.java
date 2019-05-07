@@ -20,7 +20,7 @@ import java.util.Random;
 import static rx.internal.operators.NotificationLite.isError;
 
 /**
- * Created by Maks on 09.10.2017.
+ * Not used now!!!
  */
 @PropertySource("classpath:1s2u_sms.properties")
 @Log4j2(topic = "message_notify")
