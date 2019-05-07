@@ -12,9 +12,6 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
-/**
- * Created by OLEG on 14.12.2016.
- */
 public class StockExchange {
 
     private Integer id;

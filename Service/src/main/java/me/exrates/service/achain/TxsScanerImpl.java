@@ -21,9 +21,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Created by Maks on 14.06.2018.
- */
 @Log4j2(topic = "achain")
 @Service
 @Conditional(MonolitConditional.class)

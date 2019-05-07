@@ -10,9 +10,6 @@ import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
 
-/**
- * Created by ajet on 03.11.2016.
- */
 @Getter @Setter
 @EqualsAndHashCode
 @ToString

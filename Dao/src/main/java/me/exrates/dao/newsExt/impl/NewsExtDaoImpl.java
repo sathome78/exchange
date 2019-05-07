@@ -25,10 +25,6 @@ import java.util.Map;
 import static me.exrates.model.util.DateTimeUtil.stringToLocalDate;
 import static me.exrates.model.util.DateTimeUtil.stringToLocalDateTime;
 
-/**
- * Created by Valk
- */
-
 @Repository
 public class NewsExtDaoImpl implements NewsExtDao {
 

@@ -13,9 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Created by Maks on 13.12.2017.
- */
 @Repository
 public class UserAlertsDaoImpl implements UserAlertsDao {
 

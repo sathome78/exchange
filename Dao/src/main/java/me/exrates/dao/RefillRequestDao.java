@@ -27,9 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * created by ValkSam
- */
 public interface RefillRequestDao {
 
     Optional<Integer> findIdByAddressAndMerchantIdAndCurrencyIdAndStatusId(String address, Integer merchantId, Integer currencyId, List<Integer> statusList);

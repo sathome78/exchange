@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package me.exrates.service.bitshares.memo;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -15,17 +10,34 @@ import eu.bittrade.crypto.core.NativeSecp256k1;
 import eu.bittrade.crypto.core.NativeSecp256k1Util.AssertFailException;
 import eu.bittrade.crypto.core.Secp256k1Context;
 import eu.bittrade.crypto.core.Sha256Hash;
-import eu.bittrade.crypto.core.crypto.*;
+import eu.bittrade.crypto.core.crypto.EncryptedData;
+import eu.bittrade.crypto.core.crypto.KeyCrypter;
+import eu.bittrade.crypto.core.crypto.KeyCrypterException;
+import eu.bittrade.crypto.core.crypto.LazyECPoint;
+import eu.bittrade.crypto.core.crypto.LinuxSecureRandom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.asn1.*;
+import org.spongycastle.asn1.ASN1InputStream;
+import org.spongycastle.asn1.ASN1Integer;
+import org.spongycastle.asn1.ASN1OctetString;
+import org.spongycastle.asn1.ASN1Primitive;
+import org.spongycastle.asn1.ASN1TaggedObject;
+import org.spongycastle.asn1.DERBitString;
+import org.spongycastle.asn1.DEROctetString;
+import org.spongycastle.asn1.DERSequenceGenerator;
+import org.spongycastle.asn1.DERTaggedObject;
+import org.spongycastle.asn1.DLSequence;
 import org.spongycastle.asn1.x9.X9ECParameters;
 import org.spongycastle.asn1.x9.X9IntegerConverter;
 import org.spongycastle.crypto.AsymmetricCipherKeyPair;
 import org.spongycastle.crypto.digests.SHA256Digest;
 import org.spongycastle.crypto.ec.CustomNamedCurves;
 import org.spongycastle.crypto.generators.ECKeyPairGenerator;
-import org.spongycastle.crypto.params.*;
+import org.spongycastle.crypto.params.ECDomainParameters;
+import org.spongycastle.crypto.params.ECKeyGenerationParameters;
+import org.spongycastle.crypto.params.ECPrivateKeyParameters;
+import org.spongycastle.crypto.params.ECPublicKeyParameters;
+import org.spongycastle.crypto.params.KeyParameter;
 import org.spongycastle.crypto.signers.ECDSASigner;
 import org.spongycastle.crypto.signers.HMacDSAKCalculator;
 import org.spongycastle.math.ec.ECAlgorithms;

@@ -1,7 +1,7 @@
 package me.exrates.ngDao.impl;
 
-import me.exrates.ngDao.UserInfoVerificationDao;
 import me.exrates.model.ngModel.UserInfoVerificationDto;
+import me.exrates.ngDao.UserInfoVerificationDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;

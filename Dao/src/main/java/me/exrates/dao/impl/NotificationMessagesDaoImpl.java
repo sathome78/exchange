@@ -9,9 +9,6 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-/**
- * Created by Maks on 02.10.2017.
- */
 @Repository
 public class NotificationMessagesDaoImpl implements NotificationMessagesDao {
 

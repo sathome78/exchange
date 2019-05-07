@@ -11,9 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Created by ValkSam on 02.06.2017.
- */
 public interface TransferRequestDao {
   int create(TransferRequestCreateDto transferRequest);
 

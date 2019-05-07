@@ -138,29 +138,6 @@ public class NgOrderServiceImpl implements NgOrderService {
             throw new NgDashboardException(errorMap.toString());
         }
 
-//        BigDecimal totalWithComission = prepareNewOrder.getTotalWithComission();
-//        BigDecimal inputTotal = inputOrder.getTotal();
-//
-//        if (totalWithComission.setScale(2, RoundingMode.HALF_UP)
-//                .compareTo(inputTotal.setScale(2, RoundingMode.HALF_UP)) != 0) {
-//
-////        if (prepareNewOrder.getTotalWithComission().compareTo(inputOrder.getTotal()) != 0) {
-//            logger.error("Comparing total, from user - {}, from server - {}", inputOrder.getTotal(),
-//                    prepareNewOrder.getTotalWithComission());
-//            throw new NgDashboardException(String.format("Total value %.2f doesn't equal to calculate %.2f",
-//                    inputOrder.getTotal(), prepareNewOrder.getTotalWithComission()));
-//        }
-//
-//        BigDecimal commissionPrepareOrder = prepareNewOrder.getComission();
-//        BigDecimal inputOrderCommission = inputOrder.getCommission();
-//        if (commissionPrepareOrder.setScale(5, RoundingMode.HALF_UP)
-//                .compareTo(inputOrderCommission.setScale(5, RoundingMode.HALF_UP)) != 0) {
-//            logger.error("Comparing commission, from user - {}, from server - {}", inputOrder.getCommission(),
-//                    prepareNewOrder.getComission());
-//            throw new NgDashboardException(String.format("Commission %.2f doesn't equal to calculate %.2f",
-//                    inputOrder.getCommission(), prepareNewOrder.getComission()));
-//        }
-
         return prepareNewOrder;
     }
 
@@ -489,48 +466,6 @@ public class NgOrderServiceImpl implements NgOrderService {
         return currencyService.getPairsBySecondPartName(pathName);
     }
 
-
-
-//    private void countTotal(List<SimpleOrderBookItem> items, OrderType orderType) {
-//        if (orderType == OrderType.BUY) {
-//            for (int i = items.size() - 1; i >= 0; i--) {
-//                if (i == (items.size() - 1)) {
-//                    items.get(i).setTotal(items.get(i).getAmount());
-//                } else {
-//                    items.get(i).setTotal(items.get(i).getAmount().add(items.get(i + 1).getTotal()));
-//                }
-//            }
-//        } else {
-//            for (int i = 0; i < items.size(); i++) {
-//                if (i == 0) {
-//                    items.get(i).setTotal(items.get(i).getAmount());
-//                } else {
-//                    items.get(i).setTotal(items.get(i).getAmount().add(items.get(i - 1).getTotal()));
-//                }
-//            }
-//        }
-//    }
-
-    private void setSumAmount(List<SimpleOrderBookItem> items) {
-        for (int i = 0; i < items.size(); i++) {
-            if (i == 0) {
-                items.get(i).setSumAmount(items.get(i).getAmount());
-            } else {
-                BigDecimal add =
-                        BigDecimalProcessing.doAction(items.get(i).getAmount(), items.get(i - 1).getSumAmount(), ActionType.ADD);
-                items.get(i).setSumAmount(add);
-            }
-        }
-    }
-
-    private BigDecimal getAmount(List<OrderListDto> list) {
-        BigDecimal amount = BigDecimal.ZERO;
-        for (OrderListDto item : list) {
-            amount = amount.add(new BigDecimal(item.getAmountBase()));
-        }
-        return amount;
-    }
-
     private void emitOpenOrderMessage(OrderCreateDto order) {
         executor.execute(() ->
                 IntStream.range(1, 6).forEach(precision -> {
@@ -547,9 +482,6 @@ public class NgOrderServiceImpl implements NgOrderService {
     private String convertToString(int currencyId, int precision) throws JsonProcessingException {
         JSONArray objectsArray = new JSONArray();
         throw new UnsupportedOperationException("NgOrderServiceImpl.convertToString needs update");
-//        objectsArray.put(objectMapper.writeValueAsString(findAllOrderBookItems(OrderType.BUY, currencyId, precision)));
-//        objectsArray.put(objectMapper.writeValueAsString(findAllOrderBookItems(OrderType.SELL, currencyId, precision)));
-//        return objectsArray.toString();
     }
 
 

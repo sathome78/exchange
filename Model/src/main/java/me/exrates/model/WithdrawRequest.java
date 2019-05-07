@@ -1,6 +1,10 @@
 package me.exrates.model;
 
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 
@@ -8,9 +12,6 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Getter @Setter
 @NoArgsConstructor
 @EqualsAndHashCode

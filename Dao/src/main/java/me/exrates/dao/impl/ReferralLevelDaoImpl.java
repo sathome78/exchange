@@ -20,9 +20,6 @@ import java.util.Map;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonMap;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Repository
 public class ReferralLevelDaoImpl implements ReferralLevelDao {
 

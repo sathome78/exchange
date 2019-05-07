@@ -1,8 +1,5 @@
 package me.exrates.model;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 public class EDCAccount {
 
     private int transactionId;

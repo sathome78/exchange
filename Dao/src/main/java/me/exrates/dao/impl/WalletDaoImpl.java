@@ -1355,8 +1355,6 @@ public class WalletDaoImpl implements WalletDao {
             dto.setCurrency(rs.getString("currency_name"));
             dto.setUserRole(UserRole.valueOf(rs.getString("role_name")));
             dto.setTotalBalance(rs.getBigDecimal("total_balance"));
-            //wolper 19.04.18
-            //currency id added
             dto.setCurId(rs.getInt("currency_id"));
             return dto;
         });

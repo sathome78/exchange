@@ -7,10 +7,6 @@ import me.exrates.model.enums.OrderStatus;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * Created by maks on 19.04.2017.
- */
-
 @Data
 public class StopOrder {
 

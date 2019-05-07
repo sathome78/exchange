@@ -1,7 +1,5 @@
 package me.exrates.dao.chat.telegram;
 
-import me.exrates.dao.ChatDao;
-import me.exrates.model.ChatMessage;
 import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.enums.ChatLang;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,20 +7,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.core.namedparam.SqlParameterSource;
-import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import org.telegram.telegrambots.api.objects.Message;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-
-import static java.util.Collections.singletonMap;
+import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class TelegramChatDaoImpl implements TelegramChatDao {

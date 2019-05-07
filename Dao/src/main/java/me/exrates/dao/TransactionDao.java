@@ -19,9 +19,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 public interface TransactionDao {
 
     Transaction create(Transaction transaction);

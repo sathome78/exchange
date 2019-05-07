@@ -32,11 +32,9 @@ public class StockChartDaoImpl implements StockChartDao {
             ChartResolution resolution = new ChartResolution(rs.getInt("res_time_value"),
                     ChartResolutionTimeUnit.valueOf(rs.getString("res_time_unit")));
             return new ChartTimeFrame(resolution, rs.getInt("chart_time_value"),
-                    IntervalType2.valueOf(rs.getString("chart_time_unit")) );
+                    IntervalType2.valueOf(rs.getString("chart_time_unit")));
         });
     }
-
-
 
 
 }

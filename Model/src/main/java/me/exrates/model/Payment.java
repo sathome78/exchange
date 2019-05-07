@@ -6,9 +6,6 @@ import lombok.Setter;
 import lombok.ToString;
 import me.exrates.model.enums.OperationType;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Getter @Setter
 @NoArgsConstructor
 @ToString

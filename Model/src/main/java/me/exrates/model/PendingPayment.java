@@ -10,9 +10,6 @@
 
  import java.time.LocalDateTime;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Getter @Setter
 @EqualsAndHashCode
 @ToString

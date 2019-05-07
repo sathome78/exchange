@@ -15,9 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by Maks on 02.10.2017.
- */
 @Repository
 public class NotificatorDaoImpl implements NotificatorsDao {
 

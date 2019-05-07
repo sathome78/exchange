@@ -17,9 +17,6 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
 
-/**
- * Created by ValkSam on 09.03.2017.
- */
 @Repository
 public class UserRoleDaoImpl implements UserRoleDao {
 

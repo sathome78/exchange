@@ -1,7 +1,7 @@
 package me.exrates.ngDao.impl;
 
-import me.exrates.ngDao.BalanceDao;
 import me.exrates.model.ngModel.UserBalancesDto;
+import me.exrates.ngDao.BalanceDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;

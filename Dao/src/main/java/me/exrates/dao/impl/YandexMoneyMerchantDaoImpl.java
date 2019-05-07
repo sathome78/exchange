@@ -17,13 +17,14 @@ import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static me.exrates.dao.order.TokenRowMapper.tokenRowMapper;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Repository
 public final class YandexMoneyMerchantDaoImpl implements YandexMoneyMerchantDao {
 

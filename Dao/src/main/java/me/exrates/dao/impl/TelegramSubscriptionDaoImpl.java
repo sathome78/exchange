@@ -17,9 +17,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Created by Maks on 05.10.2017.
- */
 @Repository
 public class TelegramSubscriptionDaoImpl implements TelegramSubscriptionDao {
 

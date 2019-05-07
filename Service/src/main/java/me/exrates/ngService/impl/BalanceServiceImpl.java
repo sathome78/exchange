@@ -4,7 +4,6 @@ import me.exrates.dao.CurrencyDao;
 import me.exrates.dao.UserDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.User;
-import me.exrates.model.Wallet;
 import me.exrates.model.dto.BalanceFilterDataDto;
 import me.exrates.model.dto.BalancesShortDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
@@ -361,16 +360,6 @@ public class BalanceServiceImpl implements BalanceService {
 
             return result;
         }
-
-//        if (optionalBtc.isPresent()) {
-//            BigDecimal btcRate = optionalBtc.get().getLastOrderRate();
-//            if (btcRate.compareTo(BigDecimal.ZERO) > 0) {
-//                BigDecimal btcValue = sumBalances.multiply(btcRate);
-//                result.setBalanceBtc(btcValue);
-//                BigDecimal usdValue = btcValue.multiply(btcUsdRate);
-//                result.setBalanceUsd(usdValue);
-//            }
-//        }
 
         return result;
     }

@@ -17,9 +17,6 @@ import org.springframework.stereotype.Repository;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by Maks on 02.10.2017.
- */
 @Log4j2
 @Repository
 public class NotificationUserSettingsDaoImpl implements NotificationUserSettingsDao {

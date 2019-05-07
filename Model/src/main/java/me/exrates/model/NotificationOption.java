@@ -5,9 +5,6 @@ import org.springframework.context.MessageSource;
 
 import java.util.Locale;
 
-/**
- * Created by OLEG on 15.11.2016.
- */
 public class NotificationOption {
     private NotificationEvent event;
     private Integer userId;

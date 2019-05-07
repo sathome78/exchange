@@ -10,9 +10,6 @@ import me.exrates.model.serializer.SpringOptionalDeserializer;
 import java.math.BigDecimal;
 import java.util.Optional;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Getter
 @NoArgsConstructor
 public class CreditsOperation {

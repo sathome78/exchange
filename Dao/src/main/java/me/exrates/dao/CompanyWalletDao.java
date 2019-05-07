@@ -5,9 +5,6 @@ import me.exrates.model.Currency;
 
 import java.math.BigDecimal;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 public interface CompanyWalletDao {
 
     CompanyWallet create(Currency currency);

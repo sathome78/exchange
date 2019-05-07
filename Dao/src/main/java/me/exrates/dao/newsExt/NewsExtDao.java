@@ -4,16 +4,12 @@ import me.exrates.model.newsEntity.News;
 
 import java.util.List;
 
-/**
- * Created by Valk
- */
-
 public interface NewsExtDao {
-  News findOne(Integer newsId);
+    News findOne(Integer newsId);
 
-  News findByNewsTypeAndResource(Integer newsTypeId, String resource);
+    News findByNewsTypeAndResource(Integer newsTypeId, String resource);
 
-  News save(News news);
+    News save(News news);
 
-  List<News> findWithNotSyncNewsVariant(Integer newsTypeId);
+    List<News> findWithNotSyncNewsVariant(Integer newsTypeId);
 }

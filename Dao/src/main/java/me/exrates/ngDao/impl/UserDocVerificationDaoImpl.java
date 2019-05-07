@@ -1,9 +1,9 @@
 package me.exrates.ngDao.impl;
 
 import me.exrates.model.User;
-import me.exrates.ngDao.UserDocVerificationDao;
 import me.exrates.model.ngModel.UserDocVerificationDto;
 import me.exrates.model.ngModel.enums.VerificationDocumentType;
+import me.exrates.ngDao.UserDocVerificationDao;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;

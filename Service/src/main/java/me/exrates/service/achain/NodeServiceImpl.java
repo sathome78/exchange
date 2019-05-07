@@ -10,10 +10,6 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
-/**
- * Created by Maks on 14.06.2018.
- */
-
 @PropertySource("classpath:/merchants/achain.properties")
 @Log4j2(topic = "achain")
 @Component

@@ -1,7 +1,7 @@
 package me.exrates.ngDao.impl;
 
-import me.exrates.ngDao.RefillPendingRequestDAO;
 import me.exrates.model.ngModel.RefillPendingRequestDto;
+import me.exrates.ngDao.RefillPendingRequestDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.RowMapper;

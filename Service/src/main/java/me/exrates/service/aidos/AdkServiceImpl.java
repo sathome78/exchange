@@ -6,7 +6,12 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.condition.MonolitConditional;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.BtcTransactionHistoryDto;
+import me.exrates.model.dto.BtcWalletInfoDto;
+import me.exrates.model.dto.RefillRequestAcceptDto;
+import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.dto.merchants.btc.BtcPaymentResultDetailedDto;
 import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
 import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
@@ -33,7 +38,12 @@ import java.io.FileInputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.stream.StreamSupport;
 
 import static java.util.stream.Collectors.groupingBy;
@@ -220,11 +230,6 @@ public class AdkServiceImpl implements AdkService {
             }
         });
         return resultList;
-        /* to return list without transformations
-         * */
-        /*return StreamSupport.stream(array.spliterator(), false)
-                .map(transaction -> dtoMapper((JSONObject) transaction))
-                .collect(Collectors.toList());*/
     }
 
     @Override

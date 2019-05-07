@@ -6,9 +6,6 @@ import me.exrates.model.dto.ReferralProfitDto;
 
 import java.util.List;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 public interface ReferralUserGraphDao {
 
     void create(int child, int parent);

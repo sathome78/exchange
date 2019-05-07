@@ -17,9 +17,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by maks on 31.03.2017.
- */
 @Repository
 public class SessionParamsDaoImpl implements SessionParamsDao {
 

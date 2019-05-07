@@ -7,9 +7,6 @@ import me.exrates.model.enums.NotificationEvent;
 
 import java.util.List;
 
-/**
- * Created by OLEG on 09.11.2016.
- */
 public interface NotificationDao {
     long createNotification(Notification notification);
 

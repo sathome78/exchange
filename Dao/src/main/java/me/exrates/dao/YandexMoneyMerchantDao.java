@@ -7,9 +7,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 public interface    YandexMoneyMerchantDao {
     List<String> getAllTokens();
     String getTokenByUserEmail(String email);

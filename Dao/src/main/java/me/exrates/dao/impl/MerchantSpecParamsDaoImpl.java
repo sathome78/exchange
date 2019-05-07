@@ -14,10 +14,6 @@ import org.springframework.stereotype.Repository;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by maks on 09.06.2017.
- */
-
 @Log4j2
 @Repository
 @Conditional(MonolitConditional.class)

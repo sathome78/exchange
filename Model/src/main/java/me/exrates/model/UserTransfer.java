@@ -8,10 +8,6 @@ import me.exrates.model.serializer.LocalDateTimeSerializer;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * Created by OLEG on 17.01.2017.
- */
-
 @Data
 @Builder(toBuilder = true)
 public class UserTransfer {

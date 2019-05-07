@@ -66,64 +66,6 @@ public final class Preconditions {
         }
     }
 
-    public static int checkElementIndex(int index, int size) {
-        return checkElementIndex(index, size, "index");
-    }
-
-    public static int checkElementIndex(int index, int size, @Nullable String desc) {
-        if (index >= 0 && index < size) {
-            return index;
-        } else {
-            throw new IndexOutOfBoundsException(badElementIndex(index, size, desc));
-        }
-    }
-
-    private static String badElementIndex(int index, int size, String desc) {
-        if (index < 0) {
-            return format("%s (%s) must not be negative", desc, index);
-        } else if (size < 0) {
-            throw new IllegalArgumentException((new StringBuilder(26)).append("negative size: ").append(size).toString());
-        } else {
-            return format("%s (%s) must be less than size (%s)", desc, index, size);
-        }
-    }
-
-    public static int checkPositionIndex(int index, int size) {
-        return checkPositionIndex(index, size, "index");
-    }
-
-    public static int checkPositionIndex(int index, int size, @Nullable String desc) {
-        if (index >= 0 && index <= size) {
-            return index;
-        } else {
-            throw new IndexOutOfBoundsException(badPositionIndex(index, size, desc));
-        }
-    }
-
-    private static String badPositionIndex(int index, int size, String desc) {
-        if (index < 0) {
-            return format("%s (%s) must not be negative", desc, index);
-        } else if (size < 0) {
-            throw new IllegalArgumentException((new StringBuilder(26)).append("negative size: ").append(size).toString());
-        } else {
-            return format("%s (%s) must not be greater than size (%s)", desc, index, size);
-        }
-    }
-
-    public static void checkPositionIndexes(int start, int end, int size) {
-        if (start < 0 || end < start || end > size) {
-            throw new IndexOutOfBoundsException(badPositionIndexes(start, end, size));
-        }
-    }
-
-    private static String badPositionIndexes(int start, int end, int size) {
-        if (start >= 0 && start <= size) {
-            return end >= 0 && end <= size ? format("end index (%s) must not be less than start index (%s)", end, start) : badPositionIndex(end, size, "end index");
-        } else {
-            return badPositionIndex(start, size, "start index");
-        }
-    }
-
     static String format(String template, @Nullable Object... args) {
         template = String.valueOf(template);
         StringBuilder builder = new StringBuilder(template.length() + 16 * args.length);

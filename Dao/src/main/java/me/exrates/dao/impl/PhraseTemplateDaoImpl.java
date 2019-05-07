@@ -12,10 +12,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-
-/**
- * Created by ValkSam
- */
 @Repository
 @Log4j2
 public class PhraseTemplateDaoImpl implements PhraseTemplateDao {

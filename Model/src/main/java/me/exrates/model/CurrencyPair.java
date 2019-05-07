@@ -37,9 +37,4 @@ public class CurrencyPair implements Serializable {
     public CurrencyPair(String currencyPairName) {
         this.name = currencyPairName;
     }
-
-    /*service methods*/
-    public Currency getAnotherCurrency(Currency currency) {
-        return currency.equals(currency1) ? currency2 : currency1;
-    }
 }

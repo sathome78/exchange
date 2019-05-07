@@ -4,9 +4,6 @@ import me.exrates.model.EDCAccount;
 
 import java.util.List;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 public interface EDCAccountDao {
 
     EDCAccount findByTransactionId(int id);

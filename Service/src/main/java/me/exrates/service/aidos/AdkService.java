@@ -3,16 +3,12 @@ package me.exrates.service.aidos;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestAcceptDto;
-import me.exrates.model.dto.TxReceivedByAddressFlatDto;
-import me.exrates.model.dto.merchants.btc.BtcPaymentResultDetailedDto;
-import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
 import me.exrates.service.BitcoinLikeCurrency;
 import me.exrates.service.MerchantService;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 public interface AdkService extends BitcoinLikeCurrency, IRefillable, IWithdrawable {
 

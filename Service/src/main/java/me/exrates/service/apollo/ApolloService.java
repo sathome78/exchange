@@ -3,9 +3,6 @@ package me.exrates.service.apollo;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestAcceptDto;
-import me.exrates.model.dto.TronReceivedTransactionDto;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.MerchantService;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 

@@ -1,6 +1,5 @@
 package me.exrates.dao.impl;
 
-import com.beust.jcommander.internal.Sets;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.TransactionDao;
 import me.exrates.model.Commission;
@@ -18,7 +17,6 @@ import me.exrates.model.adapters.TransactionSqlAdapter;
 import me.exrates.model.dto.InOutReportDto;
 import me.exrates.model.dto.TransactionFlatForReportDto;
 import me.exrates.model.dto.UserSummaryDto;
-import me.exrates.model.dto.UserSummaryOrdersDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;

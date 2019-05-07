@@ -7,9 +7,6 @@ import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
 
-/**
- * Created by OLEG on 09.11.2016.
- */
 public class Notification {
     private Long id;
     @JsonIgnore

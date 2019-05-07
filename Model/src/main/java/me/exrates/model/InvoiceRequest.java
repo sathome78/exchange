@@ -9,9 +9,6 @@ import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
 
-/**
- * Created by ogolv on 25.07.2016.
- */
 @Getter @Setter
 @NoArgsConstructor
 public class InvoiceRequest {

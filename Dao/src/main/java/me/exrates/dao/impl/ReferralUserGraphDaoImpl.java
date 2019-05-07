@@ -20,9 +20,6 @@ import java.util.Map;
 
 import static java.util.Collections.singletonMap;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Log4j2
 @Repository
 public class ReferralUserGraphDaoImpl implements ReferralUserGraphDao {

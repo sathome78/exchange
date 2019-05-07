@@ -8,9 +8,6 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * Created by ValkSam
- */
 @Getter @Setter
 public class RefillRequest implements Serializable {
   private int id;

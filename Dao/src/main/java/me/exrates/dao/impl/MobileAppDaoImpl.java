@@ -14,9 +14,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Created by OLEG on 06.10.2016.
- */
 @Repository
 public class MobileAppDaoImpl implements MobileAppDao {
 

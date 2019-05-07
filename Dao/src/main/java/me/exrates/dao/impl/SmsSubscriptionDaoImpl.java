@@ -16,9 +16,6 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by Maks on 09.10.2017.
- */
 @Repository
 public class SmsSubscriptionDaoImpl implements SmsSubscriptionDao {
 

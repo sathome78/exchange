@@ -20,9 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Created by OLEG on 09.11.2016.
- */
 @Repository
 public class NotificationDaoImpl implements NotificationDao {
 
@@ -142,7 +139,6 @@ public class NotificationDaoImpl implements NotificationDao {
             Map<String, Object> optionValues = new HashMap<String, Object>() {{
                 put("notification_event_id", option.getEvent().getEventType());
                 put("user_id", option.getUserId());
-                /*put("send_notification", option.isSendNotification());*/
                 put("send_email", option.isSendEmail());
             }};
             return optionValues;

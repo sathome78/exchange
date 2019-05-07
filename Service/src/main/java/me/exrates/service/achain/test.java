@@ -13,9 +13,6 @@ import org.json.JSONObject;
 import java.nio.charset.CodingErrorAction;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Created by Maks on 19.06.2018.
- */
 public class test {
 
     private final static String nodeUrl = "http://127.0.0.1:8078/rpc";

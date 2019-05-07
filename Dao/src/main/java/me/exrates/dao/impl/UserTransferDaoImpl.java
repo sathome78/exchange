@@ -20,10 +20,6 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by maks on 15.03.2017.
- */
-
 @Log4j2
 @Repository
 public class UserTransferDaoImpl implements UserTransferDao {

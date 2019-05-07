@@ -159,8 +159,6 @@ public class OrderDaoImpl implements OrderDao {
         return id;
     }
 
-
-    /*USE FOR BOT ONLY!!!*/
     @Override
     public void postAcceptedOrderToDB(ExOrder exOrder) {
         String sql = "INSERT INTO EXORDERS" +
@@ -1350,7 +1348,7 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public List<OrderReportInfoDto> getOrdersForReport(AdminOrderFilterData adminOrderFilterData) {
-        //Need, because table EXORDERS has many data
+        // TODO: Need, because table EXORDERS has many data
         String limit = "LIMIT 100000";
 
         String sqlSelect = "SELECT EXORDERS.id, EXORDERS.date_creation, EXORDERS.date_acception, cp.name AS currency_pair_name, " +
@@ -2311,7 +2309,6 @@ public class OrderDaoImpl implements OrderDao {
                 " amount_convert, commission_fixed_amount, date_creation, date_acception" +
                 "  FROM EXORDERS " +
                 "  WHERE status_id = 2 AND operation_type_id IN (:operationTypeIds) AND currency_pair_id=:currency_pair_id" +
-//                "  AND date_creation >= (DATE_SUB(CURDATE(), INTERVAL 10 DAY))" +
                 "  ORDER BY exrate ASC";
         Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("currency_pair_id", currencyId);

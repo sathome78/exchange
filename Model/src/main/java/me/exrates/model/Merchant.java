@@ -1,13 +1,14 @@
 package me.exrates.model;
 
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import me.exrates.model.enums.MerchantProcessType;
 
 import java.io.Serializable;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Getter @Setter
 @NoArgsConstructor
 @EqualsAndHashCode

@@ -1,15 +1,16 @@
 package me.exrates.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import me.exrates.model.util.BigDecimalToStringSerializer;
 
 import java.math.BigDecimal;
 import java.util.List;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Getter
 @Setter
 @EqualsAndHashCode

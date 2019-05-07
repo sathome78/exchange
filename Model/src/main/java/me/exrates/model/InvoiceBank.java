@@ -1,13 +1,14 @@
 package me.exrates.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
-/**
- * Created by OLEG on 02.02.2017.
- */
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor

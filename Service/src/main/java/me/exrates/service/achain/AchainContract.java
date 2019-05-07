@@ -2,9 +2,6 @@ package me.exrates.service.achain;
 
 import lombok.Data;
 
-/**
- * Created by Maks on 15.06.2018.
- */
 @Data
 public class AchainContract {
 

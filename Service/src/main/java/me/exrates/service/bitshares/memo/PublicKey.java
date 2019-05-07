@@ -63,21 +63,6 @@ public class PublicKey implements ByteTransformable {
         return actualChecksum;
     }
 
-    public PublicKey(ECKey publicKey) {
-        this.setPublicKey(publicKey);
-        this.prefix = SteemJConfig.getInstance().getAddressPrefix().toString().toUpperCase();
-    }
-
-    @JsonIgnore
-    public String getAddressFromPublicKey() {
-        try {
-            return this.prefix + Base58.encode(Bytes.concat(new byte[][]{this.toByteArray(), Arrays.copyOfRange(this.calculateChecksum(this.toByteArray()), 0, 4)}));
-        } catch (NullPointerException | SteemInvalidTransactionException var2) {
-            LOGGER.debug("An error occured while generating an mainAddressId from a public key.", var2);
-            return "";
-        }
-    }
-
     @JsonIgnore
     public ECKey getPublicKey() {
         return this.publicKey;

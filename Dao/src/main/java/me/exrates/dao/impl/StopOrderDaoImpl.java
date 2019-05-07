@@ -39,9 +39,6 @@ import java.util.Map;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
-/**
- * Created by maks on 20.04.2017.
- */
 @Repository
 @Log4j2
 public class StopOrderDaoImpl implements StopOrderDao {

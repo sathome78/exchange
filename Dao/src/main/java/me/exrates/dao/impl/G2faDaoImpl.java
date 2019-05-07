@@ -1,7 +1,6 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.G2faDao;
-import org.apache.commons.lang3.StringUtils;
 import org.jboss.aerogear.security.otp.api.Base32;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;

@@ -3,7 +3,6 @@ package me.exrates.dao.impl;
 import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.ClientBank;
 import me.exrates.model.PagingData;
-import me.exrates.model.dto.UserSummaryOrdersDto;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestFlatAdditionalDataDto;
 import me.exrates.model.dto.WithdrawRequestFlatDto;
@@ -44,11 +43,6 @@ import static java.util.Objects.isNull;
 import static java.util.Optional.of;
 import static java.util.stream.Collectors.toList;
 import static me.exrates.model.enums.TransactionSourceType.WITHDRAW;
-
-
-/**
- * created by ValkSam
- */
 
 @Repository
 public class WithdrawRequestDaoImpl implements WithdrawRequestDao {

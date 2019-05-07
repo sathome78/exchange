@@ -18,11 +18,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
-
-/**
- * Created by Valk on 27.05.2016.
- */
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 @Repository
 public class NewsDaoImpl implements NewsDao {

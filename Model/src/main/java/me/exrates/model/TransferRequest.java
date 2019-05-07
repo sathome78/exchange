@@ -1,15 +1,16 @@
 package me.exrates.model;
 
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import me.exrates.model.dto.TransferRequestCreateDto;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Getter @Setter
 @NoArgsConstructor
 @EqualsAndHashCode

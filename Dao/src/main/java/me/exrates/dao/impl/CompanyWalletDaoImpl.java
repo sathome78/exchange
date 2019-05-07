@@ -16,9 +16,6 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Repository
 public class CompanyWalletDaoImpl implements CompanyWalletDao {
 

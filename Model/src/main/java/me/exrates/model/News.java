@@ -6,9 +6,6 @@ import me.exrates.model.serializer.LocalDateSerializer;
 
 import java.time.LocalDate;
 
-/**
- * Created by Valk on 27.05.2016.
- */
 public class News implements Cloneable{
     private Integer id;
     private String title;
@@ -25,8 +22,6 @@ public class News implements Cloneable{
     public Object clone() throws CloneNotSupportedException {
         return super.clone();
     }
-
-    /*getters setters*/
 
     public Integer getId() {
         return id;

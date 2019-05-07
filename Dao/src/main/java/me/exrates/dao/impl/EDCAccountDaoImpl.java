@@ -15,9 +15,6 @@ import java.util.Map;
 
 import static java.util.Collections.singletonMap;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Repository
 public class EDCAccountDaoImpl implements EDCAccountDao {
 

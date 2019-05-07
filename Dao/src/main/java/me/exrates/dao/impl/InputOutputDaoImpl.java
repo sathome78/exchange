@@ -35,9 +35,6 @@ import java.util.Objects;
 
 import static java.util.Objects.isNull;
 
-/**
- * Created by ValkSam on 16.04.2017.
- */
 @Repository
 public class InputOutputDaoImpl implements InputOutputDao {
 

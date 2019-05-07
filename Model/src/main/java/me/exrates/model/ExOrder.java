@@ -14,9 +14,6 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * Created by Valk on 19.04.16.
- */
 @Component
 @Getter @Setter
 public class ExOrder implements Serializable {
@@ -45,7 +42,7 @@ public class ExOrder implements Serializable {
 
 
     private long eventTimestamp;
-    /*constructors*/
+
     public ExOrder() {
     }
 
@@ -66,8 +63,6 @@ public class ExOrder implements Serializable {
         this.orderBaseType = orderCreateDto.getOrderBaseType();
         this.tradeId = orderCreateDto.getTradeId();
     }
-
-    /*hash equals*/
 
     @Override
     public boolean equals(Object o) {

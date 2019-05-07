@@ -12,12 +12,14 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-/**
- * Created by OLEG on 14.12.2016.
- */
 @Repository
 public class StockExchangeDaoImpl implements StockExchangeDao {
 

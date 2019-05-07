@@ -10,9 +10,6 @@ import me.exrates.model.serializer.StockExchangeSerializer;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * Created by OLEG on 14.12.2016.
- */
 public class StockExchangeStats {
 
     @JsonIgnore

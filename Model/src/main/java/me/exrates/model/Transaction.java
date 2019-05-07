@@ -17,9 +17,6 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Getter
 @Setter
 @NoArgsConstructor

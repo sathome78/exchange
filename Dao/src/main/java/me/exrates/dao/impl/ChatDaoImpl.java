@@ -22,9 +22,6 @@ import java.util.Set;
 
 import static java.util.Collections.singletonMap;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Repository
 public class ChatDaoImpl implements ChatDao {
 

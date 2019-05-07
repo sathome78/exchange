@@ -43,9 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Log4j
 @Repository
 public class MerchantDaoImpl implements MerchantDao {

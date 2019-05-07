@@ -26,9 +26,6 @@ import java.util.Map;
 
 import static java.lang.Integer.MAX_VALUE;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Repository
 public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
 

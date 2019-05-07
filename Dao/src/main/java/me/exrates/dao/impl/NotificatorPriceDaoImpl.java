@@ -10,9 +10,6 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 
-/**
- * Created by Maks on 09.10.2017.
- */
 @Repository
 public class NotificatorPriceDaoImpl implements NotificatorPriceDao {
 

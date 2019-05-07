@@ -15,9 +15,6 @@ import me.exrates.model.enums.OrderStatus;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Created by maks on 20.04.2017.
- */
 public interface StopOrderDao {
     boolean setStatus(int orderId, OrderStatus status);
 

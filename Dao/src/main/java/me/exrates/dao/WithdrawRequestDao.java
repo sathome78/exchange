@@ -19,9 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * created by ValkSam
- */
 public interface WithdrawRequestDao {
 
     Integer findStatusIdByRequestId(Integer withdrawRequestId);

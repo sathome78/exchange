@@ -6,9 +6,6 @@ import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
 
-/**
- * Created by Maks on 26.12.2017.
- */
 @Data
 public class RefillRequestAddressShortDto {
 

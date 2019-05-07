@@ -9,9 +9,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * created by ValkSam
- */
 public interface InputOutputDao {
 
     List<MyInputOutputHistoryDto> findMyInputOutputHistoryByOperationType(

@@ -2,9 +2,6 @@ package me.exrates.model;
 
 import java.util.Collection;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 public class PagingData<E extends Collection<?>> {
 
     private int total;

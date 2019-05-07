@@ -18,9 +18,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Repository
 public class BTCTransactionDaoImpl implements BTCTransactionDao {
 

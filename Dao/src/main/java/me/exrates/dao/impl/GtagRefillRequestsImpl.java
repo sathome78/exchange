@@ -1,10 +1,8 @@
 package me.exrates.dao.impl;
 
 
-
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.GtagRefillRequests;
-import me.exrates.model.enums.OrderStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
