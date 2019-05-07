@@ -1,5 +1,13 @@
 package me.exrates.service.geetest;
 
+import httpClient.CommonHttpClient;
+import httpClient.CommonHttpClientImpl;
+import httpClient.HttpResponseWithEntity;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -27,6 +35,8 @@ public class GeetestLib {
 	protected final String validateUrl = "/validate.php";
 	
 	protected final String json_format = "1";
+
+	CommonHttpClient httpClient = new CommonHttpClientImpl();
      
 	/**
 	 * 极验验证二次验证表单数据 chllenge
@@ -430,31 +440,14 @@ public class GeetestLib {
 	 * @throws IOException
 	 */
 	private String readContentFromGet(String URL) throws IOException {
+		HttpGet httpGet = new HttpGet(URL);
+		RequestConfig requestConfig = RequestConfig.custom()
+				.setConnectionRequestTimeout(2000).setConnectTimeout(4000).setSocketTimeout(4000).build();
+		httpGet.setConfig(requestConfig);
+		HttpResponseWithEntity response = httpClient.execute(httpGet);
 
-		URL getUrl = new URL(URL);
-		HttpURLConnection connection = (HttpURLConnection) getUrl
-				.openConnection();
-
-		connection.setConnectTimeout(2000);// 设置连接主机超时（单位：毫秒）
-		connection.setReadTimeout(2000);// 设置从主机读取数据超时（单位：毫秒）
-
-		// 建立与服务器的连接，并未发送数据
-		connection.connect();
-		
-		if (connection.getResponseCode() == 200) {
-			// 发送数据到服务器并使用Reader读取返回的数据
-			StringBuffer sBuffer = new StringBuffer();
-
-			InputStream inStream = null;
-			byte[] buf = new byte[1024];
-			inStream = connection.getInputStream();
-			for (int n; (n = inStream.read(buf)) != -1;) {
-				sBuffer.append(new String(buf, 0, n, "UTF-8"));
-			}
-			inStream.close();
-			connection.disconnect();// 断开连接
-            
-			return sBuffer.toString();	
+		if (response.getCloseableHttpResponse().getStatusLine().getStatusCode() == 200) {
+			return response.getResponseEntity();
 		}
 		else {
 			
@@ -470,41 +463,16 @@ public class GeetestLib {
 	 * @throws IOException
 	 */
 	private String readContentFromPost(String URL, String data) throws IOException {
-		
 		gtlog(data);
-		URL postUrl = new URL(URL);
-		HttpURLConnection connection = (HttpURLConnection) postUrl
-				.openConnection();
-
-		connection.setConnectTimeout(2000);// 设置连接主机超时（单位：毫秒）
-		connection.setReadTimeout(2000);// 设置从主机读取数据超时（单位：毫秒）
-		connection.setRequestMethod("POST");
-		connection.setDoInput(true);
-		connection.setDoOutput(true);
-		connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+		HttpPost httpPost = new HttpPost(URL);
+		RequestConfig requestConfig = RequestConfig.custom()
+				.setConnectionRequestTimeout(4000).setConnectTimeout(4000).setSocketTimeout(4000).build();
+		httpPost.setConfig(requestConfig);
+		httpPost.setEntity(new StringEntity(data, ContentType.create("application/x-www-form-urlencoded")));
+		HttpResponseWithEntity response = httpClient.execute(httpPost);
 		
-		// 建立与服务器的连接，并未发送数据
-		connection.connect();
-		
-		 OutputStreamWriter outputStreamWriter = new OutputStreamWriter(connection.getOutputStream(), "utf-8");  
-		 outputStreamWriter.write(data);  
-		 outputStreamWriter.flush();
-		 outputStreamWriter.close();
-		
-		if (connection.getResponseCode() == 200) {
-			// 发送数据到服务器并使用Reader读取返回的数据
-			StringBuffer sBuffer = new StringBuffer();
-
-			InputStream inStream = null;
-			byte[] buf = new byte[1024];
-			inStream = connection.getInputStream();
-			for (int n; (n = inStream.read(buf)) != -1;) {
-				sBuffer.append(new String(buf, 0, n, "UTF-8"));
-			}
-			inStream.close();
-			connection.disconnect();// 断开连接
-            
-			return sBuffer.toString();	
+		if (response.getCloseableHttpResponse().getStatusLine().getStatusCode() == 200) {
+			return response.getResponseEntity();
 		}
 		else {
 			
