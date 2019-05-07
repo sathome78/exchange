@@ -38,7 +38,7 @@ public class CommonHttpClientImpl implements CommonHttpClient {
         String requestBody = tryToGetBodyFromRequest(request);
         try (CloseableHttpResponse response = client.execute(request)) {
             String resEntityToString = getResponseEntityFromResponse(response.getEntity());
-            HttpResponseWithEntity httpResponseWithEntity = new HttpResponseWithEntity(response, resEntityToString);
+            HttpResponseWithEntity httpResponseWithEntity = new HttpResponseWithEntity(response, resEntityToString, response.getStatusLine().getStatusCode());
             log.debug(new HttpCallsLog(
                     request.getURI().toString(),
                     request.getMethod(),
