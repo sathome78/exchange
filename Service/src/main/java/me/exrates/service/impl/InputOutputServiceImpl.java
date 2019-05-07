@@ -59,10 +59,6 @@ import static java.util.Collections.EMPTY_LIST;
 import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.invoice.RefillStatusEnum.ON_BCH_EXAM;
 
-/**
- * created by ValkSam
- */
-
 @Service
 @Conditional(MonolitConditional.class)
 public class InputOutputServiceImpl implements InputOutputService {

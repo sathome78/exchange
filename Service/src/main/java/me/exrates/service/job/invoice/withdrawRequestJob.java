@@ -32,9 +32,6 @@ import java.util.concurrent.TimeUnit;
 
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.POST_AUTO;
 
-/**
- * Created by ValkSam
- */
 @Service
 @Log4j2(topic = "job")
 @PropertySource(value = {"classpath:/job.properties"})

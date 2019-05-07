@@ -8,9 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static java.util.Collections.singletonMap;
 
-/**
- * Created by Yuriy Berezin on 16-Oct-18.
- */
 @Component
 public class WithdrawUtils {
 

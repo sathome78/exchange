@@ -2,17 +2,43 @@ package me.exrates.service.impl;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.BotDao;
-import me.exrates.model.*;
+import me.exrates.model.BotLaunchSettings;
+import me.exrates.model.BotTrader;
+import me.exrates.model.BotTradingCalculator;
+import me.exrates.model.CurrencyPair;
+import me.exrates.model.Email;
+import me.exrates.model.ExOrder;
+import me.exrates.model.User;
+import me.exrates.model.UserRoleSettings;
 import me.exrates.model.dto.BotTradingSettingsShortDto;
 import me.exrates.model.dto.OrderCreateDto;
-import me.exrates.model.enums.*;
-import me.exrates.service.*;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderBaseType;
+import me.exrates.model.enums.OrderType;
+import me.exrates.model.enums.PriceGrowthDirection;
+import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.UserStatus;
+import me.exrates.service.BotService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.OrderService;
+import me.exrates.service.ReferralService;
+import me.exrates.service.SendMailService;
+import me.exrates.service.UserRoleService;
+import me.exrates.service.UserService;
 import me.exrates.service.exception.BotException;
 import me.exrates.service.exception.process.InsufficientCostsForAcceptionException;
 import me.exrates.service.exception.process.OrderAcceptionException;
 import me.exrates.service.job.bot.BotCreateOrderJob;
 import org.apache.commons.math3.random.RandomDataGenerator;
-import org.quartz.*;
+import org.quartz.JobBuilder;
+import org.quartz.JobDetail;
+import org.quartz.JobKey;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.SimpleScheduleBuilder;
+import org.quartz.Trigger;
+import org.quartz.TriggerBuilder;
+import org.quartz.TriggerKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -23,7 +49,12 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -115,7 +146,6 @@ public class BotServiceImpl implements BotService {
                             email.setMessage("Insufficient costs on bot account");
                             email.setSubject(e.getMessage());
                             email.setTo(errorEmail);
-             //               sendMailService.sendInfoMail(email);
                             log.warn(e.getMessage());
                         } catch (OrderAcceptionException e) {
                             log.warn(e.getMessage());
@@ -220,7 +250,7 @@ public class BotServiceImpl implements BotService {
     public void prepareAndSaveOrder(CurrencyPair currencyPair, OperationType operationType, String userEmail, BigDecimal amount, BigDecimal rate) {
         OrderCreateDto orderCreateDto = orderService.prepareNewOrder(currencyPair, operationType, userEmail, amount, rate, OrderBaseType.LIMIT);
         log.debug("Prepared order: {}", orderCreateDto);
-       // orderService.createOrder(orderCreateDto, OrderActionEnum.CREATE);
+
         orderService.postBotOrderToDb(orderCreateDto);
 
     }

@@ -6,13 +6,9 @@ import me.exrates.model.dto.onlineTableDto.NotificationDto;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.vo.CacheData;
 
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Created by OLEG on 10.11.2016.
- */
 public interface NotificationService {
 
   long createLocalizedNotification(Integer userId, NotificationEvent cause, String titleCode, String messageCode,

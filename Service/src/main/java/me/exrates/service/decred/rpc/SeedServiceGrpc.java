@@ -1,22 +1,12 @@
 package me.exrates.service.decred.rpc;
 
 import static io.grpc.MethodDescriptor.generateFullMethodName;
-import static io.grpc.stub.ClientCalls.asyncBidiStreamingCall;
-import static io.grpc.stub.ClientCalls.asyncClientStreamingCall;
-import static io.grpc.stub.ClientCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ClientCalls.asyncUnaryCall;
-import static io.grpc.stub.ClientCalls.blockingServerStreamingCall;
 import static io.grpc.stub.ClientCalls.blockingUnaryCall;
 import static io.grpc.stub.ClientCalls.futureUnaryCall;
-import static io.grpc.stub.ServerCalls.asyncBidiStreamingCall;
-import static io.grpc.stub.ServerCalls.asyncClientStreamingCall;
-import static io.grpc.stub.ServerCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ServerCalls.asyncUnaryCall;
-import static io.grpc.stub.ServerCalls.asyncUnimplementedStreamingCall;
 import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
 
-/**
- */
 @javax.annotation.Generated(
     value = "by gRPC proto compiler (version 1.10.1)",
     comments = "Source: api.proto")
@@ -125,19 +115,13 @@ public final class SeedServiceGrpc {
     return new SeedServiceFutureStub(channel);
   }
 
-  /**
-   */
   public static abstract class SeedServiceImplBase implements io.grpc.BindableService {
 
-    /**
-     */
     public void generateRandomSeed(me.exrates.service.decred.rpc.Api.GenerateRandomSeedRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.GenerateRandomSeedResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getGenerateRandomSeedMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void decodeSeed(me.exrates.service.decred.rpc.Api.DecodeSeedRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.DecodeSeedResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getDecodeSeedMethodHelper(), responseObserver);
@@ -163,8 +147,6 @@ public final class SeedServiceGrpc {
     }
   }
 
-  /**
-   */
   public static final class SeedServiceStub extends io.grpc.stub.AbstractStub<SeedServiceStub> {
     private SeedServiceStub(io.grpc.Channel channel) {
       super(channel);
@@ -181,16 +163,12 @@ public final class SeedServiceGrpc {
       return new SeedServiceStub(channel, callOptions);
     }
 
-    /**
-     */
     public void generateRandomSeed(me.exrates.service.decred.rpc.Api.GenerateRandomSeedRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.GenerateRandomSeedResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getGenerateRandomSeedMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void decodeSeed(me.exrates.service.decred.rpc.Api.DecodeSeedRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.DecodeSeedResponse> responseObserver) {
       asyncUnaryCall(
@@ -198,8 +176,6 @@ public final class SeedServiceGrpc {
     }
   }
 
-  /**
-   */
   public static final class SeedServiceBlockingStub extends io.grpc.stub.AbstractStub<SeedServiceBlockingStub> {
     private SeedServiceBlockingStub(io.grpc.Channel channel) {
       super(channel);
@@ -216,23 +192,17 @@ public final class SeedServiceGrpc {
       return new SeedServiceBlockingStub(channel, callOptions);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.GenerateRandomSeedResponse generateRandomSeed(me.exrates.service.decred.rpc.Api.GenerateRandomSeedRequest request) {
       return blockingUnaryCall(
           getChannel(), getGenerateRandomSeedMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.DecodeSeedResponse decodeSeed(me.exrates.service.decred.rpc.Api.DecodeSeedRequest request) {
       return blockingUnaryCall(
           getChannel(), getDecodeSeedMethodHelper(), getCallOptions(), request);
     }
   }
 
-  /**
-   */
   public static final class SeedServiceFutureStub extends io.grpc.stub.AbstractStub<SeedServiceFutureStub> {
     private SeedServiceFutureStub(io.grpc.Channel channel) {
       super(channel);
@@ -249,16 +219,12 @@ public final class SeedServiceGrpc {
       return new SeedServiceFutureStub(channel, callOptions);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.GenerateRandomSeedResponse> generateRandomSeed(
         me.exrates.service.decred.rpc.Api.GenerateRandomSeedRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getGenerateRandomSeedMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.DecodeSeedResponse> decodeSeed(
         me.exrates.service.decred.rpc.Api.DecodeSeedRequest request) {
       return futureUnaryCall(

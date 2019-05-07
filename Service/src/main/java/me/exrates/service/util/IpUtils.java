@@ -4,9 +4,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 
-/**
- * Created by maks on 04.07.2017.
- */
 public class IpUtils {
 
     private IpUtils() {

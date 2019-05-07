@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Created by ValkSam
  * SYNC version for project: exrates <-> edinarCoin
  * excluded repository/doa
  */

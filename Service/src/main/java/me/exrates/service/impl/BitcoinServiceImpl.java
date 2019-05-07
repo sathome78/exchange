@@ -200,7 +200,6 @@ public class BitcoinServiceImpl implements BitcoinService {
             if (supportInstantSend) {
                 bitcoinWalletService.instantSendFlux().subscribe(this::onPayment);
             }
-//        CompletableFuture.runAsync(this::examineMissingPaymentsOnStartup);
             log.info("btc service started {} ", merchantName);
             examineMissingPaymentsOnStartup();
         }
@@ -263,17 +262,7 @@ public class BitcoinServiceImpl implements BitcoinService {
         System.out.println("end generate address " + address);
         Currency currency = currencyService.findByName(currencyName);
         Merchant merchant = merchantService.findByName(merchantName);
-//    if (refillService.existsUnclosedRefillRequestForAddress(address, merchant.getId(), currency.getId())) {
-//      final int LIMIT = 2000;
-//      int i = 0;
-//      while (!isFreshAddress && i++ < LIMIT) {
-//        address = bitcoinWalletService.getNewAddress(walletPassword);
-//        isFreshAddress = !refillService.existsUnclosedRefillRequestForAddress(address, merchant.getId(), currency.getId());
-//      }
-//      if (i >= LIMIT) {
-//        throw new IllegalStateException("Can`t generate fresh address");
-//      }
-//    }
+
         return address;
     }
 

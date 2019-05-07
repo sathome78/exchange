@@ -1,8 +1,5 @@
 package me.exrates.service.exception.invoice;
 
-/**
- * Created by OLEG on 28.04.2017.
- */
 public class InsufficientCostsInWalletException extends MerchantException {
   private final String REASON_CODE = "withdraw.reject.reason.timeoutExceeded";
   

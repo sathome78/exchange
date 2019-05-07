@@ -17,7 +17,11 @@ import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.MerchantProcessType;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.TransferTypeVoucher;
+import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -80,9 +84,6 @@ import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.OperationType.USER_TRANSFER;
 import static me.exrates.service.util.CollectionUtil.isEmpty;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Service
 @PropertySource("classpath:/merchants.properties")
 @Conditional(MonolitConditional.class)
@@ -172,24 +173,11 @@ public class MerchantServiceImpl implements MerchantService {
         mail.setMessage(notification);
 
         try {
-      /* TODO temporary disable
-      notificationService.createLocalizedNotification(email, NotificationEvent.IN_OUT,
-          "merchants.depositNotification.header", depositNotification,
-          new Object[]{sumWithCurrency, toWallet});*/
             sendMailService.sendInfoMail(mail);
         } catch (MailException e) {
             LOG.error(e);
         }
         return notification;
-    }
-
-    private Map<Integer, List<Merchant>> mapMerchantsToCurrency(List<Currency> currencies) {
-        return currencies.stream()
-                .map(Currency::getId)
-                .map(currencyId -> Pair.of(currencyId, merchantDao.findAllByCurrency(currencyId)))
-                .collect(Collectors.toMap(
-                        Pair::getKey,
-                        Pair::getValue));
     }
 
     @Override
@@ -378,8 +366,6 @@ public class MerchantServiceImpl implements MerchantService {
             throw new InvalidAmountException(String.format("merchant: %s currency: %s amount %s", merchantId, currencyId, amount.toString()));
         }
     }
-
-    /*============================*/
 
     @Override
     @Transactional

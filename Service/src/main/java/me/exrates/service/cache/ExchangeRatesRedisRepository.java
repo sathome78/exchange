@@ -10,11 +10,8 @@ import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toList;
 
 @PropertySource("classpath:redis.properties")
 @Repository
@@ -47,13 +44,6 @@ public class ExchangeRatesRedisRepository {
 
     public List<ExOrderStatisticsShortByPairsDto> getAll() {
         return ops.values(key)
-                .stream()
-                .map(o -> (ExOrderStatisticsShortByPairsDto) o)
-                .collect(Collectors.toList());
-    }
-
-    public List<ExOrderStatisticsShortByPairsDto> getByNames(List<String> names) {
-        return ops.multiGet(key, Collections.unmodifiableCollection(names))
                 .stream()
                 .map(o -> (ExOrderStatisticsShortByPairsDto) o)
                 .collect(Collectors.toList());

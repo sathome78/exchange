@@ -1,8 +1,5 @@
 package me.exrates.service.exception;
 
-/**
- * Created by Valk
- */
 public class IllegalTransactionProvidedStatusException extends Exception {
 
     public IllegalTransactionProvidedStatusException(String message) {

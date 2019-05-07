@@ -11,20 +11,6 @@ import java.util.Set;
 @NoArgsConstructor(access = AccessLevel.NONE)
 public final class CollectionUtil {
 
-    public static <T> List<T> requireNotEmpty(List<T> list, String message) {
-        if (isEmpty(list)) {
-            throw new IllegalArgumentException(message);
-        }
-        return list;
-    }
-
-    public static <T> Set<T> requireNotEmpty(Set<T> set, String message) {
-        if (isEmpty(set)) {
-            throw new IllegalArgumentException(message);
-        }
-        return set;
-    }
-
     public static <T> boolean isEmpty(Collection<T> list) {
         return list == null || list.isEmpty();
     }

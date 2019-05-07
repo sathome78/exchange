@@ -32,36 +32,6 @@ import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
-/* in javascript using my custom-rolled version of the steem-js library (available on my github crypto-playpen):
-   (note: this should also work with other graphene-based javascript libraries)
-https://stackoverflow.com/questions/12710001/how-to-convert-uint8-array-to-base64-encoded-string
-verify signature from javascript to java:
-    var privateWif = "5JRaypasxMx1L97ZUX7YuC5Psb5EAbF821kkAGtBj7xCJFQcbLg";
-    var sigObj = steem.ecc.Signature.sign("test", privateWif);
-    var sigBase64 = btoa('\40'+String.fromCharCode.apply(null, sigObj.r.toBuffer())+String.fromCharCode.apply(null, sigObj.s.toBuffer()));
-verify signature from java to javascript:
-    var sigBase64 = "G+MS/x9rpgfhxR7Z3s9VopBW8y7iJZPaN+4D8yp7MNqqBI/Pux85Prl0UacVRTkcBeFvfat/Pdc7PVoXKq4eqnY=";
-    var publicKey = "STM6aGPtxMUGnTPfKLSxdwCHbximSJxzrRjeQmwRW9BRCdrFotKLs";
-    var pubKeyObj = steem.ecc.PublicKey.fromString(publicKey)
-    var sigBuf = new steem.ecc.buffer('\33'+atob(sigBase64).substring(1),"ascii");
-    var sigObj = steem.ecc.Signature.fromBuffer(sigBuf);
-    var isValid = sigObj.verifyBuffer("test",pubKeyObj);
-    if (isValid) console.log("valid signature!");
-javascript functions based on the above:
-    function signGrapheneMessage(msg, privateWif) {
-      const sigObj = steem.ecc.Signature.sign(msg, privateWif);
-      return btoa('\40'+String.fromCharCode.apply(null, sigObj.r.toBuffer())+String.fromCharCode.apply(null, sigObj.s.toBuffer()));
-    }
-    function verifyGrapheneMessage(msg, sigBase64, publicKey) {
-      try {
-        const pubKeyObj = steem.ecc.PublicKey.fromString(publicKey)
-        const sigBuf = new steem.ecc.buffer('\33'+atob(sigBase64).substring(1),"ascii");
-        const sigObj = steem.ecc.Signature.fromBuffer(sigBuf);
-        return sigObj.verifyBuffer(msg,pubKeyObj);
-      } catch (e) { return false; }
-    }
-*/
-
 public class GrapheneUtils {
 
     private static final int CHECKSUM_BYTES = 4;
@@ -99,8 +69,6 @@ public class GrapheneUtils {
     // returns an ECKey object holding a byte representation of a private key from a graphene Wif
     public static ECKey GrapheneWifToPrivateKey(String Wif) {
         ECKey pKey = DumpedPrivateKey.fromBase58(null, Wif, new Sha256ChecksumProvider()).getKey();
-        //System.out.println(pKey.getPrivateKeyEncoded(128).toBase58());
-        //System.out.println(getAddressFromPublicKey("STM", pKey));
         return pKey;
     }
 
@@ -174,19 +142,5 @@ public class GrapheneUtils {
 
         } catch (Exception e) { return false; }
     }
-
-    // sample usage
-
-    /*
-    public static void VerifyDemo() {
-        ECKey privKey = GrapheneWifToPrivateKey("5JRaypasxMx1L97ZUX7YuC5Psb5EAbF821kkAGtBj7xCJFQcbLg");
-        String base64Sig = SignMessage("test",privKey);
-        System.out.println("base64Sig = " + base64Sig);
-        String pubKeyAddress = getAddressFromPublicKey("STM", privKey);
-        System.out.println("PublicAddress = " + pubKeyAddress);
-        PublicKey pubKeyObj = new PublicKey(pubKeyAddress);
-        System.out.println("isValid = "+VerifyMessage("test", base64Sig, pubKeyObj));
-    }
-    */
 
 }

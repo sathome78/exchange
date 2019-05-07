@@ -1,8 +1,5 @@
 package me.exrates.service.exception.api;
 
-/**
- * Created by OLEG on 13.10.2016.
- */
 public class UnconfirmedUserException extends RuntimeException {
     public UnconfirmedUserException() {
     }

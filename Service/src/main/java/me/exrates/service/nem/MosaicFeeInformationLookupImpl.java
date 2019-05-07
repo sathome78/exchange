@@ -9,9 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 
-/**
- * Created by Maks on 02.03.2018.
- */
 @Component
 @Conditional(MonolitConditional.class)
 public class MosaicFeeInformationLookupImpl implements MosaicFeeInformationLookup {

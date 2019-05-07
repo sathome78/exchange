@@ -97,9 +97,6 @@ import static java.util.stream.Collectors.toList;
 import static me.exrates.service.util.CollectionUtil.isEmpty;
 import static me.exrates.service.util.CollectionUtil.isNotEmpty;
 
-/**
- * Created by ValkSam
- */
 @Service
 @Log4j2
 public class ReportServiceImpl implements ReportService {

@@ -5,7 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.squareup.okhttp.*;
+import com.squareup.okhttp.MediaType;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.RequestBody;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.EDCAccountDao;
 import me.exrates.model.EDCAccount;
@@ -13,7 +16,6 @@ import me.exrates.model.Transaction;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.service.EDCServiceNode;
 import me.exrates.service.TransactionService;
-import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
 import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.exception.invoice.MerchantException;
@@ -32,14 +34,13 @@ import java.math.BigDecimal;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Log4j2(topic = "edc_log")
 @Service
 @PropertySource({"classpath:/merchants/edc_cli_wallet.properties", "classpath:/merchants/edcmerchant.properties"})
@@ -85,37 +86,6 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
   @Autowired
   EDCAccountDao edcAccountDao;
 
-  public void changeDebugLogStatus(final boolean status) {
-    debugLog = true;
-  }
-
-  private void handleRawTransactions(final String tx) {
-
-    try {
-
-      final String transactions = tx.substring(tx.indexOf("transactions"), tx.length());
-      final String[] operationses = transactions.split("operations");
-      for (String str : operationses) {
-        final int extensions = str.indexOf("extensions");
-        if (extensions > 0) {
-          str = str.substring(0, extensions);
-          if (str.contains("\":[[0,{\"fee\"")) {
-            str = str.substring(str.indexOf("to"));
-            final String accountId = str.substring(str.indexOf("to") + 5, str.indexOf("amount") - 3);
-            final String amount = str.substring(str.lastIndexOf("amount") + 8, str.indexOf("asset_id") - 2);
-            incomingPayments.put(new BiTuple<>(accountId, amount));
-          }
-        }
-      }
-    } catch (InterruptedException e) {
-      log.info("Method acceptTransaction InterruptedException........................................... error: ");
-      log.error(e);
-    } catch (Exception e) {
-      log.info("Method acceptTransaction Exception........................................... error: ");
-      log.error(e);
-    }
-  }
-
   @Transactional
   @Override
   public void rescanUnusedAccounts() {
@@ -132,29 +102,6 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
               throw new InterruptedException("Could not transfer money to main account!\n" + responseTransfer);
             }
             edcAccountDao.setAccountUsed(account.getTransactionId());
-            /*
-              TODO REFILL
-              Не вникал для чего этот метод rescanUnusedAccounts, но удалять в любом случае нельзя
-            Optional<PendingPayment> payment = paymentDao.findByInvoiceId(account.getTransactionId());
-            if (payment.isPresent()) {
-
-              paymentDao.delete(account.getTransactionId());
-            }
-            */
-            /*
-            TODO REFILL
-            этот код удалить. Но сам не стал, чтобы был перед глазами при изменении метода rescanUnusedAccounts в целом
-
-            Transaction transaction = transactionService.findById(account.getTransactionId());
-            if (!transaction.isProvided()) {
-
-              final BigDecimal targetAmount = transaction.getAmount().add(transaction.getCommissionAmount()).setScale(DEC_PLACES, ROUND_HALF_UP);
-              final BigDecimal currentAmount = new BigDecimal(accountBalance).add(new BigDecimal("0.001")).setScale(DEC_PLACES, ROUND_HALF_UP);
-              if (targetAmount.compareTo(currentAmount) != 0) {
-                transactionService.updateTransactionAmount(transaction, currentAmount);
-              }
-              transactionService.provideTransaction(transaction);
-            }*/
           } else {
             edcAccountDao.setAccountUsed(account.getTransactionId());
           }
@@ -169,34 +116,7 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
 
   @PostConstruct
   public void init() {
-    // cache warm
-    /*
 
-    TODO REFILL
-    try {
-
-      paymentDao.findAllByHash(PENDING_PAYMENT_HASH)
-          .forEach(payment -> pendingPayments.put(payment.getAddress(), payment));
-      workers.submit(() -> {  // processing json with transactions from server
-        while (isRunning) {
-          final String poll = rawTransactions.poll();
-          if (poll != null) {
-            handleRawTransactions(poll);
-          }
-        }
-      });
-      workers.submit(() -> {
-        while (isRunning) { // accepting transactions
-          final BiTuple<String, String> poll = incomingPayments.poll();
-          if (poll != null) {
-            acceptTransaction(poll);
-          }
-        }
-      });
-    } catch (Exception e) {
-      LOG.info("Method init Exception........................................... error: ");
-      LOG.error(e);
-    }*/
   }
 
   @PreDestroy
@@ -222,25 +142,6 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
     final Map<String, String> result = mapper.readValue(response, new TypeReference<Map<String, String>>() {
     });
     return result.get("result");
-  }
-
-  private String createAccount(final int id) throws Exception {
-    log.info("Start method createAccount");
-    final String accountName = (ACCOUNT_PREFIX + id + UUID.randomUUID()).toLowerCase();
-    final EnumMap<KEY_TYPE, String> keys = extractKeys(makeRpcCallFast(NEW_KEY_PAIR_RPC, id)); // retrieve public and private from server
-    final String response = makeRpcCallFast(REGISTER_NEW_ACCOUNT_RPC, accountName, keys.get(KEY_TYPE.PUBLIC), keys.get(KEY_TYPE.PUBLIC), REGISTRAR_ACCOUNT, REFERRER_ACCOUNT, String.valueOf(id));
-    log.info("bit_response: " + response.toString());
-    if (response.contains("error")) {
-      throw new Exception("Could not create new account!\n" + response);
-    }
-    final EDCAccount edcAccount = new EDCAccount();
-    edcAccount.setTransactionId(id);
-    edcAccount.setBrainPrivKey(keys.get(KEY_TYPE.BRAIN));
-    edcAccount.setPubKey(keys.get(KEY_TYPE.PUBLIC));
-    edcAccount.setWifPrivKey(keys.get(KEY_TYPE.PRIVATE));
-    edcAccount.setAccountName(accountName);
-    edcAccountDao.create(edcAccount);
-    return accountName;
   }
 
   private EnumMap<KEY_TYPE, String> extractKeys(final String json) {
@@ -302,15 +203,7 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
   }
 
   private String makeRpcCallDelayed(String rpc, Object... args) throws IOException {
-   /* final String rpcCall = String.format(rpc, args);
-    final Request request = new Request.Builder()
-        .url(RPC_URL_DELAYED)
-        .post(RequestBody.create(MEDIA_TYPE, rpcCall))
-        .build();
-    return HTTP_CLIENT.newCall(request)
-        .execute()
-        .body()
-        .string();*/
+
    return "";
   }
 
@@ -337,38 +230,4 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
       this.type = type;
     }
   }
-
-  private String getAddress() {
-    final OkHttpClient client = new OkHttpClient();
-    client.setReadTimeout(60, TimeUnit.SECONDS);
-
-    final FormEncodingBuilder formBuilder = new FormEncodingBuilder();
-    formBuilder.add("account", main_account);
-    formBuilder.add("hook", hook);
-
-    final Request request = new Request.Builder()
-        .url(urlCreateNewAccount + token)
-        .post(formBuilder.build())
-        .build();
-    final String returnResponse;
-
-    try {
-      returnResponse = client
-          .newCall(request)
-          .execute()
-          .body()
-          .string();
-    } catch (IOException e) {
-      throw new MerchantInternalException(e);
-    }
-
-    JsonParser parser = new JsonParser();
-    JsonObject object = parser.parse(returnResponse).getAsJsonObject();
-
-    return object.get("address").getAsString();
-
-  }
-
-
-
 }

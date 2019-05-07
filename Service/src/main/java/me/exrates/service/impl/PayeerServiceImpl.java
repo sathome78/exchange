@@ -6,7 +6,12 @@ import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.service.*;
+import me.exrates.service.AlgorithmService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.PayeerService;
+import me.exrates.service.RefillService;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestFakePaymentReceivedException;
@@ -63,7 +68,7 @@ public class PayeerServiceImpl implements PayeerService {
     BigDecimal sum = request.getAmount();
     String currency = request.getCurrencyName();
     BigDecimal amountToPay = sum.setScale(2, BigDecimal.ROUND_HALF_UP);
-    /**/
+
     Properties properties = new Properties() {{
       put("m_shop", m_shop);
       put("m_orderid", requestId);
@@ -76,13 +81,12 @@ public class PayeerServiceImpl implements PayeerService {
           + ":" + desc + ":" + m_key).toUpperCase();
       put("m_sign", sign);
     }};
-    /**/
+
     return generateFullUrlMap(url, "POST", properties);
   }
 
   @Override
   public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-//    checkSign(params);
     Integer requestId = Integer.valueOf(params.get("m_orderid"));
     String merchantTransactionId = params.get("m_operation_id");
     Currency currency = currencyService.findByName(params.get("m_curr"));
@@ -104,17 +108,6 @@ public class PayeerServiceImpl implements PayeerService {
 
     logger.debug("Process of sending data to Google Analytics...");
     gtagService.sendGtagEvents(amount.toString(), currency.getName(), gaTag);
-  }
-
-  private void checkSign(Map<String, String> params) {
-    String sign = algorithmService.sha256(params.get("m_operation_id") + ":" + params.get("m_operation_ps")
-        + ":" + params.get("m_operation_date") + ":" + params.get("m_operation_pay_date")
-        + ":" + params.get("m_shop") + ":" + params.get("m_orderid")
-        + ":" + params.get("m_amount") + ":" + params.get("m_curr") + ":" + params.get("m_desc")
-        + ":" + params.get("m_status") + ":" + m_key).toUpperCase();
-    if (params.get("m_sign")==null || !params.get("m_sign").equals(sign) || !"success".equals(params.get("m_status"))) {
-      throw new RefillRequestFakePaymentReceivedException(params.toString());
-    }
   }
 
   @Override

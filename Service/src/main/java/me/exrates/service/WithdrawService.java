@@ -2,7 +2,14 @@ package me.exrates.service;
 
 import me.exrates.model.ClientBank;
 import me.exrates.model.MerchantCurrency;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.MerchantCurrencyAutoParamDto;
+import me.exrates.model.dto.MerchantCurrencyOptionsDto;
+import me.exrates.model.dto.WithdrawRequestCreateDto;
+import me.exrates.model.dto.WithdrawRequestFlatDto;
+import me.exrates.model.dto.WithdrawRequestFlatForReportDto;
+import me.exrates.model.dto.WithdrawRequestInfoDto;
+import me.exrates.model.dto.WithdrawRequestPostDto;
+import me.exrates.model.dto.WithdrawRequestsAdminTableDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
@@ -17,9 +24,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * @author ValkSam
- */
 public interface WithdrawService {
 
   Map<String, String> createWithdrawalRequest(WithdrawRequestCreateDto requestCreateDto, Locale locale);

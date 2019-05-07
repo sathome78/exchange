@@ -6,9 +6,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by Valk on 20.06.2016.
- */
 public class Cache {
     public static boolean checkCache(CacheData cacheData, Object result) {
         HttpServletRequest request = cacheData.getRequest();

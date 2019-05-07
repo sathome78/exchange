@@ -9,9 +9,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-/**
- * Created by OLEG on 07.10.2016.
- */
 @Service
 public class ApiServiceImpl implements ApiService {
     @Autowired

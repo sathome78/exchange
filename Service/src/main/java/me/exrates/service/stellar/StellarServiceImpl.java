@@ -40,9 +40,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Created by maks on 06.06.2017.
- */
 @Log4j2(topic = "stellar_log")
 @Service
 @PropertySource("classpath:/merchants/stellar.properties")
@@ -206,21 +203,10 @@ public class StellarServiceImpl implements StellarService {
         return ACCOUNT_NAME;
     }
 
-    //TODO remove after changes in mobile api
-    @Override
-    public String getPaymentMessage(String additionalTag, Locale locale) {
-        return messageSource.getMessage("merchants.refill.xlm",
-                new Object[]{ACCOUNT_NAME, additionalTag}, locale);
-    }
-
 
     /*must bee only unsigned int = Memo.id - unsigned 64-bit number, MAX_SAFE_INTEGER  memo 0 - 9007199254740991*/
     @Override
     public void checkDestinationTag(String destinationTag) {
-        /*if (!(org.apache.commons.lang.math.NumberUtils.isDigits(destinationTag)
-                && Long.valueOf(destinationTag) <= 9007199254740991L)) {
-            throw new CheckDestinationTagException(DESTINATION_TAG_ERR_MSG, this.additionalWithdrawFieldName());
-        }*/
         if (destinationTag.length() > 26) {
             throw new CheckDestinationTagException(DESTINATION_TAG_ERR_MSG, this.additionalWithdrawFieldName());
         }

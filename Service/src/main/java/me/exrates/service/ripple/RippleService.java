@@ -3,9 +3,8 @@ package me.exrates.service.ripple;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 
-/**
- * Created by maks on 11.05.2017.
- */
+import java.util.Locale;
+
 public interface RippleService extends IRefillable, IWithdrawable {
 
     /*return: true if tx validated; false if not validated but validationin process,
@@ -58,4 +57,7 @@ public interface RippleService extends IRefillable, IWithdrawable {
   default String additionalRefillFieldName() {
     return "Destination Tag";
   }
+
+    //TODO remove after changes in mobile api
+    String getPaymentMessage(String additionalTag, Locale locale);
 }

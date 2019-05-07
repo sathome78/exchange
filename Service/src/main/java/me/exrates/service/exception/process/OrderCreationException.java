@@ -1,8 +1,5 @@
 package me.exrates.service.exception.process;
 
-/**
- * Created by Valk on 23.05.2016.
- */
 public class OrderCreationException extends ProcessingException {
 
     public OrderCreationException() {

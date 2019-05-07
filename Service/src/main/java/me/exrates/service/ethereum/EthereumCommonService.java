@@ -8,9 +8,6 @@ import org.web3j.protocol.Web3j;
 
 import java.util.Set;
 
-/**
- * Created by ajet on
- */
 public interface EthereumCommonService extends IMerchantService, IRefillable, IWithdrawable {
 
     @Override

@@ -1,6 +1,5 @@
 package me.exrates.service.ieo;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import lombok.extern.log4j.Log4j2;
@@ -14,14 +13,13 @@ import me.exrates.model.IEOResult;
 import me.exrates.model.Wallet;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.UserNotificationMessage;
-import me.exrates.model.dto.WsMessageObject;
 import me.exrates.model.enums.IEODetailsStatus;
 import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.WsSourceTypeEnum;
+import me.exrates.model.exceptions.IeoException;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
-import me.exrates.model.exceptions.IeoException;
 import me.exrates.service.stomp.StompMessenger;
 import org.apache.commons.lang3.StringUtils;
 
@@ -140,19 +138,19 @@ public class IEOProcessor implements Runnable {
                 sendMailService.sendInfoMail(prepareEmail(userEmail, message));
             }
         } catch (Exception e) {
-            /*ignore*/
+
         }
         try {
             if (StringUtils.isNotEmpty(userEmail)) {
                 stompMessenger.sendPersonalDetailsIeo(userEmail, objectMapper.writeValueAsString(ImmutableList.of(ieoDetails)));
             }
         } catch (Exception e) {
-            /*ignore*/
+
         }
         try {
             stompMessenger.sendDetailsIeo(ieoDetails.getId(), objectMapper.writeValueAsString(ieoDetails));
         } catch (Exception e) {
-            /*ignore*/
+
         }
     }
 

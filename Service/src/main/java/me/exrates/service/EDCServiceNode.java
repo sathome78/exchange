@@ -4,9 +4,6 @@ import me.exrates.model.Transaction;
 
 import java.io.IOException;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 public interface EDCServiceNode {
 
   void submitTransactionsForProcessing(String list);

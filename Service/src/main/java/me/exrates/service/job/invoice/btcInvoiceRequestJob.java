@@ -12,9 +12,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-/**
- * Created by ValkSam
- */
 @Service
 @PropertySource(value = {"classpath:/job.properties"})
 @Log4j2(topic = "job")
@@ -33,7 +30,6 @@ public class btcInvoiceRequestJob {
     try {
       if (EXPIRE_CLEAN_INTERVAL_MINUTES > 0) {
 // TODO REFILL
-// Integer expireCount = bitcoinService.clearExpiredInvoices(EXPIRE_CLEAN_INTERVAL_MINUTES);
       }
     } catch (Exception e){
       log.error(ExceptionUtils.getStackTrace(e));

@@ -1,9 +1,6 @@
 package me.exrates.service.impl;
 
-//import com.liqpay.LiqPay;
-
 import com.google.gson.Gson;
-import me.exrates.model.CreditsOperation;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
@@ -20,8 +17,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.view.RedirectView;
 
 import javax.xml.bind.DatatypeConverter;
 import java.math.BigDecimal;
@@ -53,54 +48,6 @@ public class LiqpayServiceImpl implements LiqpayService {
   @Autowired
   private WithdrawUtils withdrawUtils;
 
-  @Transactional
-  public RedirectView preparePayment(CreditsOperation creditsOperation, String email) {
-    /*Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
-
-    BigDecimal sum = transaction.getAmount().add(transaction.getCommissionAmount());
-    final String currency = transaction.getCurrency().getName();
-    final Number amountToPay = sum.setScale(2, BigDecimal.ROUND_HALF_UP);
-
-    Map params = new HashMap();
-    params.put("version", Integer.parseInt(apiVersion));
-    params.put("public_key", public_key);
-    params.put("action", action);
-    params.put("amount", amountToPay);
-    params.put("currency", creditsOperation.getCurrency().getName());
-    params.put("description", "Order: " + transaction.getId());
-    params.put("order_id", transaction.getId());
-    byte[] hashSha1 = sha1(transaction.getId() + private_key);
-    String hash = base64_encode(hashSha1);
-    params.put("info", hash);
-
-
-    Gson gson = new Gson();
-    String jsonData = gson.toJson(params);
-    String data = algorithmService.base64Encode(jsonData);
-    byte[] signatureSha1 = sha1((private_key + data + private_key));
-    String signature = base64_encode(signatureSha1);
-
-    final PendingPayment payment = new PendingPayment();
-    payment.setTransactionHash(hash);
-    payment.setInvoiceId(transaction.getId());
-    pendingPaymentDao.create(payment);
-
-
-    Properties properties = new Properties();
-    properties.put("data", data);
-    properties.put("signature", signature);
-
-    RedirectView redirectView = new RedirectView(url);
-    redirectView.setAttributes(properties);
-
-
-    return redirectView;*/
-
-    return null;
-
-  }
-
-
   public static String base64_encode(byte[] bytes) {
     return DatatypeConverter.printBase64Binary(bytes);
   }
@@ -128,7 +75,7 @@ public class LiqpayServiceImpl implements LiqpayService {
     BigDecimal sum = request.getAmount();
     String currency = request.getCurrencyName();
     BigDecimal amountToPay = sum.setScale(2, BigDecimal.ROUND_HALF_UP);
-        /**/
+
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("version", Integer.parseInt(apiVersion));
       put("public_key", public_key);
@@ -141,17 +88,17 @@ public class LiqpayServiceImpl implements LiqpayService {
       String hash = base64_encode(hashSha1);
       put("info", hash);
     }};
-    /**/
+
     Gson gson = new Gson();
     String jsonData = gson.toJson(params);
     String data = algorithmService.base64Encode(jsonData);
     byte[] signatureSha1 = sha1((private_key + data + private_key));
     String signature = base64_encode(signatureSha1);
-    /**/
+
     Properties properties = new Properties();
     properties.put("data", data);
     properties.put("signature", signature);
-    /**/
+
     String fullUrl = generateFullUrl(url, properties);
     return new HashMap<String, String>() {{
       put("$__redirectionUrl", fullUrl);

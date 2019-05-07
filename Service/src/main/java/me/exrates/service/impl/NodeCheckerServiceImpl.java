@@ -7,7 +7,10 @@ import me.exrates.service.NodeCheckerService;
 import me.exrates.service.merchantStrategy.IRefillable;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class NodeCheckerServiceImpl implements NodeCheckerService {

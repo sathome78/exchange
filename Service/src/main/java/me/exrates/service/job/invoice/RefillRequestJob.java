@@ -17,9 +17,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by ValkSam
- */
 @Service
 @Log4j2
 @Conditional(MonolitConditional.class)

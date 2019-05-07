@@ -3,11 +3,6 @@ package me.exrates.service.notifications;
 import me.exrates.model.enums.NotificationTypeEnum;
 import me.exrates.service.exception.MessageUndeliweredException;
 
-import java.io.UnsupportedEncodingException;
-
-/**
- * Created by Maks on 29.09.2017.
- */
 public interface NotificatorService {
 
 

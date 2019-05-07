@@ -9,9 +9,6 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Created by OLEG on 20.12.2016.
- */
 @Log4j2(topic = "tracker")
 @Service(value = "Poloniex")
 public class PoloniexRetrievalService implements StockExrateRetrievalService {

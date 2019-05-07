@@ -17,9 +17,17 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
-import static me.exrates.service.lisk.LiskRestUtils.*;
+import static me.exrates.service.lisk.LiskRestUtils.extractListFromResponse;
+import static me.exrates.service.lisk.LiskRestUtils.extractObjectFromResponse;
+import static me.exrates.service.lisk.LiskRestUtils.extractTargetNodeFromLiskResponse;
+import static me.exrates.service.lisk.LiskRestUtils.getURIWithParams;
 
 @Log4j2(topic = "lisk_log")
 @Conditional(MonolitConditional.class)

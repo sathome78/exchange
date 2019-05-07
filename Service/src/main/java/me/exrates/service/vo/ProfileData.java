@@ -4,9 +4,6 @@ import lombok.Getter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-/**
- * Created by ValkSam
- */
 @Getter
 public class ProfileData {
   private static final Logger profileLog = LogManager.getLogger("profile");

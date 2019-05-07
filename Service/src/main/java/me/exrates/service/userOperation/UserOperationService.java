@@ -6,10 +6,6 @@ import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * @author Vlad Dziubak
- * Date: 01.08.2018
- */
 public interface UserOperationService {
 
   boolean getStatusAuthorityForUserByOperation(int userId, UserOperationAuthority userOperationAuthority);

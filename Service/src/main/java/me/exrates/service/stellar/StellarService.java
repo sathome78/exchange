@@ -4,9 +4,8 @@ import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 import org.stellar.sdk.responses.TransactionResponse;
 
-/**
- * Created by maks on 06.06.2017.
- */
+import java.util.Locale;
+
 public interface StellarService extends IRefillable, IWithdrawable {
 
     /*method for admin manual check transaction by hash*/

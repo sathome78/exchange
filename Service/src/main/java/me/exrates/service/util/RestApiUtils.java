@@ -6,9 +6,6 @@ import org.apache.commons.lang.StringUtils;
 import java.util.Base64;
 import java.util.Map;
 
-/**
- * Created by OLEG on 01.09.2016.
- */
 public class RestApiUtils {
 
     private static final String PASSWORD_ENCODE_KEY = "3255c246-4b9f-43a5-b2dd-63524f959953";

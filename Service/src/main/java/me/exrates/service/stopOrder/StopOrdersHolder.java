@@ -6,9 +6,6 @@ import me.exrates.model.dto.StopOrderSummaryDto;
 import java.math.BigDecimal;
 import java.util.NavigableSet;
 
-/**
- * Created by maks on 24.04.2017.
- */
 public interface StopOrdersHolder {
     NavigableSet<StopOrderSummaryDto> getSellOrdersForPairAndStopRate(int pairId, BigDecimal rate);
 

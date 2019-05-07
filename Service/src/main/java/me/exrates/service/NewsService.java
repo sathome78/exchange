@@ -11,9 +11,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Created by Valk on 28.05.2016.
- */
 public interface NewsService {
     /**
      * Returns list the news sorted by date when news was published

@@ -8,9 +8,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
-/**
- * Created by Valk
- */
 public interface NewsExtService {
   String uploadImageForNews(MultipartFile multipartFile) throws IOException;
 

@@ -2,21 +2,17 @@ package me.exrates.service.decred.rpc;
 
 import static io.grpc.MethodDescriptor.generateFullMethodName;
 import static io.grpc.stub.ClientCalls.asyncBidiStreamingCall;
-import static io.grpc.stub.ClientCalls.asyncClientStreamingCall;
 import static io.grpc.stub.ClientCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ClientCalls.asyncUnaryCall;
 import static io.grpc.stub.ClientCalls.blockingServerStreamingCall;
 import static io.grpc.stub.ClientCalls.blockingUnaryCall;
 import static io.grpc.stub.ClientCalls.futureUnaryCall;
 import static io.grpc.stub.ServerCalls.asyncBidiStreamingCall;
-import static io.grpc.stub.ServerCalls.asyncClientStreamingCall;
 import static io.grpc.stub.ServerCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ServerCalls.asyncUnaryCall;
 import static io.grpc.stub.ServerCalls.asyncUnimplementedStreamingCall;
 import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
 
-/**
- */
 @javax.annotation.Generated(
     value = "by gRPC proto compiler (version 1.10.1)",
     comments = "Source: api.proto")
@@ -1420,8 +1416,6 @@ public final class WalletServiceGrpc {
     return new WalletServiceFutureStub(channel);
   }
 
-  /**
-   */
   public static abstract class WalletServiceImplBase implements io.grpc.BindableService {
 
     /**
@@ -1434,78 +1428,56 @@ public final class WalletServiceGrpc {
       asyncUnimplementedUnaryCall(getPingMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void network(me.exrates.service.decred.rpc.Api.NetworkRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.NetworkResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getNetworkMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void accountNumber(me.exrates.service.decred.rpc.Api.AccountNumberRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.AccountNumberResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getAccountNumberMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void accounts(me.exrates.service.decred.rpc.Api.AccountsRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.AccountsResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getAccountsMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void balance(me.exrates.service.decred.rpc.Api.BalanceRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.BalanceResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getBalanceMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void getTransaction(me.exrates.service.decred.rpc.Api.GetTransactionRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.GetTransactionResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getGetTransactionMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void getTransactions(me.exrates.service.decred.rpc.Api.GetTransactionsRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.GetTransactionsResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getGetTransactionsMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void getTickets(me.exrates.service.decred.rpc.Api.GetTicketsRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.GetTicketsResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getGetTicketsMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void ticketPrice(me.exrates.service.decred.rpc.Api.TicketPriceRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.TicketPriceResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getTicketPriceMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void stakeInfo(me.exrates.service.decred.rpc.Api.StakeInfoRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.StakeInfoResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getStakeInfoMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void blockInfo(me.exrates.service.decred.rpc.Api.BlockInfoRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.BlockInfoResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getBlockInfoMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void bestBlock(me.exrates.service.decred.rpc.Api.BestBlockRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.BestBlockResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getBestBlockMethodHelper(), responseObserver);
@@ -1521,15 +1493,11 @@ public final class WalletServiceGrpc {
       asyncUnimplementedUnaryCall(getTransactionNotificationsMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void accountNotifications(me.exrates.service.decred.rpc.Api.AccountNotificationsRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.AccountNotificationsResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getAccountNotificationsMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.ConfirmationNotificationsRequest> confirmationNotifications(
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.ConfirmationNotificationsResponse> responseObserver) {
       return asyncUnimplementedStreamingCall(getConfirmationNotificationsMethodHelper(), responseObserver);
@@ -1545,148 +1513,106 @@ public final class WalletServiceGrpc {
       asyncUnimplementedUnaryCall(getChangePassphraseMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void renameAccount(me.exrates.service.decred.rpc.Api.RenameAccountRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.RenameAccountResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getRenameAccountMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void rescan(me.exrates.service.decred.rpc.Api.RescanRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.RescanResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getRescanMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void nextAccount(me.exrates.service.decred.rpc.Api.NextAccountRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.NextAccountResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getNextAccountMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void nextAddress(me.exrates.service.decred.rpc.Api.NextAddressRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.NextAddressResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getNextAddressMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void importPrivateKey(me.exrates.service.decred.rpc.Api.ImportPrivateKeyRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.ImportPrivateKeyResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getImportPrivateKeyMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void importScript(me.exrates.service.decred.rpc.Api.ImportScriptRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.ImportScriptResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getImportScriptMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void fundTransaction(me.exrates.service.decred.rpc.Api.FundTransactionRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.FundTransactionResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getFundTransactionMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void unspentOutputs(me.exrates.service.decred.rpc.Api.UnspentOutputsRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.UnspentOutputResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getUnspentOutputsMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void constructTransaction(me.exrates.service.decred.rpc.Api.ConstructTransactionRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.ConstructTransactionResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getConstructTransactionMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void signTransaction(me.exrates.service.decred.rpc.Api.SignTransactionRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SignTransactionResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getSignTransactionMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void signTransactions(me.exrates.service.decred.rpc.Api.SignTransactionsRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SignTransactionsResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getSignTransactionsMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void createSignature(me.exrates.service.decred.rpc.Api.CreateSignatureRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.CreateSignatureResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getCreateSignatureMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void publishTransaction(me.exrates.service.decred.rpc.Api.PublishTransactionRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.PublishTransactionResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getPublishTransactionMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void publishUnminedTransactions(me.exrates.service.decred.rpc.Api.PublishUnminedTransactionsRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.PublishUnminedTransactionsResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getPublishUnminedTransactionsMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void purchaseTickets(me.exrates.service.decred.rpc.Api.PurchaseTicketsRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.PurchaseTicketsResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getPurchaseTicketsMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void revokeTickets(me.exrates.service.decred.rpc.Api.RevokeTicketsRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.RevokeTicketsResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getRevokeTicketsMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void loadActiveDataFilters(me.exrates.service.decred.rpc.Api.LoadActiveDataFiltersRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.LoadActiveDataFiltersResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getLoadActiveDataFiltersMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void signMessage(me.exrates.service.decred.rpc.Api.SignMessageRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SignMessageResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getSignMessageMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void signMessages(me.exrates.service.decred.rpc.Api.SignMessagesRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SignMessagesResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getSignMessagesMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void validateAddress(me.exrates.service.decred.rpc.Api.ValidateAddressRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.ValidateAddressResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getValidateAddressMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void committedTickets(me.exrates.service.decred.rpc.Api.CommittedTicketsRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.CommittedTicketsResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getCommittedTicketsMethodHelper(), responseObserver);
@@ -1957,8 +1883,6 @@ public final class WalletServiceGrpc {
     }
   }
 
-  /**
-   */
   public static final class WalletServiceStub extends io.grpc.stub.AbstractStub<WalletServiceStub> {
     private WalletServiceStub(io.grpc.Channel channel) {
       super(channel);
@@ -1986,88 +1910,66 @@ public final class WalletServiceGrpc {
           getChannel().newCall(getPingMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void network(me.exrates.service.decred.rpc.Api.NetworkRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.NetworkResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getNetworkMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void accountNumber(me.exrates.service.decred.rpc.Api.AccountNumberRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.AccountNumberResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getAccountNumberMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void accounts(me.exrates.service.decred.rpc.Api.AccountsRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.AccountsResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getAccountsMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void balance(me.exrates.service.decred.rpc.Api.BalanceRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.BalanceResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getBalanceMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void getTransaction(me.exrates.service.decred.rpc.Api.GetTransactionRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.GetTransactionResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getGetTransactionMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void getTransactions(me.exrates.service.decred.rpc.Api.GetTransactionsRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.GetTransactionsResponse> responseObserver) {
       asyncServerStreamingCall(
           getChannel().newCall(getGetTransactionsMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void getTickets(me.exrates.service.decred.rpc.Api.GetTicketsRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.GetTicketsResponse> responseObserver) {
       asyncServerStreamingCall(
           getChannel().newCall(getGetTicketsMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void ticketPrice(me.exrates.service.decred.rpc.Api.TicketPriceRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.TicketPriceResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getTicketPriceMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void stakeInfo(me.exrates.service.decred.rpc.Api.StakeInfoRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.StakeInfoResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getStakeInfoMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void blockInfo(me.exrates.service.decred.rpc.Api.BlockInfoRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.BlockInfoResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getBlockInfoMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void bestBlock(me.exrates.service.decred.rpc.Api.BestBlockRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.BestBlockResponse> responseObserver) {
       asyncUnaryCall(
@@ -2085,16 +1987,12 @@ public final class WalletServiceGrpc {
           getChannel().newCall(getTransactionNotificationsMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void accountNotifications(me.exrates.service.decred.rpc.Api.AccountNotificationsRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.AccountNotificationsResponse> responseObserver) {
       asyncServerStreamingCall(
           getChannel().newCall(getAccountNotificationsMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.ConfirmationNotificationsRequest> confirmationNotifications(
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.ConfirmationNotificationsResponse> responseObserver) {
       return asyncBidiStreamingCall(
@@ -2112,168 +2010,126 @@ public final class WalletServiceGrpc {
           getChannel().newCall(getChangePassphraseMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void renameAccount(me.exrates.service.decred.rpc.Api.RenameAccountRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.RenameAccountResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getRenameAccountMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void rescan(me.exrates.service.decred.rpc.Api.RescanRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.RescanResponse> responseObserver) {
       asyncServerStreamingCall(
           getChannel().newCall(getRescanMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void nextAccount(me.exrates.service.decred.rpc.Api.NextAccountRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.NextAccountResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getNextAccountMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void nextAddress(me.exrates.service.decred.rpc.Api.NextAddressRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.NextAddressResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getNextAddressMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void importPrivateKey(me.exrates.service.decred.rpc.Api.ImportPrivateKeyRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.ImportPrivateKeyResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getImportPrivateKeyMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void importScript(me.exrates.service.decred.rpc.Api.ImportScriptRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.ImportScriptResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getImportScriptMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void fundTransaction(me.exrates.service.decred.rpc.Api.FundTransactionRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.FundTransactionResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getFundTransactionMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void unspentOutputs(me.exrates.service.decred.rpc.Api.UnspentOutputsRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.UnspentOutputResponse> responseObserver) {
       asyncServerStreamingCall(
           getChannel().newCall(getUnspentOutputsMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void constructTransaction(me.exrates.service.decred.rpc.Api.ConstructTransactionRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.ConstructTransactionResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getConstructTransactionMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void signTransaction(me.exrates.service.decred.rpc.Api.SignTransactionRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SignTransactionResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getSignTransactionMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void signTransactions(me.exrates.service.decred.rpc.Api.SignTransactionsRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SignTransactionsResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getSignTransactionsMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void createSignature(me.exrates.service.decred.rpc.Api.CreateSignatureRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.CreateSignatureResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getCreateSignatureMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void publishTransaction(me.exrates.service.decred.rpc.Api.PublishTransactionRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.PublishTransactionResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getPublishTransactionMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void publishUnminedTransactions(me.exrates.service.decred.rpc.Api.PublishUnminedTransactionsRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.PublishUnminedTransactionsResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getPublishUnminedTransactionsMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void purchaseTickets(me.exrates.service.decred.rpc.Api.PurchaseTicketsRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.PurchaseTicketsResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getPurchaseTicketsMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void revokeTickets(me.exrates.service.decred.rpc.Api.RevokeTicketsRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.RevokeTicketsResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getRevokeTicketsMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void loadActiveDataFilters(me.exrates.service.decred.rpc.Api.LoadActiveDataFiltersRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.LoadActiveDataFiltersResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getLoadActiveDataFiltersMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void signMessage(me.exrates.service.decred.rpc.Api.SignMessageRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SignMessageResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getSignMessageMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void signMessages(me.exrates.service.decred.rpc.Api.SignMessagesRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SignMessagesResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getSignMessagesMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void validateAddress(me.exrates.service.decred.rpc.Api.ValidateAddressRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.ValidateAddressResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getValidateAddressMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void committedTickets(me.exrates.service.decred.rpc.Api.CommittedTicketsRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.CommittedTicketsResponse> responseObserver) {
       asyncUnaryCall(
@@ -2281,8 +2137,6 @@ public final class WalletServiceGrpc {
     }
   }
 
-  /**
-   */
   public static final class WalletServiceBlockingStub extends io.grpc.stub.AbstractStub<WalletServiceBlockingStub> {
     private WalletServiceBlockingStub(io.grpc.Channel channel) {
       super(channel);
@@ -2309,80 +2163,58 @@ public final class WalletServiceGrpc {
           getChannel(), getPingMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.NetworkResponse network(me.exrates.service.decred.rpc.Api.NetworkRequest request) {
       return blockingUnaryCall(
           getChannel(), getNetworkMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.AccountNumberResponse accountNumber(me.exrates.service.decred.rpc.Api.AccountNumberRequest request) {
       return blockingUnaryCall(
           getChannel(), getAccountNumberMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.AccountsResponse accounts(me.exrates.service.decred.rpc.Api.AccountsRequest request) {
       return blockingUnaryCall(
           getChannel(), getAccountsMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.BalanceResponse balance(me.exrates.service.decred.rpc.Api.BalanceRequest request) {
       return blockingUnaryCall(
           getChannel(), getBalanceMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.GetTransactionResponse getTransaction(me.exrates.service.decred.rpc.Api.GetTransactionRequest request) {
       return blockingUnaryCall(
           getChannel(), getGetTransactionMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public java.util.Iterator<me.exrates.service.decred.rpc.Api.GetTransactionsResponse> getTransactions(
         me.exrates.service.decred.rpc.Api.GetTransactionsRequest request) {
       return blockingServerStreamingCall(
           getChannel(), getGetTransactionsMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public java.util.Iterator<me.exrates.service.decred.rpc.Api.GetTicketsResponse> getTickets(
         me.exrates.service.decred.rpc.Api.GetTicketsRequest request) {
       return blockingServerStreamingCall(
           getChannel(), getGetTicketsMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.TicketPriceResponse ticketPrice(me.exrates.service.decred.rpc.Api.TicketPriceRequest request) {
       return blockingUnaryCall(
           getChannel(), getTicketPriceMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.StakeInfoResponse stakeInfo(me.exrates.service.decred.rpc.Api.StakeInfoRequest request) {
       return blockingUnaryCall(
           getChannel(), getStakeInfoMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.BlockInfoResponse blockInfo(me.exrates.service.decred.rpc.Api.BlockInfoRequest request) {
       return blockingUnaryCall(
           getChannel(), getBlockInfoMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.BestBlockResponse bestBlock(me.exrates.service.decred.rpc.Api.BestBlockRequest request) {
       return blockingUnaryCall(
           getChannel(), getBestBlockMethodHelper(), getCallOptions(), request);
@@ -2399,8 +2231,6 @@ public final class WalletServiceGrpc {
           getChannel(), getTransactionNotificationsMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public java.util.Iterator<me.exrates.service.decred.rpc.Api.AccountNotificationsResponse> accountNotifications(
         me.exrates.service.decred.rpc.Api.AccountNotificationsRequest request) {
       return blockingServerStreamingCall(
@@ -2417,158 +2247,114 @@ public final class WalletServiceGrpc {
           getChannel(), getChangePassphraseMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.RenameAccountResponse renameAccount(me.exrates.service.decred.rpc.Api.RenameAccountRequest request) {
       return blockingUnaryCall(
           getChannel(), getRenameAccountMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public java.util.Iterator<me.exrates.service.decred.rpc.Api.RescanResponse> rescan(
         me.exrates.service.decred.rpc.Api.RescanRequest request) {
       return blockingServerStreamingCall(
           getChannel(), getRescanMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.NextAccountResponse nextAccount(me.exrates.service.decred.rpc.Api.NextAccountRequest request) {
       return blockingUnaryCall(
           getChannel(), getNextAccountMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.NextAddressResponse nextAddress(me.exrates.service.decred.rpc.Api.NextAddressRequest request) {
       return blockingUnaryCall(
           getChannel(), getNextAddressMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.ImportPrivateKeyResponse importPrivateKey(me.exrates.service.decred.rpc.Api.ImportPrivateKeyRequest request) {
       return blockingUnaryCall(
           getChannel(), getImportPrivateKeyMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.ImportScriptResponse importScript(me.exrates.service.decred.rpc.Api.ImportScriptRequest request) {
       return blockingUnaryCall(
           getChannel(), getImportScriptMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.FundTransactionResponse fundTransaction(me.exrates.service.decred.rpc.Api.FundTransactionRequest request) {
       return blockingUnaryCall(
           getChannel(), getFundTransactionMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public java.util.Iterator<me.exrates.service.decred.rpc.Api.UnspentOutputResponse> unspentOutputs(
         me.exrates.service.decred.rpc.Api.UnspentOutputsRequest request) {
       return blockingServerStreamingCall(
           getChannel(), getUnspentOutputsMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.ConstructTransactionResponse constructTransaction(me.exrates.service.decred.rpc.Api.ConstructTransactionRequest request) {
       return blockingUnaryCall(
           getChannel(), getConstructTransactionMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.SignTransactionResponse signTransaction(me.exrates.service.decred.rpc.Api.SignTransactionRequest request) {
       return blockingUnaryCall(
           getChannel(), getSignTransactionMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.SignTransactionsResponse signTransactions(me.exrates.service.decred.rpc.Api.SignTransactionsRequest request) {
       return blockingUnaryCall(
           getChannel(), getSignTransactionsMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.CreateSignatureResponse createSignature(me.exrates.service.decred.rpc.Api.CreateSignatureRequest request) {
       return blockingUnaryCall(
           getChannel(), getCreateSignatureMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.PublishTransactionResponse publishTransaction(me.exrates.service.decred.rpc.Api.PublishTransactionRequest request) {
       return blockingUnaryCall(
           getChannel(), getPublishTransactionMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.PublishUnminedTransactionsResponse publishUnminedTransactions(me.exrates.service.decred.rpc.Api.PublishUnminedTransactionsRequest request) {
       return blockingUnaryCall(
           getChannel(), getPublishUnminedTransactionsMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.PurchaseTicketsResponse purchaseTickets(me.exrates.service.decred.rpc.Api.PurchaseTicketsRequest request) {
       return blockingUnaryCall(
           getChannel(), getPurchaseTicketsMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.RevokeTicketsResponse revokeTickets(me.exrates.service.decred.rpc.Api.RevokeTicketsRequest request) {
       return blockingUnaryCall(
           getChannel(), getRevokeTicketsMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.LoadActiveDataFiltersResponse loadActiveDataFilters(me.exrates.service.decred.rpc.Api.LoadActiveDataFiltersRequest request) {
       return blockingUnaryCall(
           getChannel(), getLoadActiveDataFiltersMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.SignMessageResponse signMessage(me.exrates.service.decred.rpc.Api.SignMessageRequest request) {
       return blockingUnaryCall(
           getChannel(), getSignMessageMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.SignMessagesResponse signMessages(me.exrates.service.decred.rpc.Api.SignMessagesRequest request) {
       return blockingUnaryCall(
           getChannel(), getSignMessagesMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.ValidateAddressResponse validateAddress(me.exrates.service.decred.rpc.Api.ValidateAddressRequest request) {
       return blockingUnaryCall(
           getChannel(), getValidateAddressMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.CommittedTicketsResponse committedTickets(me.exrates.service.decred.rpc.Api.CommittedTicketsRequest request) {
       return blockingUnaryCall(
           getChannel(), getCommittedTicketsMethodHelper(), getCallOptions(), request);
     }
   }
 
-  /**
-   */
   public static final class WalletServiceFutureStub extends io.grpc.stub.AbstractStub<WalletServiceFutureStub> {
     private WalletServiceFutureStub(io.grpc.Channel channel) {
       super(channel);
@@ -2596,72 +2382,54 @@ public final class WalletServiceGrpc {
           getChannel().newCall(getPingMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.NetworkResponse> network(
         me.exrates.service.decred.rpc.Api.NetworkRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getNetworkMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.AccountNumberResponse> accountNumber(
         me.exrates.service.decred.rpc.Api.AccountNumberRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getAccountNumberMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.AccountsResponse> accounts(
         me.exrates.service.decred.rpc.Api.AccountsRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getAccountsMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.BalanceResponse> balance(
         me.exrates.service.decred.rpc.Api.BalanceRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getBalanceMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.GetTransactionResponse> getTransaction(
         me.exrates.service.decred.rpc.Api.GetTransactionRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getGetTransactionMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.TicketPriceResponse> ticketPrice(
         me.exrates.service.decred.rpc.Api.TicketPriceRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getTicketPriceMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.StakeInfoResponse> stakeInfo(
         me.exrates.service.decred.rpc.Api.StakeInfoRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getStakeInfoMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.BlockInfoResponse> blockInfo(
         me.exrates.service.decred.rpc.Api.BlockInfoRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getBlockInfoMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.BestBlockResponse> bestBlock(
         me.exrates.service.decred.rpc.Api.BestBlockRequest request) {
       return futureUnaryCall(
@@ -2679,152 +2447,114 @@ public final class WalletServiceGrpc {
           getChannel().newCall(getChangePassphraseMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.RenameAccountResponse> renameAccount(
         me.exrates.service.decred.rpc.Api.RenameAccountRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getRenameAccountMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.NextAccountResponse> nextAccount(
         me.exrates.service.decred.rpc.Api.NextAccountRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getNextAccountMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.NextAddressResponse> nextAddress(
         me.exrates.service.decred.rpc.Api.NextAddressRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getNextAddressMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.ImportPrivateKeyResponse> importPrivateKey(
         me.exrates.service.decred.rpc.Api.ImportPrivateKeyRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getImportPrivateKeyMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.ImportScriptResponse> importScript(
         me.exrates.service.decred.rpc.Api.ImportScriptRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getImportScriptMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.FundTransactionResponse> fundTransaction(
         me.exrates.service.decred.rpc.Api.FundTransactionRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getFundTransactionMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.ConstructTransactionResponse> constructTransaction(
         me.exrates.service.decred.rpc.Api.ConstructTransactionRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getConstructTransactionMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.SignTransactionResponse> signTransaction(
         me.exrates.service.decred.rpc.Api.SignTransactionRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getSignTransactionMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.SignTransactionsResponse> signTransactions(
         me.exrates.service.decred.rpc.Api.SignTransactionsRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getSignTransactionsMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.CreateSignatureResponse> createSignature(
         me.exrates.service.decred.rpc.Api.CreateSignatureRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getCreateSignatureMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.PublishTransactionResponse> publishTransaction(
         me.exrates.service.decred.rpc.Api.PublishTransactionRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getPublishTransactionMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.PublishUnminedTransactionsResponse> publishUnminedTransactions(
         me.exrates.service.decred.rpc.Api.PublishUnminedTransactionsRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getPublishUnminedTransactionsMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.PurchaseTicketsResponse> purchaseTickets(
         me.exrates.service.decred.rpc.Api.PurchaseTicketsRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getPurchaseTicketsMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.RevokeTicketsResponse> revokeTickets(
         me.exrates.service.decred.rpc.Api.RevokeTicketsRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getRevokeTicketsMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.LoadActiveDataFiltersResponse> loadActiveDataFilters(
         me.exrates.service.decred.rpc.Api.LoadActiveDataFiltersRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getLoadActiveDataFiltersMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.SignMessageResponse> signMessage(
         me.exrates.service.decred.rpc.Api.SignMessageRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getSignMessageMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.SignMessagesResponse> signMessages(
         me.exrates.service.decred.rpc.Api.SignMessagesRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getSignMessagesMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.ValidateAddressResponse> validateAddress(
         me.exrates.service.decred.rpc.Api.ValidateAddressRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getValidateAddressMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.CommittedTicketsResponse> committedTickets(
         me.exrates.service.decred.rpc.Api.CommittedTicketsRequest request) {
       return futureUnaryCall(

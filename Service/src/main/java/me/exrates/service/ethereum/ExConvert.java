@@ -3,9 +3,6 @@ package me.exrates.service.ethereum;
 
 import java.math.BigDecimal;
 
-/**
- * Created by Maks on 12.03.2018.
- */
 public class ExConvert {
 
     private ExConvert() {

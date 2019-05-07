@@ -11,7 +11,13 @@ import org.apache.commons.lang.StringUtils;
 import org.json.JSONObject;
 import org.nem.core.crypto.PrivateKey;
 import org.nem.core.messages.PlainMessage;
-import org.nem.core.model.*;
+import org.nem.core.model.Account;
+import org.nem.core.model.Address;
+import org.nem.core.model.NetworkInfos;
+import org.nem.core.model.Transaction;
+import org.nem.core.model.TransactionFeeCalculatorAfterFork;
+import org.nem.core.model.TransferTransaction;
+import org.nem.core.model.TransferTransactionAttachment;
 import org.nem.core.model.mosaic.Mosaic;
 import org.nem.core.model.mosaic.MosaicFeeInformationLookup;
 import org.nem.core.model.ncc.RequestPrepareAnnounce;
@@ -30,9 +36,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
 
-/**
- * Created by maks on 18.07.2017.
- */
 @Log4j2(topic = "nem_log")
 @Service
 @PropertySource("classpath:/merchants/nem.properties")

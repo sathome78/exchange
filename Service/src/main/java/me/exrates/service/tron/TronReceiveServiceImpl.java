@@ -70,7 +70,6 @@ public class TronReceiveServiceImpl {
                 saveLastBlock(lastScannedBlock);
             }
         } catch (Exception e) {
-            /*ignore*/
         }
     }
 

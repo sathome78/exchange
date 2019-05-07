@@ -14,9 +14,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Created by ValkSam on 09.03.2017.
- */
 @Service
 public class UserRoleServiceImpl implements UserRoleService {
     @Autowired

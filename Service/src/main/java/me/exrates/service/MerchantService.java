@@ -1,8 +1,11 @@
 package me.exrates.service;
 
 import lombok.SneakyThrows;
+import me.exrates.model.CreditsOperation;
 import me.exrates.model.Currency;
-import me.exrates.model.*;
+import me.exrates.model.Merchant;
+import me.exrates.model.MerchantCurrency;
+import me.exrates.model.Transaction;
 import me.exrates.model.dto.MerchantCurrencyBasicInfoDto;
 import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
@@ -14,11 +17,12 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransferTypeVoucher;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 public interface MerchantService {
 
     List<Merchant> findAllByCurrency(Currency currency);

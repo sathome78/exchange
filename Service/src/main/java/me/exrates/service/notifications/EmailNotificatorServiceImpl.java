@@ -8,9 +8,6 @@ import me.exrates.service.exception.MessageUndeliweredException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-/**
- * Created by Maks on 29.09.2017.
- */
 @Log4j2(topic = "message_notify")
 @Component
 public class EmailNotificatorServiceImpl implements NotificatorService {

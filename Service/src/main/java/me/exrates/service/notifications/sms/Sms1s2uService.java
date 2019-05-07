@@ -2,7 +2,11 @@ package me.exrates.service.notifications.sms;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.LookupResponseDto;
-import me.exrates.service.exception.*;
+import me.exrates.service.exception.InsuficcienceServiceBalanceException;
+import me.exrates.service.exception.InvalidContactFormatException;
+import me.exrates.service.exception.InvalidRefNumberException;
+import me.exrates.service.exception.MessageUndeliweredException;
+import me.exrates.service.exception.ServiceUnavailableException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -19,9 +23,6 @@ import java.util.Random;
 
 import static rx.internal.operators.NotificationLite.isError;
 
-/**
- * Created by Maks on 09.10.2017.
- */
 @PropertySource("classpath:1s2u_sms.properties")
 @Log4j2(topic = "message_notify")
 @Component
@@ -71,61 +72,6 @@ public class Sms1s2uService {
             b.append(String.format("%04X", (int) c));
         }
         return b.toString();
-    }
-
-    public LookupResponseDto getLookup(long contact) {
-        URI uri = UriComponentsBuilder
-                .fromUriString(hlrUrl)
-                .queryParam("key", key)
-                .queryParam("ref", generateRef())
-                .queryParam("msisdn", contact)
-                .build().toUri();
-        log.debug("uri {}", uri.toString());
-       /* ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, null, String.class);
-        log.debug("response {}", response.toString());
-        if (isError(response)) {
-            throw new ServiceUnavailableException();
-        }
-        log.debug("resp {}", response);
-        if (NumberUtils.isDigits(response.getBody())) {
-            resolveError(Integer.parseInt(response.getBody()));
-        }
-        JSONObject object = new JSONObject(response.getBody()).getJSONArray("results").getJSONObject(0);
-        return LookupResponseDto.builder()
-                .country(object.getString("country"))
-                .operator(object.getString("operator"))
-                .isOperable(object.getString("errcode").equals("000"))
-                .build();*/
-        return LookupResponseDto.builder()
-                .country("Ukarine")
-                .operator("KS")
-                .isOperable(true)
-                .build();
-
-    }
-
-
-    private long generateRef() {
-        return 100000000 + new Random().nextInt(100000000);
-    }
-
-    private void resolveError(int errCode) {
-        switch (errCode) {
-            case 01 : {
-                throw new InvalidRefNumberException();
-            }
-            case 02 : {
-                throw new InvalidContactFormatException();
-            }
-            case 03 : {
-                throw new InsuficcienceServiceBalanceException();
-            }
-            default: {
-                throw new ServiceUnavailableException();
-            }
-
-
-        }
     }
 
 }

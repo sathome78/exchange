@@ -1,8 +1,5 @@
 package me.exrates.service.exception.process;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 public class NotEnoughUserWalletMoneyException extends ProcessingException {
 
     public NotEnoughUserWalletMoneyException() {

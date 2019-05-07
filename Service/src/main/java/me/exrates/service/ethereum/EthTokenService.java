@@ -6,9 +6,6 @@ import org.web3j.protocol.core.methods.response.Transaction;
 import java.math.BigInteger;
 import java.util.List;
 
-/**
- * Created by Maks on 19.09.2017.
- */
 public interface EthTokenService {
 
     List<String> getContractAddress();

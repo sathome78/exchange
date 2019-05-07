@@ -10,9 +10,6 @@ import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
 import java.util.concurrent.Semaphore;
 
-/**
- * Created by Maks on 04.09.2017.
- */
 @EqualsAndHashCode
 @Log4j2
 public class TradesEventsHandler {

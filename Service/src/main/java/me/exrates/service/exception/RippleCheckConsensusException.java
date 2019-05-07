@@ -1,8 +1,5 @@
 package me.exrates.service.exception;
 
-/**
- * Created by maks on 10.05.2017.
- */
 public class RippleCheckConsensusException extends RuntimeException {
 
     public RippleCheckConsensusException() {

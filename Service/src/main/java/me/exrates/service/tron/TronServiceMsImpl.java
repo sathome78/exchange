@@ -16,7 +16,7 @@ import java.util.Set;
 @Service
 @Conditional(MicroserviceConditional.class)
 @RequiredArgsConstructor
-//Class for method countSpecCommission
+
 public class TronServiceMsImpl implements TronService {
 
     @Override

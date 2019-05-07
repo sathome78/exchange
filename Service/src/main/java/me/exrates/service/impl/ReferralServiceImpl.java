@@ -4,18 +4,34 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.ReferralLevelDao;
 import me.exrates.dao.ReferralTransactionDao;
 import me.exrates.dao.ReferralUserGraphDao;
-import me.exrates.model.*;
+import me.exrates.model.Commission;
+import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
+import me.exrates.model.ExOrder;
+import me.exrates.model.ReferralLevel;
+import me.exrates.model.ReferralTransaction;
+import me.exrates.model.User;
+import me.exrates.model.Wallet;
 import me.exrates.model.dto.RefFilterData;
 import me.exrates.model.dto.ReferralInfoDto;
 import me.exrates.model.dto.ReferralProfitDto;
 import me.exrates.model.dto.RefsListContainer;
 import me.exrates.model.dto.onlineTableDto.MyReferralDetailedDto;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.ActionType;
+import me.exrates.model.enums.NotificationEvent;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.RefActionType;
+import me.exrates.model.enums.ReferralTransactionStatusEnum;
+import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
-import me.exrates.service.*;
+import me.exrates.service.CommissionService;
+import me.exrates.service.CompanyWalletService;
+import me.exrates.service.NotificationService;
+import me.exrates.service.ReferralService;
+import me.exrates.service.UserService;
+import me.exrates.service.WalletService;
 import me.exrates.service.util.Cache;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +44,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Random;
 
 import static java.math.BigDecimal.ZERO;
 import static java.math.BigDecimal.valueOf;
@@ -37,9 +60,6 @@ import static me.exrates.model.enums.OperationType.REFERRAL;
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Log4j2
 @Service
 @PropertySource("classpath:/referral.properties")

@@ -3,29 +3,20 @@ package me.exrates.service.decred;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NettyChannelBuilder;
-import io.netty.handler.ssl.ClientAuth;
-import io.netty.handler.ssl.SslProvider;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.dao.MerchantSpecParamsDao;
-import me.exrates.model.dto.MerchantSpecParamDto;
 import me.exrates.service.decred.rpc.Api;
 import me.exrates.service.decred.rpc.WalletServiceGrpc;
 import org.apache.commons.io.IOUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
-
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.net.ssl.HttpsURLConnection;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.Iterator;
-import java.util.concurrent.TimeUnit;
 
 @PropertySource("classpath:/merchants/decred.properties")
 @Service
@@ -70,7 +61,6 @@ public class DecredGrpcServiceImpl implements DecredGrpcService{
                     .build();
         } catch (Exception e) {
             log.error(e);
-            /*throw new RuntimeException(e);*/
         }
         log.debug("channel created");
     }

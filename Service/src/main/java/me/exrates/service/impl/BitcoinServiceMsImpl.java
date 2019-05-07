@@ -8,7 +8,12 @@ import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.dto.dataTable.DataTable;
-import me.exrates.model.dto.merchants.btc.*;
+import me.exrates.model.dto.merchants.btc.BtcAdminPreparedTxDto;
+import me.exrates.model.dto.merchants.btc.BtcBlockDto;
+import me.exrates.model.dto.merchants.btc.BtcPaymentResultDetailedDto;
+import me.exrates.model.dto.merchants.btc.BtcPreparedTransactionDto;
+import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
+import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.properties.InOutProperties;
@@ -146,32 +151,18 @@ public class BitcoinServiceMsImpl implements BitcoinService {
 
     @Override
     public BtcAdminPreparedTxDto prepareRawTransactions(List<BtcWalletPaymentItemDto> payments) {
-/*        List<Map<String, BigDecimal>> paymentGroups = groupPaymentsForSeparateTransactions(payments);
-        BigDecimal feeRate = getActualFee();
-
-        return new BtcAdminPreparedTxDto(paymentGroups.stream().map(group -> bitcoinWalletService.prepareRawTransaction(group))
-                .collect(Collectors.toList()), feeRate);*/
         throw new RuntimeException("Need implementation@!!!!");
 
     }
 
     @Override
     public BtcAdminPreparedTxDto updateRawTransactions(List<BtcPreparedTransactionDto> preparedTransactions) {
-//        BigDecimal feeRate = getActualFee();
-//        return new BtcAdminPreparedTxDto(preparedTransactions.stream()
-//                .map(transactionDto -> bitcoinWalletService.prepareRawTransaction(transactionDto.getPayments(), transactionDto.getHex()))
-//                .collect(Collectors.toList()), feeRate);
         throw new RuntimeException("Need implementation@!!!!");
 
     }
 
     @Override
     public List<BtcPaymentResultDetailedDto> sendRawTransactions(List<BtcPreparedTransactionDto> preparedTransactions) {
-/*        return preparedTransactions.stream().flatMap(preparedTx -> {
-            BtcPaymentResultDto resultDto = bitcoinWalletService.signAndSendRawTransaction(preparedTx.getHex());
-            return preparedTx.getPayments().entrySet().stream()
-                    .map(payment -> new BtcPaymentResultDetailedDto(payment.getKey(), payment.getValue(), resultDto));
-        }).collect(Collectors.toList());*/
         throw new RuntimeException("Need implementation@!!!!");
 
     }
@@ -206,13 +197,11 @@ public class BitcoinServiceMsImpl implements BitcoinService {
   @Override
   public long getBlocksCount(){
         throw new RuntimeException("Need implementation@!!!!");
-//    return bitcoinWalletService.getBlocksCount();
   }
 
   @Override
   public Long getLastBlockTime(){
       throw new RuntimeException("Need implementation@!!!!");
-//      return bitcoinWalletService.getLastBlockTime();
   }
 
 }

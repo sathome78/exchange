@@ -7,9 +7,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Service
 public class BlockchainSDKWrapper {
 

@@ -6,9 +6,6 @@ import me.exrates.model.Currency;
 import java.math.BigDecimal;
 import java.util.List;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 public interface CompanyWalletService {
 
     CompanyWallet create(Currency currency);

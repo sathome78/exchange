@@ -17,14 +17,17 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.websocket.*;
+import javax.websocket.ClientEndpoint;
+import javax.websocket.CloseReason;
+import javax.websocket.ContainerProvider;
+import javax.websocket.OnClose;
+import javax.websocket.OnMessage;
+import javax.websocket.RemoteEndpoint;
+import javax.websocket.Session;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Optional;
 
-/**
- * Created by maks on 11.05.2017.
- */
 @Log4j2(topic = "ripple_log")
 @ClientEndpoint
 @Service

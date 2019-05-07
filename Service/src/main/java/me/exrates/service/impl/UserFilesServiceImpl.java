@@ -17,15 +17,18 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.StringJoiner;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Service
 @PropertySource("classpath:/uploadfiles.properties")
 public class UserFilesServiceImpl implements UserFilesService {

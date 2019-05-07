@@ -17,9 +17,6 @@ import java.util.Base64;
 import static com.yandex.money.api.utils.Numbers.bytesToHex;
 import static java.math.BigDecimal.ROUND_HALF_UP;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Service
 public class AlgorithmServiceImpl implements AlgorithmService {
 

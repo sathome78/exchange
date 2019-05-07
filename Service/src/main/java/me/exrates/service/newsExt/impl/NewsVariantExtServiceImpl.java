@@ -17,9 +17,6 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Locale;
 
-/**
- * Created by ValkSam
- */
 @Service
 @Log4j
 @PropertySource(value = {"classpath:/materials.properties"})

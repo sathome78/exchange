@@ -3,9 +3,6 @@ package me.exrates.service;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 public interface EDCService extends IRefillable, IWithdrawable {
 
 

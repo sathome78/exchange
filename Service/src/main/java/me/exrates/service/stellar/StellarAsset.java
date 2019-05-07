@@ -4,9 +4,6 @@ import lombok.Data;
 import org.stellar.sdk.Asset;
 import org.stellar.sdk.KeyPair;
 
-/**
- * Created by Maks on 04.04.2018.
- */
 @Data
 public class StellarAsset {
 

@@ -10,9 +10,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Service
 public interface YandexMoneyService extends IRefillable, IWithdrawable {
 

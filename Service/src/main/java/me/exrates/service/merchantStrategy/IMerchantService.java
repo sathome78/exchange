@@ -4,14 +4,10 @@ import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.util.CharUtils;
 
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
-/**
- * Created by ValkSam on 24.03.2017.
- */
 public interface IMerchantService {
 
   default void checkWithdrawAddressName(String withdrawName) {
@@ -45,9 +41,5 @@ public interface IMerchantService {
 
   default String getMainAddress() {
     return "no address!!!";
-  }
-  //TODO remove after changes in mobile api
-  default String getPaymentMessage(String additionalTag, Locale locale) {
-    return additionalTag;
   }
 }

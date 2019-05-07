@@ -5,9 +5,6 @@ import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import java.math.BigDecimal;
 import java.util.Map;
 
-/**
- * Created by ValkSam on 24.03.2017.
- */
 public interface IWithdrawable extends IMerchantService {
 
   Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception;

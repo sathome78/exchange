@@ -4,7 +4,6 @@ package me.exrates.service.monero.utils;
 import me.exrates.service.monero.MoneroAddress;
 import me.exrates.service.monero.MoneroIntegratedAddress;
 import wallet.MoneroException;
-import wallet.MoneroWallet;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,33 +20,6 @@ public class MoneroUtils {
     private static final List<Character> CHARS = new ArrayList();
 
     public MoneroUtils() {
-    }
-
-    public static boolean isValidStandardAddress(String standardAddress) {
-        try {
-            validateStandardAddress(standardAddress);
-            return true;
-        } catch (MoneroException var2) {
-            return false;
-        }
-    }
-
-    public static boolean isValidIntegratedAddress(String integratedAddress) {
-        try {
-            validateIntegratedAddress(integratedAddress);
-            return true;
-        } catch (MoneroException var2) {
-            return false;
-        }
-    }
-
-    public static boolean isValidPaymentId(String paymentId) {
-        try {
-            validatePaymentId(paymentId);
-            return true;
-        } catch (MoneroException var2) {
-            return false;
-        }
     }
 
     public static void validateStandardAddress(String standardAddress) {
@@ -100,35 +72,6 @@ public class MoneroUtils {
         }
 
     }
-
-    public static void validateMnemonicSeed(String mnemonicSeed) {
-        if (mnemonicSeed == null) {
-            throw new MoneroException("Mnemonic seed is null");
-        } else {
-            String[] words = mnemonicSeed.split(" ");
-            if (words.length != 25) {
-                throw new MoneroException("Mnemonic seed is " + words.length + " words but must be " + 25);
-            }
-        }
-    }
-
-    public static void validateViewKey(String viewKey) {
-        if (viewKey == null) {
-            throw new MoneroException("View key is null");
-        } else if (viewKey.length() != 64) {
-            throw new MoneroException("View key is " + viewKey.length() + " characters but must be " + 64);
-        }
-    }
-//
-//    public static MoneroAddress toAddress(String address, MoneroWallet wallet) {
-//        if (isValidStandardAddress(address)) {
-//            return new MoneroAddress(address);
-//        } else if (isValidIntegratedAddress(address)) {
-//            return wallet.splitIntegratedAddress(address);
-//        } else {
-//            throw new MoneroException("Address is neither standard nor integrated: " + address);
-//        }
-//    }
 
     private static void validateHex(String str) {
         str = "8c8e616596edafb6";

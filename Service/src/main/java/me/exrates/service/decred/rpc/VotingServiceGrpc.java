@@ -1,22 +1,12 @@
 package me.exrates.service.decred.rpc;
 
 import static io.grpc.MethodDescriptor.generateFullMethodName;
-import static io.grpc.stub.ClientCalls.asyncBidiStreamingCall;
-import static io.grpc.stub.ClientCalls.asyncClientStreamingCall;
-import static io.grpc.stub.ClientCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ClientCalls.asyncUnaryCall;
-import static io.grpc.stub.ClientCalls.blockingServerStreamingCall;
 import static io.grpc.stub.ClientCalls.blockingUnaryCall;
 import static io.grpc.stub.ClientCalls.futureUnaryCall;
-import static io.grpc.stub.ServerCalls.asyncBidiStreamingCall;
-import static io.grpc.stub.ServerCalls.asyncClientStreamingCall;
-import static io.grpc.stub.ServerCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ServerCalls.asyncUnaryCall;
-import static io.grpc.stub.ServerCalls.asyncUnimplementedStreamingCall;
 import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
 
-/**
- */
 @javax.annotation.Generated(
     value = "by gRPC proto compiler (version 1.10.1)",
     comments = "Source: api.proto")
@@ -125,19 +115,13 @@ public final class VotingServiceGrpc {
     return new VotingServiceFutureStub(channel);
   }
 
-  /**
-   */
   public static abstract class VotingServiceImplBase implements io.grpc.BindableService {
 
-    /**
-     */
     public void voteChoices(me.exrates.service.decred.rpc.Api.VoteChoicesRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.VoteChoicesResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getVoteChoicesMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void setVoteChoices(me.exrates.service.decred.rpc.Api.SetVoteChoicesRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SetVoteChoicesResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getSetVoteChoicesMethodHelper(), responseObserver);
@@ -163,8 +147,6 @@ public final class VotingServiceGrpc {
     }
   }
 
-  /**
-   */
   public static final class VotingServiceStub extends io.grpc.stub.AbstractStub<VotingServiceStub> {
     private VotingServiceStub(io.grpc.Channel channel) {
       super(channel);
@@ -181,16 +163,12 @@ public final class VotingServiceGrpc {
       return new VotingServiceStub(channel, callOptions);
     }
 
-    /**
-     */
     public void voteChoices(me.exrates.service.decred.rpc.Api.VoteChoicesRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.VoteChoicesResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getVoteChoicesMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void setVoteChoices(me.exrates.service.decred.rpc.Api.SetVoteChoicesRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SetVoteChoicesResponse> responseObserver) {
       asyncUnaryCall(
@@ -198,8 +176,6 @@ public final class VotingServiceGrpc {
     }
   }
 
-  /**
-   */
   public static final class VotingServiceBlockingStub extends io.grpc.stub.AbstractStub<VotingServiceBlockingStub> {
     private VotingServiceBlockingStub(io.grpc.Channel channel) {
       super(channel);
@@ -216,23 +192,17 @@ public final class VotingServiceGrpc {
       return new VotingServiceBlockingStub(channel, callOptions);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.VoteChoicesResponse voteChoices(me.exrates.service.decred.rpc.Api.VoteChoicesRequest request) {
       return blockingUnaryCall(
           getChannel(), getVoteChoicesMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.SetVoteChoicesResponse setVoteChoices(me.exrates.service.decred.rpc.Api.SetVoteChoicesRequest request) {
       return blockingUnaryCall(
           getChannel(), getSetVoteChoicesMethodHelper(), getCallOptions(), request);
     }
   }
 
-  /**
-   */
   public static final class VotingServiceFutureStub extends io.grpc.stub.AbstractStub<VotingServiceFutureStub> {
     private VotingServiceFutureStub(io.grpc.Channel channel) {
       super(channel);
@@ -249,16 +219,12 @@ public final class VotingServiceGrpc {
       return new VotingServiceFutureStub(channel, callOptions);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.VoteChoicesResponse> voteChoices(
         me.exrates.service.decred.rpc.Api.VoteChoicesRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getVoteChoicesMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.SetVoteChoicesResponse> setVoteChoices(
         me.exrates.service.decred.rpc.Api.SetVoteChoicesRequest request) {
       return futureUnaryCall(

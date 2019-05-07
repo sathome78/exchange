@@ -5,9 +5,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 public interface UserFilesService {
 
     List<MultipartFile> reduceInvalidFiles(MultipartFile[] files);

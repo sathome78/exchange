@@ -11,18 +11,7 @@ import org.nem.core.model.Account;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by maks on 18.07.2017.
- */
 public interface NemService extends IRefillable, IWithdrawable {
-
-   /* *//*method for admin manual check transaction by hash*//*
-    void manualCheckNotReceivedTransaction(String hash);
-
-    *//*return: true if tx validated; false if not validated but validationin process,
-        throws Exception if declined*//*
-    boolean checkSendedTransaction(String hash, String additionalParams);*/
-
 
     @Override
     default Boolean createdRefillRequestRecordNeeded() {

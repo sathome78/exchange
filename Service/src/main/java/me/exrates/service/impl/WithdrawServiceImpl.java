@@ -44,7 +44,11 @@ import me.exrates.service.NotificationService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
-import me.exrates.service.exception.*;
+import me.exrates.service.exception.WithdrawRequestAlreadyPostedException;
+import me.exrates.service.exception.WithdrawRequestCreationException;
+import me.exrates.service.exception.WithdrawRequestNotFoundException;
+import me.exrates.service.exception.WithdrawRequestPostException;
+import me.exrates.service.exception.WithdrawRequestRevokeException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
@@ -90,10 +94,6 @@ import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.START_BCH_EXA
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.TAKE_TO_WORK;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
-
-/**
- * created by ValkSam
- */
 
 @Service
 @Conditional(MonolitConditional.class)

@@ -3,9 +3,6 @@ package me.exrates.service;
 import me.exrates.model.enums.TransferProcessTypeEnum;
 import me.exrates.service.merchantStrategy.ITransferable;
 
-/**
- * Created by ValkSam on 02.06.2017.
- */
 public interface TransferVoucherService extends ITransferable {
 
   @Override

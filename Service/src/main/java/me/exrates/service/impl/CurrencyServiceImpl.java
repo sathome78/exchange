@@ -53,15 +53,12 @@ import java.util.stream.Collectors;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.util.Objects.isNull;
-import static me.exrates.service.util.CollectionUtil.isEmpty;
 import static me.exrates.configurations.CacheConfiguration.CURRENCY_BY_NAME_CACHE;
 import static me.exrates.configurations.CacheConfiguration.CURRENCY_PAIRS_LIST_BY_TYPE_CACHE;
 import static me.exrates.configurations.CacheConfiguration.CURRENCY_PAIR_BY_ID_CACHE;
 import static me.exrates.configurations.CacheConfiguration.CURRENCY_PAIR_BY_NAME_CACHE;
+import static me.exrates.service.util.CollectionUtil.isEmpty;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Log4j2
 @Service
 public class CurrencyServiceImpl implements CurrencyService {

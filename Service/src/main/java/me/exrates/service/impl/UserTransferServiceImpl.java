@@ -11,9 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
-/**
- * Created by maks on 15.03.2017.
- */
 @Service
 public class UserTransferServiceImpl implements UserTransferService {
 

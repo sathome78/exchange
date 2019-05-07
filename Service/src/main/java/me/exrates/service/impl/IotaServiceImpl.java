@@ -42,10 +42,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-
-/**
- * Created by ajet
- */
 @Log4j2(topic = "iota_log")
 @Service
 @PropertySource("classpath:/merchants/iota.properties")
@@ -174,7 +170,7 @@ public class IotaServiceImpl implements IotaService {
                         .host(HOST)
                         .port(PORT)
                         .build();
-               /*Do not delete!1
+               /*todo: Do not delete!1
                GetNodeInfoResponse response = iotaClient.getNodeInfo();
                 System.out.println(response.toString());*/
 

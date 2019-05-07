@@ -29,9 +29,6 @@ import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Properties;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Service
 @PropertySource("classpath:/merchants/perfectmoney.properties")
 @Conditional(MonolitConditional.class)
@@ -86,7 +83,7 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
         BigDecimal sum = request.getAmount();
         String currency = request.getCurrencyName();
         Number amountToPay = "GOLD".equals(currency) ? sum.toBigInteger() : sum.setScale(2, BigDecimal.ROUND_HALF_UP);
-        /**/
+
         Properties properties = new Properties() {
             {
                 put("PAYEE_ACCOUNT", currency.equals("USD") ? usdCompanyAccount : eurCompanyAccount);
@@ -100,7 +97,7 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
                 put("FORCED_PAYMENT_METHOD", "account");
             }
         };
-        /**/
+
         return generateFullUrlMap(url, "POST", properties);
     }
 

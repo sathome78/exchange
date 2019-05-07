@@ -4,9 +4,6 @@ import org.nem.core.crypto.KeyPair;
 import org.nem.core.model.Address;
 import org.nem.core.model.NetworkInfos;
 
-/**
- * Created by maks on 18.07.2017.
- */
 public class Utils {
 
         /*use it to generate new account keypair*/

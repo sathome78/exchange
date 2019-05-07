@@ -12,9 +12,6 @@ public class NeoApiException extends RuntimeException {
         this.code = code;
     }
 
-    public NeoApiException() {
-    }
-
     public NeoApiException(String message) {
         super(message);
     }
@@ -22,10 +19,6 @@ public class NeoApiException extends RuntimeException {
     public NeoApiException(int code, String message) {
         super(message);
         this.code = code;
-    }
-
-    public NeoApiException(String message, Throwable cause) {
-        super(message, cause);
     }
 
     public NeoApiException(Throwable cause) {

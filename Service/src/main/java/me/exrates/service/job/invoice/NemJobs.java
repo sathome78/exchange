@@ -26,9 +26,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Created by maks on 20.07.2017.
- */
 @Log4j2(topic = "nem_log")
 @Service
 @Conditional(MonolitConditional.class)
@@ -56,7 +53,6 @@ public class NemJobs {
     public void init() {
         currency = currencyService.findByName("XEM");
         merchant = merchantService.findByName("NEM");
-       /* scheduler.scheduleAtFixedRate(this::checkWithdrawals, 1, 5, TimeUnit.MINUTES);*/
         scheduler.scheduleAtFixedRate(this::checkReffils, 3, 5, TimeUnit.MINUTES);
     }
 

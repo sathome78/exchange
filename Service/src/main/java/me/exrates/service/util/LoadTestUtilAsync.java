@@ -65,7 +65,6 @@ public class LoadTestUtilAsync {
 
 
     private static void runOrderCreationSequence() {
-     //   System.out.println("Active threads " + Thread.activeCount());
         sendGetRequest(URL_DASHBOARD, Collections.emptyMap()).addCallback(result -> {
             System.out.println("Got dashboard");
             retrieveToken()

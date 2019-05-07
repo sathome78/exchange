@@ -1,6 +1,10 @@
 package me.exrates.service.notifications.sms.epochta;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -9,9 +13,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by Maks on 17.10.2017.
- */
 public class Connector {
 
         private static HttpURLConnection httpConn;

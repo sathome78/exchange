@@ -11,9 +11,6 @@ import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 
-/**
- * Created by Maks on 05.09.2017.
- */
 @EqualsAndHashCode
 @Log4j2
 public class MyTradesHandler {
@@ -36,12 +33,6 @@ public class MyTradesHandler {
         SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
         this.currencyPairId = currencyPairId;
         timer = new Timer();
-       /* timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                locksMap.clear();
-            }
-        }, LOCKS_CLEAR_DELAY);*/
     }
 
     public static MyTradesHandler init(int currencyPairId) {

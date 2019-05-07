@@ -4,9 +4,6 @@ import me.exrates.model.enums.OperationType;
 
 import java.math.BigDecimal;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 public interface AlgorithmService {
 
     String computeMD5Hash(String string);

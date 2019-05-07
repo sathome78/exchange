@@ -1,22 +1,12 @@
 package me.exrates.service.decred.rpc;
 
 import static io.grpc.MethodDescriptor.generateFullMethodName;
-import static io.grpc.stub.ClientCalls.asyncBidiStreamingCall;
-import static io.grpc.stub.ClientCalls.asyncClientStreamingCall;
-import static io.grpc.stub.ClientCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ClientCalls.asyncUnaryCall;
-import static io.grpc.stub.ClientCalls.blockingServerStreamingCall;
 import static io.grpc.stub.ClientCalls.blockingUnaryCall;
 import static io.grpc.stub.ClientCalls.futureUnaryCall;
-import static io.grpc.stub.ServerCalls.asyncBidiStreamingCall;
-import static io.grpc.stub.ServerCalls.asyncClientStreamingCall;
-import static io.grpc.stub.ServerCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ServerCalls.asyncUnaryCall;
-import static io.grpc.stub.ServerCalls.asyncUnimplementedStreamingCall;
 import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
 
-/**
- */
 @javax.annotation.Generated(
     value = "by gRPC proto compiler (version 1.10.1)",
     comments = "Source: api.proto")
@@ -112,8 +102,6 @@ public final class DecodeMessageServiceGrpc {
     }
   }
 
-  /**
-   */
   public static final class DecodeMessageServiceStub extends io.grpc.stub.AbstractStub<DecodeMessageServiceStub> {
     private DecodeMessageServiceStub(io.grpc.Channel channel) {
       super(channel);
@@ -130,8 +118,6 @@ public final class DecodeMessageServiceGrpc {
       return new DecodeMessageServiceStub(channel, callOptions);
     }
 
-    /**
-     */
     public void decodeRawTransaction(me.exrates.service.decred.rpc.Api.DecodeRawTransactionRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.DecodeRawTransactionResponse> responseObserver) {
       asyncUnaryCall(
@@ -139,8 +125,6 @@ public final class DecodeMessageServiceGrpc {
     }
   }
 
-  /**
-   */
   public static final class DecodeMessageServiceBlockingStub extends io.grpc.stub.AbstractStub<DecodeMessageServiceBlockingStub> {
     private DecodeMessageServiceBlockingStub(io.grpc.Channel channel) {
       super(channel);
@@ -157,16 +141,12 @@ public final class DecodeMessageServiceGrpc {
       return new DecodeMessageServiceBlockingStub(channel, callOptions);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.DecodeRawTransactionResponse decodeRawTransaction(me.exrates.service.decred.rpc.Api.DecodeRawTransactionRequest request) {
       return blockingUnaryCall(
           getChannel(), getDecodeRawTransactionMethodHelper(), getCallOptions(), request);
     }
   }
 
-  /**
-   */
   public static final class DecodeMessageServiceFutureStub extends io.grpc.stub.AbstractStub<DecodeMessageServiceFutureStub> {
     private DecodeMessageServiceFutureStub(io.grpc.Channel channel) {
       super(channel);
@@ -183,8 +163,6 @@ public final class DecodeMessageServiceGrpc {
       return new DecodeMessageServiceFutureStub(channel, callOptions);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.DecodeRawTransactionResponse> decodeRawTransaction(
         me.exrates.service.decred.rpc.Api.DecodeRawTransactionRequest request) {
       return futureUnaryCall(

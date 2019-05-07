@@ -32,7 +32,6 @@ import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.exception.IncorrectCurrentUserException;
 import me.exrates.service.exception.StopOrderNoConditionException;
 import me.exrates.service.exception.process.NotCreatableOrderException;
-import me.exrates.service.exception.process.OrderAcceptionException;
 import me.exrates.service.exception.process.OrderCancellingException;
 import me.exrates.service.util.Cache;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,10 +52,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static java.util.Objects.isNull;
-
-/**
- * Created by maks on 20.04.2017.
- */
 
 @Service
 @Log4j2

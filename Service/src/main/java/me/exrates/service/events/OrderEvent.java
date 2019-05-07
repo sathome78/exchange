@@ -4,9 +4,6 @@ import me.exrates.model.ExOrder;
 import me.exrates.model.enums.OrderEventEnum;
 import org.springframework.context.ApplicationEvent;
 
-/**
- * Created by Maks on 30.08.2017.
- */
 public class OrderEvent extends ApplicationEvent {
 
     /**

@@ -6,12 +6,8 @@ import me.exrates.model.enums.ChatLang;
 import me.exrates.service.exception.IllegalChatMessageException;
 
 import java.util.List;
-import java.util.Set;
 import java.util.SortedSet;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 public interface ChatService {
 
     ChatMessage persistMessage(String body, String email, ChatLang lang) throws IllegalChatMessageException;

@@ -5,6 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.dto.NemMosaicTransferDto;
 import me.exrates.model.dto.RefillRequestAcceptDto;
@@ -12,7 +13,6 @@ import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.AlgorithmService;
@@ -47,9 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Created by maks on 18.07.2017.
- */
 @Log4j2(topic = "nem_log")
 @Service
 @PropertySource("classpath:/merchants/nem.properties")
@@ -94,7 +91,6 @@ public class NemServiceImpl implements NemService {
     @PostConstruct
     public void init() {
         deniedMosaicsList.add(new MosaicIdDto("ts", "warning_dont_accept_stolen_funds"));
-        /*deniedMosaicsList.add(new MosaicIdDto("dim", "coin"));*/
         account = new Account(new KeyPair(PublicKey.fromHexString(publicKey)));
         currency = currencyService.findByName("XEM");
         merchant = merchantService.findByName(NEM_MERCHANT);
@@ -335,14 +331,6 @@ public class NemServiceImpl implements NemService {
         double feeFromMosaicInMosaicToken = (quantity * service.getLevyFee().getRaw() / 10000D) / service.getDecimals();
         return BigDecimal.valueOf(feeFromMosaicInMosaicToken);
     }
-
-    /*private BigDecimal countFeeForAmountInXem(BigDecimal amount, XemMosaicService service) {
-        BigDecimal initFee = new BigDecimal(0.05);
-        int multiplier = amount.intValue() / 10000;
-        BigDecimal fee = BigDecimalProcessing.doAction(initFee, new BigDecimal(multiplier), ActionType.MULTIPLY);
-        return BigDecimalProcessing.doAction(initFee, fee, ActionType.ADD);
-
-    }*/
 
     private BigDecimal countFeeForAmountInXem(BigDecimal amount, XemMosaicService service) {
         BigDecimal totalMosiacQuantity = BigDecimalProcessing.doAction(BigDecimal.valueOf(service.getSupply().getRaw()),

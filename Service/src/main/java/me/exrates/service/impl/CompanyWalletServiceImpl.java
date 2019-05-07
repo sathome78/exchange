@@ -24,9 +24,6 @@ import java.util.stream.Collectors;
 import static me.exrates.model.enums.ActionType.SUBTRACT;
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Log4j2
 @Service
 public class CompanyWalletServiceImpl implements CompanyWalletService {

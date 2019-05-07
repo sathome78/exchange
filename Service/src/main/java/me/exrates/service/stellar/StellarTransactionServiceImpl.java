@@ -12,7 +12,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
-import org.stellar.sdk.*;
+import org.stellar.sdk.AssetTypeNative;
+import org.stellar.sdk.KeyPair;
+import org.stellar.sdk.Memo;
+import org.stellar.sdk.Network;
+import org.stellar.sdk.PaymentOperation;
+import org.stellar.sdk.Server;
+import org.stellar.sdk.Transaction;
 import org.stellar.sdk.requests.TransactionsRequestBuilder;
 import org.stellar.sdk.responses.AccountResponse;
 import org.stellar.sdk.responses.SubmitTransactionResponse;
@@ -26,9 +32,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by maks on 11.06.2017.
- */
 @Log4j2(topic = "stellar_log")
 @Service
 @PropertySource("classpath:/merchants/stellar.properties")
@@ -103,19 +106,6 @@ public class StellarTransactionServiceImpl implements StellarTransactionService 
             throw new RuntimeException(e.toString());
         }
     }
-
-
-    /*@Override
-    public String normalizeAmountToString(String amount) {
-        return normalizeAmountToString(new BigDecimal(amount));
-    }
-*/
-    /*@Override
-    public BigDecimal normalizeAmountToDecimal(String amount) {
-        return new BigDecimal(amount)
-                .divide(new BigDecimal(XLM_AMOUNT_MULTIPLIER))
-                .setScale(XLM_DECIMALS, RoundingMode.HALF_DOWN);
-    }*/
 
     private void setNetworkMode(Network network) {
         switch (StellarNetworkModeEnum.valueOf(MODE)) {

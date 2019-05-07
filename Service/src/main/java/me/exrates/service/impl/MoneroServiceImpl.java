@@ -39,10 +39,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-
-/**
- * Created by ajet
- */
 public class MoneroServiceImpl implements MoneroService {
 
     private MoneroWallet wallet;

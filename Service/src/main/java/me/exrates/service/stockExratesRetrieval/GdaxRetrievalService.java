@@ -13,9 +13,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by OLEG on 20.12.2016.
- */
 @Log4j2(topic = "tracker")
 @Service(value = "Gdax")
 public class GdaxRetrievalService implements StockExrateRetrievalService {

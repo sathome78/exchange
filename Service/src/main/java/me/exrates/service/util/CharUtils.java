@@ -1,8 +1,5 @@
 package me.exrates.service.util;
 
-/**
- * Created by maks on 13.06.2017.
- */
 public class CharUtils {
 
     private CharUtils() {

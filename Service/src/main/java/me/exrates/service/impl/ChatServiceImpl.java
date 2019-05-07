@@ -37,9 +37,6 @@ import java.util.stream.Stream;
 import static java.util.Objects.isNull;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Service
 public class ChatServiceImpl implements ChatService {
 
@@ -203,8 +200,7 @@ public class ChatServiceImpl implements ChatService {
         }
         message.setBody(body);
         message.setTime(LocalDateTime.now());
-//        final ChatComponent comp = chats.get(lang);
-//        cacheMessage(message, comp);
+
         return chatDao.persistPublic(lang, message);
     }
 }

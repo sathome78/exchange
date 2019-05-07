@@ -4,7 +4,6 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.Transaction;
 import me.exrates.model.dto.InOutReportDto;
 import me.exrates.model.dto.OperationViewDto;
-import me.exrates.model.dto.TransactionFlatForReportDto;
 import me.exrates.model.dto.UserSummaryDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -19,9 +18,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 public interface TransactionService {
 
     Transaction save(Transaction transaction);

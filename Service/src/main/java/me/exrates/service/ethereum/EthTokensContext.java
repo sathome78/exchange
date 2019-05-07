@@ -10,9 +10,6 @@ import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by Maks on 24.01.2018.
- */
 @Log4j2
 @Component
 @Conditional(MonolitConditional.class)

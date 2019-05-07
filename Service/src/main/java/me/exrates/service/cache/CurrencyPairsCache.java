@@ -33,16 +33,4 @@ public class CurrencyPairsCache {
         List<CurrencyPair> allPairs = currencyService.getAllCurrencyPairsWithHidden(CurrencyPairType.ALL);
         allPairs.forEach(p -> pairsMap.put(p.getId(), p));
     }
-
-    public CurrencyPair getPairById(Integer id) {
-        return pairsMap.get(id);
-    }
-
-    public CurrencyPair getPairByName(String pairName) {
-        return pairsMap.values()
-                .stream()
-                .filter(p->p.getName().equalsIgnoreCase(pairName))
-                .findFirst()
-                .orElse(null);
-    }
 }

@@ -5,7 +5,6 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.service.OrderService;
-import me.exrates.service.events.ChartCacheUpdateEvent;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDateTime;
@@ -19,16 +18,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-/**
- * Created by Maks on 25.01.2018.
- */
 @Log4j2(topic = "cache")
 @Data
 public class ChartCacheUnit implements ChartsCacheInterface {
 
     private final int DEFAULT_LAST_ITEMS_NUMBER = 5;
 
-    /*fields*/
     private List<CandleChartItemDto> cachedData;
     private final Integer currencyPairId;
     private final ChartTimeFrame timeFrame;
@@ -51,7 +46,6 @@ public class ChartCacheUnit implements ChartsCacheInterface {
     private ReentrantLock timerLock = new ReentrantLock();
     private Condition myCondition = lock.newCondition();
 
-    /*constructor*/
     public ChartCacheUnit(Integer currencyPairId,
                           ChartTimeFrame timeFrame,
                           OrderService orderService,
@@ -59,14 +53,11 @@ public class ChartCacheUnit implements ChartsCacheInterface {
         this.currencyPairId = currencyPairId;
         this.timeFrame = timeFrame;
         this.minUpdateIntervalSeconds = timeFrame.getResolution().getTimeUnit().getRefreshDelaySeconds();
-        this.lazyUpdate = /*timeFrame.getTimeUnit().isChartLazyUpdate();*/ true;
+        this.lazyUpdate = true;
         this.eventPublisher = eventPublisher;
         this.orderService = orderService;
         cachedData = null;
     }
-
-
-    /*methods*/
 
     @Override
     public List<CandleChartItemDto> getData() {
@@ -92,32 +83,7 @@ public class ChartCacheUnit implements ChartsCacheInterface {
     private boolean isTimeForUpdate() {
         return lastUpdateDate == null || lastUpdateDate.plusSeconds(minUpdateIntervalSeconds).compareTo(LocalDateTime.now()) <= 0;
     }
-//    @Override
-//    public void setNeedToUpdate() {
-//        log.debug("setting update data {} {}", currencyPairId, timeFrame);
-//        if (!lazyUpdate) {
-//            log.debug("not lazy update data {} {}", currencyPairId, timeFrame);
-//            if (timerLock.tryLock()) {
-//                timerLock.lock();
-//                try {
-//
-//                    new Timer().schedule(new TimerTask() {
-//                        @Override
-//                        public void run() {
-//                            log.debug("execute task update data {} {}", currencyPairId, timeFrame);
-//                            updateCache(true);
-//                            eventPublisher.publishEvent(new ChartCacheUpdateEvent(getLastData(), timeFrame, currencyPairId));
-//                        }
-//                    }, getMinUpdateIntervalSeconds() * 1000);
-//                } finally {
-//                    timerLock.unlock();
-//                }
-//
-//            }
-//        } else {
-//            needToUpdate.set(true);
-//        }
-//    }
+
     @Override
     public void setNeedToUpdate() {
         if (!lazyUpdate) {
@@ -128,7 +94,6 @@ public class ChartCacheUnit implements ChartsCacheInterface {
                     public void run() {
                             timerLock = new ReentrantLock();
                             updateCache(true);
-                            /*eventPublisher.publishEvent(new ChartCacheUpdateEvent(getLastData(), timeFrame, currencyPairId));*/
                     }
                 }, getMinUpdateIntervalSeconds() * 1000);
 
@@ -155,10 +120,6 @@ public class ChartCacheUnit implements ChartsCacheInterface {
         } else {
                 try {
                     barrier.await(30, TimeUnit.SECONDS);
-                    /*if (cachedData == null) {
-                        *//*тут рекурсия получается, но без данных трэд не уйдет*//*
-                        updateCache(appendLastEntriesOnly);
-                    }*/
                 } catch (Exception e) {
                     log.warn(e);
                 }

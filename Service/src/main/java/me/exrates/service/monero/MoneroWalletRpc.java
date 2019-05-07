@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import me.exrates.service.monero.utils.MoneroUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
@@ -20,13 +21,23 @@ import types.HttpException;
 import types.Pair;
 import utils.JsonUtils;
 import utils.StreamUtils;
-import me.exrates.service.monero.utils.MoneroUtils;
-import wallet.*;
+import wallet.MoneroException;
+import wallet.MoneroOutput;
+import wallet.MoneroPayment;
+import wallet.MoneroRpcException;
+import wallet.MoneroTransaction;
+import wallet.MoneroUri;
 
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class MoneroWalletRpc {
     private static final Logger LOGGER = Logger.getLogger(wallet.MoneroWalletRpc.class);

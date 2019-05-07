@@ -23,9 +23,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.NavigableSet;
 
-/**
- * Created by maks on 20.04.2017.
- */
 public interface StopOrderService {
 
     @Transactional

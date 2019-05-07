@@ -78,9 +78,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * Created by OLEG on 14.03.2017.
- */
 @Component
 @Scope("prototype")
 @Log4j2(topic = "bitcoin_core")
@@ -451,10 +448,6 @@ public class CoreWalletServiceImpl implements CoreWalletService {
 
     private void unlockWallet(String password, int authTimeout) throws BitcoindException, CommunicationException {
         unlockWallet(password, authTimeout, false);
-    }
-
-    private void forceUnlockWallet(String password, int authTimeout) throws BitcoindException, CommunicationException {
-        unlockWallet(password, authTimeout, true);
     }
 
     private void unlockWallet(String password, int authTimeout, boolean forceUnlock) throws BitcoindException, CommunicationException {

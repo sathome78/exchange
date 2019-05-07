@@ -7,7 +7,12 @@ import me.exrates.model.Currency;
 import me.exrates.model.dto.NotificationPayEventEnum;
 import me.exrates.model.dto.NotificatorSubscription;
 import me.exrates.model.dto.TelegramSubscription;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.NotificationTypeEnum;
+import me.exrates.model.enums.NotificatorSubscriptionStateEnum;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.UserService;
@@ -29,9 +34,6 @@ import java.util.StringJoiner;
 
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
-/**
- * Created by Maks on 29.09.2017.
- */
 @Log4j2(topic = "message_notify")
 @Component("telegramNotificatorServiceImpl")
 public class TelegramNotificatorServiceImpl implements NotificatorService, Subscribable {
@@ -68,10 +70,6 @@ public class TelegramNotificatorServiceImpl implements NotificatorService, Subsc
         TelegramSubscription subscription = subscriptionOptional.orElseThrow(TelegramSubscriptionException::new);
         NotificatorSubscriptionStateEnum nextState = subscription.getSubscriptionState().getNextState();
         if (subscription.getSubscriptionState().isFinalState()) {
-            /*set New account for subscription if allready subscribed*/
-           /* subscription.setChatId(subscriptionDto.getChatId());
-            subscription.setUserAccount(subscriptionDto.getUserAccount());
-            subscription.setCode(null);*/
            throw new RuntimeException("allready subscribed");
         } else if (subscription.getSubscriptionState().isBeginState()) {
             subscription.setSubscriptionState(nextState);

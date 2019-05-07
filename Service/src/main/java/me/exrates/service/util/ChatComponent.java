@@ -5,9 +5,6 @@ import me.exrates.model.ChatMessage;
 import java.util.NavigableSet;
 import java.util.concurrent.locks.ReadWriteLock;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 public class ChatComponent {
 
     private final ReadWriteLock lock;

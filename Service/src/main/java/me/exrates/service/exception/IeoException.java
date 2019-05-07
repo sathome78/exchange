@@ -14,12 +14,4 @@ public class IeoException extends RuntimeException {
         this.httpStatus = httpStatus;
         this.title = title;
     }
-
-    public IeoException(String message) {
-        this(message, "", HttpStatus.BAD_REQUEST);
-    }
-
-    public IeoException(String title, String message) {
-        this(message, title, HttpStatus.BAD_REQUEST);
-    }
 }

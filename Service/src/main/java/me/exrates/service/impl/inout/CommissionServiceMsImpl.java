@@ -3,22 +3,15 @@ package me.exrates.service.impl.inout;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import me.exrates.dao.CommissionDao;
-import me.exrates.model.Commission;
 import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.dto.CommissionDataDto;
-import me.exrates.model.dto.CommissionShortEditDto;
-import me.exrates.model.dto.EditMerchantCommissionDto;
 import me.exrates.model.dto.NormalizeAmountDto;
 import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.UserRole;
-import me.exrates.model.util.BigDecimalProcessing;
-import me.exrates.service.*;
+import me.exrates.service.UserService;
 import me.exrates.service.impl.CommissionServiceImpl;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.properties.InOutProperties;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -30,13 +23,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import static me.exrates.model.enums.ActionType.MULTIPLY_PERCENT;
-import static me.exrates.model.enums.OperationType.INPUT;
 
 @Service
 @RequiredArgsConstructor

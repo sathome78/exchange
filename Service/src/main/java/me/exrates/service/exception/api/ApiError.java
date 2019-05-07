@@ -7,9 +7,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Created by OLEG on 08.09.2016.
- */
 public class ApiError {
     private final ErrorCode errorCode;
     public final String url;
@@ -40,10 +37,5 @@ public class ApiError {
         }
 
     }
-
-    public ErrorCode getErrorCode() {
-        return errorCode;
-    }
-
 
 }

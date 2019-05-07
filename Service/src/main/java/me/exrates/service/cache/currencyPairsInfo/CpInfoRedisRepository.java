@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Repository
@@ -62,12 +61,6 @@ public class CpInfoRedisRepository {
         delete(pairId);
         put(dto, pairId);
     }
-
-    @Transactional
-    public void batchUpdate(Map<Integer, ResponseInfoCurrencyPairDto> pairsDtoMap) {
-        pairsDtoMap.forEach((k, v) -> update(v, k));
-    }
-
 
     public boolean isEmpty() {
         return ops.size(NEW_KEY) == 0;

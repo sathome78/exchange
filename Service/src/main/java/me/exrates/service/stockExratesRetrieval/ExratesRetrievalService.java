@@ -11,9 +11,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Created by OLEG on 09.02.2017.
- */
 @Log4j2(topic = "tracker")
 @Service(value = "Exrates")
 public class ExratesRetrievalService implements StockExrateRetrievalService {

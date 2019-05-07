@@ -178,14 +178,5 @@ public class OmniNodeServiceImpl implements OmniNodeService {
         ResponseEntity<String> responseEntity = restTemplate.exchange(requestEntity, String.class);
         System.out.println("response " + responseEntity.getStatusCode());
         System.out.println(responseEntity.getBody());
-        /*String result = new JSONObject(responseEntity.getBody()).getJSONObject("result").toString();
-        System.out.println(result);
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            OmniTxDto transaction = objectMapper.readValue(result, new TypeReference<OmniTxDto>(){});
-            System.out.println("success " + transaction);
-        } catch (IOException e) {
-            System.out.println(e);
-        }*/
     }
 }

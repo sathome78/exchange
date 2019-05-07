@@ -4,9 +4,6 @@ import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 
-/**
- * Created by ajet on
- */
 public interface IotaService extends IMerchantService, IRefillable, IWithdrawable {
 
     @Override

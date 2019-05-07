@@ -10,9 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by OLEG on 14.12.2016.
- */
 @Log4j2(topic = "tracker")
 @Service(value = "BITFINEX")
 public class BitfinexRetrievalService implements StockExrateRetrievalService {

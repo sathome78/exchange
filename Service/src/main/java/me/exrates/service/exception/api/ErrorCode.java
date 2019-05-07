@@ -1,8 +1,5 @@
 package me.exrates.service.exception.api;
 
-/**
- * Created by OLEG on 08.09.2016.
- */
 public enum ErrorCode {
     REQUEST_NOT_READABLE,
     INVALID_PARAM_VALUE,

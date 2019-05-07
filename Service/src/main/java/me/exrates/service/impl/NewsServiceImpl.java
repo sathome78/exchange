@@ -29,14 +29,18 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.StringJoiner;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-/**
- * Created by Valk on 28.05.2016.
- */
 @Service
 public class NewsServiceImpl implements NewsService {
 
@@ -229,17 +233,6 @@ public class NewsServiceImpl implements NewsService {
         final Path target = Paths.get(path.toString(), name);
         Files.write(target, file.getBytes());
         return logicalPath + name;
-    }
-
-    private List<String> getAvailableImages(String locationDir) {
-        Path path = Paths.get(locationDir);
-        if (!path.toFile().exists()) {
-            throw new FileLoadingException("Content does not exist!");
-        }
-       return Arrays.stream(path.toFile().listFiles((dir, name) -> name.toLowerCase().endsWith(".jpg") ||
-                name.toLowerCase().endsWith(".jpeg") ||
-                name.toLowerCase().endsWith(".png"))).map(File::getAbsolutePath)
-                .collect(Collectors.toList());
     }
 
     @Override

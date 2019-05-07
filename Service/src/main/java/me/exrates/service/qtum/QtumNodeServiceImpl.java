@@ -5,7 +5,14 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.condition.MonolitConditional;
-import me.exrates.model.dto.merchants.qtum.*;
+import me.exrates.model.dto.merchants.qtum.Block;
+import me.exrates.model.dto.merchants.qtum.QtumJsonRpcRequest;
+import me.exrates.model.dto.merchants.qtum.QtumJsonRpcResponse;
+import me.exrates.model.dto.merchants.qtum.QtumJsonRpcResponseList;
+import me.exrates.model.dto.merchants.qtum.QtumListTransactions;
+import me.exrates.model.dto.merchants.qtum.QtumTokenContract;
+import me.exrates.model.dto.merchants.qtum.QtumTokenTransaction;
+import me.exrates.model.dto.merchants.qtum.QtumTransaction;
 import me.exrates.service.exception.QtumApiException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,7 +26,13 @@ import org.springframework.web.client.RestTemplate;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 @Log4j2(topic = "qtum_log")

@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +14,6 @@ import me.exrates.model.User;
 import me.exrates.model.UserVerificationInfo;
 import me.exrates.model.constants.Constants;
 import me.exrates.model.dto.UserNotificationMessage;
-import me.exrates.model.dto.WsMessageObject;
 import me.exrates.model.dto.kyc.CreateApplicantDto;
 import me.exrates.model.dto.kyc.DocTypeEnum;
 import me.exrates.model.dto.kyc.EventStatus;
@@ -360,7 +357,6 @@ public class KYCServiceImpl implements KYCService {
     @Override
     public boolean updateUserVerificationInfo(User user, KycStatusResponseDto kycStatusResponseDto) {
         return userService.updateKycStatusByEmail(user.getEmail(), kycStatusResponseDto.getStatus());
-//        return kycDao.updateUserVerification(user.getId(), kycStatusResponseDto);
     }
 
     @Override

@@ -12,9 +12,6 @@ public class QtumApiException extends RuntimeException {
         this.code = code;
     }
 
-    public QtumApiException() {
-    }
-
     public QtumApiException(String message) {
         super(message);
     }
@@ -22,10 +19,6 @@ public class QtumApiException extends RuntimeException {
     public QtumApiException(int code, String message) {
         super(message);
         this.code = code;
-    }
-
-    public QtumApiException(String message, Throwable cause) {
-        super(message, cause);
     }
 
     public QtumApiException(Throwable cause) {

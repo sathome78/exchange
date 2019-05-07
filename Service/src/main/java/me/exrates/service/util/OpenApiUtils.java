@@ -3,8 +3,6 @@ package me.exrates.service.util;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.exceptions.OpenApiException;
-import me.exrates.service.exception.api.InvalidCurrencyPairFormatException;
-import org.omg.SendingContext.RunTimeOperations;
 
 import java.util.function.Predicate;
 import java.util.regex.Pattern;

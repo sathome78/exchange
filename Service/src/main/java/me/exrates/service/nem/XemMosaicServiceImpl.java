@@ -6,9 +6,6 @@ import org.nem.core.model.namespace.NamespaceId;
 import org.nem.core.model.primitive.Quantity;
 import org.nem.core.model.primitive.Supply;
 
-/**
- * Created by Maks on 27.02.2018.
- */
 public class XemMosaicServiceImpl implements XemMosaicService {
 
     private String merchantName;

@@ -20,9 +20,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Locale;
 
-/**
- * Created by Maks on 07.09.2017.
- */
 @Log4j2
 @Component
 public class SystemEventsHandler {
@@ -62,9 +59,6 @@ public class SystemEventsHandler {
         HashMap hashMap = new HashMap<String, HashMap<String, String>>() {{
             put("redirect", new HashMap<String, String>() {{
                 put("url", "/dashboard?qrLogin");
-              /*  put("successQR", messageSource
-                        .getMessage("dashboard.qrLogin.successful", null,
-                                localeResolver.resolveLocale(request)));*/
             }});
         }};
         try {

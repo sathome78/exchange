@@ -33,9 +33,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 
-/**
- * Created by maks on 11.05.2017.
- */
 @Log4j2(topic = "ripple_log")
 @Service
 @PropertySource("classpath:/merchants/ripple.properties")
@@ -77,15 +74,6 @@ public class RippleServiceImpl implements RippleService {
         currency = currencyService.findByName("XRP");
         merchant = merchantService.findByName(XRP_MERCHANT);
     }
-
-
-    /*method for admin manual check transaction by hash*//*
-  @Override
-  public void manualCheckNotReceivedTransaction(String hash) {
-    JSONObject response = rippledNodeService.getTransaction(hash);
-    onTransactionReceive(response);
-  }*/
-
 
     /*return: true if tx validated; false if not validated but validation in process,
     throws Exception if declined*/

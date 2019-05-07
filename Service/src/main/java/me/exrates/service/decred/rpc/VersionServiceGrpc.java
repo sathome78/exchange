@@ -1,22 +1,12 @@
 package me.exrates.service.decred.rpc;
 
 import static io.grpc.MethodDescriptor.generateFullMethodName;
-import static io.grpc.stub.ClientCalls.asyncBidiStreamingCall;
-import static io.grpc.stub.ClientCalls.asyncClientStreamingCall;
-import static io.grpc.stub.ClientCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ClientCalls.asyncUnaryCall;
-import static io.grpc.stub.ClientCalls.blockingServerStreamingCall;
 import static io.grpc.stub.ClientCalls.blockingUnaryCall;
 import static io.grpc.stub.ClientCalls.futureUnaryCall;
-import static io.grpc.stub.ServerCalls.asyncBidiStreamingCall;
-import static io.grpc.stub.ServerCalls.asyncClientStreamingCall;
-import static io.grpc.stub.ServerCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ServerCalls.asyncUnaryCall;
-import static io.grpc.stub.ServerCalls.asyncUnimplementedStreamingCall;
 import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
 
-/**
- */
 @javax.annotation.Generated(
     value = "by gRPC proto compiler (version 1.10.1)",
     comments = "Source: api.proto")
@@ -88,12 +78,8 @@ public final class VersionServiceGrpc {
     return new VersionServiceFutureStub(channel);
   }
 
-  /**
-   */
   public static abstract class VersionServiceImplBase implements io.grpc.BindableService {
 
-    /**
-     */
     public void version(me.exrates.service.decred.rpc.Api.VersionRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.VersionResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getVersionMethodHelper(), responseObserver);
@@ -112,8 +98,6 @@ public final class VersionServiceGrpc {
     }
   }
 
-  /**
-   */
   public static final class VersionServiceStub extends io.grpc.stub.AbstractStub<VersionServiceStub> {
     private VersionServiceStub(io.grpc.Channel channel) {
       super(channel);
@@ -130,8 +114,6 @@ public final class VersionServiceGrpc {
       return new VersionServiceStub(channel, callOptions);
     }
 
-    /**
-     */
     public void version(me.exrates.service.decred.rpc.Api.VersionRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.VersionResponse> responseObserver) {
       asyncUnaryCall(
@@ -139,8 +121,6 @@ public final class VersionServiceGrpc {
     }
   }
 
-  /**
-   */
   public static final class VersionServiceBlockingStub extends io.grpc.stub.AbstractStub<VersionServiceBlockingStub> {
     private VersionServiceBlockingStub(io.grpc.Channel channel) {
       super(channel);
@@ -157,16 +137,12 @@ public final class VersionServiceGrpc {
       return new VersionServiceBlockingStub(channel, callOptions);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.VersionResponse version(me.exrates.service.decred.rpc.Api.VersionRequest request) {
       return blockingUnaryCall(
           getChannel(), getVersionMethodHelper(), getCallOptions(), request);
     }
   }
 
-  /**
-   */
   public static final class VersionServiceFutureStub extends io.grpc.stub.AbstractStub<VersionServiceFutureStub> {
     private VersionServiceFutureStub(io.grpc.Channel channel) {
       super(channel);
@@ -183,8 +159,6 @@ public final class VersionServiceGrpc {
       return new VersionServiceFutureStub(channel, callOptions);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.VersionResponse> version(
         me.exrates.service.decred.rpc.Api.VersionRequest request) {
       return futureUnaryCall(

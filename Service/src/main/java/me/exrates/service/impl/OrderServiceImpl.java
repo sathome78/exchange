@@ -328,11 +328,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<CandleChartItemDto> getDataForCandleChart(int pairId, ChartTimeFrame timeFrame) {
         LocalDateTime endTime = LocalDateTime.now();
-//    LocalDateTime lastHalfHour = endTime.truncatedTo(ChronoUnit.HOURS)
-//            .plusMinutes(30 * (endTime.getMinute() / 30));
         LocalDateTime startTime = endTime.minus(timeFrame.getTimeValue(), timeFrame.getTimeUnit().getCorrespondingTimeUnit());
-//    LocalDateTime firstHalfHour = startTime.truncatedTo(ChronoUnit.HOURS)
-//            .plusMinutes(30 * (startTime.getMinute() / 30));
 
         return orderDao.getDataForCandleChart(currencyService.findCurrencyPairById(pairId),
                 startTime, endTime, timeFrame.getResolution().getTimeValue(),
@@ -434,7 +430,7 @@ public class OrderServiceImpl implements OrderService {
             orderCreateDto.setComissionForBuyId(walletsAndCommissions.getCommissionId());
             orderCreateDto.setComissionForBuyRate(walletsAndCommissions.getCommissionValue());
         }
-        /**/
+
         orderCreateDto.calculateAmounts();
         return orderCreateDto;
     }
@@ -476,11 +472,11 @@ public class OrderServiceImpl implements OrderService {
                 }
             }
         }
-        /*------------------*/
+
         if (orderCreateDto.getCurrencyPair().getPairType() == CurrencyPairType.ICO) {
             validateIcoOrder(errors, errorParams, orderCreateDto);
         }
-        /*------------------*/
+
         if (orderCreateDto.getAmount() != null) {
             if (orderCreateDto.getAmount().compareTo(currencyPairLimit.getMaxAmount()) > 0) {
                 String key1 = "amount_" + errors.size();
@@ -557,11 +553,11 @@ public class OrderServiceImpl implements OrderService {
                 }
             }
         }
-        /*------------------*/
+
         if (orderCreateDto.getCurrencyPair().getPairType() == CurrencyPairType.ICO) {
             validateIcoOrder(errors, errorParams, orderCreateDto);
         }
-        /*------------------*/
+
         if (orderCreateDto.getAmount() != null) {
             if (orderCreateDto.getAmount().compareTo(currencyPairLimit.getMaxAmount()) > 0) {
                 String key1 = "amount_" + errors.size();
@@ -917,11 +913,6 @@ public class OrderServiceImpl implements OrderService {
         logTransaction("acceptPartially", "end", orderForPartialAccept.getCurrencyPairId(), acceptedId, null);
         eventPublisher.publishEvent(partiallyAcceptedOrder(orderForPartialAccept, amountForPartialAccept));
 
-   /* TODO temporary disable
-    notificationService.createLocalizedNotification(orderForPartialAccept.getUserId(), NotificationEvent.ORDER,
-        "orders.partialAccept.title", "orders.partialAccept.yourOrder",
-        new Object[]{orderForPartialAccept.getId(), amountForPartialAccept.toString(),
-            orderForPartialAccept.getAmountBase().toString(), newOrder.getCurrencyPair().getCurrency1().getName()});*/
         return amountForPartialAccept;
     }
 
@@ -1064,11 +1055,11 @@ public class OrderServiceImpl implements OrderService {
             WalletsForOrderAcceptionDto walletsForOrderAcceptionDto = walletService.getWalletsForOrderByOrderIdAndBlock(exOrder.getId(), userAcceptorId);
             String descriptionForCreator = transactionDescription.get(OrderStatus.convert(walletsForOrderAcceptionDto.getOrderStatusId()), ACCEPTED);
             String descriptionForAcceptor = transactionDescription.get(OrderStatus.convert(walletsForOrderAcceptionDto.getOrderStatusId()), ACCEPT);
-            /**/
+
             if (walletsForOrderAcceptionDto.getOrderStatusId() != 2) {
                 throw new AlreadyAcceptedOrderException(messageSource.getMessage("order.alreadyacceptederror", null, locale));
             }
-            /**/
+
             int createdWalletId;
             if (exOrder.getOperationType() == OperationType.BUY) {
                 if (walletsForOrderAcceptionDto.getUserCreatorInWalletId() == 0) {
@@ -1102,7 +1093,7 @@ public class OrderServiceImpl implements OrderService {
                     walletsForOrderAcceptionDto.setUserAcceptorInWalletId(createdWalletId);
                 }
             }
-            /**/
+
             /*calculate convert currency amount for creator - simply take stored amount from order*/
             BigDecimal amountWithComissionForCreator = getAmountWithComissionForCreator(exOrder);
             Commission comissionForCreator = new Commission();
@@ -1118,7 +1109,7 @@ public class OrderServiceImpl implements OrderService {
             } else {
                 comissionForAcceptor = commissionDao.getCommission(operationTypeForAcceptor, userService.getUserRoleFromDB(userAcceptorId));
             }
-            /*-------------------------*/
+
             BigDecimal comissionRateForAcceptor = comissionForAcceptor.getValue();
             BigDecimal amountComissionForAcceptor = BigDecimalProcessing.doAction(exOrder.getAmountConvert(), comissionRateForAcceptor, ActionType.MULTIPLY_PERCENT);
             BigDecimal amountWithComissionForAcceptor;
@@ -1141,7 +1132,7 @@ public class OrderServiceImpl implements OrderService {
                 commissionForCreatorInWallet = BigDecimal.ZERO;
                 commissionForAcceptorOutWallet = BigDecimal.ZERO;
                 commissionForAcceptorInWallet = amountComissionForAcceptor;
-                /**/
+
                 creatorForOutAmount = amountWithComissionForCreator;
                 creatorForInAmount = exOrder.getAmountBase();
                 acceptorForOutAmount = exOrder.getAmountBase();
@@ -1152,7 +1143,7 @@ public class OrderServiceImpl implements OrderService {
                 commissionForCreatorInWallet = exOrder.getCommissionFixedAmount();
                 commissionForAcceptorOutWallet = amountComissionForAcceptor;
                 commissionForAcceptorInWallet = BigDecimal.ZERO;
-                /**/
+
                 creatorForOutAmount = exOrder.getAmountBase();
                 creatorForInAmount = amountWithComissionForCreator;
                 acceptorForOutAmount = amountWithComissionForAcceptor;
@@ -1161,7 +1152,7 @@ public class OrderServiceImpl implements OrderService {
             WalletOperationData walletOperationData;
             WalletTransferStatus walletTransferStatus;
             String exceptionMessage = "";
-            /**/
+
             /*for creator OUT*/
             walletOperationData = new WalletOperationData();
             walletService.walletInnerTransfer(
@@ -1239,23 +1230,18 @@ public class OrderServiceImpl implements OrderService {
                 exceptionMessage = getWalletTransferExceptionMessage(walletTransferStatus, "orders.acceptsaveerror", locale);
                 throw new OrderAcceptionException(exceptionMessage);
             }
-            /**/
+
             CompanyWallet companyWallet = new CompanyWallet();
             companyWallet.setId(walletsForOrderAcceptionDto.getCompanyWalletCurrencyConvert());
             companyWallet.setBalance(walletsForOrderAcceptionDto.getCompanyWalletCurrencyConvertBalance());
             companyWallet.setCommissionBalance(walletsForOrderAcceptionDto.getCompanyWalletCurrencyConvertCommissionBalance());
             companyWalletService.deposit(companyWallet, new BigDecimal(0), exOrder.getCommissionFixedAmount().add(amountComissionForAcceptor));
-            /**/
+
             exOrder.setStatus(OrderStatus.CLOSED);
             exOrder.setDateAcception(LocalDateTime.now());
             exOrder.setUserAcceptorId(userAcceptorId);
             final Currency currency = currencyService.findCurrencyPairById(exOrder.getCurrencyPairId())
                     .getCurrency2();
-
-            /** TODO: 6/7/16 Temporarily disable the referral program
-             * referralService.processReferral(exOrder, exOrder.getCommissionFixedAmount(), currency.getId(), exOrder.getUserId()); //Processing referral for Order Creator
-             * referralService.processReferral(exOrder, amountComissionForAcceptor, currency.getId(), exOrder.getUserAcceptorId()); //Processing referral for Order Acceptor
-             */
 
             referralService.processReferral(exOrder, exOrder.getCommissionFixedAmount(), currency, exOrder.getUserId()); //Processing referral for Order Creator
             referralService.processReferral(exOrder, amountComissionForAcceptor, currency, exOrder.getUserAcceptorId()); //Processing referral for Order Acceptor
@@ -1263,10 +1249,6 @@ public class OrderServiceImpl implements OrderService {
             if (!updateOrder(exOrder)) {
                 throw new OrderAcceptionException(messageSource.getMessage("orders.acceptsaveerror", null, locale));
             }
-      /*if (sendNotification) {
-        notificationService.createLocalizedNotification(exOrder.getUserId(), NotificationEvent.ORDER, "acceptordersuccess.title",
-            "acceptorder.message", new Object[]{exOrder.getId()});
-      }*/
 
             /*  stopOrderService.onLimitOrderAccept(exOrder);*//*check stop-orders for process*/
             /*action for refresh orders*/
@@ -1336,7 +1318,7 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    /*Убрать этот костыль!!!!*/
+    //TODO:Убрать этот костыль!!!!
     @Transactional
     @Override
     public boolean cancelOrder(Integer orderId) {
@@ -1553,8 +1535,6 @@ public class OrderServiceImpl implements OrderService {
             }
             throw new OrderDeletingException(result.toString());
         }
-        /*notificationService.notifyUser(order.getUserId(), NotificationEvent.ORDER,
-                "deleteOrder.notificationTitle", "deleteOrder.notificationMessage", new Object[]{order.getOrderId()});*/
         return (Integer) result;
     }
 
@@ -1842,14 +1822,14 @@ public class OrderServiceImpl implements OrderService {
             return OrderDeleteStatus.NOT_FOUND;
         }
         int processedRows = 1;
-        /**/
+
         OrderStatus currentOrderStatus = list.get(0).getOrderStatus();
         String description = transactionDescription.get(currentOrderStatus, action);
-        /**/
+
         if (!setStatus(orderId, newOrderStatus)) {
             return OrderDeleteStatus.ORDER_UPDATE_ERROR;
         }
-        /**/
+
         for (OrderDetailDto orderDetailDto : list) {
             if (currentOrderStatus == OrderStatus.CLOSED) {
                 if (orderDetailDto.getCompanyCommission().compareTo(BigDecimal.ZERO) != 0) {
@@ -1858,7 +1838,7 @@ public class OrderServiceImpl implements OrderService {
                         return OrderDeleteStatus.COMPANY_WALLET_UPDATE_ERROR;
                     }
                 }
-                /**/
+
                 WalletOperationData walletOperationData = new WalletOperationData();
                 OperationType operationType = null;
                 if (orderDetailDto.getTransactionType() == OperationType.OUTPUT) {
@@ -1886,13 +1866,13 @@ public class OrderServiceImpl implements OrderService {
                 int processedRefRows = this.unprocessReferralTransactionByOrder(orderDetailDto.getOrderId(), description);
                 processedRows = processedRefRows + processedRows;
                 log.debug("rows after refs {}", processedRows);
-                /**/
+
                 if (!transactionService.setStatusById(
                         orderDetailDto.getTransactionId(),
                         TransactionStatus.DELETED.getStatus())) {
                     return OrderDeleteStatus.TRANSACTION_UPDATE_ERROR;
                 }
-                /**/
+
                 processedRows++;
             } else if (currentOrderStatus == OrderStatus.OPENED) {
                 WalletTransferStatus walletTransferStatus = walletService.walletInnerTransfer(
@@ -1904,7 +1884,7 @@ public class OrderServiceImpl implements OrderService {
                 if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
                     return OrderDeleteStatus.TRANSACTION_CREATE_ERROR;
                 }
-                /**/
+
                 if (!transactionService.setStatusById(
                         orderDetailDto.getTransactionId(),
                         TransactionStatus.DELETED.getStatus())) {
@@ -2047,7 +2027,6 @@ public class OrderServiceImpl implements OrderService {
         }});
         for (CandleChartItemDto candle : rows) {
             ArrayList<Object> arrayList = new ArrayList<>();
-            /*values*/
             arrayList.add(candle.getBeginDate().toString());
             arrayList.add(candle.getEndDate().toString());
             arrayList.add(candle.getOpenRate());
@@ -2098,7 +2077,6 @@ public class OrderServiceImpl implements OrderService {
     public RefreshStatisticDto getSomeCurrencyStatForRefresh(Set<Integer> currencyIds) {
         RefreshStatisticDto res = new RefreshStatisticDto();
         List<ExOrderStatisticsShortByPairsDto> dtos = this.getStatForSomeCurrencies(currencyIds);
-        /* List<ExOrderStatisticsShortByPairsDto> dtos = exchangeRatesHolder.getCurrenciesRates(currencyIds);*/
         List<ExOrderStatisticsShortByPairsDto> icos = dtos
                 .stream()
                 .filter(p -> p.getType() == CurrencyPairType.ICO)

@@ -87,7 +87,6 @@ public interface WalletService {
      * @param sourceType type the operation that caused the transfer
      * @param sourceId   ID the operation in the table that corresponds to sourceType
      * @return WalletTransferStatus with detail about result
-     * @author ValkSam
      */
     WalletTransferStatus walletInnerTransfer(int walletId, BigDecimal amount, TransactionSourceType sourceType, int sourceId);
 

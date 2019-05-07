@@ -30,7 +30,6 @@ import java.util.Map;
  *      h = high array(<today>, <last 24 hours>),
  *      o = today's opening price
  *
- * Created by OLEG on 14.12.2016.
  */
 @Log4j2(topic = "tracker")
 @Service(value = "Kraken")

@@ -3,22 +3,19 @@ package me.exrates.service.userOperation;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.UserDao;
 import me.exrates.dao.userOperation.UserOperationDao;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.userOperation.UserOperationAuthorityOption;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
-import me.exrates.service.exception.*;
+import me.exrates.service.exception.ForbiddenOperationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
-/**
- * @author Vlad Dziubak
- * Date: 01.08.2018
- */
 @Log4j2
 @Service
 public class UserOperationServiceImpl implements UserOperationService {

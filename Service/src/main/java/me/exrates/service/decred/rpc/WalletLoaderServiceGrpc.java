@@ -1,22 +1,12 @@
 package me.exrates.service.decred.rpc;
 
 import static io.grpc.MethodDescriptor.generateFullMethodName;
-import static io.grpc.stub.ClientCalls.asyncBidiStreamingCall;
-import static io.grpc.stub.ClientCalls.asyncClientStreamingCall;
-import static io.grpc.stub.ClientCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ClientCalls.asyncUnaryCall;
-import static io.grpc.stub.ClientCalls.blockingServerStreamingCall;
 import static io.grpc.stub.ClientCalls.blockingUnaryCall;
 import static io.grpc.stub.ClientCalls.futureUnaryCall;
-import static io.grpc.stub.ServerCalls.asyncBidiStreamingCall;
-import static io.grpc.stub.ServerCalls.asyncClientStreamingCall;
-import static io.grpc.stub.ServerCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ServerCalls.asyncUnaryCall;
-import static io.grpc.stub.ServerCalls.asyncUnimplementedStreamingCall;
 import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
 
-/**
- */
 @javax.annotation.Generated(
     value = "by gRPC proto compiler (version 1.10.1)",
     comments = "Source: api.proto")
@@ -384,68 +374,48 @@ public final class WalletLoaderServiceGrpc {
     return new WalletLoaderServiceFutureStub(channel);
   }
 
-  /**
-   */
   public static abstract class WalletLoaderServiceImplBase implements io.grpc.BindableService {
 
-    /**
-     */
     public void walletExists(me.exrates.service.decred.rpc.Api.WalletExistsRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.WalletExistsResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getWalletExistsMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void createWallet(me.exrates.service.decred.rpc.Api.CreateWalletRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.CreateWalletResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getCreateWalletMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void createWatchingOnlyWallet(me.exrates.service.decred.rpc.Api.CreateWatchingOnlyWalletRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.CreateWatchingOnlyWalletResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getCreateWatchingOnlyWalletMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void openWallet(me.exrates.service.decred.rpc.Api.OpenWalletRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.OpenWalletResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getOpenWalletMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void closeWallet(me.exrates.service.decred.rpc.Api.CloseWalletRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.CloseWalletResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getCloseWalletMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void startConsensusRpc(me.exrates.service.decred.rpc.Api.StartConsensusRpcRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.StartConsensusRpcResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getStartConsensusRpcMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void discoverAddresses(me.exrates.service.decred.rpc.Api.DiscoverAddressesRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.DiscoverAddressesResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getDiscoverAddressesMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void subscribeToBlockNotifications(me.exrates.service.decred.rpc.Api.SubscribeToBlockNotificationsRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SubscribeToBlockNotificationsResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getSubscribeToBlockNotificationsMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void fetchHeaders(me.exrates.service.decred.rpc.Api.FetchHeadersRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.FetchHeadersResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getFetchHeadersMethodHelper(), responseObserver);
@@ -520,8 +490,6 @@ public final class WalletLoaderServiceGrpc {
     }
   }
 
-  /**
-   */
   public static final class WalletLoaderServiceStub extends io.grpc.stub.AbstractStub<WalletLoaderServiceStub> {
     private WalletLoaderServiceStub(io.grpc.Channel channel) {
       super(channel);
@@ -538,72 +506,54 @@ public final class WalletLoaderServiceGrpc {
       return new WalletLoaderServiceStub(channel, callOptions);
     }
 
-    /**
-     */
     public void walletExists(me.exrates.service.decred.rpc.Api.WalletExistsRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.WalletExistsResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getWalletExistsMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void createWallet(me.exrates.service.decred.rpc.Api.CreateWalletRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.CreateWalletResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getCreateWalletMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void createWatchingOnlyWallet(me.exrates.service.decred.rpc.Api.CreateWatchingOnlyWalletRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.CreateWatchingOnlyWalletResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getCreateWatchingOnlyWalletMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void openWallet(me.exrates.service.decred.rpc.Api.OpenWalletRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.OpenWalletResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getOpenWalletMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void closeWallet(me.exrates.service.decred.rpc.Api.CloseWalletRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.CloseWalletResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getCloseWalletMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void startConsensusRpc(me.exrates.service.decred.rpc.Api.StartConsensusRpcRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.StartConsensusRpcResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getStartConsensusRpcMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void discoverAddresses(me.exrates.service.decred.rpc.Api.DiscoverAddressesRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.DiscoverAddressesResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getDiscoverAddressesMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void subscribeToBlockNotifications(me.exrates.service.decred.rpc.Api.SubscribeToBlockNotificationsRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SubscribeToBlockNotificationsResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getSubscribeToBlockNotificationsMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void fetchHeaders(me.exrates.service.decred.rpc.Api.FetchHeadersRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.FetchHeadersResponse> responseObserver) {
       asyncUnaryCall(
@@ -611,8 +561,6 @@ public final class WalletLoaderServiceGrpc {
     }
   }
 
-  /**
-   */
   public static final class WalletLoaderServiceBlockingStub extends io.grpc.stub.AbstractStub<WalletLoaderServiceBlockingStub> {
     private WalletLoaderServiceBlockingStub(io.grpc.Channel channel) {
       super(channel);
@@ -629,72 +577,52 @@ public final class WalletLoaderServiceGrpc {
       return new WalletLoaderServiceBlockingStub(channel, callOptions);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.WalletExistsResponse walletExists(me.exrates.service.decred.rpc.Api.WalletExistsRequest request) {
       return blockingUnaryCall(
           getChannel(), getWalletExistsMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.CreateWalletResponse createWallet(me.exrates.service.decred.rpc.Api.CreateWalletRequest request) {
       return blockingUnaryCall(
           getChannel(), getCreateWalletMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.CreateWatchingOnlyWalletResponse createWatchingOnlyWallet(me.exrates.service.decred.rpc.Api.CreateWatchingOnlyWalletRequest request) {
       return blockingUnaryCall(
           getChannel(), getCreateWatchingOnlyWalletMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.OpenWalletResponse openWallet(me.exrates.service.decred.rpc.Api.OpenWalletRequest request) {
       return blockingUnaryCall(
           getChannel(), getOpenWalletMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.CloseWalletResponse closeWallet(me.exrates.service.decred.rpc.Api.CloseWalletRequest request) {
       return blockingUnaryCall(
           getChannel(), getCloseWalletMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.StartConsensusRpcResponse startConsensusRpc(me.exrates.service.decred.rpc.Api.StartConsensusRpcRequest request) {
       return blockingUnaryCall(
           getChannel(), getStartConsensusRpcMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.DiscoverAddressesResponse discoverAddresses(me.exrates.service.decred.rpc.Api.DiscoverAddressesRequest request) {
       return blockingUnaryCall(
           getChannel(), getDiscoverAddressesMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.SubscribeToBlockNotificationsResponse subscribeToBlockNotifications(me.exrates.service.decred.rpc.Api.SubscribeToBlockNotificationsRequest request) {
       return blockingUnaryCall(
           getChannel(), getSubscribeToBlockNotificationsMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.FetchHeadersResponse fetchHeaders(me.exrates.service.decred.rpc.Api.FetchHeadersRequest request) {
       return blockingUnaryCall(
           getChannel(), getFetchHeadersMethodHelper(), getCallOptions(), request);
     }
   }
 
-  /**
-   */
   public static final class WalletLoaderServiceFutureStub extends io.grpc.stub.AbstractStub<WalletLoaderServiceFutureStub> {
     private WalletLoaderServiceFutureStub(io.grpc.Channel channel) {
       super(channel);
@@ -711,72 +639,54 @@ public final class WalletLoaderServiceGrpc {
       return new WalletLoaderServiceFutureStub(channel, callOptions);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.WalletExistsResponse> walletExists(
         me.exrates.service.decred.rpc.Api.WalletExistsRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getWalletExistsMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.CreateWalletResponse> createWallet(
         me.exrates.service.decred.rpc.Api.CreateWalletRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getCreateWalletMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.CreateWatchingOnlyWalletResponse> createWatchingOnlyWallet(
         me.exrates.service.decred.rpc.Api.CreateWatchingOnlyWalletRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getCreateWatchingOnlyWalletMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.OpenWalletResponse> openWallet(
         me.exrates.service.decred.rpc.Api.OpenWalletRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getOpenWalletMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.CloseWalletResponse> closeWallet(
         me.exrates.service.decred.rpc.Api.CloseWalletRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getCloseWalletMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.StartConsensusRpcResponse> startConsensusRpc(
         me.exrates.service.decred.rpc.Api.StartConsensusRpcRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getStartConsensusRpcMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.DiscoverAddressesResponse> discoverAddresses(
         me.exrates.service.decred.rpc.Api.DiscoverAddressesRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getDiscoverAddressesMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.SubscribeToBlockNotificationsResponse> subscribeToBlockNotifications(
         me.exrates.service.decred.rpc.Api.SubscribeToBlockNotificationsRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getSubscribeToBlockNotificationsMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.FetchHeadersResponse> fetchHeaders(
         me.exrates.service.decred.rpc.Api.FetchHeadersRequest request) {
       return futureUnaryCall(

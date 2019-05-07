@@ -1,13 +1,10 @@
 package me.exrates.service.notifications.telegram;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.EvictingQueue;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.dao.ChatDao;
 import me.exrates.dao.chat.telegram.TelegramChatDao;
 import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.enums.ChatLang;
-import me.exrates.service.UserService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +23,6 @@ import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
-import java.util.Queue;
 
 @Service
 @Log4j2(topic = "message_notify")

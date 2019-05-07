@@ -17,9 +17,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 public interface ReferralService {
 
     String generateReferral(String userEmail);

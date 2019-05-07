@@ -1,38 +1,27 @@
 package me.exrates.service.impl;
 
 import me.exrates.dao.NotificationDao;
-import me.exrates.dao.NotificationUserSettingsDao;
 import me.exrates.model.Email;
 import me.exrates.model.Notification;
 import me.exrates.model.NotificationOption;
 import me.exrates.model.User;
-import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.dto.onlineTableDto.NotificationDto;
 import me.exrates.model.enums.NotificationEvent;
-import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.vo.CacheData;
 import me.exrates.service.NotificationService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
-import me.exrates.service.exception.IncorrectSmsPinException;
 import me.exrates.service.util.Cache;
-import org.apache.commons.lang3.StringUtils;
-import org.jboss.aerogear.security.otp.Totp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Created by OLEG on 10.11.2016.
- */
 @Service
 @Transactional
 public class NotificationServiceImpl implements NotificationService {
@@ -50,24 +39,11 @@ public class NotificationServiceImpl implements NotificationService {
     @Autowired
     private MessageSource messageSource;
 
-    // TODO manage notifications in admin page
-
-
-    /*private long createNotification(Integer userId, String title, String message, NotificationEvent cause) {
-        Notification notification = new Notification();
-        notification.setReceiverUserId(userId);
-        notification.setTitle(title);
-        notification.setMessage(message);
-        notification.setCause(cause);
-        return notificationDao.createNotification(notification);
-    }*/
-
     @Override
     public long createLocalizedNotification(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
                                             Object[] messageArgs) {
          Locale locale = new Locale(userService.getPreferedLang(userId));
-        return 0L /*createNotification(userId, messageSource.getMessage(titleCode, null, locale),
-                messageSource.getMessage(messageCode, normalizeArgs(messageArgs), locale), cause)*/;
+        return 0L;
 
     }
 
@@ -76,8 +52,7 @@ public class NotificationServiceImpl implements NotificationService {
                                             Object[] messageArgs) {
         Integer userId = userService.getIdByEmail(userEmail);
         Locale locale = new Locale(userService.getPreferedLang(userId));
-        return 0L /*createNotification(userId, messageSource.getMessage(titleCode, null, locale),
-                messageSource.getMessage(messageCode, normalizeArgs(messageArgs), locale), cause)*/;
+        return 0L;
 
     }
 

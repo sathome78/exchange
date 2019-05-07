@@ -1,6 +1,10 @@
 package me.exrates.service.qtum;
 
-import me.exrates.model.dto.merchants.qtum.*;
+import me.exrates.model.dto.merchants.qtum.Block;
+import me.exrates.model.dto.merchants.qtum.QtumListTransactions;
+import me.exrates.model.dto.merchants.qtum.QtumTokenContract;
+import me.exrates.model.dto.merchants.qtum.QtumTokenTransaction;
+import me.exrates.model.dto.merchants.qtum.QtumTransaction;
 
 import java.math.BigDecimal;
 import java.util.List;

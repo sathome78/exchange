@@ -10,9 +10,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-/**
- * Created by maks on 20.06.2017.
- */
 @Service
 public class RateLimitService  {
 

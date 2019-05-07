@@ -8,10 +8,24 @@ import me.exrates.model.Email;
 import me.exrates.model.dto.NotificationPayEventEnum;
 import me.exrates.model.dto.NotificatorSubscription;
 import me.exrates.model.dto.SmsSubscriptionDto;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.ActionType;
+import me.exrates.model.enums.NotificationTypeEnum;
+import me.exrates.model.enums.NotificatorSubscriptionStateEnum;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.vo.WalletOperationData;
-import me.exrates.service.*;
-import me.exrates.service.exception.*;
+import me.exrates.service.CompanyWalletService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.SendMailService;
+import me.exrates.service.UserService;
+import me.exrates.service.WalletService;
+import me.exrates.service.exception.IncorrectSmsPinException;
+import me.exrates.service.exception.MessageUndeliweredException;
+import me.exrates.service.exception.PaymentException;
+import me.exrates.service.exception.ServiceUnavailableException;
+import me.exrates.service.exception.UnoperableNumberException;
 import me.exrates.service.notifications.sms.epochta.EpochtaApi;
 import me.exrates.service.notifications.sms.epochta.Phones;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,14 +36,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Random;
 
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
-/**
- * Created by Maks on 29.09.2017.
- */
 @Log4j2(topic = "message_notify")
 @Component
 public class SmsNotificatorServiceImpl implements NotificatorService, Subscribable {
@@ -243,15 +258,6 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
         CompanyWallet companyWallet = companyWalletService.findByCurrency(currencyService.findByName(CURRENCY_NAME));
         companyWalletService.deposit(companyWallet, new BigDecimal(0), feeAmount);
         return totalAmount;
-    }
-
-    private void sendAlertMessage() {
-        Email email = new Email();
-        email.setFrom("sell@exrates.top");
-        email.setTo("sell@exrates.top");
-        email.setMessage("Insuficcience Service Balance Exception on 1s2u numbers lookup, need to refund balance!");
-        email.setSubject("Allert! InsuficcienceServiceBalanceException");
-        sendMailService.sendInfoMail(email);
     }
 
     private void createOrUpdate(SmsSubscriptionDto dto) {

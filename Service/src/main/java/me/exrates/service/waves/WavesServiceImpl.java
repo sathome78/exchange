@@ -224,9 +224,6 @@ public class WavesServiceImpl implements WavesService {
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
-        /*if (!"WAVES".equalsIgnoreCase(withdrawMerchantOperationDto.getCurrency())) {
-            throw new WithdrawRequestPostException("Currency not supported by merchant");
-        }*/
         try {
             String assetId = tokenMerchantCurrencyMap.entrySet().stream()
                     .filter(entry -> entry.getValue().getCurrencyName().equals(withdrawMerchantOperationDto.getCurrency()))
@@ -371,7 +368,7 @@ public class WavesServiceImpl implements WavesService {
         payment.setRecipient(recipientAddress);
         payment.setAmount(unscaleToLong(amount, scale));
         payment.setFee(WAVES_DEFAULT_FEE);
-        //      payment.setFeeAssetId(assetId);
+
         return restClient.transferCosts(payment);
     }
 
@@ -449,14 +446,5 @@ public class WavesServiceImpl implements WavesService {
     void setNotifyEmail(String notifyEmail) {
         this.notifyEmail = notifyEmail;
     }
-
-    /*
-    Use to create encode wallet seed
-
-    public static void main(String[] args) {
-
-        System.out.println(Base58.encode("box armed repair shoot grid give slide eagle kite excess fruit earn hill one legal".getBytes(Charset.forName("UTF-8"))));
-    }*/
-
 
 }

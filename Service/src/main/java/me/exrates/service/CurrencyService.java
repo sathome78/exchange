@@ -26,9 +26,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 public interface CurrencyService {
 
     String getCurrencyName(int currencyId);

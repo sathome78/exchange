@@ -17,9 +17,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Created by Maks on 13.12.2017.
- */
 @Log4j2
 @Service
 public class UsersAlertsServiceImpl implements UsersAlertsService {

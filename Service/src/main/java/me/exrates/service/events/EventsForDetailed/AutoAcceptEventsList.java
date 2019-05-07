@@ -2,8 +2,6 @@ package me.exrates.service.events.EventsForDetailed;
 
 import me.exrates.model.ExOrder;
 import me.exrates.model.enums.OrderEventEnum;
-import me.exrates.service.events.OrderEvent;
-import org.springframework.context.ApplicationEvent;
 
 import java.util.List;
 

@@ -27,9 +27,9 @@ import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
 import me.exrates.service.YandexMoneyService;
 import me.exrates.service.exception.MerchantInternalException;
-import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import me.exrates.service.util.WithdrawUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -52,9 +52,6 @@ import static com.squareup.okhttp.MediaType.parse;
 import static me.exrates.model.enums.OperationType.INPUT;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Service("yandexMoneyService")
 @PropertySource("classpath:/merchants/yandexmoney.properties")
 @Conditional(MonolitConditional.class)
@@ -211,8 +208,6 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
             switch (processPayment.error) {
                 case NOT_ENOUGH_FUNDS:
                     throw new NotEnoughUserWalletMoneyException("Not enough money on yandex wallet");
-//                case ACCOUNT_BLOCKED:
-//                    return new ModelAndView("redirect:" + execute.accountUnblockUri);
             }
         }
     }

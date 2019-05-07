@@ -19,16 +19,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.asn1.ASN1InputStream;
 import org.spongycastle.asn1.ASN1Integer;
-import org.spongycastle.asn1.ASN1OctetString;
 import org.spongycastle.asn1.ASN1Primitive;
-import org.spongycastle.asn1.ASN1TaggedObject;
-import org.spongycastle.asn1.DERBitString;
-import org.spongycastle.asn1.DEROctetString;
 import org.spongycastle.asn1.DERSequenceGenerator;
-import org.spongycastle.asn1.DERTaggedObject;
 import org.spongycastle.asn1.DLSequence;
 import org.spongycastle.asn1.x9.X9ECParameters;
-import org.spongycastle.asn1.x9.X9IntegerConverter;
 import org.spongycastle.crypto.AsymmetricCipherKeyPair;
 import org.spongycastle.crypto.digests.SHA256Digest;
 import org.spongycastle.crypto.ec.CustomNamedCurves;
@@ -40,20 +34,15 @@ import org.spongycastle.crypto.params.ECPublicKeyParameters;
 import org.spongycastle.crypto.params.KeyParameter;
 import org.spongycastle.crypto.signers.ECDSASigner;
 import org.spongycastle.crypto.signers.HMacDSAKCalculator;
-import org.spongycastle.math.ec.ECAlgorithms;
 import org.spongycastle.math.ec.ECPoint;
 import org.spongycastle.math.ec.FixedPointCombMultiplier;
 import org.spongycastle.math.ec.FixedPointUtil;
-import org.spongycastle.math.ec.custom.sec.SecP256K1Curve;
-import org.spongycastle.util.encoders.Base64;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.charset.Charset;
 import java.security.SecureRandom;
-import java.security.SignatureException;
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -119,20 +108,8 @@ public class ECKey {
         this.pub = (LazyECPoint) Preconditions.checkNotNull(pub);
     }
 
-    public static ECPoint compressPoint(ECPoint point) {
-        return getPointWithCompression(point, true);
-    }
-
-    public static LazyECPoint compressPoint(LazyECPoint point) {
-        return point.isCompressed() ? point : new LazyECPoint(compressPoint(point.get()));
-    }
-
     public static ECPoint decompressPoint(ECPoint point) {
         return getPointWithCompression(point, false);
-    }
-
-    public static LazyECPoint decompressPoint(LazyECPoint point) {
-        return !point.isCompressed() ? point : new LazyECPoint(decompressPoint(point.get()));
     }
 
     private static ECPoint getPointWithCompression(ECPoint point, boolean compressed) {
@@ -144,10 +121,6 @@ public class ECKey {
             BigInteger y = point.getAffineYCoord().toBigInteger();
             return CURVE.getCurve().createPoint(x, y, compressed);
         }
-    }
-
-    public static ECKey fromASN1(byte[] asn1privkey) {
-        return extractKeyFromASN1(asn1privkey);
     }
 
     public static ECKey fromPrivate(BigInteger privKey) {
@@ -167,24 +140,6 @@ public class ECKey {
         return fromPrivate(new BigInteger(1, privKeyBytes), compressed);
     }
 
-    public static ECKey fromPrivateAndPrecalculatedPublic(BigInteger priv, ECPoint pub) {
-        return new ECKey(priv, pub);
-    }
-
-    public static ECKey fromPrivateAndPrecalculatedPublic(byte[] priv, byte[] pub) {
-        Preconditions.checkNotNull(priv);
-        Preconditions.checkNotNull(pub);
-        return new ECKey(new BigInteger(1, priv), CURVE.getCurve().decodePoint(pub));
-    }
-
-    public static ECKey fromPublicOnly(ECPoint pub) {
-        return new ECKey((BigInteger)null, pub);
-    }
-
-    public static ECKey fromPublicOnly(byte[] pub) {
-        return new ECKey((BigInteger)null, CURVE.getCurve().decodePoint(pub));
-    }
-
     public ECKey decompress() {
         return !this.pub.isCompressed() ? this : new ECKey(this.priv, decompressPoint(this.pub.get()));
     }
@@ -201,13 +156,6 @@ public class ECKey {
         this((byte[])null, pubKey);
         this.keyCrypter = (KeyCrypter) Preconditions.checkNotNull(keyCrypter);
         this.encryptedPrivateKey = encryptedPrivateKey;
-    }
-
-    public static ECKey fromEncrypted(EncryptedData encryptedPrivateKey, KeyCrypter crypter, byte[] pubKey) {
-        ECKey key = fromPublicOnly(pubKey);
-        key.encryptedPrivateKey = (EncryptedData) Preconditions.checkNotNull(encryptedPrivateKey);
-        key.keyCrypter = (KeyCrypter) Preconditions.checkNotNull(crypter);
-        return key;
     }
 
     /** @deprecated */
@@ -238,49 +186,12 @@ public class ECKey {
         return this.priv == null;
     }
 
-    public boolean hasPrivKey() {
-        return this.priv != null;
-    }
-
-    public boolean isWatching() {
-        return this.isPubKeyOnly() && !this.isEncrypted();
-    }
-
-    public byte[] toASN1() {
-        try {
-            byte[] privKeyBytes = this.getPrivKeyBytes();
-            ByteArrayOutputStream baos = new ByteArrayOutputStream(400);
-            DERSequenceGenerator seq = new DERSequenceGenerator(baos);
-            seq.addObject(new ASN1Integer(1L));
-            seq.addObject(new DEROctetString(privKeyBytes));
-            seq.addObject(new DERTaggedObject(0, CURVE_PARAMS.toASN1Primitive()));
-            seq.addObject(new DERTaggedObject(1, new DERBitString(this.getPubKey())));
-            seq.close();
-            return baos.toByteArray();
-        } catch (IOException var4) {
-            throw new RuntimeException(var4);
-        }
-    }
-
-    public static byte[] publicKeyFromPrivate(BigInteger privKey, boolean compressed) {
-        ECPoint point = publicPointFromPrivate(privKey);
-        return point.getEncoded(compressed);
-    }
-
     public static ECPoint publicPointFromPrivate(BigInteger privKey) {
         if (privKey.bitLength() > CURVE.getN().bitLength()) {
             privKey = privKey.mod(CURVE.getN());
         }
 
         return (new FixedPointCombMultiplier()).multiply(CURVE.getG(), privKey);
-    }
-
-    public byte[] getPubKeyHash() {
-        if (this.pubKeyHash == null) {
-            this.pubKeyHash = CryptoUtils.sha256hash160(this.pub.getEncoded());
-        }
-
-        return this.pubKeyHash;
     }
 
     public byte[] getPubKey() {
@@ -389,200 +300,6 @@ public class ECKey {
         return verify(sigHash.getBytes(), signature, this.getPubKey());
     }
 
-    public void verifyOrThrow(byte[] hash, byte[] signature) throws SignatureException {
-        if (!this.verify(hash, signature)) {
-            throw new SignatureException();
-        }
-    }
-
-    public void verifyOrThrow(Sha256Hash sigHash, ECKey.ECDSASignature signature) throws SignatureException {
-        if (!verify(sigHash.getBytes(), signature, this.getPubKey())) {
-            throw new SignatureException();
-        }
-    }
-
-    public static boolean isPubKeyCanonical(byte[] pubkey) {
-        if (pubkey.length < 33) {
-            return false;
-        } else {
-            if (pubkey[0] == 4) {
-                if (pubkey.length != 65) {
-                    return false;
-                }
-            } else {
-                if (pubkey[0] != 2 && pubkey[0] != 3) {
-                    return false;
-                }
-
-                if (pubkey.length != 33) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-    }
-
-    private static ECKey extractKeyFromASN1(byte[] asn1privkey) {
-        try {
-            ASN1InputStream decoder = new ASN1InputStream(asn1privkey);
-            DLSequence seq = (DLSequence)decoder.readObject();
-            Preconditions.checkArgument(decoder.readObject() == null, "Input contains extra bytes");
-            decoder.close();
-            Preconditions.checkArgument(seq.size() == 4, "Input does not appear to be an ASN.1 OpenSSL EC private key");
-            Preconditions.checkArgument(((ASN1Integer)seq.getObjectAt(0)).getValue().equals(BigInteger.ONE), "Input is of wrong version");
-            byte[] privbits = ((ASN1OctetString)seq.getObjectAt(1)).getOctets();
-            BigInteger privkey = new BigInteger(1, privbits);
-            ASN1TaggedObject pubkey = (ASN1TaggedObject)seq.getObjectAt(3);
-            Preconditions.checkArgument(pubkey.getTagNo() == 1, "Input has 'publicKey' with bad tag number");
-            byte[] pubbits = ((DERBitString)pubkey.getObject()).getBytes();
-            Preconditions.checkArgument(pubbits.length == 33 || pubbits.length == 65, "Input has 'publicKey' with invalid length");
-            int encoding = pubbits[0] & 255;
-            Preconditions.checkArgument(encoding >= 2 && encoding <= 4, "Input has 'publicKey' with invalid encoding");
-            boolean compressed = pubbits.length == 33;
-            ECKey key = new ECKey(privkey, (byte[])null, compressed);
-            if (!Arrays.equals(key.getPubKey(), pubbits)) {
-                throw new IllegalArgumentException("Public key in ASN.1 structure does not match private key.");
-            } else {
-                return key;
-            }
-        } catch (IOException var10) {
-            throw new RuntimeException(var10);
-        }
-    }
-
-    public String signMessage(String message, Charset charset, @Nullable byte[] headerBytes) {
-        return this.signMessage(message, charset, (KeyParameter)null, headerBytes);
-    }
-
-    public String signMessage(String message, Charset charset, @Nullable KeyParameter aesKey, @Nullable byte[] headerBytes) {
-        byte[] data = CryptoUtils.formatMessageForSigning(message, charset, headerBytes);
-        Sha256Hash hash = Sha256Hash.twiceOf(data);
-        ECKey.ECDSASignature sig = this.sign(hash, aesKey);
-        int recId = -1;
-
-        int headerByte;
-        for(headerByte = 0; headerByte < 4; ++headerByte) {
-            ECKey k = recoverFromSignature(headerByte, sig, hash, this.isCompressed());
-            if (k != null && k.pub.equals(this.pub)) {
-                recId = headerByte;
-                break;
-            }
-        }
-
-        if (recId == -1) {
-            throw new RuntimeException("Could not construct a recoverable key. This should never happen.");
-        } else {
-            headerByte = recId + 27 + (this.isCompressed() ? 4 : 0);
-            byte[] sigData = new byte[65];
-            sigData[0] = (byte)headerByte;
-            System.arraycopy(CryptoUtils.bigIntegerToBytes(sig.r, 32), 0, sigData, 1, 32);
-            System.arraycopy(CryptoUtils.bigIntegerToBytes(sig.s, 32), 0, sigData, 33, 32);
-            return new String(Base64.encode(sigData), Charset.forName("UTF-8"));
-        }
-    }
-
-    public String signMessage(Sha256Hash messageHash) {
-        return this.signMessage(messageHash, (KeyParameter)null);
-    }
-
-    public String signMessage(Sha256Hash messageHash, @Nullable KeyParameter aesKey) {
-        ECKey.ECDSASignature sig = this.sign(messageHash, aesKey);
-        int recId = -1;
-
-        int headerByte;
-        for(headerByte = 0; headerByte < 4; ++headerByte) {
-            ECKey k = recoverFromSignature(headerByte, sig, messageHash, this.isCompressed());
-            if (k != null && k.pub.equals(this.pub)) {
-                recId = headerByte;
-                break;
-            }
-        }
-
-        if (recId == -1) {
-            throw new RuntimeException("Could not construct a recoverable key. This should never happen.");
-        } else {
-            headerByte = recId + 27 + (this.isCompressed() ? 4 : 0);
-            byte[] sigData = new byte[65];
-            sigData[0] = (byte)headerByte;
-            System.arraycopy(CryptoUtils.bigIntegerToBytes(sig.r, 32), 0, sigData, 1, 32);
-            System.arraycopy(CryptoUtils.bigIntegerToBytes(sig.s, 32), 0, sigData, 33, 32);
-            return new String(Base64.encode(sigData), Charset.forName("UTF-8"));
-        }
-    }
-
-    public static ECKey signedMessageToKey(String message, String signatureBase64) throws SignatureException {
-        byte[] signatureEncoded;
-        try {
-            signatureEncoded = Base64.decode(signatureBase64);
-        } catch (RuntimeException var9) {
-            throw new SignatureException("Could not decode base64", var9);
-        }
-
-        if (signatureEncoded.length < 65) {
-            throw new SignatureException("Signature truncated, expected 65 bytes and got " + signatureEncoded.length);
-        } else {
-            int header = signatureEncoded[0] & 255;
-            if (header >= 27 && header <= 34) {
-                BigInteger r = new BigInteger(1, Arrays.copyOfRange(signatureEncoded, 1, 33));
-                BigInteger s = new BigInteger(1, Arrays.copyOfRange(signatureEncoded, 33, 65));
-                new ECKey.ECDSASignature(r, s);
-                boolean compressed = false;
-                if (header >= 31) {
-                    compressed = true;
-                    header -= 4;
-                }
-
-                int recId = header - 27;
-                return null;
-            } else {
-                throw new SignatureException("Header byte out of range: " + header);
-            }
-        }
-    }
-
-    public void verifyMessage(String message, String signatureBase64) throws SignatureException {
-        ECKey key = signedMessageToKey(message, signatureBase64);
-        if (!key.pub.equals(this.pub)) {
-            throw new SignatureException("Signature did not match for message");
-        }
-    }
-
-    @Nullable
-    public static ECKey recoverFromSignature(int recId, ECKey.ECDSASignature sig, Sha256Hash message, boolean compressed) {
-        Preconditions.checkArgument(recId >= 0, "recId must be positive");
-        Preconditions.checkArgument(sig.r.signum() >= 0, "r must be positive");
-        Preconditions.checkArgument(sig.s.signum() >= 0, "s must be positive");
-        Preconditions.checkNotNull(message);
-        BigInteger n = CURVE.getN();
-        BigInteger i = BigInteger.valueOf((long)recId / 2L);
-        BigInteger x = sig.r.add(i.multiply(n));
-        BigInteger prime = SecP256K1Curve.q;
-        if (x.compareTo(prime) >= 0) {
-            return null;
-        } else {
-            ECPoint R = decompressKey(x, (recId & 1) == 1);
-            if (!R.multiply(n).isInfinity()) {
-                return null;
-            } else {
-                BigInteger e = message.toBigInteger();
-                BigInteger eInv = BigInteger.ZERO.subtract(e).mod(n);
-                BigInteger rInv = sig.r.modInverse(n);
-                BigInteger srInv = rInv.multiply(sig.s).mod(n);
-                BigInteger eInvrInv = rInv.multiply(eInv).mod(n);
-                ECPoint q = ECAlgorithms.sumOfTwoMultiplies(CURVE.getG(), eInvrInv, R, srInv);
-                return fromPublicOnly(q.getEncoded(compressed));
-            }
-        }
-    }
-
-    private static ECPoint decompressKey(BigInteger xBN, boolean yBit) {
-        X9IntegerConverter x9 = new X9IntegerConverter();
-        byte[] compEnc = x9.integerToBytes(xBN, 1 + x9.getByteLength(CURVE.getCurve()));
-        compEnc[0] = (byte)(yBit ? 3 : 2);
-        return CURVE.getCurve().decodePoint(compEnc);
-    }
-
     public byte[] getPrivKeyBytes() {
         return CryptoUtils.bigIntegerToBytes(this.getPrivKey(), 32);
     }
@@ -591,25 +308,12 @@ public class ECKey {
         return new DumpedPrivateKey(privateKeyHeader, this.getPrivKeyBytes(), this.isCompressed());
     }
 
-    public long getCreationTimeSeconds() {
-        return this.creationTimeSeconds;
-    }
-
     public void setCreationTimeSeconds(long newCreationTimeSeconds) {
         if (newCreationTimeSeconds < 0L) {
             throw new IllegalArgumentException("Cannot set creation time to negative value: " + newCreationTimeSeconds);
         } else {
             this.creationTimeSeconds = newCreationTimeSeconds;
         }
-    }
-
-    public ECKey encrypt(KeyCrypter keyCrypter, KeyParameter aesKey) throws KeyCrypterException {
-        Preconditions.checkNotNull(keyCrypter);
-        byte[] privKeyBytes = this.getPrivKeyBytes();
-        EncryptedData encryptedPrivateKey = keyCrypter.encrypt(privKeyBytes, aesKey);
-        ECKey result = fromEncrypted(encryptedPrivateKey, keyCrypter, this.getPubKey());
-        result.setCreationTimeSeconds(this.creationTimeSeconds);
-        return result;
     }
 
     public ECKey decrypt(KeyCrypter keyCrypter, KeyParameter aesKey) throws KeyCrypterException {
@@ -642,44 +346,8 @@ public class ECKey {
         }
     }
 
-    public ECKey maybeDecrypt(@Nullable KeyParameter aesKey) throws KeyCrypterException {
-        return this.isEncrypted() && aesKey != null ? this.decrypt(aesKey) : this;
-    }
-
-    public static boolean encryptionIsReversible(ECKey originalKey, ECKey encryptedKey, KeyCrypter keyCrypter, KeyParameter aesKey) {
-        try {
-            ECKey rebornUnencryptedKey = encryptedKey.decrypt(keyCrypter, aesKey);
-            byte[] originalPrivateKeyBytes = originalKey.getPrivKeyBytes();
-            byte[] rebornKeyBytes = rebornUnencryptedKey.getPrivKeyBytes();
-            if (!Arrays.equals(originalPrivateKeyBytes, rebornKeyBytes)) {
-                log.error("The check that encryption could be reversed failed for {}", originalKey);
-                return false;
-            } else {
-                return true;
-            }
-        } catch (KeyCrypterException var7) {
-            log.error(var7.getMessage());
-            return false;
-        }
-    }
-
     public boolean isEncrypted() {
         return this.keyCrypter != null && this.encryptedPrivateKey != null && this.encryptedPrivateKey.encryptedBytes.length > 0;
-    }
-
-    @Nullable
-    public byte[] getSecretBytes() {
-        return this.hasPrivKey() ? this.getPrivKeyBytes() : null;
-    }
-
-    @Nullable
-    public EncryptedData getEncryptedData() {
-        return this.getEncryptedPrivateKey();
-    }
-
-    @Nullable
-    public EncryptedData getEncryptedPrivateKey() {
-        return this.encryptedPrivateKey;
     }
 
     @Nullable
@@ -704,10 +372,6 @@ public class ECKey {
 
     public String toString() {
         return this.toString(false, (KeyParameter)null, (Integer)null);
-    }
-
-    public String toStringWithPrivate(@Nullable KeyParameter aesKey, Object params) {
-        return "";
     }
 
     public String getPrivateKeyAsHex() {

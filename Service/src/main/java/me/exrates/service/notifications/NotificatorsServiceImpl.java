@@ -10,11 +10,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
-/**
- * Created by Maks on 06.10.2017.
- */
 @Log4j2(topic = "message_notify")
 @Service
 public class NotificatorsServiceImpl implements NotificatorsService {

@@ -1,8 +1,8 @@
 package me.exrates.service.impl;
 
 import me.exrates.dao.TemporalTokenDao;
-import me.exrates.service.TemporalTokenService;
 import me.exrates.model.TemporalToken;
+import me.exrates.service.TemporalTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

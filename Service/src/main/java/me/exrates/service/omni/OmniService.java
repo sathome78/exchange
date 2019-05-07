@@ -1,6 +1,5 @@
 package me.exrates.service.omni;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.RefillRequestAddressShortDto;

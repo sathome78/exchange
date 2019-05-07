@@ -6,6 +6,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.UserDao;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.AdminAuthorityOption;
 import me.exrates.model.Comment;
 import me.exrates.model.Email;
@@ -51,7 +52,6 @@ import me.exrates.service.exception.ResetPasswordExpirationException;
 import me.exrates.service.exception.TokenNotFoundException;
 import me.exrates.service.exception.UnRegisteredUserDeleteException;
 import me.exrates.service.exception.UserCommentNotFoundException;
-import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.service.exception.WrongFinPasswordException;
 import me.exrates.service.exception.api.UniqueEmailConstraintException;
 import me.exrates.service.exception.api.UniqueNicknameConstraintException;
@@ -59,7 +59,6 @@ import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.session.UserSessionService;
 import me.exrates.service.token.TokenScheduler;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,7 +73,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -95,7 +93,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.joining;
 
 @Log4j2
@@ -230,7 +227,7 @@ public class UserServiceImpl implements UserService {
         if (userDao.deleteTemporalTokensOfTokentypeForUser(temporalToken)) {
             //deleting of appropriate jobs
             tokenScheduler.deleteJobsRelatedWithToken(temporalToken);
-            /**/
+
             if (temporalToken.getTokenType() == TokenType.CONFIRM_NEW_IP) {
                 if (!userDao.setIpStateConfirmed(temporalToken.getUserId(), temporalToken.getCheckIp())) {
                     return 0;
@@ -613,7 +610,6 @@ public class UserServiceImpl implements UserService {
     @PostConstruct
     private void initTokenTriggers() {
 
-//    tokenScheduler.initTrigers();
     }
 
     @Override
@@ -806,7 +802,7 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    /*todo refator it*/
+    //todo: refator it
     @Override
     public boolean checkPin(String email, String pin, NotificationMessageEventEnum event) {
         int userId = getIdByEmail(email);
@@ -846,16 +842,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime) {
         return userDao.getNewRegisteredUserNumber(startTime, endTime);
-    }
-
-
-    private boolean isValidLong(String code) {
-        try {
-            Long.parseLong(code);
-        } catch (final NumberFormatException e) {
-            return false;
-        }
-        return true;
     }
 
     @Override

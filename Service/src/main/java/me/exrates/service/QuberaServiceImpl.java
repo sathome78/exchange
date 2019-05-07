@@ -8,17 +8,17 @@ import me.exrates.model.User;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.constants.Constants;
 import me.exrates.model.dto.AccountCreateDto;
-import me.exrates.model.dto.qubera.AccountInfoDto;
 import me.exrates.model.dto.AccountQuberaRequestDto;
 import me.exrates.model.dto.AccountQuberaResponseDto;
+import me.exrates.model.dto.RefillRequestAcceptDto;
+import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.model.dto.qubera.AccountInfoDto;
 import me.exrates.model.dto.qubera.ExternalPaymentDto;
 import me.exrates.model.dto.qubera.PaymentRequestDto;
 import me.exrates.model.dto.qubera.QuberaPaymentToMasterDto;
 import me.exrates.model.dto.qubera.QuberaRequestDto;
-import me.exrates.model.dto.RefillRequestAcceptDto;
-import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.qubera.ResponsePaymentDto;
-import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
@@ -81,7 +81,7 @@ public class QuberaServiceImpl implements QuberaService {
             throw new RefillRequestIdNeededException(request.toString());
         }
 
-        //todo check params
+        //todo: check params
         Map<String, String> details = quberaDao.getUserDetailsForCurrency(request.getUserId(), request.getCurrencyId());
         Map<String, String> refillParams = Maps.newHashMap();
         String iban = details.getOrDefault("iban", "");
@@ -111,7 +111,7 @@ public class QuberaServiceImpl implements QuberaService {
         requestAcceptDto.setRequestId(requestId);
 
         refillService.autoAcceptRefillRequest(requestAcceptDto);
-        // todo send notification to transfer to master account
+        // todo: send notification to transfer to master account
 
         final String gaTag = refillService.getUserGAByRequestId(requestId);
         logger.info("Process of sending data to Google Analytics...");
@@ -131,7 +131,7 @@ public class QuberaServiceImpl implements QuberaService {
     @Override
     public boolean logResponse(QuberaRequestDto requestDto) {
         return quberaDao.logResponse(requestDto);
-        //todo send email
+        //todo: send email
     }
 
     @Override
@@ -235,7 +235,7 @@ public class QuberaServiceImpl implements QuberaService {
                     Constants.ErrorApi.QUBERA_ACCOUNT_NOT_FOUND_ERROR);
         }
 
-        //check balance of user
+        //todo: check balance of user
 
         AccountInfoDto balanceAccount = kycHttpClient.getBalanceAccount(account);
 

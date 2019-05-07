@@ -1,22 +1,12 @@
 package me.exrates.service.decred.rpc;
 
 import static io.grpc.MethodDescriptor.generateFullMethodName;
-import static io.grpc.stub.ClientCalls.asyncBidiStreamingCall;
-import static io.grpc.stub.ClientCalls.asyncClientStreamingCall;
-import static io.grpc.stub.ClientCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ClientCalls.asyncUnaryCall;
-import static io.grpc.stub.ClientCalls.blockingServerStreamingCall;
 import static io.grpc.stub.ClientCalls.blockingUnaryCall;
 import static io.grpc.stub.ClientCalls.futureUnaryCall;
-import static io.grpc.stub.ServerCalls.asyncBidiStreamingCall;
-import static io.grpc.stub.ServerCalls.asyncClientStreamingCall;
-import static io.grpc.stub.ServerCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ServerCalls.asyncUnaryCall;
-import static io.grpc.stub.ServerCalls.asyncUnimplementedStreamingCall;
 import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
 
-/**
- */
 @javax.annotation.Generated(
     value = "by gRPC proto compiler (version 1.10.1)",
     comments = "Source: api.proto")
@@ -495,89 +485,63 @@ public final class TicketBuyerServiceGrpc {
     return new TicketBuyerServiceFutureStub(channel);
   }
 
-  /**
-   */
   public static abstract class TicketBuyerServiceImplBase implements io.grpc.BindableService {
 
-    /**
-     */
     public void startAutoBuyer(me.exrates.service.decred.rpc.Api.StartAutoBuyerRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.StartAutoBuyerResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getStartAutoBuyerMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void stopAutoBuyer(me.exrates.service.decred.rpc.Api.StopAutoBuyerRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.StopAutoBuyerResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getStopAutoBuyerMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void ticketBuyerConfig(me.exrates.service.decred.rpc.Api.TicketBuyerConfigRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.TicketBuyerConfigResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getTicketBuyerConfigMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void setAccount(me.exrates.service.decred.rpc.Api.SetAccountRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SetAccountResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getSetAccountMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void setBalanceToMaintain(me.exrates.service.decred.rpc.Api.SetBalanceToMaintainRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SetBalanceToMaintainResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getSetBalanceToMaintainMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void setMaxFee(me.exrates.service.decred.rpc.Api.SetMaxFeeRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SetMaxFeeResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getSetMaxFeeMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void setMaxPriceRelative(me.exrates.service.decred.rpc.Api.SetMaxPriceRelativeRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SetMaxPriceRelativeResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getSetMaxPriceRelativeMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void setMaxPriceAbsolute(me.exrates.service.decred.rpc.Api.SetMaxPriceAbsoluteRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SetMaxPriceAbsoluteResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getSetMaxPriceAbsoluteMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void setVotingAddress(me.exrates.service.decred.rpc.Api.SetVotingAddressRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SetVotingAddressResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getSetVotingAddressMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void setPoolAddress(me.exrates.service.decred.rpc.Api.SetPoolAddressRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SetPoolAddressResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getSetPoolAddressMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void setPoolFees(me.exrates.service.decred.rpc.Api.SetPoolFeesRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SetPoolFeesResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getSetPoolFeesMethodHelper(), responseObserver);
     }
 
-    /**
-     */
     public void setMaxPerBlock(me.exrates.service.decred.rpc.Api.SetMaxPerBlockRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SetMaxPerBlockResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getSetMaxPerBlockMethodHelper(), responseObserver);
@@ -673,8 +637,6 @@ public final class TicketBuyerServiceGrpc {
     }
   }
 
-  /**
-   */
   public static final class TicketBuyerServiceStub extends io.grpc.stub.AbstractStub<TicketBuyerServiceStub> {
     private TicketBuyerServiceStub(io.grpc.Channel channel) {
       super(channel);
@@ -691,96 +653,72 @@ public final class TicketBuyerServiceGrpc {
       return new TicketBuyerServiceStub(channel, callOptions);
     }
 
-    /**
-     */
     public void startAutoBuyer(me.exrates.service.decred.rpc.Api.StartAutoBuyerRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.StartAutoBuyerResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getStartAutoBuyerMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void stopAutoBuyer(me.exrates.service.decred.rpc.Api.StopAutoBuyerRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.StopAutoBuyerResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getStopAutoBuyerMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void ticketBuyerConfig(me.exrates.service.decred.rpc.Api.TicketBuyerConfigRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.TicketBuyerConfigResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getTicketBuyerConfigMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void setAccount(me.exrates.service.decred.rpc.Api.SetAccountRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SetAccountResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getSetAccountMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void setBalanceToMaintain(me.exrates.service.decred.rpc.Api.SetBalanceToMaintainRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SetBalanceToMaintainResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getSetBalanceToMaintainMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void setMaxFee(me.exrates.service.decred.rpc.Api.SetMaxFeeRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SetMaxFeeResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getSetMaxFeeMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void setMaxPriceRelative(me.exrates.service.decred.rpc.Api.SetMaxPriceRelativeRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SetMaxPriceRelativeResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getSetMaxPriceRelativeMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void setMaxPriceAbsolute(me.exrates.service.decred.rpc.Api.SetMaxPriceAbsoluteRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SetMaxPriceAbsoluteResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getSetMaxPriceAbsoluteMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void setVotingAddress(me.exrates.service.decred.rpc.Api.SetVotingAddressRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SetVotingAddressResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getSetVotingAddressMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void setPoolAddress(me.exrates.service.decred.rpc.Api.SetPoolAddressRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SetPoolAddressResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getSetPoolAddressMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void setPoolFees(me.exrates.service.decred.rpc.Api.SetPoolFeesRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SetPoolFeesResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getSetPoolFeesMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
-    /**
-     */
     public void setMaxPerBlock(me.exrates.service.decred.rpc.Api.SetMaxPerBlockRequest request,
         io.grpc.stub.StreamObserver<me.exrates.service.decred.rpc.Api.SetMaxPerBlockResponse> responseObserver) {
       asyncUnaryCall(
@@ -788,8 +726,6 @@ public final class TicketBuyerServiceGrpc {
     }
   }
 
-  /**
-   */
   public static final class TicketBuyerServiceBlockingStub extends io.grpc.stub.AbstractStub<TicketBuyerServiceBlockingStub> {
     private TicketBuyerServiceBlockingStub(io.grpc.Channel channel) {
       super(channel);
@@ -806,93 +742,67 @@ public final class TicketBuyerServiceGrpc {
       return new TicketBuyerServiceBlockingStub(channel, callOptions);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.StartAutoBuyerResponse startAutoBuyer(me.exrates.service.decred.rpc.Api.StartAutoBuyerRequest request) {
       return blockingUnaryCall(
           getChannel(), getStartAutoBuyerMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.StopAutoBuyerResponse stopAutoBuyer(me.exrates.service.decred.rpc.Api.StopAutoBuyerRequest request) {
       return blockingUnaryCall(
           getChannel(), getStopAutoBuyerMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.TicketBuyerConfigResponse ticketBuyerConfig(me.exrates.service.decred.rpc.Api.TicketBuyerConfigRequest request) {
       return blockingUnaryCall(
           getChannel(), getTicketBuyerConfigMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.SetAccountResponse setAccount(me.exrates.service.decred.rpc.Api.SetAccountRequest request) {
       return blockingUnaryCall(
           getChannel(), getSetAccountMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.SetBalanceToMaintainResponse setBalanceToMaintain(me.exrates.service.decred.rpc.Api.SetBalanceToMaintainRequest request) {
       return blockingUnaryCall(
           getChannel(), getSetBalanceToMaintainMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.SetMaxFeeResponse setMaxFee(me.exrates.service.decred.rpc.Api.SetMaxFeeRequest request) {
       return blockingUnaryCall(
           getChannel(), getSetMaxFeeMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.SetMaxPriceRelativeResponse setMaxPriceRelative(me.exrates.service.decred.rpc.Api.SetMaxPriceRelativeRequest request) {
       return blockingUnaryCall(
           getChannel(), getSetMaxPriceRelativeMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.SetMaxPriceAbsoluteResponse setMaxPriceAbsolute(me.exrates.service.decred.rpc.Api.SetMaxPriceAbsoluteRequest request) {
       return blockingUnaryCall(
           getChannel(), getSetMaxPriceAbsoluteMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.SetVotingAddressResponse setVotingAddress(me.exrates.service.decred.rpc.Api.SetVotingAddressRequest request) {
       return blockingUnaryCall(
           getChannel(), getSetVotingAddressMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.SetPoolAddressResponse setPoolAddress(me.exrates.service.decred.rpc.Api.SetPoolAddressRequest request) {
       return blockingUnaryCall(
           getChannel(), getSetPoolAddressMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.SetPoolFeesResponse setPoolFees(me.exrates.service.decred.rpc.Api.SetPoolFeesRequest request) {
       return blockingUnaryCall(
           getChannel(), getSetPoolFeesMethodHelper(), getCallOptions(), request);
     }
 
-    /**
-     */
     public me.exrates.service.decred.rpc.Api.SetMaxPerBlockResponse setMaxPerBlock(me.exrates.service.decred.rpc.Api.SetMaxPerBlockRequest request) {
       return blockingUnaryCall(
           getChannel(), getSetMaxPerBlockMethodHelper(), getCallOptions(), request);
     }
   }
 
-  /**
-   */
   public static final class TicketBuyerServiceFutureStub extends io.grpc.stub.AbstractStub<TicketBuyerServiceFutureStub> {
     private TicketBuyerServiceFutureStub(io.grpc.Channel channel) {
       super(channel);
@@ -909,96 +819,72 @@ public final class TicketBuyerServiceGrpc {
       return new TicketBuyerServiceFutureStub(channel, callOptions);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.StartAutoBuyerResponse> startAutoBuyer(
         me.exrates.service.decred.rpc.Api.StartAutoBuyerRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getStartAutoBuyerMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.StopAutoBuyerResponse> stopAutoBuyer(
         me.exrates.service.decred.rpc.Api.StopAutoBuyerRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getStopAutoBuyerMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.TicketBuyerConfigResponse> ticketBuyerConfig(
         me.exrates.service.decred.rpc.Api.TicketBuyerConfigRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getTicketBuyerConfigMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.SetAccountResponse> setAccount(
         me.exrates.service.decred.rpc.Api.SetAccountRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getSetAccountMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.SetBalanceToMaintainResponse> setBalanceToMaintain(
         me.exrates.service.decred.rpc.Api.SetBalanceToMaintainRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getSetBalanceToMaintainMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.SetMaxFeeResponse> setMaxFee(
         me.exrates.service.decred.rpc.Api.SetMaxFeeRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getSetMaxFeeMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.SetMaxPriceRelativeResponse> setMaxPriceRelative(
         me.exrates.service.decred.rpc.Api.SetMaxPriceRelativeRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getSetMaxPriceRelativeMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.SetMaxPriceAbsoluteResponse> setMaxPriceAbsolute(
         me.exrates.service.decred.rpc.Api.SetMaxPriceAbsoluteRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getSetMaxPriceAbsoluteMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.SetVotingAddressResponse> setVotingAddress(
         me.exrates.service.decred.rpc.Api.SetVotingAddressRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getSetVotingAddressMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.SetPoolAddressResponse> setPoolAddress(
         me.exrates.service.decred.rpc.Api.SetPoolAddressRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getSetPoolAddressMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.SetPoolFeesResponse> setPoolFees(
         me.exrates.service.decred.rpc.Api.SetPoolFeesRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getSetPoolFeesMethodHelper(), getCallOptions()), request);
     }
 
-    /**
-     */
     public com.google.common.util.concurrent.ListenableFuture<me.exrates.service.decred.rpc.Api.SetMaxPerBlockResponse> setMaxPerBlock(
         me.exrates.service.decred.rpc.Api.SetMaxPerBlockRequest request) {
       return futureUnaryCall(

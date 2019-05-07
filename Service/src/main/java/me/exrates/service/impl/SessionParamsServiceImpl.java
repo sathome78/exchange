@@ -22,9 +22,6 @@ import javax.servlet.http.HttpSession;
 import java.security.Principal;
 import java.util.List;
 
-/**
- * Created by maks on 31.03.2017.
- */
 @Log4j2
 @Service
 @PropertySource("classpath:session.properties")

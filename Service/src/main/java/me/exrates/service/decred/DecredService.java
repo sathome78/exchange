@@ -2,13 +2,9 @@ package me.exrates.service.decred;
 
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
-import me.exrates.model.dto.RefillRequestCreateDto;
-import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 
-import java.util.Map;
 import java.util.Set;
 
 public interface DecredService extends IWithdrawable, IRefillable {

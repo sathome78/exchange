@@ -11,9 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 
-/**
- * Created by OLEG on 17.03.2017.
- */
 public interface BitcoinTransactionService {
   @Transactional(readOnly = true)
   boolean existsPendingPaymentWithStatusAndAddress(InvoiceStatus beginStatus, String address);

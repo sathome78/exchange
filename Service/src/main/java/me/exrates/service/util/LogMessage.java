@@ -7,9 +7,6 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.servlet.http.HttpServletRequest;
 
-/**
- * Created by ValkSam
- */
 @Log4j
 public class LogMessage {
   public static String requestLogMessage(HttpServletRequest request) {
@@ -31,17 +28,6 @@ public class LogMessage {
           .concat(getAuthTokenMessagePart(request))
           .concat("params: ").concat(new ObjectMapper().writeValueAsString(request.getParameterMap())).concat("\n\t")
           .concat("body: ").concat(new ObjectMapper().writeValueAsString(body)).concat("\n\t");
-    } catch (Exception e) {
-      log.error(ExceptionUtils.getStackTrace(e));
-      return "error while logging";
-    }
-  }
-
-  public static String requestLogMessageWithResult(HttpServletRequest request, Object body, Object result) {
-    try {
-      return requestLogMessage(request, body)
-          .concat(result instanceof Throwable ? "error: " : "response: ")
-          .concat(new ObjectMapper().writeValueAsString(result)).concat("\n\t");
     } catch (Exception e) {
       log.error(ExceptionUtils.getStackTrace(e));
       return "error while logging";

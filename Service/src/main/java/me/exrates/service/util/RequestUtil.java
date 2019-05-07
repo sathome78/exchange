@@ -33,8 +33,6 @@ public class RequestUtil {
 
     public HttpHeaders prepareHeaders() {
         HttpHeaders headers = new HttpHeaders();
-//        headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE);
-//        headers.add(properties.getTokenName(), properties.getTokenValue());
         return headers;
     }
 

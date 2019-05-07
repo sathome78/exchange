@@ -10,7 +10,6 @@ import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 
 /**
- * Created by maks on 22.04.2017.
  * rates map holds rate of the last deal by the each currency
  * if/ there no deals was by the currency getCurrentRate will return null;
  * <p>

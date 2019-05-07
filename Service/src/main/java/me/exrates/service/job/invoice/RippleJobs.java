@@ -19,10 +19,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/**
- * Created by maks on 16.05.2017.
- */
-
 @Service
 @Log4j2
 @Conditional(MonolitConditional.class)

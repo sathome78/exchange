@@ -5,7 +5,6 @@ import me.exrates.dao.TransferRequestDao;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.PagingData;
 import me.exrates.model.TransferRequest;
-import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.TransferDto;
 import me.exrates.model.dto.TransferRequestCreateDto;
 import me.exrates.model.dto.TransferRequestFlatDto;
@@ -22,8 +21,20 @@ import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
 import me.exrates.model.vo.TransactionDescription;
-import me.exrates.service.*;
-import me.exrates.service.exception.*;
+import me.exrates.service.CommissionService;
+import me.exrates.service.CompanyWalletService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.InputOutputService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.NotificationService;
+import me.exrates.service.TransferService;
+import me.exrates.service.UserService;
+import me.exrates.service.WalletService;
+import me.exrates.service.exception.InvalidNicknameException;
+import me.exrates.service.exception.TransferRequestCreationException;
+import me.exrates.service.exception.TransferRequestNotFoundException;
+import me.exrates.service.exception.TransferRequestRevokeException;
+import me.exrates.service.exception.WithdrawRequestPostException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.exception.invoice.TransferRequestAcceptExeption;
@@ -36,24 +47,26 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.security.Principal;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.OperationType.USER_TRANSFER;
 import static me.exrates.model.enums.WalletTransferStatus.SUCCESS;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.InvoiceActionParamsValue;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.PRESENT_VOUCHER;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REVOKE;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REVOKE_ADMIN;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.TRANSFER_VOUCHER;
-
-/**
- * created by ValkSam
- */
 
 @Service
 public class TransferServiceImpl implements TransferService {

@@ -21,9 +21,6 @@ import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by maks on 11.05.2017.
- */
 @Log4j2(topic = "ripple_log")
 @Service
 @PropertySource("classpath:/merchants/ripple.properties")

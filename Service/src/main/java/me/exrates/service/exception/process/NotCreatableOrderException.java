@@ -1,8 +1,5 @@
 package me.exrates.service.exception.process;
 
-/**
- * Created by Valk on 04.04.16.
- */
 public class NotCreatableOrderException extends ProcessingException {
 
     public NotCreatableOrderException() {

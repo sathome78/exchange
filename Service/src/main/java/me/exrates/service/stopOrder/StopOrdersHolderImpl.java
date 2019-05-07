@@ -22,9 +22,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
 
-/**
- * Created by maks on 22.04.2017.
- */
 @Log4j2
 @Component
 public class StopOrdersHolderImpl implements StopOrdersHolder {
@@ -42,7 +39,6 @@ public class StopOrdersHolderImpl implements StopOrdersHolder {
             .thenComparing(StopOrderSummaryDto::getOrderId);
 
 
-    /*----methods-----*/
     @PostConstruct
     public void init() {
         List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairsWithHidden(CurrencyPairType.MAIN);
