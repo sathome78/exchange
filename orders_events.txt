@@ -1,9 +1,0 @@
-private void acceptorder -> updateOrder(exOrder) - > orderDao.updateOrder
-createOrder -> orderDao.createOrder(exOrder);
-partial accept -> (new order)createOrder && acceptOrder  -> (oldOrder)deleteOrder(orderId, OrderStatus.SPLIT_CLOSED, DELETE_SPLIT)
-                                                             && (old order)orderDao.setStatus(orderId, status);
-
-cancell order -> cancellOrder ->  setStatus(exOrder.getId()
-delete by admin -> deleteOrder -> setStatus(exOrder.getId(), OrderStatus.DELeTE);
-
-ключевые методы сервиса: deleteOrder, updateOrder, createOrder
