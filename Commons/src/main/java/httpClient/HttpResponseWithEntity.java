@@ -10,5 +10,6 @@ public class HttpResponseWithEntity {
 
     private CloseableHttpResponse closeableHttpResponse;
     private String responseEntity;
+    private int status;
 
 }

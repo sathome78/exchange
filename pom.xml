@@ -160,12 +160,12 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-messaging</artifactId>
-            <version>RELEASE</version>
+            <version>4.2.12.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.social</groupId>
             <artifactId>spring-social-twitter</artifactId>
-            <version>RELEASE</version>
+            <version>1.1.2.RELEASE</version>
         </dependency>
         <!--Spring framework-->
 
