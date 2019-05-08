@@ -61,10 +61,7 @@ public class GtagRefillRequestsImpl implements GtagRefillRequests {
         MapSqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("user_id", userId)
                 .addValue("currency_pair_id", 1);
-        int result = namedParameterJdbcTemplate.update(sql, parameters, keyHolder);
-        if (result <= 0) {
-            log.warn("Unable to insert row");
-        }
+        namedParameterJdbcTemplate.update(sql, parameters, keyHolder);
     }
 
 
