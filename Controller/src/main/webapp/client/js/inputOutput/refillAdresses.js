@@ -114,7 +114,6 @@ function updateAddressesTable() {
 }
 
 function setNeedTransfer(elem, userId, currencyId, merchantId, address) {
-    // $('#editLimitModal').modal('hide');
     $.ajax({
         headers: {
             'X-CSRF-Token': $("input[name='_csrf']").val()
