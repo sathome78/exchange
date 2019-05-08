@@ -27,6 +27,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -1480,14 +1481,28 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
 
     @Override
     public boolean changeRefillRequestStatus(int id, RefillStatusEnum status) {
-        String sql = "UPDATE REFILL_REQUEST " +
-                "SET status_id = :status_id " +
-                "WHERE id = :id";
-
-        Map<String, Object> params = new HashMap<>();
+        final Map<String, Object> params = new HashMap<>();
         params.put("id", id);
         params.put("status_id", status.getCode());
 
-        return namedParameterJdbcTemplate.update(sql, params) > 0;
+        String sql = "SELECT status_id FROM REFILL_REQUEST WHERE id = :id FOR UPDATE";
+
+        Integer statusIdForUpdate;
+        try {
+            statusIdForUpdate = namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class);
+        } catch (DataAccessException ex) {
+            log.debug("Refill request ({}) is blocked or not found", id);
+            return false;
+        }
+
+        if (RefillStatusEnum.convert(statusIdForUpdate) == RefillStatusEnum.CREATED_BY_FACT) {
+            sql = "UPDATE REFILL_REQUEST " +
+                    "SET status_id = :status_id " +
+                    "WHERE id = :id";
+
+            return namedParameterJdbcTemplate.update(sql, params) > 0;
+        }
+        log.debug("Refill request ({}) status has not been updated. Cause: wrong status for update", id);
+        return false;
     }
 }
