@@ -193,4 +193,6 @@ public interface RefillService {
     default void processRefillRequest(WalletOperationMsDto walletOperationMsDto){
         throw new NotImplementedException();
     }
+
+    boolean setPropertyNeedTransfer(int userId, int currencyId, int merchantId, String address, Boolean needTransfer);
 }

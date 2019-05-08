@@ -1584,6 +1584,19 @@ public class AdminController {
     }
 
     @AdminLoggable
+    @RequestMapping(value = "/2a8fy7b07dxe44/refillAddresses/set-need-transfer", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity setPropertyNeedTransfer(@RequestParam int userId,
+                                                  @RequestParam int currencyId,
+                                                  @RequestParam int merchantId,
+                                                  @RequestParam String address,
+                                                  @RequestParam Boolean needTransfer) {
+        return refillService.setPropertyNeedTransfer(userId, currencyId, merchantId, address, needTransfer)
+                ? ResponseEntity.ok().build()
+                : ResponseEntity.badRequest().build();
+    }
+
+    @AdminLoggable
     @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/prepareRawTx", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
