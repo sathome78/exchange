@@ -5,7 +5,6 @@ import me.exrates.dao.UserDao;
 import me.exrates.service.GtagRefillService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class GtagRefillServiceImpl implements GtagRefillService {
@@ -17,7 +16,6 @@ public class GtagRefillServiceImpl implements GtagRefillService {
     @Autowired
     private UserDao userDao;
 
-    @Transactional
     public Integer getUserRequests(String email) {
         Integer userIdByGa = userDao.findByEmail(email).getId();
         return gtagRefillRequests.getUserRequestsCount(userIdByGa);

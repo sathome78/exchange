@@ -11,7 +11,6 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,48 +21,25 @@ public class GtagRefillRequestsImpl implements GtagRefillRequests {
     @Autowired
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-    @Transactional
     public void updateUserRequestsCount(Integer userId) {
-
         SqlParameterSource namedParameters = new MapSqlParameterSource("userId", userId);
-        try {
-            int update = namedParameterJdbcTemplate.update("UPDATE GTAG_REFILL_REQUESTS SET GTAG_REFILL_REQUESTS.COUNT=GTAG_REFILL_REQUESTS.COUNT+1 WHERE GTAG_REFILL_REQUESTS.USER_ID=:userId", namedParameters);
-            if (update != 0) {
-                log.info("Update");
-            }
-        } catch (Exception ex) {
-            log.warn("Unable to update GTAG_REFILL_REQUESTS count for user");
-        }
+        namedParameterJdbcTemplate.update("UPDATE GTAG_REFILL_REQUESTS SET GTAG_REFILL_REQUESTS.COUNT=GTAG_REFILL_REQUESTS.COUNT+1 WHERE GTAG_REFILL_REQUESTS.USER_ID=:userId", namedParameters);
     }
 
-    @Transactional
     public Integer getUserRequestsCount(Integer userId) {
-
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("userId", userId);
         }};
-        try {
-            return namedParameterJdbcTemplate.queryForObject("SELECT COUNT FROM GTAG_REFILL_REQUESTS WHERE USER_ID=:userId FOR UPDATE ", params, Integer.class);
-        } catch (RuntimeException ex) {
-            return 0;
-        }
+        return namedParameterJdbcTemplate.queryForObject("SELECT COUNT FROM GTAG_REFILL_REQUESTS WHERE USER_ID=:userId FOR UPDATE ", params, Integer.class);
     }
 
     public void resetCount(Integer userId) {
         SqlParameterSource namedParameters = new MapSqlParameterSource("userId", userId);
-        try {
-            int update = namedParameterJdbcTemplate.update("UPDATE GTAG_REFILL_REQUESTS SET GTAG_REFILL_REQUESTS.COUNT = 0 WHERE GTAG_REFILL_REQUESTS.USER_ID=:userId", namedParameters);
-            if (update != 0) {
-                log.info("Update");
-            }
-        } catch (Exception ex) {
-            log.warn("Unable to reset GTAG_REFILL_REQUESTS count for user");
-        }
+        namedParameterJdbcTemplate.update("UPDATE GTAG_REFILL_REQUESTS SET GTAG_REFILL_REQUESTS.COUNT = 0 WHERE GTAG_REFILL_REQUESTS.USER_ID=:userId", namedParameters);
     }
 
     @Override
     public Integer getUserIdOfGtagRequests(Integer userId) {
-
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("userId", userId);
         }};
