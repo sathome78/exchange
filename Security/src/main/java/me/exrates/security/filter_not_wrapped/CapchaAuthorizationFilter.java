@@ -11,7 +11,7 @@ import me.exrates.security.filter.NotVerifiedCaptchaError;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.UserService;
-import me.exrates.service.geetest.GeetestLib;
+import geetest.GeetestLib;
 import me.exrates.service.util.IpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

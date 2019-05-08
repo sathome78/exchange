@@ -56,11 +56,6 @@
             <artifactId>jjwt</artifactId>
             <version>0.6.0</version>
         </dependency>
-        <dependency>
-            <groupId>ProcessIDManager</groupId>
-            <artifactId>ProcessIDManager</artifactId>
-            <version>1.0.1</version>
-        </dependency>
 
 
 

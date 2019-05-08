@@ -55,7 +55,7 @@ public class ServiceLayerLogAspect {
         }
     }
 
-    @Around(" (execution(* me.exrates.service.impl..*(..))  " +
+    @Around(" (execution(* me.exrates.service..*(..)) " +
             "  || execution(* me.exrates.ngService..*(..)) " +
             "  || execution(* me.exrates.security.service..*(..)) " +
             "  || execution(* me.exrates.security.ipsecurity..*(..)) " +
@@ -68,6 +68,8 @@ public class ServiceLayerLogAspect {
     }
 
     @Around(" execution(* me.exrates.service..*(..)) " +
+            "&& !(@annotation(org.springframework.transaction.event.TransactionalEventListener) " +
+            "       || @annotation(org.springframework.context.event.EventListener)) " +
             "&& @annotation(org.springframework.scheduling.annotation.Async) ")
     public Object doBasicProfilingOfAsync(ProceedingJoinPoint pjp) throws Throwable {
         return doBaseProfilingWithRegisterAndUnregister(pjp, getClass(), log);

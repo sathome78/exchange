@@ -26,7 +26,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.exception.AbsentFinPasswordException;
 import me.exrates.service.exception.NotConfirmedFinPasswordException;
 import me.exrates.service.exception.WrongFinPasswordException;
-import me.exrates.service.geetest.GeetestLib;
+import geetest.GeetestLib;
 import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
