@@ -18,7 +18,8 @@ public enum RefillRequestTableViewTypeEnum {
   WAIT_PAYMENT(ON_PENDING),
   COLLECT_CONFIRMATIONS(ON_BCH_EXAM),
   ACCEPTED(ACCEPTED_ADMIN, ACCEPTED_AUTO),
-  DECLINED(DECLINED_ADMIN);
+  DECLINED(DECLINED_ADMIN),
+  CREATED_BY_FACT(RefillStatusEnum.CREATED_BY_FACT);
 
   private List<RefillStatusEnum> refillStatusList = new ArrayList<>();
 
