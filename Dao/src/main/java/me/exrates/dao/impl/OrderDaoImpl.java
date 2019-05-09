@@ -2106,7 +2106,7 @@ public class OrderDaoImpl implements OrderDao {
             params.put("currency_name_part", String.join(StringUtils.EMPTY, "%", currencyName, "%"));
         }
         try {
-            return slaveJdbcTemplate.queryForObject(sqlFresh, params, Integer.TYPE);
+            return masterJdbcTemplate.queryForObject(sqlFresh, params, Integer.TYPE);
         } catch (EmptyResultDataAccessException ex) {
             log.debug("Method 'OrderDaoImpl::getMyOrdersWithStateCount' did not return any result");
             return 0;
