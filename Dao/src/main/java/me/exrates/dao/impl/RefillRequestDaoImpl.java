@@ -1480,10 +1480,10 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     }
 
     @Override
-    public boolean changeRefillRequestStatus(int id, RefillStatusEnum status) {
+    public boolean changeRefillRequestStatusToOnPending(int id) {
         final Map<String, Object> params = new HashMap<>();
         params.put("id", id);
-        params.put("status_id", status.getCode());
+        params.put("status_id", RefillStatusEnum.ON_PENDING.getCode());
 
         String sql = "SELECT status_id FROM REFILL_REQUEST WHERE id = :id FOR UPDATE";
 
@@ -1491,7 +1491,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         try {
             statusIdForUpdate = namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class);
         } catch (DataAccessException ex) {
-            log.debug("Refill request ({}) is blocked or not found", id);
+            log.debug("Refill request ({}) is blocked or not found", id, ex);
             return false;
         }
 

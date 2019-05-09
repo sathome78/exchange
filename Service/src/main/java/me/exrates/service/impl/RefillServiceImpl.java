@@ -1335,7 +1335,7 @@ public class RefillServiceImpl implements RefillService {
 
     @Transactional
     @Override
-    public boolean changeRefillRequestStatus(int id, RefillStatusEnum status) {
-        return refillRequestDao.changeRefillRequestStatus(id, status);
+    public boolean changeRefillRequestStatusToOnPending(int id) {
+        return refillRequestDao.changeRefillRequestStatusToOnPending(id);
     }
 }

@@ -167,5 +167,5 @@ public interface RefillRequestDao {
 
     Integer findFlatByUserIdAndMerchantIdAndCurrencyId(int userId, int merchantId, int currencyId);
 
-    boolean changeRefillRequestStatus(int id, RefillStatusEnum status);
+    boolean changeRefillRequestStatusToOnPending(int id);
 }

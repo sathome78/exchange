@@ -441,8 +441,7 @@ function changeStatusToOnPending(refillRequestId) {
             'X-CSRF-Token': $("input[name='_csrf']").val()
         },
         data: {
-            "refillRequestId": refillRequestId,
-            "status": 'ON_PENDING'
+            "refillRequestId": refillRequestId
         },
         success: function () {
             updateRefillTable();

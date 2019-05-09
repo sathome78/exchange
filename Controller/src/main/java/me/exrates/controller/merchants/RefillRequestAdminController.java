@@ -158,11 +158,10 @@ public class RefillRequestAdminController {
     @AdminLoggable
     @PostMapping(value = "/2a8fy7b07dxe44/refill/change-status")
     @ResponseBody
-    public ResponseEntity changeRefillRequestStatus(@RequestParam("refillRequestId") int id,
-                                                    @RequestParam RefillStatusEnum status) {
-        log.debug("Change refill request status to {}", status);
+    public ResponseEntity changeRefillRequestStatusToOnPending(@RequestParam("refillRequestId") int id) {
+        log.debug("Change refill request status to {}", RefillStatusEnum.ON_PENDING);
 
-        return refillService.changeRefillRequestStatus(id, status)
+        return refillService.changeRefillRequestStatusToOnPending(id)
                 ? ResponseEntity.ok().build()
                 : ResponseEntity.badRequest().build();
     }

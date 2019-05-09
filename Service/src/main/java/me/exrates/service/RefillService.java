@@ -194,5 +194,5 @@ public interface RefillService {
         throw new NotImplementedException();
     }
 
-    boolean changeRefillRequestStatus(int id, RefillStatusEnum status);
+    boolean changeRefillRequestStatusToOnPending(int id);
 }
