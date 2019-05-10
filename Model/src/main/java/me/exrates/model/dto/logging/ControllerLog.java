@@ -15,6 +15,8 @@ public class ControllerLog {
     private int responseStatusCode;
     private String userAgent;
     private String clientIP;
+    private String jwtToken;
+    private String jSessionId;
     private String requestBody;
     private String responseBody;
     private String args;

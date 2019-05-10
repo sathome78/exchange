@@ -3,38 +3,49 @@ package me.exrates.aspect;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import me.exrates.model.dto.logging.ControllerLog;
+import me.exrates.model.dto.logging.LogsTypeEnum;
+import me.exrates.model.dto.logging.LogsWrapper;
+import me.exrates.model.dto.logging.MethodsLog;
+import me.exrates.service.logs.UserLogsHandler;
 import me.exrates.service.util.IpUtils;
+import me.exrates.service.util.RequestUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.util.ContentCachingRequestWrapper;
+import org.springframework.web.util.WebUtils;
+import processIdManager.ProcessIDManager;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static me.exrates.service.logs.LoggingUtils.doBaseProfilingWithRegisterAndUnregister;
-import static me.exrates.service.logs.LoggingUtils.getAuthenticatedUser;
-import static me.exrates.service.logs.LoggingUtils.getExecutionTime;
-import static me.exrates.service.logs.LoggingUtils.getMethodName;
+import static me.exrates.service.logs.LoggingUtils.*;
 
 @Log4j2(topic = "Controller_layer_log")
 @Aspect
 @Component
 public class ControllerLogAspects {
+
+
+    @Autowired
+    private UserLogsHandler userLogsHandler;
 
 
     private static final List<MediaType> VISIBLE_TYPES = Arrays.asList(
@@ -57,14 +68,40 @@ public class ControllerLogAspects {
 
     @Around("execution(* *(..)) && @annotation(org.springframework.messaging.simp.annotation.SubscribeMapping)")
     public Object doBasicProfilingHandlersOnWsSubscribe(ProceedingJoinPoint pjp) throws Throwable {
-      return doBaseProfilingWithRegisterAndUnregister(pjp, getClass(), log);
+        String method = getMethodName(pjp);
+        String args = Arrays.toString(pjp.getArgs());
+        long start = System.currentTimeMillis();
+        String user = getAuthenticatedUser();
+        ProcessIDManager.registerNewThreadForParentProcessId(getClass(), Optional.empty());
+        String errorMsg = StringUtils.EMPTY;
+        Object result = null;
+        try {
+            result = pjp.proceed();
+        } catch (Throwable ex) {
+            errorMsg = formatException(ex);
+            throw ex;
+        } finally {
+            MethodsLog mLog = new MethodsLog(method, args, result, user, getExecutionTime(start), errorMsg);
+            ProcessIDManager.getProcessIdFromCurrentThread()
+                    .ifPresent(p -> userLogsHandler.onUserLogEvent(new LogsWrapper(mLog, p, LogsTypeEnum.WS_SUBSCRIBE)));
+            log.debug(mLog);
+            ProcessIDManager.unregisterProcessId(getClass());
+        }
+        return result;
     }
 
 
     @Around("execution(* *(..)) && @annotation(org.springframework.web.bind.annotation.ExceptionHandler)")
     public Object doBasicProfilingHandlers(ProceedingJoinPoint thisJoinPoint) throws Throwable {
+        long start = System.currentTimeMillis();
         Object result = thisJoinPoint.proceed();
-        log.error(result.toString());
+        String args = Arrays.toString(thisJoinPoint.getArgs());
+        String method = getMethodName(thisJoinPoint);
+        String user = getAuthenticatedUser();
+        MethodsLog mLog = new MethodsLog(method, args, result.toString(), user, getExecutionTime(start), StringUtils.EMPTY);
+        ProcessIDManager.getProcessIdFromCurrentThread()
+                .ifPresent(p -> userLogsHandler.onUserLogEvent(new LogsWrapper(mLog, p, LogsTypeEnum.HTTP_ERROR_HANDLER_RESPONSE)));
+        log.error(mLog);
         return result;
     }
 
@@ -93,10 +130,10 @@ public class ControllerLogAspects {
             }
             responseBody = (body == null) ? "" : body.toString();
         } catch (Exception e) {
-            ex = e.getMessage();
+            ex = formatException(e);
             throw e;
         } finally {
-            log.debug(new ControllerLog(
+            ControllerLog controllerLog = new ControllerLog(
                     getMethodName(pjp),
                     url,
                     httpMethod,
@@ -105,10 +142,15 @@ public class ControllerLogAspects {
                     code,
                     userAgent,
                     clientIP,
+                    rcp.getJwtToken(),
+                    rcp.getJsessionId(),
                     requestBody,
                     responseBody,
                     rcp.getArgs(),
-                    ex));
+                    ex);
+            log.debug(controllerLog);
+            ProcessIDManager.getProcessIdFromCurrentThread()
+                    .ifPresent(p -> userLogsHandler.onUserLogEvent(new LogsWrapper(controllerLog, p, LogsTypeEnum.HTTP_REQUEST_LOG)));
         }
         return result;
     }
@@ -169,6 +211,14 @@ public class ControllerLogAspects {
                             .map(Object::toString)
                             .collect(Collectors.joining(", ")))
                     .collect(Collectors.joining(", "));
+        }
+
+        private String getJwtToken() {
+           return request.getHeader("Exrates-Rest-Token");
+        }
+
+        private String getJsessionId() {
+            return Optional.ofNullable(WebUtils.getCookie(request, "JSESSIONID")).orElse(null).getValue();
         }
     }
 

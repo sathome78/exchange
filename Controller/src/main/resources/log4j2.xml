@@ -1063,18 +1063,23 @@
         </logger>
         <logger name="Controller_layer_log" level="ALL" additivity="false">
             <AppenderRef ref="Socket"/>
+            <AppenderRef ref="http_process_logger"/>
         </logger>
         <logger name="Service_layer_log" level="ALL" additivity="false">
             <AppenderRef ref="Socket"/>
+            <AppenderRef ref="service_log"/>
         </logger>
         <logger name="Dao_layer_log" level="ALL" additivity="false">
             <AppenderRef ref="Socket"/>
+            <AppenderRef ref="dao_log"/>
         </logger>
         <logger name="Jdbc_query_log" level="ALL" additivity="false">
             <AppenderRef ref="Socket"/>
+            <AppenderRef ref="jdbc_query_log"/>
         </logger>
         <logger name="http_client" level="ALL" additivity="false">
             <AppenderRef ref="Socket"/>
+            <AppenderRef ref="http_client"/>
         </logger>
         <Root level="INFO">
             <AppenderRef ref="Console"/>

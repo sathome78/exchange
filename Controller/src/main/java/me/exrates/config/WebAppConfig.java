@@ -22,7 +22,7 @@ import me.exrates.model.enums.ChatLang;
 import me.exrates.security.config.SecurityConfig;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.MoneroService;
-import me.exrates.service.NamedParameterJdbcTemplateWrapper;
+import me.exrates.NamedParameterJdbcTemplateWrapper;
 import me.exrates.service.achain.AchainContract;
 import me.exrates.service.ethereum.EthTokenService;
 import me.exrates.service.ethereum.EthTokenServiceImpl;
