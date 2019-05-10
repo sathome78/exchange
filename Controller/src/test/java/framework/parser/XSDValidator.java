@@ -14,7 +14,7 @@ import javax.xml.validation.Validator;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.Objects;
 
 public class XSDValidator {
 

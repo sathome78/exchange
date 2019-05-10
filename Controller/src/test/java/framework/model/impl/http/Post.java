@@ -4,7 +4,7 @@ import framework.model.BasePresentBodyRequest;
 
 public class Post extends BasePresentBodyRequest {
 
-    public Post(){
+    public Post() {
         super();
     }
 

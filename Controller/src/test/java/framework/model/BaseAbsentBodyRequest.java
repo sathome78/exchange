@@ -13,9 +13,9 @@ public abstract class BaseAbsentBodyRequest extends BaseResponse implements Http
     private String comment;
 
     public BaseAbsentBodyRequest() {
-        this("", new LinkedHashMap<String, String>(), 0,
-                Optional.<File>absent(),
-                new LinkedHashMap<String, String>());
+        this("", new LinkedHashMap<>(), 0,
+                Optional.absent(),
+                new LinkedHashMap<>());
     }
 
     public BaseAbsentBodyRequest(String url,

@@ -1,11 +1,9 @@
 package web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.jayway.jsonpath.DocumentContext;
@@ -13,6 +11,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.medxoom.Migration;
 import framework.model.BasePresentBodyRequest;
 import framework.model.Block;
+import framework.model.DatabaseConfig;
 import framework.model.HttpMethodBlock;
 import framework.model.Operation;
 import framework.model.Response;
@@ -48,6 +47,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+import web.config.TestDatabaseConfig;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -112,23 +112,17 @@ public class RootTest {
         ConfigCollector.Result result =
                 new ConfigCollector(FOLDER_CONFIGS, PATTERN_DIR_FILTER).collect();
 
-        return FluentIterable.from(filterOnlyThis(result.get())).transform(new Function<Map.Entry<File, ConfigCollector.MappingResult>, Object[]>() {
-            @Override
-            public Object[] apply(Map.Entry<File, ConfigCollector.MappingResult> e) {
-                String shortPath = e.getKey().getPath().replace(FOLDER_CONFIGS.toString(), "");
-                return new Object[]{shortPath, e.getKey(), e.getValue()};
-            }
+        return FluentIterable.from(filterOnlyThis(result.get())).transform(e -> {
+            String shortPath = e.getKey().getPath().replace(FOLDER_CONFIGS.toString(), "");
+            return new Object[]{shortPath, e.getKey(), e.getValue()};
         }).toList();
     }
 
     private static Set<Map.Entry<File, ConfigCollector.MappingResult>> filterOnlyThis(Map<File, ConfigCollector.MappingResult> original) {
         Set<Map.Entry<File, ConfigCollector.MappingResult>> onlyThis =
-                FluentIterable.from(original.entrySet()).filter(new Predicate<Map.Entry<File, ConfigCollector.MappingResult>>() {
-                    @Override
-                    public boolean apply(Map.Entry<File, ConfigCollector.MappingResult> m) {
-                        ConfigCollector.MappingResult v = m.getValue();
-                        return v.isOk() && v.config.get().getActive() && v.config.get().getOnlyThis();
-                    }
+                FluentIterable.from(original.entrySet()).filter(m -> {
+                    ConfigCollector.MappingResult v = m.getValue();
+                    return v.isOk() && v.config.get().getActive() && v.config.get().getOnlyThis();
                 }).toSet();
 
         return onlyThis.isEmpty() ? original.entrySet() : onlyThis;
@@ -217,7 +211,6 @@ public class RootTest {
             } else {
                 arg2 = value.toString();
             }
-
             LOGGER.info(String.format("%40s => %-20s", name, arg2));
         }
     }
@@ -238,18 +231,15 @@ public class RootTest {
     }
 
     private void migrateDatabase(Config cfg) throws Exception {
-        List<String> patches = cfg.getPatch().transform(new Function<String, List<String>>() {
-            @Override
-            public List<String> apply(String patchesNames) {
-                String[] names = patchesNames.split(",");
+        List<String> patches = cfg.getPatch().transform(patchesNames -> {
+            String[] names = patchesNames.split(",");
 
-                for (int index = 0; index < names.length; index++) {
-                    String name = names[index];
-                    names[index] = name.endsWith(".sql") ? name : name + ".sql";
-                }
-
-                return Arrays.asList(names);
+            for (int index = 0; index < names.length; index++) {
+                String name = names[index];
+                names[index] = name.endsWith(".sql") ? name : name + ".sql";
             }
+
+            return Arrays.asList(names);
         }).or(Collections.singletonList(FILE_NAME_PATCH_DEFAULT));
 
         List<SQLSource> patchesFiles = new ArrayList<>();
@@ -267,12 +257,7 @@ public class RootTest {
 
         FluentIterable<String> iterator() {
             List<String> split = Arrays.asList(getSQLs().split(SQL_DELIMITER));
-            return FluentIterable.from(split).filter(new Predicate<String>() {
-                @Override
-                public boolean apply(String s) {
-                    return s.trim().length() > 0;
-                }
-            });
+            return FluentIterable.from(split).filter(s -> s.trim().length() > 0);
         }
     }
 
@@ -361,7 +346,7 @@ public class RootTest {
 
         void run() throws Throwable {
             try {
-                scenario(cfg.getBlocks(), Optional.<String>absent());
+                scenario(cfg.getBlocks(), Optional.absent());
 
                 if (error.isPresent())
                     throw error.get();
@@ -424,12 +409,7 @@ public class RootTest {
 
                 Dump dump = (Dump) each;
 
-                ImmutableList<String> sql = FluentIterable.from(dump.getSql()).transform(new Function<String, String>() {
-                    @Override
-                    public String apply(String s) {
-                        return inject(s);
-                    }
-                }).toList();
+                ImmutableList<String> sql = FluentIterable.from(dump.getSql()).transform(s -> inject(s)).toList();
 
                 LOGGER.info(String.format("%2s. %-8s", String.valueOf(pos.get()), "Dump"));
                 for (String e : sql) {
@@ -485,14 +465,11 @@ public class RootTest {
 
                 Object result = op.applyOperation();
 
-                Optional<String> expectedBody = operation.getFile().transform(new Function<File, String>() {
-                    @Override
-                    public String apply(File file) {
-                        try {
-                            return FileUtils.readFileToString(file);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
+                Optional<String> expectedBody = operation.getFile().transform(file -> {
+                    try {
+                        return FileUtils.readFileToString(file);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
                     }
                 });
 
@@ -547,14 +524,11 @@ public class RootTest {
 
             TestValidator validateAndSave(Optional<File> expectedBodyFile,
                                           String actualBody) throws Exception {
-                Optional<String> expectedBody = expectedBodyFile.transform(new Function<File, String>() {
-                    @Override
-                    public String apply(File file) {
-                        try {
-                            return FileUtils.readFileToString(file);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
+                Optional<String> expectedBody = expectedBodyFile.transform(file -> {
+                    try {
+                        return FileUtils.readFileToString(file);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
                     }
                 });
 
@@ -592,12 +566,7 @@ public class RootTest {
 
         private WsResponse exchange(HttpMethodBlock method, Optional<String> token) throws Exception {
             Map<String, String> headers = inject(method.getRequestHeaders());
-            Optional<Pair<String, String>> tokenHeader = token.transform(new Function<String, Pair<String, String>>() {
-                @Override
-                public Pair<String, String> apply(String s) {
-                    return Pair.of("Authorization", "Bearer " + s);
-                }
-            });
+            Optional<Pair<String, String>> tokenHeader = token.transform(s -> Pair.of("Authorization", "Bearer " + s));
 
             if (tokenHeader.isPresent()) {
                 Pair<String, String> tkn = tokenHeader.get();
@@ -765,7 +734,7 @@ public class RootTest {
         String recursiveInject(String original) {
             Matcher m = routePattern.matcher(original);
             if (m.find()) {
-                return original.substring(0, m.start()) + ctx.get(m.group(1)) + original.substring(m.end(), original.length());
+                return original.substring(0, m.start()) + ctx.get(m.group(1)) + original.substring(m.end());
             } else {
                 return original;
             }
@@ -906,7 +875,7 @@ public class RootTest {
                     migrate();
                 } catch (Exception e) {
                     StringsSource source = new StringsSource(dropDatabaseQuery(dataSource, databaseConfig.getSchema()));
-                    apply(dataSource, Collections.<SQLSource>singletonList(source));
+                    apply(dataSource, Collections.singletonList(source));
                     migrate();
                 }
                 wasExecuted = true;
@@ -949,35 +918,17 @@ public class RootTest {
     public static List<String> tables(DataSource ds, String schema, boolean addSchemaVersion) {
         String filter = addSchemaVersion ? "" : " AND TABLE_NAME != 'schema_version'";
         String sql = String.format("select * from information_schema.tables where table_type = 'BASE TABLE' AND table_schema = '%s' %s" + SQL_DELIMITER, schema, filter);
-        return query(ds, sql, new ArrayList<String>(), new ResultSetReader<List<String>>() {
-
-            @Override
-            public void accumulate(List<String> strings, ResultSet q) throws Exception {
-                strings.add(q.getString("TABLE_NAME"));
-            }
-        });
+        return query(ds, sql, new ArrayList<>(), (ResultSetReader<List<String>>) (strings, q) -> strings.add(q.getString("TABLE_NAME")));
     }
 
     public static List<String> views(DataSource ds, String schema) {
         String sql = "select * from information_schema.views where table_schema = '" + schema + "'" + SQL_DELIMITER;
-        return query(ds, sql, new ArrayList<String>(), new ResultSetReader<List<String>>() {
-
-            @Override
-            public void accumulate(List<String> strings, ResultSet q) throws Exception {
-                strings.add(q.getString("TABLE_NAME"));
-            }
-        });
+        return query(ds, sql, new ArrayList<>(), (ResultSetReader<List<String>>) (strings, q) -> strings.add(q.getString("TABLE_NAME")));
     }
 
     public static List<String> functions(DataSource ds, String schema) {
         String sql = "select * from information_schema.routines where routine_schema = '" + schema + "'" + SQL_DELIMITER;
-        return query(ds, sql, new ArrayList<String>(), new ResultSetReader<List<String>>() {
-
-            @Override
-            public void accumulate(List<String> strings, ResultSet q) throws Exception {
-                strings.add(q.getString("SPECIFIC_NAME"));
-            }
-        });
+        return query(ds, sql, new ArrayList<>(), (ResultSetReader<List<String>>) (strings, q) -> strings.add(q.getString("SPECIFIC_NAME")));
     }
 
     interface ResultSetReader<E> {
@@ -1036,12 +987,7 @@ public class RootTest {
 
         List<Table> read(List<String> list) throws Exception {
             try (Connection c = dataSource.getConnection()) {
-                return FluentIterable.from(list).transform(new Function<String, Table>() {
-                    @Override
-                    public Table apply(String s) {
-                        return dump(c, s);
-                    }
-                }).toList();
+                return FluentIterable.from(list).transform(s -> dump(c, s)).toList();
             }
         }
 

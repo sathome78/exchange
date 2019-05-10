@@ -4,7 +4,11 @@ import com.google.common.base.Optional;
 import framework.model.impl.Config;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 public class ConfigCollector {
@@ -83,11 +87,11 @@ public class ConfigCollector {
             this.exception = exception;
         }
 
-        public boolean isOk(){
+        public boolean isOk() {
             return config.isPresent();
         }
 
-        public boolean isFailed(){
+        public boolean isFailed() {
             return exception.isPresent();
         }
     }

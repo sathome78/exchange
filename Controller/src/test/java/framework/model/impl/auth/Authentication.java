@@ -13,7 +13,7 @@ public class Authentication implements Block {
     private String comment;
 
     public Authentication() {
-        this(Optional.<String>absent(), new ArrayList<Block>());
+        this(Optional.absent(), new ArrayList<>());
     }
 
     public Authentication(Optional<String> credentials, List<Block> blocks) {

@@ -15,7 +15,7 @@ public class Config {
     private List<Block> blocks;
 
     public Config() {
-        this(true, Optional.<String>absent(), "", false, new ArrayList<Block>());
+        this(true, Optional.absent(), "", false, new ArrayList<Block>());
     }
 
     public Config(boolean active,

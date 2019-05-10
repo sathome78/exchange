@@ -16,9 +16,9 @@ public abstract class BasePresentBodyRequest extends BaseResponse implements Htt
     private String comment;
 
     public BasePresentBodyRequest() {
-        this("", new LinkedHashMap<String, String>(), false,
-                new LinkedHashMap<String, String>(), new LinkedHashMap<String, File>(), 0,
-                Optional.<File>absent(), new LinkedHashMap<String, String>());
+        this("", new LinkedHashMap<>(), false,
+                new LinkedHashMap<>(), new LinkedHashMap<>(), 0,
+                Optional.absent(), new LinkedHashMap<>());
     }
 
 

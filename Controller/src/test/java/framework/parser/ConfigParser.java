@@ -1,7 +1,6 @@
 package framework.parser;
 
 import com.google.common.base.Optional;
-import com.google.common.base.Supplier;
 import framework.model.Block;
 import framework.model.Body;
 import framework.model.HttpMethodBlock;
@@ -10,7 +9,11 @@ import framework.model.impl.Config;
 import framework.model.impl.auth.Authentication;
 import framework.model.impl.database.Dump;
 import framework.model.impl.execute.ExecuteOperation;
-import framework.model.impl.http.*;
+import framework.model.impl.http.Delete;
+import framework.model.impl.http.Get;
+import framework.model.impl.http.Patch;
+import framework.model.impl.http.Post;
+import framework.model.impl.http.Put;
 import framework.model.impl.instructruction.Break;
 import framework.model.impl.mock.When;
 import framework.model.impl.variable.Variable;
@@ -64,18 +67,10 @@ public class ConfigParser {
         public File search(final String name) {
             final String targetName = name.startsWith("/") ? name.substring(1) : name;
 
-            FilenameFilter filter = new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    return name.equals(targetName);
-                }
-            };
+            FilenameFilter filter = (dir, name1) -> name1.equals(targetName);
 
-            return find(dir, filter).or(new Supplier<File>() {
-                @Override
-                public File get() {
-                    throw new FileLinkingError(dir, root, name);
-                }
+            return find(dir, filter).or(() -> {
+                throw new FileLinkingError(dir, root, name);
             });
         }
 
@@ -120,19 +115,16 @@ public class ConfigParser {
                 @Override
                 public void apply(String input) throws Exception {
                     if ("config".equals(input)) {
-                        parseAttributes(new F<Pair<String, String>>() {
-                            @Override
-                            public void apply(Pair<String, String> input) throws Exception {
-                                String key = input.getLeft();
-                                String value = input.getRight();
+                        parseAttributes(input1 -> {
+                            String key = input1.getLeft();
+                            String value = input1.getRight();
 
-                                if ("onlyThis".equals(key)) {
-                                    config.setOnlyThis(Boolean.parseBoolean(value));
-                                } else if ("active".equals(key)) {
-                                    config.setActive(Boolean.parseBoolean(value));
-                                } else if ("patch".equals(key)) {
-                                    config.setPatch(Optional.of(value));
-                                }
+                            if ("onlyThis".equals(key)) {
+                                config.setOnlyThis(Boolean.parseBoolean(value));
+                            } else if ("active".equals(key)) {
+                                config.setActive(Boolean.parseBoolean(value));
+                            } else if ("patch".equals(key)) {
+                                config.setPatch(Optional.of(value));
                             }
                         });
 
@@ -191,20 +183,16 @@ public class ConfigParser {
 
         private Block parseExecute() throws Exception {
             final ExecuteOperation e = new ExecuteOperation();
-            parseAttributes(new F<Pair<String, String>>() {
+            parseAttributes(input -> {
+                        String key = input.getLeft();
+                        String value = input.getRight();
 
-                                @Override
-                                public void apply(Pair<String, String> input) throws Exception {
-                                    String key = input.getLeft();
-                                    String value = input.getRight();
-
-                                    if ("class".equals(key)) {
-                                        e.setClassName(value);
-                                    } else if ("file".equals(key)) {
-                                        e.setFile(Optional.of(fileSearcher.search(value)));
-                                    }
-                                }
-                            }
+                        if ("class".equals(key)) {
+                            e.setClassName(value);
+                        } else if ("file".equals(key)) {
+                            e.setFile(Optional.of(fileSearcher.search(value)));
+                        }
+                    }
             );
 
             return e;
@@ -212,21 +200,17 @@ public class ConfigParser {
 
         private Block parseWhen() throws Exception {
             final When e = new When();
-            parseAttributes(new F<Pair<String, String>>() {
+            parseAttributes(input -> {
+                        String key = input.getLeft();
+                        String value = input.getRight();
 
-                                @Override
-                                public void apply(Pair<String, String> input) throws Exception {
-                                    String key = input.getLeft();
-                                    String value = input.getRight();
-
-                                    if ("pokitdok".equals(key)) {
-                                        e.setService(key);
-                                        e.setRequest(fileSearcher.search(value));
-                                    } else if ("then".equals(key)) {
-                                        e.setResponse(fileSearcher.search(value));
-                                    }
-                                }
-                            }
+                        if ("pokitdok".equals(key)) {
+                            e.setService(key);
+                            e.setRequest(fileSearcher.search(value));
+                        } else if ("then".equals(key)) {
+                            e.setResponse(fileSearcher.search(value));
+                        }
+                    }
             );
 
             parseCommentInBlock(e, "when");
@@ -234,13 +218,7 @@ public class ConfigParser {
         }
 
         private void parseCommentInBlock(final Block e, String name) throws Exception {
-            parseBlock(name, new F<String>() {
-
-                @Override
-                public void apply(String input) throws Exception {
-                    parseComment(e);
-                }
-            });
+            parseBlock(name, input -> parseComment(e));
         }
 
         public void parseAttributes(F<Pair<String, String>> function) throws Exception {
@@ -282,71 +260,54 @@ public class ConfigParser {
         }
 
         public void parseBody(final Body h) throws Exception {
-            parseBlock("body", new F<String>() {
-                @Override
-                public void apply(String input) {
-                    if ("param".equals(input)) {
-                        parseParam(h);
-                    } else if ("file".equals(input)) {
-                        parseFile(h);
-                    }
+            parseBlock("body", input -> {
+                if ("param".equals(input)) {
+                    parseParam(h);
+                } else if ("file".equals(input)) {
+                    parseFile(h);
                 }
             });
         }
 
         public void parseResponse(final Response h) throws Exception {
-            parseAttributes(new F<Pair<String, String>>() {
-                @Override
-                public void apply(Pair<String, String> input) {
-                    String key = input.getLeft();
-                    String value = input.getRight();
+            parseAttributes(input -> {
+                String key = input.getLeft();
+                String value = input.getRight();
 
-                    if ("code".equals(key)) {
-                        h.setCode(Integer.parseInt(value));
-                    } else if ("file".equals(key)) {
-                        h.setResponseFile(Optional.of(fileSearcher.search(value)));
-                    }
+                if ("code".equals(key)) {
+                    h.setCode(Integer.parseInt(value));
+                } else if ("file".equals(key)) {
+                    h.setResponseFile(Optional.of(fileSearcher.search(value)));
                 }
             });
-            parseBlock("response", new F<String>() {
-                @Override
-                public void apply(String input) {
-                    if ("header".equals(input)) {
-                        parseResponseHeader(h);
-                    }
+            parseBlock("response", input -> {
+                if ("header".equals(input)) {
+                    parseResponseHeader(h);
                 }
             });
         }
 
         public <E extends HttpMethodBlock & Response> E parseMethod(final E e, String name) throws Exception {
-            parseAttributes(new F<Pair<String, String>>() {
+            parseAttributes(input -> {
+                String key = input.getLeft();
+                String value = input.getRight();
 
-                @Override
-                public void apply(Pair<String, String> input) {
-                    String key = input.getLeft();
-                    String value = input.getRight();
-
-                    if ("url".equals(key)) {
-                        e.setUrl(value);
-                    } else if ("multipart".equals(key)) {
-                        ((Body) e).setMultipart(Boolean.parseBoolean(value));
-                    }
+                if ("url".equals(key)) {
+                    e.setUrl(value);
+                } else if ("multipart".equals(key)) {
+                    ((Body) e).setMultipart(Boolean.parseBoolean(value));
                 }
             });
 
-            parseBlock(name, new F<String>() {
-
-                @Override
-                public void apply(String input) throws Exception {
-                    if ("header".equals(input)) {
-                        parseRequestHeader(e);
-                    } else if ("body".equals(input)) {
-                        parseBody((Body) e);
-                    } else if ("response".equals(input)) {
-                        parseResponse(e);
-                    } else if ("comment".equals(input)) {
-                        parseComment(e);
-                    }
+            parseBlock(name, input -> {
+                if ("header".equals(input)) {
+                    parseRequestHeader(e);
+                } else if ("body".equals(input)) {
+                    parseBody((Body) e);
+                } else if ("response".equals(input)) {
+                    parseResponse(e);
+                } else if ("comment".equals(input)) {
+                    parseComment(e);
                 }
             });
 
@@ -359,26 +320,19 @@ public class ConfigParser {
 
         public Block parseDump() throws Exception {
             final Dump e = new Dump();
-            parseAttributes(new F<Pair<String, String>>() {
-                @Override
-                public void apply(Pair<String, String> input) throws Exception {
-                    String key = input.getLeft();
-                    String value = input.getRight();
+            parseAttributes(input -> {
+                String key = input.getLeft();
+                String value = input.getRight();
 
-                    if ("file".equals(key)) {
-                        e.setFile(Optional.of(fileSearcher.search(value)));
-                    }
+                if ("file".equals(key)) {
+                    e.setFile(Optional.of(fileSearcher.search(value)));
                 }
             });
-            parseBlock("dump", new F<String>() {
-
-                @Override
-                public void apply(String input) throws Exception {
-                    if ("sql".equals(input)) {
-                        e.addSQL(r.getElementText());
-                    } else if ("comment".equals(input)) {
-                        parseComment(e);
-                    }
+            parseBlock("dump", input -> {
+                if ("sql".equals(input)) {
+                    e.addSQL(r.getElementText());
+                } else if ("comment".equals(input)) {
+                    parseComment(e);
                 }
             });
             return e;
@@ -386,16 +340,12 @@ public class ConfigParser {
 
         public Block parseAuth() throws Exception {
             final Authentication e = new Authentication();
-            parseAttributes(new F<Pair<String, String>>() {
+            parseAttributes(input -> {
+                String key = input.getLeft();
+                String value = input.getRight();
 
-                @Override
-                public void apply(Pair<String, String> input) throws Exception {
-                    String key = input.getLeft();
-                    String value = input.getRight();
-
-                    if ("credentials".equals(key)) {
-                        e.setCredentials(Optional.of(value));
-                    }
+                if ("credentials".equals(key)) {
+                    e.setCredentials(Optional.of(value));
                 }
             });
 
@@ -422,20 +372,16 @@ public class ConfigParser {
 
         public Block parseVariable() throws Exception {
             final Variable e = new Variable();
-            parseAttributes(new F<Pair<String, String>>() {
+            parseAttributes(input -> {
+                        String key = input.getLeft();
+                        String value = input.getRight();
 
-                                @Override
-                                public void apply(Pair<String, String> input) throws Exception {
-                                    String key = input.getLeft();
-                                    String value = input.getRight();
-
-                                    if ("name".equals(key)) {
-                                        e.setName(value);
-                                    } else if ("path".equals(key)) {
-                                        e.setPath(value);
-                                    }
-                                }
-                            }
+                        if ("name".equals(key)) {
+                            e.setName(value);
+                        } else if ("path".equals(key)) {
+                            e.setPath(value);
+                        }
+                    }
             );
 
             parseCommentInBlock(e, "var");

@@ -14,7 +14,7 @@ public class Dump implements Block {
     private String comment;
 
     public Dump() {
-        this(Optional.<File>absent(), new ArrayList<String>());
+        this(Optional.absent(), new ArrayList<>());
     }
 
     public Dump(Optional<File> file, List<String> listSQL) {

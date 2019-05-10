@@ -21,7 +21,7 @@ class Parameters {
 
     static final File ROOT = PROJECT_HOME;
 
-    static final File FOLDER_TEST = new File(ROOT, "/web/src/test");
+    static final File FOLDER_TEST = new File(ROOT, "/src/test/java");
     static final File FOLDER_SCENARIOS = new File(FOLDER_TEST, "scenarios");
     static final File FOLDER_CONFIGS = new File(FOLDER_SCENARIOS, "configs");
 
