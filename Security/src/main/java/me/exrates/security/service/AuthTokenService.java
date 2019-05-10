@@ -31,5 +31,5 @@ public interface AuthTokenService {
 
     UserDetails getUserByToken(String token, String ip);
 
-    boolean sessionExpiredProcessing(HttpServletRequest request, User user);
+    boolean sessionExpiredProcessing(String token, User user);
 }

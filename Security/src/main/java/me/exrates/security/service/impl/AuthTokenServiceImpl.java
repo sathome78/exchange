@@ -301,8 +301,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
 
     @Override
     @Transactional(rollbackFor = Exception.class, noRollbackFor = TokenException.class)
-    public boolean sessionExpiredProcessing(HttpServletRequest request, User user) {
-        String token = request.getHeader("Exrates-Rest-Token");
+    public boolean sessionExpiredProcessing(String token, User user) {
         if (Objects.isNull(token)) {
             throw new TokenException("No authentication token header found", ErrorCode.MISSING_AUTHENTICATION_TOKEN);
         }

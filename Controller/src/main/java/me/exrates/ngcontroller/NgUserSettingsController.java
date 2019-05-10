@@ -154,7 +154,7 @@ public class NgUserSettingsController {
         if (userService.update(getUpdateUserDto(user), locale)) {
             ipBlockingService.successfulProcessing(request.getHeader("X-Forwarded-For"), IpTypesOfChecking.UPDATE_MAIN_PASSWORD);
 
-            boolean processed = authTokenService.sessionExpiredProcessing(request, user);
+            boolean processed = authTokenService.sessionExpiredProcessing(request.getHeader("Exrates-Rest-Token"), user);
             logger.debug("Sessions after change user password: {}", processed ? "SUCCESSFULLY PROCESSED" : "NOT PROCESSED");
 
             return new ResponseEntity<>(HttpStatus.OK);
