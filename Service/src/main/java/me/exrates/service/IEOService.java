@@ -30,4 +30,12 @@ public interface IEOService {
     void updateIeoStatuses();
 
     boolean approveSuccessIeo(int ieoId, String email);
+
+    boolean subscribeEmail(String email);
+
+    boolean subscribeTelegram(String email);
+
+    boolean isUserSubscribeForIEOEmail(String email);
+
+    boolean isUserSubscribeForIEOTelegram(String email);
 }

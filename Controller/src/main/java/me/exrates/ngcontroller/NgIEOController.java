@@ -1,7 +1,6 @@
 package me.exrates.ngcontroller;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.controller.annotation.CheckActiveUserStatus;
 import me.exrates.model.User;
 import me.exrates.model.dto.ieo.ClaimDto;
 import me.exrates.model.dto.ieo.IEOStatusInfo;
@@ -12,7 +11,6 @@ import me.exrates.service.IEOService;
 import me.exrates.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
