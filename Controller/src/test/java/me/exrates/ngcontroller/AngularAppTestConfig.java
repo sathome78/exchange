@@ -23,6 +23,7 @@ import me.exrates.service.InputOutputService;
 import me.exrates.service.KYCService;
 import me.exrates.service.KYCSettingsService;
 import me.exrates.service.MerchantService;
+import me.exrates.service.NewsParser;
 import me.exrates.service.NotificationService;
 import me.exrates.service.OpenApiTokenService;
 import me.exrates.service.OrderService;
@@ -324,5 +325,10 @@ public class AngularAppTestConfig {
     @Bean
     public OpenApiTokenService openApiTokenService() {
         return Mockito.mock(OpenApiTokenService.class);
+    }
+
+    @Bean
+    public NewsParser newsParser() {
+        return Mockito.mock(NewsParser.class);
     }
 }

@@ -33,9 +33,9 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
     public IEODetails save(IEODetails ieoDetails) {
 
         String sql = "INSERT INTO IEO_DETAILS"
-                + " (currency_name, currency_description, maker_id, rate, amount, available_amount, contributors, status, min_amount, max_amount_per_claim," +
+                + " (currency_name, currency_description, descirption, maker_id, rate, amount, available_amount, contributors, status, min_amount, max_amount_per_claim," +
                 " max_amount_per_user, starts_at, terminates_at, created_by)"
-                + " VALUES(:currency_name, :currency_description, :maker_id, :rate, :amount, :available_amount, :contributors, :status, :min_amount, :max_amount_per_claim,"
+                + " VALUES(:currency_name, :currency_description, :description, :maker_id, :rate, :amount, :available_amount, :contributors, :status, :min_amount, :max_amount_per_claim,"
                 + " :max_amount_per_user, :starts_at, :terminates_at, :created_by)";
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -175,6 +175,8 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
                 .id(rs.getInt("id"))
                 .currencyName(rs.getString("currency_name"))
                 .currencyDescription(rs.getString("currency_description"))
+                .description(rs.getString("description"))
+                .logo(rs.getString("logo"))
                 .makerId(rs.getInt("maker_id"))
                 .rate(rs.getBigDecimal("rate"))
                 .amount(rs.getBigDecimal("amount"))
@@ -196,6 +198,7 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
                 .addValue("id", ieoDetails.getId())
                 .addValue("currency_name", ieoDetails.getCurrencyName())
                 .addValue("currency_description", ieoDetails.getCurrencyDescription())
+                .addValue("description", ieoDetails.getDescription())
                 .addValue("maker_id", ieoDetails.getMakerId())
                 .addValue("rate", ieoDetails.getRate())
                 .addValue("amount", ieoDetails.getAmount())

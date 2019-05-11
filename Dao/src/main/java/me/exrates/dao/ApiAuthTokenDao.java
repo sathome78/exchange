@@ -19,4 +19,8 @@ public interface ApiAuthTokenDao {
     boolean deleteExpiredToken(Long id);
 
     int deleteAllExpired(long tokenDuration);
+
+    boolean deleteAllByUsername(String username);
+
+    boolean deleteAllWithoutCurrent(Long tokenId, String username);
 }

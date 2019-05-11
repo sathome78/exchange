@@ -118,7 +118,8 @@ $(function () {
     function showUpdate(data) {
         $('#id_upd').val(data.id);
         $('#currencyName').val(data.currencyName);
-        $('#description').val(data.currencyDescription);
+        $('#currencyDescription').val(data.currencyDescription);
+        $('#description').val(data.description);
         /*$('#makerEmail').val(data.makerEmail);*/
         $('#status').val(data.status);
         $('#rate').val(data.rate);
@@ -205,6 +206,9 @@ $(function () {
 
                     {
                         "data": "currencyDescription"
+                    },
+                    {
+                        "data": "description"
                     },
                     {
                         "data": "currencyName"

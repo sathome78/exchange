@@ -2346,7 +2346,7 @@ public class OrderServiceImpl implements OrderService {
                 hideCanceled,
                 dateTimeFrom,
                 dateTimeTo);
-        if (recordsCount > limit) {
+        if (nonNull(limit) && limit != 0 && recordsCount > limit) {
             recordsCount = limit;
         }
 

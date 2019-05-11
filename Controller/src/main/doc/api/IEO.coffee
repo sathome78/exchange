@@ -118,3 +118,80 @@ curl -X GET \
 
 ###
 
+###
+@api {post} /api/public/v2/ieo/subscribe/email Add email for subscribe
+@apiName Add email for subscribe
+@apiVersion 0.0.1
+@apiGroup IEO
+@apiUse ApiJSON
+
+@apiExample {curl} Example usage:
+curl -X POST \
+  http://localhost:8080/api/public/v2/ieo/subscribe/email \
+  -H 'Content-Type: application/json' \
+  -d '{
+	"email":"user@email"
+}'
+
+@apiSuccess {Boolean} data result of operation
+
+@apiSuccessExample {json} Success-Response:
+{
+    "data": true,
+    "error": null
+}
+###
+
+###
+@api {post} /api/public/v2/ieo/subscribe/telegram Add telegram for subscribe
+@apiName Add telegram for subscribe
+@apiVersion 0.0.1
+@apiGroup IEO
+@apiUse ApiJSON
+
+@apiExample {curl} Example usage:
+curl -X POST \
+  http://localhost:8080/api/public/v2/ieo/subscribe/email \
+  -H 'Content-Type: application/json' \
+  -d '{
+	"email":"user@email"
+}'
+
+@apiSuccess {Boolean} data result of operation
+
+@apiSuccessExample {json} Success-Response:
+{
+    "data": true,
+    "error": null
+}
+###
+
+###
+@api {get} /api/public/v2/ieo/subscribe Check subscribing for ieo
+@apiName Check subscribing for ieo
+@apiVersion 0.0.1
+@apiGroup IEO
+@apiUse ApiJSON
+
+@apiParam {String} email Mandatory email.
+
+@apiExample {curl} Example usage:
+curl -X GET \
+  'http://localhost:8080/api/public/v2/ieo/subscribe?email=staszp@gmail.com' \
+  -H 'Content-Type: application/json'
+
+@apiSuccess {Object} data
+@apiSuccess {Boolean} data.telegram
+@apiSuccess {Boolean} data.email
+
+@apiSuccessExample {json} Success-Response:
+{
+    "data": {
+        "telegram": true,
+        "email": true
+    },
+    "error": null
+}
+###
+
+

@@ -10,8 +10,8 @@ public class TokenWrappersGenerator {
     public static void main(String[] args) throws Exception {
         SolidityFunctionWrapperGenerator.run(new String[]{
                 "generate",
-                "F:\\workspace\\exrates\\Controller\\src\\main\\resources/FST.bin",
-                "F:\\workspace\\exrates\\Controller\\src\\main\\resources/FST.abi",
+                "F:\\workspace\\exrates\\Controller\\src\\main\\resources/SIM.bin",
+                "F:\\workspace\\exrates\\Controller\\src\\main\\resources/SIM.abi",
                 "-o",
                 "F:\\workspace\\exrates\\Service\\src\\main\\java",
                 "-p",
