@@ -7,10 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.util.HashMap;
@@ -77,36 +74,32 @@ public class SessionParamsDaoImpl implements SessionParamsDao {
     }
 
     @Override
-    public SessionParams create(SessionParams sessionParams) {
+    public boolean create(SessionParams sessionParams) {
         String sql = "INSERT INTO SESSION_PARAMS" +
                 " (user_id, session_time_minutes, session_life_type_id)" +
                 " VALUES" +
                 " (:user_id, :session_time_minutes, :session_life_type_id)";
-        Map<String, Object> params = new HashMap<String, Object>() {{
-            put("user_id", sessionParams.getUserId());
-            put("session_time_minutes", sessionParams.getSessionTimeMinutes());
-            put("session_life_type_id", sessionParams.getSessionLifeTypeId());
-        }};
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        int result = namedParameterJdbcTemplate.update(sql, new MapSqlParameterSource(params), keyHolder);
-        final int id = (int) keyHolder.getKey().longValue();
-        sessionParams.setId(id);
-        if (result <= 0) {
-            return null;
-        }
-        return sessionParams;
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("user_id", sessionParams.getUserId());
+        params.put("session_time_minutes", sessionParams.getSessionTimeMinutes());
+        params.put("session_life_type_id", sessionParams.getSessionLifeTypeId());
+
+        return namedParameterJdbcTemplate.update(sql, params) > 0;
     }
 
     @Override
-    public void update(SessionParams sessionParams) {
+    public boolean update(SessionParams sessionParams) {
         final String sql = "UPDATE SESSION_PARAMS " +
                 "SET session_time_minutes = :session_time_minutes, " +
                 "session_life_type_id = :session_life_type_id " +
                 "WHERE id = :id";
+
         Map<String, Object> params = new HashMap<>();
         params.put("id", sessionParams.getId());
         params.put("session_time_minutes", sessionParams.getSessionTimeMinutes());
         params.put("session_life_type_id", sessionParams.getSessionLifeTypeId());
-        namedParameterJdbcTemplate.update(sql, params);
+
+        return namedParameterJdbcTemplate.update(sql, params) > 0;
     }
 }

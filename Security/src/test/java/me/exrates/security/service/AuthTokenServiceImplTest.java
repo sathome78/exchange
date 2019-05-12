@@ -5,7 +5,9 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import me.exrates.dao.ApiAuthTokenDao;
 import me.exrates.model.ApiAuthToken;
+import me.exrates.model.SessionParams;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
+import me.exrates.model.enums.SessionLifeTypeEnum;
 import me.exrates.security.exception.TokenException;
 import me.exrates.security.service.impl.AuthTokenServiceImpl;
 import me.exrates.service.ReferralService;
@@ -25,6 +27,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -32,6 +35,7 @@ import java.util.Optional;
 import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -44,24 +48,25 @@ public class AuthTokenServiceImplTest {
     @Autowired
     private ApiAuthTokenDao apiAuthTokenDao;
 
+    @Autowired
+    private SessionParamsService sessionParamsService;
+
     @Test
     public void getUserByToken_whenTokenIsOk() {
         LocalDateTime future = LocalDateTime.now().plusMinutes(10);
         when(apiAuthTokenDao.retrieveTokenById(anyLong())).thenReturn(Optional.of(createToken(future)));
+        when(sessionParamsService.getByEmailOrDefault(anyString())).thenReturn(new SessionParams(10, SessionLifeTypeEnum.INACTIVE_COUNT_LIFETIME.getTypeId()));
+
         UserDetails user = authTokenService.getUserByToken(getToken(future).orElseThrow(RuntimeException::new).getToken());
         assertNull(user);
     }
 
-    @Test
+    @Test(expected = TokenException.class)
     public void getUserByToken_whenTokenExpired() {
         LocalDateTime past = LocalDateTime.now().minusMinutes(10);
         when(apiAuthTokenDao.retrieveTokenById(anyLong())).thenReturn(Optional.of(createToken(past)));
-        try {
-            authTokenService.getUserByToken(getToken(past).orElseThrow(RuntimeException::new).getToken());
-            fail();
-        } catch (TokenException e) {
-            e.printStackTrace();
-        }
+
+        authTokenService.getUserByToken(getToken(past).orElseThrow(RuntimeException::new).getToken());
     }
 
     private ApiAuthToken createToken(LocalDateTime when) {
@@ -80,9 +85,9 @@ public class AuthTokenServiceImplTest {
         tokenData.put("token_id", token.getId());
         tokenData.put("username", token.getUsername());
         tokenData.put("value", token.getValue());
-        JwtBuilder jwtBuilder = Jwts.builder();
-        tokenData.put("expiration", when.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
-        jwtBuilder.setClaims(tokenData);
+        JwtBuilder jwtBuilder = Jwts.builder()
+                .setClaims(tokenData)
+                .setExpiration(Date.from(when.atZone(ZoneId.systemDefault()).toInstant()));
         AuthTokenDto authTokenDto = new AuthTokenDto(jwtBuilder.signWith(SignatureAlgorithm.HS512, "${token.key}").compact());
         return Optional.of(authTokenDto);
     }

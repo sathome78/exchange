@@ -64,9 +64,7 @@ public class AuthenticationTokenProcessingFilter extends AbstractAuthenticationP
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
             throws AuthenticationException {
         String token = request.getHeader(HEADER_SECURITY_TOKEN);
-        if (token == null) {
-            token = request.getParameter("token");
-        }
+
         UserDetails userDetails = authTokenService.getUserByToken(token);
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails.getUsername(), null, userDetails.getAuthorities());
         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

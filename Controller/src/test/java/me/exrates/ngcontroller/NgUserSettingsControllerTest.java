@@ -382,7 +382,7 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
         params.setSessionLifeTypeId(400);
 
         when(sessionService.isSessionTimeValid(anyInt())).thenReturn(Boolean.TRUE);
-        when(sessionService.saveOrUpdate(anyObject(), anyString())).thenReturn(params);
+        when(sessionService.saveOrUpdate(anyObject(), anyString())).thenReturn(Boolean.TRUE);
 
         mockMvc.perform(put(BASE_URL + SESSION_INTERVAL)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)

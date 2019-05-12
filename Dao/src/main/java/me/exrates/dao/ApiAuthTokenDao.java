@@ -14,8 +14,6 @@ public interface ApiAuthTokenDao {
 
     Optional<ApiAuthToken> retrieveTokenById(Long id);
 
-    boolean prolongToken(Long id);
-
     boolean deleteExpiredToken(Long id);
 
     int deleteAllExpired(long tokenDuration);

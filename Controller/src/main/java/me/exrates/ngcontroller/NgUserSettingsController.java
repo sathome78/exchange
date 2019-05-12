@@ -193,18 +193,18 @@ public class NgUserSettingsController {
     }
 
     @PutMapping(value = SESSION_INTERVAL, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> updateSessionPeriod(@RequestBody Map<String, Integer> body) {
+    public ResponseEntity<Void> updateSessionPeriod(@RequestBody Map<String, Integer> body, HttpServletRequest request) {
         try {
-            int interval = body.get("sessionInterval");
-            SessionParams sessionParams = new SessionParams(interval, SessionLifeTypeEnum.INACTIVE_COUNT_LIFETIME.getTypeId());
+            int intervalInMinutes = body.get("sessionInterval");
+            SessionParams sessionParams = new SessionParams(intervalInMinutes, SessionLifeTypeEnum.INACTIVE_COUNT_LIFETIME.getTypeId());
             if (sessionService.isSessionTimeValid(sessionParams.getSessionTimeMinutes())) {
-                sessionService.saveOrUpdate(sessionParams, getPrincipalEmail());
-//                sessionService.setSessionLifeParams(request);
-                //todo inform user to logout to implement params next time
-                return new ResponseEntity<>(HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+                if (sessionService.saveOrUpdate(sessionParams, getPrincipalEmail())) {
+                    authTokenService.updateSessionLifetime(request.getHeader("Exrates-Rest-Token"), intervalInMinutes);
+
+                    return new ResponseEntity<>(HttpStatus.OK);
+                }
             }
+            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
         } catch (Exception e) {
             String message = String.format("Update session period %s failed", body.get("sessionInterval"));
             throw new NgResponseException(ErrorApiTitles.UPDATE_SESSION_PERIOD_FAILED, message);

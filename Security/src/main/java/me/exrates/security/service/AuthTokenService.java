@@ -32,4 +32,6 @@ public interface AuthTokenService {
     UserDetails getUserByToken(String token, String ip);
 
     boolean sessionExpiredProcessing(String token, User user);
+
+    void updateSessionLifetime(String token, int intervalInMinutes);
 }

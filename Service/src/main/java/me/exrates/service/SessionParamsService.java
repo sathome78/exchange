@@ -21,7 +21,7 @@ public interface SessionParamsService {
 
     SessionParams getByEmailOrDefault(String email);
 
-    SessionParams saveOrUpdate(SessionParams sessionParams, String userEmail);
+    boolean saveOrUpdate(SessionParams sessionParams, String userEmail);
 
     SessionParams determineSessionParams();
 

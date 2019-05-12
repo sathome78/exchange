@@ -56,12 +56,6 @@ public class ApiAuthTokenDaoImpl implements ApiAuthTokenDao {
         }
     }
 
-    public boolean prolongToken(Long id) {
-        String sql = "UPDATE API_AUTH_TOKEN SET last_request = CURRENT_TIMESTAMP WHERE id = :id";
-        Map<String, Object> params = singletonMap("id", id);
-        return namedParameterJdbcTemplate.update(sql, params) == 1;
-    }
-
     @Override
     public boolean deleteExpiredToken(Long id) {
         String sql = "DELETE FROM API_AUTH_TOKEN WHERE id = :id";

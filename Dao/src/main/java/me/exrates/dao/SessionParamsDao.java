@@ -14,7 +14,7 @@ public interface SessionParamsDao {
 
     SessionParams getByUserEmail(String userEmail);
 
-    SessionParams create(SessionParams sessionLifeType);
+    boolean create(SessionParams sessionLifeType);
 
-    void update(SessionParams sessionParams);
+    boolean update(SessionParams sessionParams);
 }
