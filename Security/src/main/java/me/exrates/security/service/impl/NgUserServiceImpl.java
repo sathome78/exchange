@@ -51,6 +51,7 @@ public class NgUserServiceImpl implements NgUserService {
     private final IpBlockingService ipBlockingService;
     private final TemporalTokenService temporalTokenService;
     private final HttpServletRequest request;
+    private final RestApiUtils restApiUtils;
 
     @Value("${dev.mode}")
     private boolean DEV_MODE;
@@ -67,7 +68,8 @@ public class NgUserServiceImpl implements NgUserService {
                              ReferralService referralService,
                              IpBlockingService ipBlockingService,
                              TemporalTokenService temporalTokenService,
-                             HttpServletRequest request) {
+                             HttpServletRequest request,
+                             RestApiUtils restApiUtils) {
         this.userDao = userDao;
         this.userService = userService;
         this.messageSource = messageSource;
@@ -77,6 +79,7 @@ public class NgUserServiceImpl implements NgUserService {
         this.ipBlockingService = ipBlockingService;
         this.temporalTokenService = temporalTokenService;
         this.request = request;
+        this.restApiUtils = restApiUtils;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -118,7 +121,7 @@ public class NgUserServiceImpl implements NgUserService {
             throw new NgDashboardException("User not found", 1001);
         }
 
-        String password = RestApiUtils.decodePassword(passwordCreateDto.getPassword());
+        String password = restApiUtils.decodePassword(passwordCreateDto.getPassword());
         user.setUserStatus(UserStatus.ACTIVE);
         UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
         updateUserDto.setEmail(user.getEmail());
@@ -172,7 +175,7 @@ public class NgUserServiceImpl implements NgUserService {
             return false;
         }
 
-        String password = RestApiUtils.decodePassword(passwordCreateDto.getPassword());
+        String password = restApiUtils.decodePassword(passwordCreateDto.getPassword());
         UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
         updateUserDto.setEmail(user.getEmail());
         updateUserDto.setPassword(password);

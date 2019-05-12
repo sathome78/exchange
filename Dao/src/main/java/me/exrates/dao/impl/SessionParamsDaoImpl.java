@@ -3,6 +3,7 @@ package me.exrates.dao.impl;
 import me.exrates.dao.SessionParamsDao;
 import me.exrates.model.SessionLifeTimeType;
 import me.exrates.model.SessionParams;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -101,5 +102,14 @@ public class SessionParamsDaoImpl implements SessionParamsDao {
         params.put("session_life_type_id", sessionParams.getSessionLifeTypeId());
 
         return namedParameterJdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public List<Pair<String, Integer>> getAll() {
+        String sql = "SELECT email, session_time_minutes" +
+                " FROM SESSION_PARAMS" +
+                " INNER JOIN USER U on SESSION_PARAMS.user_id = U.id";
+
+        return namedParameterJdbcTemplate.query(sql, (rs, row) -> Pair.of(rs.getString("email"), rs.getInt("session_time_minutes")));
     }
 }

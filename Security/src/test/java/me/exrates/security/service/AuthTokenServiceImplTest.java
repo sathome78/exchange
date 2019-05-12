@@ -13,6 +13,7 @@ import me.exrates.security.service.impl.AuthTokenServiceImpl;
 import me.exrates.service.ReferralService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
+import me.exrates.service.util.RestApiUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -33,7 +34,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import static junit.framework.TestCase.assertNull;
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
@@ -75,7 +75,7 @@ public class AuthTokenServiceImplTest {
                 .id(123L)
                 .username("test@email.com")
                 .value("1613089c-3698-11e9-b210-d663bd873d93")
-                .lastRequest(when)
+                .expiredAt(Date.from(when.atZone(ZoneId.systemDefault()).toInstant()))
                 .build();
     }
 
@@ -86,8 +86,7 @@ public class AuthTokenServiceImplTest {
         tokenData.put("username", token.getUsername());
         tokenData.put("value", token.getValue());
         JwtBuilder jwtBuilder = Jwts.builder()
-                .setClaims(tokenData)
-                .setExpiration(Date.from(when.atZone(ZoneId.systemDefault()).toInstant()));
+                .setClaims(tokenData);
         AuthTokenDto authTokenDto = new AuthTokenDto(jwtBuilder.signWith(SignatureAlgorithm.HS512, "${token.key}").compact());
         return Optional.of(authTokenDto);
     }
@@ -126,9 +125,14 @@ public class AuthTokenServiceImplTest {
         }
 
         @Bean
+        public RestApiUtils restApiUtils() {
+            return Mockito.mock(RestApiUtils.class);
+        }
+
+        @Bean
         public AuthTokenService authTokenService() {
             return new AuthTokenServiceImpl(passwordEncoder(), apiAuthTokenDao(), userDetailsService(),
-                    sessionParamsService(), userService(), referralService());
+                    sessionParamsService(), userService(), referralService(), restApiUtils());
         }
     }
 }

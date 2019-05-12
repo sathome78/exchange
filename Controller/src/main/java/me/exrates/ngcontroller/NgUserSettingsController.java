@@ -1,6 +1,5 @@
 package me.exrates.ngcontroller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.NotificationOption;
@@ -77,6 +76,7 @@ public class NgUserSettingsController {
 
     private static final Logger logger = LogManager.getLogger(NgUserSettingsController.class);
 
+    private static final String UPDATE_PASSWORD = "/updateMainPassword";
     private static final String NICKNAME = "/nickname";
     private static final String SESSION_INTERVAL = "/sessionInterval";
     private static final String EMAIL_NOTIFICATION = "/notifications";
@@ -92,7 +92,7 @@ public class NgUserSettingsController {
     private final UserVerificationService verificationService;
     private final IpBlockingService ipBlockingService;
     private final StompMessenger stompMessenger;
-    private final ObjectMapper objectMapper;
+    private final RestApiUtils restApiUtils;
 
     @Value("${contacts.feedbackEmail}")
     String feedbackEmail;
@@ -106,7 +106,7 @@ public class NgUserSettingsController {
                                     UserVerificationService userVerificationService,
                                     IpBlockingService ipBlockingService,
                                     StompMessenger stompMessenger,
-                                    ObjectMapper objectMapper) {
+                                    RestApiUtils restApiUtils) {
         this.authTokenService = authTokenService;
         this.userService = userService;
         this.notificationService = notificationService;
@@ -115,7 +115,7 @@ public class NgUserSettingsController {
         this.verificationService = userVerificationService;
         this.ipBlockingService = ipBlockingService;
         this.stompMessenger = stompMessenger;
-        this.objectMapper = objectMapper;
+        this.restApiUtils = restApiUtils;
     }
 
     // /info/private/v2/settings/updateMainPassword
@@ -126,9 +126,10 @@ public class NgUserSettingsController {
     // 200 - OK
     // 400 - 1011 - either current or new password is blank
     // 400 - 1010 - wrong main user password
-    @PutMapping(value = "/updateMainPassword", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = UPDATE_PASSWORD, consumes = MediaType.APPLICATION_JSON_VALUE)
     @CheckIp(value = IpTypesOfChecking.UPDATE_MAIN_PASSWORD)
-    public ResponseEntity<Void> updateMainPassword(@RequestBody Map<String, String> body, HttpServletRequest request) {
+    public ResponseEntity updateMainPassword(@RequestBody Map<String, String> body,
+                                             HttpServletRequest request) {
         String email = getPrincipalEmail();
         User user = userService.findByEmail(email);
         Locale locale = userService.getUserLocaleForMobile(email);
@@ -139,7 +140,7 @@ public class NgUserSettingsController {
             logger.warn(message);
             throw new NgDashboardException(message, Constants.ErrorApi.USER_INCORRECT_PASSWORDS);
         }
-        currentPassword = RestApiUtils.decodePassword(currentPassword);
+        currentPassword = restApiUtils.decodePassword(currentPassword);
         if (!userService.checkPassword(user.getId(), currentPassword)) {
             String clientIp = Optional.ofNullable(request.getHeader("X-Forwarded-For")).orElse("");
             String message = String.format("Failed to check password for user: %s from ip: %s ", user.getEmail(), clientIp);
@@ -147,7 +148,7 @@ public class NgUserSettingsController {
             ipBlockingService.failureProcessing(clientIp, IpTypesOfChecking.UPDATE_MAIN_PASSWORD);
             throw new NgDashboardException(message, Constants.ErrorApi.USER_WRONG_CURRENT_PASSWORD);
         }
-        newPassword = RestApiUtils.decodePassword(newPassword);
+        newPassword = restApiUtils.decodePassword(newPassword);
         user.setPassword(newPassword);
         user.setConfirmPassword(newPassword);
         //   registerFormValidation.validateResetPassword(user, result, locale);
@@ -163,7 +164,7 @@ public class NgUserSettingsController {
         }
     }
 
-    @GetMapping(value = NICKNAME)
+    @GetMapping(NICKNAME)
     public ResponseEntity<Map<String, String>> getNickName() {
         User user = userService.findByEmail(getPrincipalEmail());
         String nickname = user.getNickname() == null ? "" : user.getNickname();
@@ -171,7 +172,7 @@ public class NgUserSettingsController {
     }
 
     @PutMapping(value = NICKNAME, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> updateNickName(@RequestBody Map<String, String> body) {
+    public ResponseEntity updateNickName(@RequestBody Map<String, String> body) {
         User user = userService.findByEmail(getPrincipalEmail());
         if (body.containsKey(NICKNAME)) {
             user.setNickname(body.get(NICKNAME));
@@ -183,7 +184,7 @@ public class NgUserSettingsController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @GetMapping(value = SESSION_INTERVAL)
+    @GetMapping(SESSION_INTERVAL)
     public ResponseModel<Integer> getSessionPeriod() {
         SessionParams params = sessionService.getByEmailOrDefault(getPrincipalEmail());
         if (null == params) {
@@ -193,7 +194,8 @@ public class NgUserSettingsController {
     }
 
     @PutMapping(value = SESSION_INTERVAL, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> updateSessionPeriod(@RequestBody Map<String, Integer> body, HttpServletRequest request) {
+    public ResponseEntity updateSessionPeriod(@RequestBody Map<String, Integer> body,
+                                              HttpServletRequest request) {
         try {
             int intervalInMinutes = body.get("sessionInterval");
             SessionParams sessionParams = new SessionParams(intervalInMinutes, SessionLifeTypeEnum.INACTIVE_COUNT_LIFETIME.getTypeId());
@@ -211,7 +213,7 @@ public class NgUserSettingsController {
         }
     }
 
-    @GetMapping(value = EMAIL_NOTIFICATION)
+    @GetMapping(EMAIL_NOTIFICATION)
     public Map<NotificationEvent, Boolean> getUserNotifications() {
         try {
             int userId = userService.getIdByEmail(getPrincipalEmail());
@@ -227,7 +229,7 @@ public class NgUserSettingsController {
     }
 
     @PutMapping(value = EMAIL_NOTIFICATION, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> updateUserNotification(@RequestBody List<NotificationOption> options) {
+    public ResponseEntity updateUserNotification(@RequestBody List<NotificationOption> options) {
         try {
             int userId = userService.getIdByEmail(getPrincipalEmail());
             notificationService.updateNotificationOptionsForUser(userId, options);
@@ -239,7 +241,6 @@ public class NgUserSettingsController {
     }
 
     @GetMapping(IS_COLOR_BLIND)
-    @ResponseBody
     public Boolean getUserColorDepth() {
         User user = userService.findByEmail(getPrincipalEmail());
         PageLayoutSettingsDto dto = this.layoutSettingsService.findByUser(user);
@@ -247,7 +248,7 @@ public class NgUserSettingsController {
     }
 
     @PutMapping(value = IS_COLOR_BLIND, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> updateUserColorDepth(@RequestBody Map<String, Boolean> params) {
+    public ResponseEntity updateUserColorDepth(@RequestBody Map<String, Boolean> params) {
         if (params.containsKey(STATE)) {
             User user = userService.findByEmail(getPrincipalEmail());
             this.layoutSettingsService.toggleLowColorMode(user, params.get(STATE));
@@ -265,7 +266,7 @@ public class NgUserSettingsController {
 //    }
 
     @PutMapping(value = COLOR_SCHEME, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> updateUserColorScheme(@RequestBody Map<String, String> params) {
+    public ResponseEntity updateUserColorScheme(@RequestBody Map<String, String> params) {
         if (params.containsKey("SCHEME")) {
             int userId = userService.getIdByEmail(getPrincipalEmail());
             PageLayoutSettingsDto settingsDto = PageLayoutSettingsDto
@@ -295,8 +296,8 @@ public class NgUserSettingsController {
     }
 
     @PostMapping("/userFiles/docs/{type}")
-    public ResponseEntity<Void> uploadUserVerificationDocs(@RequestBody Map<String, String> body,
-                                                           @PathVariable("type") String type) {
+    public ResponseEntity uploadUserVerificationDocs(@RequestBody Map<String, String> body,
+                                                     @PathVariable("type") String type) {
 
         VerificationDocumentType documentType = VerificationDocumentType.of(type);
         int userId = userService.getIdByEmail(getPrincipalEmail());
@@ -317,7 +318,6 @@ public class NgUserSettingsController {
     }
 
     @GetMapping("/currency_pair/favourites")
-    @ResponseBody
     public List<Integer> getUserFavouriteCurrencyPairs() {
         return userService.getUserFavouriteCurrencyPairs(getPrincipalEmail());
     }
@@ -412,5 +412,4 @@ public class NgUserSettingsController {
     private String getPrincipalEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
-
 }

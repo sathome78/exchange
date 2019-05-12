@@ -122,7 +122,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
  * @author ValkSam
  */
 @Log4j2
-@PropertySource(value = {"classpath:/mobile.properties", "classpath:session.properties"})
+@PropertySource(value = {"classpath:session.properties"})
 @RestController
 public class OnlineRestController {
     private static final Logger LOGGER = LogManager.getLogger(OnlineRestController.class);

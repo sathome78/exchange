@@ -8,6 +8,7 @@ import me.exrates.model.SessionParams;
 import me.exrates.model.enums.SessionLifeTypeEnum;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -150,4 +151,8 @@ public class SessionParamsServiceImpl implements SessionParamsService {
         return jsonObject;
     }
 
+    @Override
+    public List<Pair<String, Integer>> getAll() {
+        return sessionParamsDao.getAll();
+    }
 }

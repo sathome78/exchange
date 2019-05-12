@@ -1,56 +1,18 @@
 package me.exrates.controller.mobile;
 
-import me.exrates.controller.exception.*;
-import me.exrates.model.User;
-import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
-import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
-import me.exrates.model.enums.UserAgent;
-import me.exrates.model.enums.UserStatus;
-import me.exrates.security.exception.BannedIpException;
-import me.exrates.security.exception.IncorrectPasswordException;
-import me.exrates.security.exception.MissingCredentialException;
-import me.exrates.security.exception.UserNotEnabledException;
-import me.exrates.security.ipsecurity.IpTypesOfChecking;
-import me.exrates.security.service.AuthTokenService;
 import me.exrates.security.ipsecurity.IpBlockingService;
-import me.exrates.service.*;
+import me.exrates.security.service.AuthTokenService;
 import me.exrates.service.ApiService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.UserFilesService;
 import me.exrates.service.UserService;
-import me.exrates.service.exception.*;
-import me.exrates.service.exception.api.*;
 import me.exrates.service.session.UserSessionService;
-import me.exrates.service.util.IpUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.MissingServletRequestParameterException;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.multipart.MultipartFile;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import java.io.IOException;
-import java.util.*;
-
-import static me.exrates.service.exception.api.ErrorCode.*;
-import static me.exrates.service.util.RestApiUtils.decodePassword;
-import static me.exrates.service.util.RestApiUtils.retrieveParamFormBody;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Created by OLEG on 19.08.2016.
@@ -58,9 +20,9 @@ import static me.exrates.service.util.RestApiUtils.retrieveParamFormBody;
 
 /**
  * ALL controleers oommented for security reasons
- * */
+ */
 @RestController
-@PropertySource(value = {"classpath:about_us.properties", "classpath:/mobile.properties"})
+@PropertySource(value = {"classpath:about_us.properties", "classpath:/password.properties"})
 public class MobileEntryController {
     private static final Logger logger = LogManager.getLogger("mobileAPI");
 

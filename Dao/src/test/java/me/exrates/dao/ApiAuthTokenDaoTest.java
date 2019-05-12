@@ -13,7 +13,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,12 +42,12 @@ public class ApiAuthTokenDaoTest {
     @Test
 
     public void createToken_successfull() {
-        ApiAuthToken apiAuthToken = ApiAuthToken.builder().
-                id(1L).
-                username("user").
-                value("value").
-                lastRequest(LocalDateTime.now()).
-                build();
+        ApiAuthToken apiAuthToken = ApiAuthToken.builder()
+                .id(1L)
+                .username("user")
+                .value("value")
+                .expiredAt(new Date())
+                .build();
         long token = apiAuthTokenDao.createToken(apiAuthToken);
 
         Map<String, Object> map = new HashMap<>();

@@ -3,6 +3,7 @@ package me.exrates.service;
 import com.google.gson.JsonObject;
 import me.exrates.model.SessionLifeTimeType;
 import me.exrates.model.SessionParams;
+import org.apache.commons.lang3.tuple.Pair;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -34,4 +35,6 @@ public interface SessionParamsService {
     void setSessionLifeParams(HttpServletRequest request);
 
     JsonObject getSessionEndString(HttpServletRequest request);
+
+    List<Pair<String, Integer>> getAll();
 }

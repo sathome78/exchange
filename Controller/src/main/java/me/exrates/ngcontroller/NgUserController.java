@@ -73,18 +73,22 @@ public class NgUserController {
     private final NgUserService ngUserService;
     private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
+    private final RestApiUtils restApiUtils;
 
     @Value("${dev.mode}")
     private boolean DEV_MODE;
 
     @Autowired
-    public NgUserController(IpBlockingService ipBlockingService, AuthTokenService authTokenService,
-                            UserService userService, ReferralService referralService,
+    public NgUserController(IpBlockingService ipBlockingService,
+                            AuthTokenService authTokenService,
+                            UserService userService,
+                            ReferralService referralService,
                             SecureService secureService,
                             G2faService g2faService,
                             NgUserService ngUserService,
                             UserDetailsService userDetailsService,
-                            PasswordEncoder passwordEncoder) {
+                            PasswordEncoder passwordEncoder,
+                            RestApiUtils restApiUtils) {
         this.ipBlockingService = ipBlockingService;
         this.authTokenService = authTokenService;
         this.userService = userService;
@@ -94,6 +98,7 @@ public class NgUserController {
         this.ngUserService = ngUserService;
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
+        this.restApiUtils = restApiUtils;
     }
 
     @PostMapping(value = "/authenticate")
@@ -248,7 +253,7 @@ public class NgUserController {
             logger.debug(message);
             throw new NgResponseException(ErrorApiTitles.USER_NOT_ACTIVE, message);
         }
-        String password = RestApiUtils.decodePassword(authenticationDto.getPassword());
+        String password = restApiUtils.decodePassword(authenticationDto.getPassword());
         UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationDto.getEmail());
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {
             String message = String.format("Invalid password and/or email [%s]", authenticationDto.getEmail());
