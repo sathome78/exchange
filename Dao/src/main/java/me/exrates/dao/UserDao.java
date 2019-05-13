@@ -230,7 +230,7 @@ public interface UserDao {
 
     long countUserEntrance(String email);
 
-    Integer getUserIdByGa(String email);
+    Integer getUserIdByGaTag(String gaTag);
 
     String getKycStatusByEmail(String email);
 

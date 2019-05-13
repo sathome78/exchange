@@ -1183,9 +1183,9 @@ public class RefillServiceImpl implements RefillService {
         return refillRequestDao.getUsernameByAddressAndCurrencyIdAndMerchantId(address, currencyId, merchantId);
     }
 
-    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+    @Transactional(readOnly = true)
     @Override
-    public String getUsernameByRequestId(int requestId) {
+    public String getUserGAByRequestId(int requestId) {
         return refillRequestDao.getGaTagByRequestId(requestId);
     }
 

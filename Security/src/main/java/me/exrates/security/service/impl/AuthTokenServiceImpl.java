@@ -40,7 +40,13 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -293,5 +299,33 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         return Date.from(LocalDateTime.now().plusMinutes(minutes).atZone(ZoneId.systemDefault()).toInstant());
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class, noRollbackFor = TokenException.class)
+    public boolean sessionExpiredProcessing(String token, User user) {
+        if (Objects.isNull(token)) {
+            throw new TokenException("No authentication token header found", ErrorCode.MISSING_AUTHENTICATION_TOKEN);
+        }
+        DefaultClaims claims;
+        try {
+            claims = (DefaultClaims) Jwts.parser().setSigningKey(TOKEN_KEY).parseClaimsJws(token).getBody();
+            claims.forEach((key, value) -> logger.info(key + " :: " + value + " :: " + value.getClass()));
+        } catch (Exception ex) {
+            throw new TokenException("Token corrupted", ErrorCode.INVALID_AUTHENTICATION_TOKEN);
+        }
+        if (!(claims.containsKey("token_id") && claims.containsKey("username") && claims.containsKey("value"))) {
+            throw new TokenException("Invalid token", ErrorCode.INVALID_AUTHENTICATION_TOKEN);
+        }
+        Long tokenId = Long.parseLong(String.valueOf(claims.get("token_id")));
+        String username = claims.get("username", String.class);
+        LocalDateTime expiration = new Date(claims.get("expiration", Long.class)).toInstant()
+                .atZone(ZoneId.systemDefault()).toLocalDateTime();
 
+        boolean currentExpired = expiration.isBefore(LocalDateTime.now());
+        if (currentExpired) {
+            return apiAuthTokenDao.deleteAllByUsername(username);
+        } else {
+            apiAuthTokenDao.prolongToken(tokenId);
+            return apiAuthTokenDao.deleteAllWithoutCurrent(tokenId, username);
+        }
+    }
 }

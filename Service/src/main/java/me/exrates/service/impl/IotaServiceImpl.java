@@ -113,10 +113,10 @@ public class IotaServiceImpl implements IotaService {
 
         refillService.autoAcceptRefillRequest(requestAcceptDto);
 
-        final String username = refillService.getUsernameByRequestId(requestId);
+        final String gaTag = refillService.getUserGAByRequestId(requestId);
 
         log.debug("Process of sending data to Google Analytics...");
-        gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
+        gtagService.sendGtagEvents(amount.toString(), currency.getName(), gaTag);
     }
 
     @Override

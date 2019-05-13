@@ -113,10 +113,9 @@ public class QuberaServiceImpl implements QuberaService {
         refillService.autoAcceptRefillRequest(requestAcceptDto);
         // todo send notification to transfer to master account
 
-        final String username = refillService.getUsernameByRequestId(requestId);
-
-        logger.debug("Process of sending data to Google Analytics...");
-        gtagService.sendGtagEvents(paymentAmount, currency.getName(), username);
+        final String gaTag = refillService.getUserGAByRequestId(requestId);
+        logger.info("Process of sending data to Google Analytics...");
+        gtagService.sendGtagEvents(paymentAmount, currency.getName(), gaTag);
     }
 
     @Override

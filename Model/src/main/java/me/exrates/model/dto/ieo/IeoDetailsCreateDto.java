@@ -21,6 +21,8 @@ public class IeoDetailsCreateDto {
 
     @NotNull(message = "Name must not be null")
     private String currencyName;
+    @NotNull(message = "Currency description must not be null")
+    private String currencyDescription;
     @NotNull(message = "Description must not be null")
     private String description;
     /*  private String currencyToPairWith;*/
@@ -47,7 +49,8 @@ public class IeoDetailsCreateDto {
     public IEODetails toIEODetails(int makerId, int creatorId) {
         return IEODetails.builder()
                 .currencyName(currencyName)
-                .currencyDescription(description)
+                .currencyDescription(currencyDescription)
+                .description(description)
                 .amount(amount)
                 .rate(rate)
                 .availableAmount(availableBalance)

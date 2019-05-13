@@ -50,11 +50,22 @@
                 <div id="create_ieo" class="collapse" hidden>
                     <form id="create_ieo_form" class="form_full_height_width">
 
-                        <%--Description--%>
+                        <%--Currency Description--%>
                         <div class="input-block-wrapper">
                             <div class="col-md-3 input-block-wrapper__label-wrapper">
                                 <label class="input-block-wrapper__label">
                                     <loc:message code="ieo.coinDescription"/>
+                                </label>
+                            </div>
+                            <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                <input type="text"  name="currencyDescription">
+                            </div>
+                        </div>
+                        <%--Description--%>
+                        <div class="input-block-wrapper">
+                            <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label">
+                                    <loc:message code="ieo.description"/>
                                 </label>
                             </div>
                             <div class="col-md-9 input-block-wrapper__input-wrapper">
@@ -226,6 +237,17 @@
                             </div>
                             <div class="col-md-9 input-block-wrapper__input-wrapper">
                                 <input type="text" id="currencyName" name="currencyName" disabled>
+                            </div>
+                        </div>
+                        <%--Currency description--%>
+                        <div class="input-block-wrapper" hidden>
+                            <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label">
+                                    <loc:message code="ieo.coinDescription"/>
+                                </label>
+                            </div>
+                            <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                <input type="text" id="currencyDescription" name="currencyDescription">
                             </div>
                         </div>
                         <%--Description--%>

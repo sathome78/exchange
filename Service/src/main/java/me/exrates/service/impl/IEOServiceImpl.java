@@ -3,6 +3,7 @@ package me.exrates.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.IEOClaimRepository;
+import me.exrates.dao.IEOSubscribeRepository;
 import me.exrates.dao.IeoDetailsRepository;
 import me.exrates.dao.KYCSettingsDao;
 import me.exrates.model.CurrencyPair;
@@ -61,6 +62,7 @@ public class IEOServiceImpl implements IEOService {
     private final SendMailService sendMailService;
     private final StompMessenger stompMessenger;
     private final ObjectMapper objectMapper;
+    private final IEOSubscribeRepository ieoSubscribeRepository;
 
     @Autowired
     public IEOServiceImpl(IEOClaimRepository ieoClaimRepository,
@@ -72,7 +74,8 @@ public class IEOServiceImpl implements IEOService {
                           KYCSettingsDao kycSettingsDao,
                           SendMailService sendMailService,
                           StompMessenger stompMessenger,
-                          ObjectMapper objectMapper) {
+                          ObjectMapper objectMapper,
+                          IEOSubscribeRepository ieoSubscribeRepository) {
         this.ieoClaimRepository = ieoClaimRepository;
         this.userService = userService;
         this.ieoDetailsRepository = ieoDetailsRepository;
@@ -83,6 +86,7 @@ public class IEOServiceImpl implements IEOService {
         this.sendMailService = sendMailService;
         this.stompMessenger = stompMessenger;
         this.objectMapper = objectMapper;
+        this.ieoSubscribeRepository = ieoSubscribeRepository;
     }
 
     @Transactional
@@ -342,6 +346,34 @@ public class IEOServiceImpl implements IEOService {
         }
 
         return result;
+    }
+
+    @Override
+    public boolean subscribeEmail(String email) {
+        if (ieoSubscribeRepository.isUserSubscribe(email)) {
+            return ieoSubscribeRepository.updateSubscribeEmail(email);
+        } else {
+            return ieoSubscribeRepository.subscribeEmail(email);
+        }
+    }
+
+    @Override
+    public boolean subscribeTelegram(String email) {
+        if (ieoSubscribeRepository.isUserSubscribe(email)) {
+            return ieoSubscribeRepository.updateSubscribeTelegram(email);
+        } else {
+            return ieoSubscribeRepository.subscribeTelegram(email);
+        }
+    }
+
+    @Override
+    public boolean isUserSubscribeForIEOEmail(String email) {
+        return ieoSubscribeRepository.isUserSubscribeForEmail(email);
+    }
+
+    @Override
+    public boolean isUserSubscribeForIEOTelegram(String email) {
+        return ieoSubscribeRepository.isUserSubscribeForTelegram(email);
     }
 
     private void validateUserAmountRestrictions(IEODetails ieoDetails, User user, ClaimDto claimDto) {

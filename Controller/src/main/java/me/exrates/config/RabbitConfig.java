@@ -1,13 +1,7 @@
 package me.exrates.config;
 
-import me.exrates.service.RabbitMqService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.QueueBuilder;
-import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.annotation.RabbitListenerConfigurer;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
@@ -28,7 +22,6 @@ import org.springframework.messaging.handler.annotation.support.MessageHandlerMe
 public class RabbitConfig implements RabbitListenerConfigurer {
 
     private final Logger logger = LogManager.getLogger(RabbitConfig.class);
-    public static final String topicExchangeName = "inout-service";
 
     @Value("${rabbit.host}")
     private String host;
@@ -51,28 +44,11 @@ public class RabbitConfig implements RabbitListenerConfigurer {
         return factory;
     }
 
-    @Bean("refillQueue")
-    public Queue refillQueue() {
-        return QueueBuilder
-                .durable(RabbitMqService.REFILL_QUEUE)
-                .build();
-    }
-
     @Bean(name = "rabbitListenerContainerFactory")
     public SimpleRabbitListenerContainerFactory listenerFactory() {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory());
         return factory;
-    }
-
-    @Bean
-    TopicExchange exchange() {
-        return new TopicExchange(topicExchangeName);
-    }
-
-    @Bean
-    Binding refillBinding(TopicExchange refillExchange) {
-        return BindingBuilder.bind(refillQueue()).to(refillExchange).with(RabbitMqService.REFILL_QUEUE);
     }
 
     @Bean

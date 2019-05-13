@@ -142,10 +142,9 @@ public class QiwiServiceImpl implements QiwiService {
 
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         }
-        final String username = refillService.getUsernameByRequestId(requestId);
-
+        final String gaTag = refillService.getUserGAByRequestId(requestId);
         logger.debug("Process of sending data to Google Analytics...");
-        gtagService.sendGtagEvents(fullAmount.toString(), currency.getName(), username);
+        gtagService.sendGtagEvents(fullAmount.toString(), currency.getName(), gaTag);
     }
 
     @Override

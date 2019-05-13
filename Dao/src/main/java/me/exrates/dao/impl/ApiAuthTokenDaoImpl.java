@@ -12,6 +12,8 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -22,7 +24,7 @@ import static java.util.Collections.singletonMap;
 public class ApiAuthTokenDaoImpl implements ApiAuthTokenDao {
 
 
-    private  NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     @Autowired
     public ApiAuthTokenDaoImpl(NamedParameterJdbcTemplate jdbcTemplate) {
@@ -73,5 +75,21 @@ public class ApiAuthTokenDaoImpl implements ApiAuthTokenDao {
         return namedParameterJdbcTemplate.update(sql, singletonMap("duration", tokenDuration));
     }
 
+    @Override
+    public boolean deleteAllByUsername(String username) {
+        final String sql = "DELETE FROM API_AUTH_TOKEN WHERE username = :username";
 
+        return namedParameterJdbcTemplate.update(sql, Collections.singletonMap("username", username)) > 0;
+    }
+
+    @Override
+    public boolean deleteAllWithoutCurrent(Long tokenId, String username) {
+        final String sql = "DELETE FROM API_AUTH_TOKEN WHERE id NOT IN (:ids) AND username = :username";
+
+        final Map<String, Object> params = new HashMap<>();
+        params.put("ids", Collections.singletonList(tokenId));
+        params.put("username", username);
+
+        return namedParameterJdbcTemplate.update(sql, params) > 0;
+    }
 }

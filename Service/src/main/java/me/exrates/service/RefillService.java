@@ -167,7 +167,7 @@ public interface RefillService {
 
     String getUsernameByAddressAndCurrencyIdAndMerchantId(String address, int currencyId, int merchantId);
 
-    String getUsernameByRequestId(int requestId);
+    String getUserGAByRequestId(int requestId);
 
     Integer getRequestId(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException;
 

@@ -3,7 +3,6 @@ package me.exrates.service.impl;
 import me.exrates.dao.GtagRefillRequests;
 import me.exrates.dao.UserDao;
 import me.exrates.service.GtagRefillService;
-import me.exrates.service.GtagService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -20,15 +19,14 @@ public class GtagRefillServiceImpl implements GtagRefillService {
     private UserDao userDao;
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Integer getUserRequests(String username) {
-        Integer userIdByGa = userDao.getUserIdByGa(username);
-
+    public Integer getUserRequests(String email) {
+        Integer userIdByGa = userDao.findByEmail(email).getId();
         return gtagRefillRequests.getUserRequestsCount(userIdByGa);
     }
 
     @Override
     public void resetCount(String username) {
-        Integer userIdByGa = userDao.getUserIdByGa(username);
+        Integer userIdByGa = userDao.findByEmail(username).getId();
         gtagRefillRequests.resetCount(userIdByGa);
     }
 }

@@ -29,7 +29,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.*;
 
 @Log4j2(topic = "decred")
 @Service
@@ -131,10 +130,10 @@ public class DecredServiceImpl implements DecredService {
 
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         }
-        final String username = refillService.getUsernameByRequestId(requestId);
+        final String gaTag = refillService.getUserGAByRequestId(requestId);
 
         log.debug("Process of sending data to Google Analytics...");
-        gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
+        gtagService.sendGtagEvents(amount.toString(), currency.getName(), gaTag);
     }
 
     @Override

@@ -42,17 +42,17 @@ public class GtagServiceImpl implements GtagService {
     @Autowired
     private GtagRefillRequests gtagRefillRequests;
 
-    public void sendGtagEvents(String coinsCount, String tiker, String userName) {
+    public void sendGtagEvents(String coinsCount, String tiker, String gaTag) {
         if (!enable) return;
         try {
             RateDto rateDto = exchangeApi.getRates().getOrDefault(tiker, RateDto.zeroRate(tiker));
             String price = rateDto.getUsdRate().multiply(new BigDecimal(coinsCount)).toString();
-            String transactionId = sendTransactionHit(userName, price, tiker);
+            String transactionId = sendTransactionHit(gaTag, price, tiker);
             log.info("Successfully send transaction hit to gtag");
-            sendItemHit(userName, transactionId, tiker, coinsCount, rateDto.getUsdRate().toString());
+            sendItemHit(gaTag, transactionId, tiker, coinsCount, rateDto.getUsdRate().toString());
             log.info("Successfully send item hit to gtag");
             log.info("Send all analytics");
-            saveGtagRefillRequest(userName);
+            saveGtagRefillRequest(gaTag);
         } catch (Throwable exception) {
             log.warn("Unable to send statistic to gtag ", exception);
         }
@@ -104,8 +104,8 @@ public class GtagServiceImpl implements GtagService {
         log.info("Response is " + jsonResponse);
     }
 
-    public void saveGtagRefillRequest(String userName) {
-        Integer userIdByGa = userDao.getUserIdByGa(userName);
+    public void saveGtagRefillRequest(String gaTag) {
+        Integer userIdByGa = userDao.getUserIdByGaTag(gaTag);
         try {
             Integer userId = gtagRefillRequests.getUserIdOfGtagRequests(userIdByGa);
             if (userId == null) {
