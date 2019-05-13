@@ -11,7 +11,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.medxoom.Migration;
 import framework.model.BasePresentBodyRequest;
 import framework.model.Block;
-import framework.model.DatabaseConfig;
+import web.config.DatabaseConfig;
 import framework.model.HttpMethodBlock;
 import framework.model.Operation;
 import framework.model.Response;

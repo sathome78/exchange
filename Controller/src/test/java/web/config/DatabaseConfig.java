@@ -1,4 +1,4 @@
-package framework.model;
+package web.config;
 
 public interface DatabaseConfig {
     String getSchema();
