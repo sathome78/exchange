@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -178,20 +179,23 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     }
 
     private void setRates(ExOrder order) {
-        synchronized (getRatesMapSyncSynchronizerSafe(order.getCurrencyPairId())) {
+        int currencyPairId = order.getCurrencyPairId();
+        synchronized (getRatesMapSyncSynchronizerSafe(currencyPairId)) {
             final BigDecimal lastOrderRate = order.getExRate();
             BigDecimal predLastOrderRate;
-            if (ratesMap.containsKey(order.getCurrencyPairId())) {
-                predLastOrderRate = new BigDecimal(ratesMap.get(order.getCurrencyPairId()).getLastOrderRate());
+            if (ratesMap.containsKey(currencyPairId)) {
+                predLastOrderRate = new BigDecimal(ratesMap.get(currencyPairId).getLastOrderRate());
             } else {
-                log.info("<<CACHE>>: Started retrieving SINGLE pred last rate for currencyPairId: " + order.getCurrencyPairId());
-                String newRate = orderService.getBeforeLastRateForCache(order.getCurrencyPairId()).getPredLastOrderRate();
-                log.info("<<CACHE>>: Finished retrieving SINGLE pred last rate for currencyPairId: " + order.getCurrencyPairId());
+                log.info("<<CACHE>>: Started retrieving SINGLE pred last rate for currencyPairId: " + currencyPairId);
+                String newRate = orderService.getBeforeLastRateForCache(currencyPairId).getPredLastOrderRate();
+                log.info("<<CACHE>>: Finished retrieving SINGLE pred last rate for currencyPairId: " + currencyPairId);
                 predLastOrderRate = new BigDecimal(newRate);
             }
 
-            ExOrderStatisticsShortByPairsDto cachedItem = loadingCache.getUnchecked(order.getCurrencyPairId());
-
+            ExOrderStatisticsShortByPairsDto cachedItem = loadingCache.getUnchecked(currencyPairId);
+            if (Objects.isNull(cachedItem)) {
+                cachedItem = new ExOrderStatisticsShortByPairsDto();
+            }
             cachedItem.setPriceInUSD(calculatePriceInUsd(cachedItem));
             cachedItem.setLastOrderRate(lastOrderRate.toPlainString());
             cachedItem.setPredLastOrderRate(predLastOrderRate.toPlainString());
@@ -199,24 +203,24 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
             cachedItem.setLastUpdateCache(DATE_TIME_FORMATTER.format(LocalDateTime.now()));
             setDailyData(cachedItem, lastOrderRate.toPlainString());
 
-            if (StringUtils.isEmpty(cachedItem.getCurrencyVolume())) {
-                cachedItem.setCurrencyVolume(cachedItem.getPriceInUSD());
-            } else {
-                BigDecimal initialVolume = new BigDecimal(cachedItem.getVolume());
-                BigDecimal resultVolume = new BigDecimal(cachedItem.getPriceInUSD());
-                cachedItem.setCurrencyVolume(initialVolume.add(resultVolume).toPlainString());
-            }
+            String volumeString = cachedItem.getVolume();
+            BigDecimal volume = Objects.isNull(volumeString) || StringUtils.isEmpty(volumeString)
+                    ? BigDecimal.ZERO
+                    : new BigDecimal(volumeString);
+            cachedItem.setVolume(volume.add(order.getAmountBase()).toPlainString());
 
-            if (StringUtils.isEmpty(cachedItem.getVolume())) {
-                cachedItem.setVolume(order.getAmountBase().toPlainString());
-            } else {
-                BigDecimal initialVolume = new BigDecimal(cachedItem.getVolume());
-                cachedItem.setVolume(initialVolume.add(order.getAmountBase()).toPlainString());
-            }
-            cachedItem.setCurrencyVolume(order.getAmountBase().toPlainString());
+            String currencyVolumeString = cachedItem.getCurrencyVolume();
+            BigDecimal currencyVolume = Objects.isNull(currencyVolumeString) || StringUtils.isEmpty(currencyVolumeString)
+                    ? BigDecimal.ZERO
+                    : new BigDecimal(currencyVolumeString);
+            cachedItem.setCurrencyVolume(currencyVolume.add(order.getAmountConvert()).toPlainString());
 
-            ratesMap.put(order.getCurrencyPairId(), cachedItem);
-            loadingCache.put(order.getCurrencyPairId(), cachedItem);
+            if (ratesMap.containsKey(currencyPairId)) {
+                ratesMap.replace(currencyPairId, cachedItem);
+            } else {
+                ratesMap.put(currencyPairId, cachedItem);
+            }
+            loadingCache.put(currencyPairId, cachedItem);
             if (ratesRedisRepository.exist(cachedItem.getCurrencyPairName())) {
                 ratesRedisRepository.update(cachedItem);
             } else {
