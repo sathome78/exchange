@@ -261,8 +261,7 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public void generateWalletBalancesReportObject() {
-        StopWatch stopWatch = StopWatch.createStarted();
+    public void generateWalletBalancesReportObject() {StopWatch stopWatch = StopWatch.createStarted();
         log.info("Process of generating report object as byte array start...");
 
         List<Currency> currencies = currencyService.findAllCurrenciesWithHidden();

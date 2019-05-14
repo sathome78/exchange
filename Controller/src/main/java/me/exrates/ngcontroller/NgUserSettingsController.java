@@ -342,11 +342,12 @@ public class NgUserSettingsController {
         throw new NgResponseException(ErrorApiTitles.FAILED_MANAGE_USER_FAVORITE_CURRENCY_PAIRS, message);
     }
 
-    @GetMapping("/token/refresh")
-    public ResponseEntity<AuthTokenDto> refreshToken(HttpServletRequest request) {
-        AuthTokenDto authTokenDto = authTokenService.refreshTokenNg(getPrincipalEmail(), request);
-        return new ResponseEntity<>(authTokenDto, HttpStatus.OK); // 200
-    }
+    //todo: delete 'expiration' logic from front end and do not use pop-up when change session limit - Sergey
+//    @GetMapping("/token/refresh")
+//    public ResponseEntity<AuthTokenDto> refreshToken(HttpServletRequest request) {
+//        AuthTokenDto authTokenDto = authTokenService.refreshTokenNg(getPrincipalEmail(), request);
+//        return new ResponseEntity<>(authTokenDto, HttpStatus.OK); // 200
+//    }
 
     // /api/private/v2/users/jksdhfbsjfgsjdfgasj/personal/{status}?message=Hello
     // possible statuses (information, warning, alert, error, success)
