@@ -204,13 +204,13 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
             setDailyData(cachedItem, lastOrderRate.toPlainString());
 
             String volumeString = cachedItem.getVolume();
-            BigDecimal volume = Objects.isNull(volumeString) || StringUtils.isEmpty(volumeString)
+            BigDecimal volume = StringUtils.isEmpty(volumeString)
                     ? BigDecimal.ZERO
                     : new BigDecimal(volumeString);
             cachedItem.setVolume(volume.add(order.getAmountBase()).toPlainString());
 
             String currencyVolumeString = cachedItem.getCurrencyVolume();
-            BigDecimal currencyVolume = Objects.isNull(currencyVolumeString) || StringUtils.isEmpty(currencyVolumeString)
+            BigDecimal currencyVolume = StringUtils.isEmpty(currencyVolumeString)
                     ? BigDecimal.ZERO
                     : new BigDecimal(currencyVolumeString);
             cachedItem.setCurrencyVolume(currencyVolume.add(order.getAmountConvert()).toPlainString());
@@ -218,7 +218,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
             if (ratesMap.containsKey(currencyPairId)) {
                 ratesMap.replace(currencyPairId, cachedItem);
             } else {
-                ratesMap.put(currencyPairId, cachedItem);
+                ratesMap.putIfAbsent(currencyPairId, cachedItem);
             }
             loadingCache.put(currencyPairId, cachedItem);
             if (ratesRedisRepository.exist(cachedItem.getCurrencyPairName())) {
@@ -233,7 +233,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     private Object getRatesMapSyncSynchronizerSafe(Integer pairId) {
         if (!locks.containsKey(pairId)) {
             synchronized (safeSync) {
-               locks.putIfAbsent(pairId, new Object());
+                locks.putIfAbsent(pairId, new Object());
             }
         }
         return locks.get(pairId);
