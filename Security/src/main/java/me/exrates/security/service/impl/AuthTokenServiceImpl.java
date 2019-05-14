@@ -8,26 +8,23 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.ApiAuthTokenDao;
 import me.exrates.model.ApiAuthToken;
 import me.exrates.model.User;
-import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
 import me.exrates.model.enums.UserRole;
-import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.security.exception.IncorrectPasswordException;
 import me.exrates.security.exception.MissingCredentialException;
 import me.exrates.security.exception.TokenException;
 import me.exrates.security.service.AuthTokenService;
-import me.exrates.service.ReferralService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.api.ErrorCode;
-import me.exrates.service.util.RestApiUtils;
+import me.exrates.service.util.RestApiUtilComponent;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,7 +36,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -48,7 +44,7 @@ import java.util.stream.Collectors;
 
 @Log4j2
 @Service
-@PropertySource(value = {"classpath:/auth-token.properties"})
+@PropertySource(value = {"classpath:/angular.properties"})
 public class AuthTokenServiceImpl implements AuthTokenService {
 
     @Value("${token.key}")
@@ -63,8 +59,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
     private final ApiAuthTokenDao apiAuthTokenDao;
     private final UserDetailsService userDetailsService;
     private final UserService userService;
-    private final ReferralService referralService;
-    private final RestApiUtils restApiUtils;
+    private final RestApiUtilComponent restApiUtilComponent;
 
     @Autowired
     public AuthTokenServiceImpl(PasswordEncoder passwordEncoder,
@@ -72,14 +67,12 @@ public class AuthTokenServiceImpl implements AuthTokenService {
                                 @Qualifier("userDetailsService") UserDetailsService userDetailsService,
                                 SessionParamsService sessionParamsService,
                                 UserService userService,
-                                ReferralService referralService,
-                                RestApiUtils restApiUtils) {
+                                RestApiUtilComponent restApiUtilComponent) {
         this.passwordEncoder = passwordEncoder;
         this.apiAuthTokenDao = apiAuthTokenDao;
         this.userDetailsService = userDetailsService;
         this.userService = userService;
-        this.referralService = referralService;
-        this.restApiUtils = restApiUtils;
+        this.restApiUtilComponent = restApiUtilComponent;
 
         this.localSessionParamsMap = sessionParamsService.getAll()
                 .stream()
@@ -90,7 +83,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
                 ));
     }
 
-    @Scheduled(fixedDelay = 12 * 60 * 60 * 1000, initialDelay = 60 * 1000)
+    //todo: delete when schedule service will be deployed
     @Override
     public void deleteExpiredTokens() {
         int deletedQuantity = apiAuthTokenDao.deleteAllExpired();
@@ -99,10 +92,10 @@ public class AuthTokenServiceImpl implements AuthTokenService {
 
     @Override
     public Optional<AuthTokenDto> retrieveToken(String username, String encodedPassword) {
-        if (Objects.isNull(username) || Objects.isNull(encodedPassword)) {
+        if (StringUtils.isEmpty(username) || StringUtils.isEmpty(encodedPassword)) {
             throw new MissingCredentialException("Credentials missing");
         }
-        String password = restApiUtils.decodePassword(encodedPassword);
+        String password = restApiUtilComponent.decodePassword(encodedPassword);
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
         if (passwordEncoder.matches(password, userDetails.getPassword())) {
@@ -140,7 +133,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
     @Override
     @Transactional(rollbackFor = Exception.class, noRollbackFor = TokenException.class)
     public UserDetails getUserByToken(String token) {
-        if (Objects.isNull(token)) {
+        if (StringUtils.isEmpty(token)) {
             throw new TokenException("No authentication token header found", ErrorCode.MISSING_AUTHENTICATION_TOKEN);
         }
         DefaultClaims claims = getClaims(token);
@@ -183,29 +176,9 @@ public class AuthTokenServiceImpl implements AuthTokenService {
     }
 
     @Override
-    public AuthTokenDto refreshTokenNg(String email, HttpServletRequest request) {
-        User user = userService.findByEmail(email);
-        AuthTokenDto authTokenDto = retrieveTokenNg(user.getEmail())
-                .orElseThrow(() -> {
-                    String message = String.format("Failed to refresh token for user %s", user.getEmail());
-                    return new NgResponseException(ErrorApiTitles.FAILED_TO_GET_USER_TOKEN, message);
-                });
-        authTokenDto.setNickname(user.getEmail());
-        authTokenDto.setUserId(user.getId());
-        authTokenDto.setLocale(new Locale(userService.getPreferedLang(user.getId())));
-        String avatarLogicalPath = userService.getAvatarPath(user.getId());
-        String avatarFullPath = avatarLogicalPath == null || avatarLogicalPath.isEmpty() ? null : getAvatarPathPrefix(request) + avatarLogicalPath;
-        authTokenDto.setAvatarPath(avatarFullPath);
-        authTokenDto.setFinPasswordSet(user.getFinpassword() != null);
-        authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
-
-        return authTokenDto;
-    }
-
-    @Override
     public boolean isValid(HttpServletRequest request) {
         String token = request.getHeader("Exrates-Rest-Token");
-        if (Objects.isNull(token)) {
+        if (StringUtils.isEmpty(token)) {
             throw new TokenException("No authentication token header found", ErrorCode.MISSING_AUTHENTICATION_TOKEN);
         }
         DefaultClaims claims = getClaims(token);
@@ -229,7 +202,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
     @Override
     @Transactional(rollbackFor = Exception.class, noRollbackFor = TokenException.class)
     public UserDetails getUserByToken(String token, String currentIp) {
-        if (Objects.isNull(token)) {
+        if (StringUtils.isEmpty(token)) {
             throw new TokenException("No authentication token header found", ErrorCode.MISSING_AUTHENTICATION_TOKEN);
         }
         DefaultClaims claims = getClaims(token);
@@ -245,11 +218,10 @@ public class AuthTokenServiceImpl implements AuthTokenService {
             if (!(username.equals(savedToken.getUsername()) && value.equals(savedToken.getValue()))) {
                 throw new TokenException("Invalid token", ErrorCode.INVALID_AUTHENTICATION_TOKEN);
             }
-            /*temporary disabled check for ip, need testing*/
             log.debug("request ip {}", ip);
-            /*if (ip != null && !ip.equals(currentIp)) {
+            if (StringUtils.isNotEmpty(ip) && !ip.equals(currentIp)) {
                 throw new TokenException("Invalid token", ErrorCode.INVALID_AUTHENTICATION_TOKEN);
-            }*/
+            }
             if (savedToken.getExpiredAt().before(new Date())) {
                 apiAuthTokenDao.deleteExpiredToken(tokenId);
                 throw new TokenException("Token expired", ErrorCode.EXPIRED_AUTHENTICATION_TOKEN);
@@ -291,7 +263,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
     @Override
     @Transactional(rollbackFor = Exception.class, noRollbackFor = TokenException.class)
     public boolean sessionExpiredProcessing(String token, User user) {
-        if (Objects.isNull(token)) {
+        if (StringUtils.isEmpty(token)) {
             throw new TokenException("No authentication token header found", ErrorCode.MISSING_AUTHENTICATION_TOKEN);
         }
         DefaultClaims claims = getClaims(token);
@@ -319,7 +291,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
     @Override
     @Transactional(rollbackFor = Exception.class, noRollbackFor = TokenException.class)
     public void updateSessionLifetime(String token, int intervalInMinutes) {
-        if (Objects.isNull(token)) {
+        if (StringUtils.isEmpty(token)) {
             throw new TokenException("No authentication token header found", ErrorCode.MISSING_AUTHENTICATION_TOKEN);
         }
         DefaultClaims claims = getClaims(token);
@@ -342,7 +314,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
             if (localSessionParamsMap.containsKey(username)) {
                 localSessionParamsMap.replace(username, intervalInMinutes);
             } else {
-                localSessionParamsMap.put(username, intervalInMinutes);
+                localSessionParamsMap.putIfAbsent(username, intervalInMinutes);
             }
 
             Date expiredAt = getExpirationTime(intervalInMinutes);

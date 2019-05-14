@@ -25,8 +25,6 @@ public interface AuthTokenService {
 
     Optional<AuthTokenDto> retrieveTokenNg(String email);
 
-    AuthTokenDto refreshTokenNg(String email, HttpServletRequest request);
-
     boolean isValid(HttpServletRequest request);
 
     UserDetails getUserByToken(String token, String ip);

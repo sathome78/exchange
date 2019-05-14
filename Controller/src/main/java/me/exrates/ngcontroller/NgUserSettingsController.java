@@ -10,7 +10,6 @@ import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.PageLayoutSettingsDto;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserNotificationMessage;
-import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.enums.ColorScheme;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.SessionLifeTypeEnum;
@@ -34,7 +33,7 @@ import me.exrates.service.PageLayoutSettingsService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
 import me.exrates.service.stomp.StompMessenger;
-import me.exrates.service.util.RestApiUtils;
+import me.exrates.service.util.RestApiUtilComponent;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -92,7 +91,7 @@ public class NgUserSettingsController {
     private final UserVerificationService verificationService;
     private final IpBlockingService ipBlockingService;
     private final StompMessenger stompMessenger;
-    private final RestApiUtils restApiUtils;
+    private final RestApiUtilComponent restApiUtilComponent;
 
     @Value("${contacts.feedbackEmail}")
     String feedbackEmail;
@@ -106,7 +105,7 @@ public class NgUserSettingsController {
                                     UserVerificationService userVerificationService,
                                     IpBlockingService ipBlockingService,
                                     StompMessenger stompMessenger,
-                                    RestApiUtils restApiUtils) {
+                                    RestApiUtilComponent restApiUtilComponent) {
         this.authTokenService = authTokenService;
         this.userService = userService;
         this.notificationService = notificationService;
@@ -115,7 +114,7 @@ public class NgUserSettingsController {
         this.verificationService = userVerificationService;
         this.ipBlockingService = ipBlockingService;
         this.stompMessenger = stompMessenger;
-        this.restApiUtils = restApiUtils;
+        this.restApiUtilComponent = restApiUtilComponent;
     }
 
     // /info/private/v2/settings/updateMainPassword
@@ -140,7 +139,7 @@ public class NgUserSettingsController {
             logger.warn(message);
             throw new NgDashboardException(message, Constants.ErrorApi.USER_INCORRECT_PASSWORDS);
         }
-        currentPassword = restApiUtils.decodePassword(currentPassword);
+        currentPassword = restApiUtilComponent.decodePassword(currentPassword);
         if (!userService.checkPassword(user.getId(), currentPassword)) {
             String clientIp = Optional.ofNullable(request.getHeader("X-Forwarded-For")).orElse("");
             String message = String.format("Failed to check password for user: %s from ip: %s ", user.getEmail(), clientIp);
@@ -148,7 +147,7 @@ public class NgUserSettingsController {
             ipBlockingService.failureProcessing(clientIp, IpTypesOfChecking.UPDATE_MAIN_PASSWORD);
             throw new NgDashboardException(message, Constants.ErrorApi.USER_WRONG_CURRENT_PASSWORD);
         }
-        newPassword = restApiUtils.decodePassword(newPassword);
+        newPassword = restApiUtilComponent.decodePassword(newPassword);
         user.setPassword(newPassword);
         user.setConfirmPassword(newPassword);
         //   registerFormValidation.validateResetPassword(user, result, locale);
@@ -341,13 +340,6 @@ public class NgUserSettingsController {
         String message = "Cannot find user by email.";
         throw new NgResponseException(ErrorApiTitles.FAILED_MANAGE_USER_FAVORITE_CURRENCY_PAIRS, message);
     }
-
-    //todo: delete 'expiration' logic from front end and do not use pop-up when change session limit - Sergey
-//    @GetMapping("/token/refresh")
-//    public ResponseEntity<AuthTokenDto> refreshToken(HttpServletRequest request) {
-//        AuthTokenDto authTokenDto = authTokenService.refreshTokenNg(getPrincipalEmail(), request);
-//        return new ResponseEntity<>(authTokenDto, HttpStatus.OK); // 200
-//    }
 
     // /api/private/v2/users/jksdhfbsjfgsjdfgasj/personal/{status}?message=Hello
     // possible statuses (information, warning, alert, error, success)

@@ -45,7 +45,7 @@ import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.util.RateLimitService;
-import me.exrates.service.util.RestApiUtils;
+import me.exrates.service.util.RestApiUtilComponent;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -334,7 +334,7 @@ public class AngularAppTestConfig {
     }
 
     @Bean
-    public RestApiUtils restApiUtils() {
-        return Mockito.mock(RestApiUtils.class);
+    public RestApiUtilComponent restApiUtils() {
+        return Mockito.mock(RestApiUtilComponent.class);
     }
 }

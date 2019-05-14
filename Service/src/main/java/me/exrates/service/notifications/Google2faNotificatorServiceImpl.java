@@ -14,7 +14,7 @@ import me.exrates.model.enums.NotificationTypeEnum;
 import me.exrates.service.NotificationService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.MessageUndeliweredException;
-import me.exrates.service.util.RestApiUtils;
+import me.exrates.service.util.RestApiUtilComponent;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.aerogear.security.otp.Totp;
 import org.jboss.aerogear.security.otp.api.Base32;
@@ -56,7 +56,7 @@ public class Google2faNotificatorServiceImpl implements NotificatorService, G2fa
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
-    private RestApiUtils restApiUtils;
+    private RestApiUtilComponent restApiUtilComponent;
 
     private static final String QR_PREFIX = "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=";
     private static final String APP_NAME = "Exrates";
@@ -166,7 +166,7 @@ public class Google2faNotificatorServiceImpl implements NotificatorService, G2fa
 
     @Override
     public boolean submitGoogleSecret(User user, Map<String, String> body) {
-        String password = restApiUtils.decodePassword(body.get("PASSWORD"));
+        String password = restApiUtilComponent.decodePassword(body.get("PASSWORD"));
         String secret = body.get("SECRET");
         String pin = body.get("PINCODE");
         String cached = GOOGLE_SECRETS_STORE.getIfPresent(user.getId());
@@ -214,7 +214,7 @@ public class Google2faNotificatorServiceImpl implements NotificatorService, G2fa
 
     @Override
     public boolean disableGoogleAuth(User user, Map<String, String> body) {
-        String password = restApiUtils.decodePassword(body.get("PASSWORD"));
+        String password = restApiUtilComponent.decodePassword(body.get("PASSWORD"));
         String pin = body.get("PINCODE");
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {

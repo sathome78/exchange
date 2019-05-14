@@ -10,10 +10,9 @@ import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.enums.SessionLifeTypeEnum;
 import me.exrates.security.exception.TokenException;
 import me.exrates.security.service.impl.AuthTokenServiceImpl;
-import me.exrates.service.ReferralService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
-import me.exrates.service.util.RestApiUtils;
+import me.exrates.service.util.RestApiUtilComponent;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -120,19 +119,14 @@ public class AuthTokenServiceImplTest {
         }
 
         @Bean
-        public ReferralService referralService() {
-            return Mockito.mock(ReferralService.class);
-        }
-
-        @Bean
-        public RestApiUtils restApiUtils() {
-            return Mockito.mock(RestApiUtils.class);
+        public RestApiUtilComponent restApiUtils() {
+            return Mockito.mock(RestApiUtilComponent.class);
         }
 
         @Bean
         public AuthTokenService authTokenService() {
             return new AuthTokenServiceImpl(passwordEncoder(), apiAuthTokenDao(), userDetailsService(),
-                    sessionParamsService(), userService(), referralService(), restApiUtils());
+                    sessionParamsService(), userService(), restApiUtils());
         }
     }
 }

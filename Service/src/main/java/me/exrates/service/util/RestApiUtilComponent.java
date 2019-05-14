@@ -9,9 +9,9 @@ import org.springframework.stereotype.Component;
 import java.util.Base64;
 import java.util.Map;
 
-@PropertySource(value = {"classpath:/password.properties"})
+@PropertySource(value = {"classpath:/angular.properties"})
 @Component
-public class RestApiUtils {
+public class RestApiUtilComponent {
 
     @Value("${pass.encode.key}")
     private String passwordKey;

@@ -69,7 +69,7 @@ import me.exrates.service.stopOrder.StopOrderServiceImpl;
 import me.exrates.service.stopOrder.StopOrdersHolder;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.BigDecimalConverter;
-import me.exrates.service.util.RestApiUtils;
+import me.exrates.service.util.RestApiUtilComponent;
 import me.exrates.service.util.WithdrawUtils;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
@@ -487,7 +487,7 @@ public class ServiceTestConfig {
     }
 
     @Bean
-    public RestApiUtils restApiUtils() {
-        return Mockito.mock(RestApiUtils.class);
+    public RestApiUtilComponent restApiUtils() {
+        return Mockito.mock(RestApiUtilComponent.class);
     }
 }
