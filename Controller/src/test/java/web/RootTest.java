@@ -102,8 +102,7 @@ public class RootTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RootTest.class);
 
-    private static final List<Transformation> TRANSFORMATION_LIST = new ArrayList<Transformation>() {{
-    }};
+    private static final List<Transformation> TRANSFORMATION_LIST = new ArrayList<Transformation>() {{}};
 
     @Parameterized.Parameters(name = " {index}. {0} ")
     public static Collection<Object[]> data() {
