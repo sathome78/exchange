@@ -2,6 +2,7 @@ package me.exrates.service.tron;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.condition.MonolitConditional;
+import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestAddressDto;
 import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.TronReceivedTransactionDto;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
@@ -125,9 +127,11 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
         return rawResponse.getBoolean("confirmed");
     }
 
+    @Transactional
     @Override
-    public void processTransaction(TronReceivedTransactionDto p) {
-        processTransaction(p.getId(), p.getAddressBase58(), p.getHash(), p.getAmount(), p.getMerchantId(), p.getCurrencyId());
+    public void createAndProcessTransaction(TronReceivedTransactionDto p) {
+        RefillRequestAcceptDto acceptDto = tronService.createRequest(p);
+        processTransaction(acceptDto.getRequestId(), p.getAddressBase58(), p.getHash(), p.getAmount(), p.getMerchantId(), p.getCurrencyId());
     }
 
     @Override

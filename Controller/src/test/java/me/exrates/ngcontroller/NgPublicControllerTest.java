@@ -21,6 +21,7 @@ import me.exrates.security.service.NgUserService;
 import me.exrates.service.ChatService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.IEOService;
+import me.exrates.service.NewsParser;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
@@ -67,7 +68,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -108,6 +108,8 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
     private ExchangeRatesHolder exchangeRatesHolder;
     @Autowired
     private IEOService ieoService;
+    @Autowired
+    private NewsParser newsParser;
 
     @InjectMocks
     private NgPublicController ngPublicController;
@@ -117,7 +119,8 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
     @Before
     public void setUp() {
         ngPublicController = new NgPublicController(chatService, currencyService, ipBlockingService, ieoService, userService,
-                ngUserService, messagingTemplate, orderService, g2faService, ngOrderService, telegramChatDao, exchangeRatesHolder);
+                ngUserService, messagingTemplate, orderService, g2faService, ngOrderService, telegramChatDao, exchangeRatesHolder,
+                newsParser);
 
         HandlerExceptionResolver resolver = ((HandlerExceptionResolverComposite) webApplicationContext
                 .getBean("handlerExceptionResolver")).getExceptionResolvers().get(0);
