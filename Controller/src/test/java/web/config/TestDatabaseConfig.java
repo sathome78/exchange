@@ -2,6 +2,7 @@ package web.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import framework.model.impl.DatabaseConfigImpl;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -12,16 +13,8 @@ import javax.sql.DataSource;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
-@ComponentScan(basePackages = {
-        "me.exrates.ngcontroller",
-        "me.exrates.controller.advice"
-})
-@PropertySource(value = {
-        "classpath:/db.properties",
-        "classpath:/angular.properties",
-        "classpath:/twitter.properties",
-        "classpath:/angular.properties",
-        "classpath:/geetest.properties"})
+@ComponentScan({"me.exrates.ngcontroller"})
+@PropertySource(value = {"classpath:/db.properties"})
 public class TestDatabaseConfig {
 
     @Value("#{systemProperties['db.master.url'] ?: 'jdbc:mysql://localhost:3306/birzha?useUnicode=true&characterEncoding=UTF-8&useSSL=false&autoReconnect=true'}")
@@ -40,32 +33,13 @@ public class TestDatabaseConfig {
 
     @Bean
     public DatabaseConfig databaseConfig() {
-        return new DatabaseConfig() {
-            @Override
-            public String getSchema() {
-                return schemaName;
-            }
-
-            @Override
-            public String getUrl() {
-                return url;
-            }
-
-            @Override
-            public String getDriverClassName() {
-                return driverClassName;
-            }
-
-            @Override
-            public String getUser() {
-                return user;
-            }
-
-            @Override
-            public String getPassword() {
-                return password;
-            }
-        };
+        DatabaseConfigImpl config = new DatabaseConfigImpl();
+        config.setUrl(url);
+        config.setSchema(schemaName);
+        config.setDriverClassName(driverClassName);
+        config.setPassword(password);
+        config.setUser(user);
+        return config;
     }
 
     @Bean(name = "testDataSource")

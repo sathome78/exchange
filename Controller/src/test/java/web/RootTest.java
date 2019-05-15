@@ -11,7 +11,6 @@ import com.jayway.jsonpath.JsonPath;
 import com.medxoom.Migration;
 import framework.model.BasePresentBodyRequest;
 import framework.model.Block;
-import web.config.DatabaseConfig;
 import framework.model.HttpMethodBlock;
 import framework.model.Operation;
 import framework.model.Response;
@@ -37,6 +36,7 @@ import org.junit.runners.Parameterized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ContextConfiguration;
@@ -47,6 +47,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+import web.config.DatabaseConfig;
 import web.config.TestDatabaseConfig;
 
 import javax.sql.DataSource;
@@ -97,15 +98,12 @@ public class RootTest {
      * It is required to separate line delimiters and the ";" symbol in, for example, email templates.
      */
 
-    private static final String SQL_DELIMITER = ";;";
+    private static final String SQL_DELIMITER = ";";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RootTest.class);
 
-    private static final List<Transformation> TRANSFORMATION_LIST = new ArrayList<Transformation>() {
-        {
-
-        }
-    };
+    private static final List<Transformation> TRANSFORMATION_LIST = new ArrayList<Transformation>() {{
+    }};
 
     @Parameterized.Parameters(name = " {index}. {0} ")
     public static Collection<Object[]> data() {
@@ -135,6 +133,7 @@ public class RootTest {
     protected DatabaseConfig databaseConfig;
 
     @Autowired
+    @Qualifier("testDataSource")
     protected DataSource dataSource;
 
     @Autowired
@@ -1020,10 +1019,6 @@ public class RootTest {
             }
 
             return map;
-        }
-
-        public String readAsJson(String sql) throws Exception {
-            return readAsJson(Collections.singletonList(sql));
         }
 
         public String readAsJson(List<String> list) throws Exception {

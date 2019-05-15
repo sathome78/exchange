@@ -35,9 +35,9 @@ public class ConfigCollector {
     private void apply(File each, Result result) {
         try {
             Config config = new ConfigParser(root).parse(each);
-            result.add(each, new MappingResult(Optional.of(config), Optional.<Exception>absent()));
+            result.add(each, new MappingResult(Optional.of(config), Optional.absent()));
         } catch (Exception e) {
-            result.add(each, new MappingResult(Optional.<Config>absent(), Optional.of(e)));
+            result.add(each, new MappingResult(Optional.absent(), Optional.of(e)));
         }
     }
 

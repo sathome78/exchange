@@ -46,6 +46,4 @@ public abstract class BaseResponse implements Response {
     public void addResponseHeader(String key, String value) {
         this.responseHeaders.put(key, value);
     }
-
-
 }
