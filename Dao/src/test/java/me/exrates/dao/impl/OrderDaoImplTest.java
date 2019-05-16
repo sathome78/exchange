@@ -3,7 +3,7 @@ package me.exrates.dao.impl;
 import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
 import me.exrates.dao.WalletDao;
-import me.exrates.dao.util.AbstractDatabaseContextTest;
+import me.exrates.dao.configuration.TestConfiguration;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.OrderStatus;
 import org.apache.commons.lang3.StringUtils;
@@ -19,6 +19,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -27,7 +28,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {AbstractDatabaseContextTest.AppContextConfig.class, OrderDaoImplTest.InnerConf.class})
+@ContextConfiguration(classes = {TestConfiguration.class, OrderDaoImplTest.InnerConf.class})
 public class OrderDaoImplTest {
 
     @Autowired

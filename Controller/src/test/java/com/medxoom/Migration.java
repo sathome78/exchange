@@ -16,7 +16,6 @@ public class Migration {
         try {
             Flyway flyway = new Flyway();
             flyway.setDataSource(dataSource);
-            flyway.setLocations();
             flyway.migrate();
         } catch (Exception e) {
             throw new RuntimeException("Unable to migrate database " + description, e);
