@@ -22,7 +22,7 @@ CREATE PROCEDURE Alter_Table()
       ALTER TABLE USER ADD COLUMN kyc_status VARCHAR(55) NOT NULL DEFAULT 'none';
     END IF;
 
-  END;;
+  END ;;
 
 DELIMITER ;
 
