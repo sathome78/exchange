@@ -25,7 +25,7 @@ public class RabbitRefillListener {
     @RabbitListener(queues = RabbitService.REFILL_QUEUE)
     public void processRefillEvent(String walletOperationMsDto) {
         try {
-            log.info("Rabbit refill received: " + walletOperationMsDto);
+            log.info("RefillEvent: " + walletOperationMsDto);
             refillService.processRefillRequest(objectMapper.readValue(walletOperationMsDto, WalletOperationMsDto.class));
         } catch (Exception e) {
             log.error(ExceptionUtils.getStackTrace(e));
