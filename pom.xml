@@ -45,6 +45,12 @@
     </properties>
 
     <dependencies>
+        <!--DbUtils-->
+        <dependency>
+            <groupId>commons-dbutils</groupId>
+            <artifactId>commons-dbutils</artifactId>
+            <version>1.6</version>
+        </dependency>
         <!--Mysql JDBC Driver-->
         <dependency>
             <groupId>mysql</groupId>

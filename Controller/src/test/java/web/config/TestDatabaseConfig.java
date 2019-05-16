@@ -3,6 +3,10 @@ package web.config;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import framework.model.impl.DatabaseConfigImpl;
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.ResultSetHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -14,43 +18,35 @@ import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.ResultSetMetaData;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
 @ComponentScan({"me.exrates.ngcontroller"})
 @PropertySource(value = {"classpath:/db.properties"})
 public class TestDatabaseConfig {
-    private final static String SCHEMA_NAME = "birzha";
-    private final static String VERIFICATION_TABLE_NAME = "user";
+    private static final Logger LOGGER = LoggerFactory.getLogger(TestDatabaseConfig.class);
+    private final static String SCHEMA_NAME = "birzha_test";
 
-    @Value("#{systemProperties['db.master.url'] ?: 'jdbc:mysql://localhost:3306/birzha?useUnicode=true&characterEncoding=UTF-8&useSSL=false&autoReconnect=true'}")
+    @Value("#{systemProperties['db.test.url'] ?: 'jdbc:mysql://localhost:3306/birzha_test?useUnicode=true&characterEncoding=UTF-8&useSSL=false&autoReconnect=true'}")
     private String url;
 
-    @Value("#{systemProperties['db.master.classname'] ?: 'com.mysql.jdbc.Driver'}")
+    @Value("#{systemProperties['db.test.classname'] ?: 'com.mysql.jdbc.Driver'}")
     private String driverClassName;
 
-    @Value("${db.master.user:root}")
+    @Value("${db.test.user:root}")
     private String user;
 
-    @Value("${db.master.password:root}")
+    @Value("${db.test.password:root}")
     private String password;
 
     @PostConstruct
     protected void initialize() {
-        try {
-            DatabaseMetaData md = dataSource().getConnection().getMetaData();
-            ResultSet rs = md.getTables(null, null, VERIFICATION_TABLE_NAME, null);
-            if (rs.first()) {
-                System.out.println("\nDatabase structure exists!!!\n");
-            } else {
-                System.out.println("\nCreating Database structure!!!\n");
-                dataSourceInitializer();
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("There was an error creating an Database Connectivity.");
+        if (hasStructure()) {
+            LOGGER.info("Database structure exists!!!");
+        } else {
+            LOGGER.info("Creating Database structure!!!");
+            dataSourceInitializer();
         }
     }
 
@@ -102,5 +98,33 @@ public class TestDatabaseConfig {
         config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
         config.addDataSourceProperty("useServerPrepStmts", "true");
         return new HikariDataSource(config);
+    }
+
+    private boolean hasStructure() {
+        ResultSetHandler<Object[]> handler = rs -> {
+            if (!rs.next()) {
+                return null;
+            }
+
+            ResultSetMetaData meta = rs.getMetaData();
+            int cols = meta.getColumnCount();
+            Object[] result = new Object[cols];
+
+            for (int i = 0; i < cols; i++) {
+                result[i] = rs.getObject(i + 1);
+            }
+
+            return result;
+        };
+
+        try {
+            QueryRunner run = new QueryRunner(dataSource());
+            run.query("SELECT 1 FROM user LIMIT 1", handler);
+            LOGGER.info("DB has structure.");
+            return true;
+        } catch (Exception ignore) {
+            LOGGER.info("DB doesn't have structure.");
+            return false;
+        }
     }
 }
