@@ -41,6 +41,7 @@
         <rabbit.version>1.7.5.RELEASE</rabbit.version>
         <flyway.version>4.2.0</flyway.version>
         <rabbit.version>1.7.5.RELEASE</rabbit.version>
+        <scala.version>2.11.7</scala.version>
     </properties>
 
     <dependencies>
@@ -294,7 +295,7 @@
         <dependency>
             <groupId>com.jayway.jsonpath</groupId>
             <artifactId>json-path</artifactId>
-            <version>2.2.0</version>
+            <version>2.4.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -302,6 +303,18 @@
             <artifactId>reactor-test</artifactId>
             <scope>test</scope>
             <version>3.1.1.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+            <version>${scala.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.imagination</groupId>
+            <artifactId>comparator</artifactId>
+            <version>1.1</version>
+            <scope>test</scope>
         </dependency>
         <!--Test-->
 
