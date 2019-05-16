@@ -29,7 +29,7 @@ public class TestConfiguration {
 
     @Bean(name = "slaveDataSource")
     public DataSource slaveDataSource() {
-        return getDataSource();
+        return getDataSource(false);
     }
 
     @DependsOn("slaveDataSource")
@@ -40,7 +40,7 @@ public class TestConfiguration {
 
     @Bean(name = "masterDataSource")
     public DataSource masterDataSource() {
-        return getDataSource();
+        return getDataSource(true);
     }
 
     @DependsOn("masterDataSource")
@@ -55,14 +55,14 @@ public class TestConfiguration {
         return new QuberaDaoImpl(masterTemplate, slaveTemplate);
     }
 
-    private DataSource getDataSource() {
+    private DataSource getDataSource(boolean isReadOnly) {
         HikariConfig hikariConfig = new HikariConfig();
         hikariConfig.setDriverClassName(dbSlaveClassname);
         hikariConfig.setJdbcUrl(dbSlaveUrl);
         hikariConfig.setUsername(dbSlaveUser);
         hikariConfig.setPassword(dbSlavePassword);
         hikariConfig.setMaximumPoolSize(50);
-        hikariConfig.setReadOnly(true);
+        hikariConfig.setReadOnly(isReadOnly);
         return new HikariDataSource(hikariConfig);
     }
 }

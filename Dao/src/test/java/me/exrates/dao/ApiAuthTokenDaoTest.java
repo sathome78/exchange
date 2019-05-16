@@ -1,5 +1,6 @@
 package me.exrates.dao;
 
+import me.exrates.dao.configuration.TestConfiguration;
 import me.exrates.dao.impl.ApiAuthTokenDaoImpl;
 import me.exrates.dao.rowmappers.ApiAuthTokenRowMapper;
 import me.exrates.model.ApiAuthToken;
@@ -8,6 +9,9 @@ import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -24,23 +28,22 @@ import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
-@ContextConfiguration(locations = "classpath:dao-tests.xml")
+@ContextConfiguration(classes = {TestConfiguration.class, ApiAuthTokenDaoTest.InnerConf.class})
 public class ApiAuthTokenDaoTest {
 
 
     @Autowired
-    NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    @Qualifier("masterTemplate")
+    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-    @Spy
     @Autowired
-    ApiAuthTokenDaoImpl apiAuthTokenDao;
+    ApiAuthTokenDao apiAuthTokenDao;
 
     public ApiAuthTokenDaoTest() {
         MockitoAnnotations.initMocks(this);
     }
 
     @Test
-
     public void createToken_successfull() {
         ApiAuthToken apiAuthToken = ApiAuthToken.builder().
                 id(1L).
@@ -79,5 +82,18 @@ public class ApiAuthTokenDaoTest {
 
     @Test
     public void deleteAllExpired() {
+    }
+
+    @Configuration
+    static class InnerConf {
+
+        @Autowired
+        @Qualifier("masterTemplate")
+        private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+        @Bean
+        public ApiAuthTokenDao apiAuthTokenDao () {
+            return new ApiAuthTokenDaoImpl(namedParameterJdbcTemplate);
+        }
     }
 }
