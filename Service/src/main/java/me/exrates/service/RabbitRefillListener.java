@@ -22,10 +22,10 @@ public class RabbitRefillListener {
     private final RefillService refillService;
     private final ObjectMapper objectMapper;
 
-    @RabbitListener(queues = RabbitMqService.REFILL_QUEUE)
+    @RabbitListener(queues = RabbitService.REFILL_QUEUE)
     public void processRefillEvent(String walletOperationMsDto) {
         try {
-            log.info("Receivied: " + walletOperationMsDto);
+            log.info("Rabbit refill received: " + walletOperationMsDto);
             refillService.processRefillRequest(objectMapper.readValue(walletOperationMsDto, WalletOperationMsDto.class));
         } catch (Exception e) {
             log.error(ExceptionUtils.getStackTrace(e));

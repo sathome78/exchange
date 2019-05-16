@@ -39,6 +39,7 @@ import java.util.Properties;
 @Log4j2(topic = "nixmoney_log")
 public class NixMoneyServiceImpl implements NixMoneyService {
 
+    public static final String MERCHANT_NAME = "Nix Money";
     private @Value("${nixmoney.url}")
     String url;
     private @Value("${nixmoney.payeeAccountUSD}")
@@ -114,7 +115,7 @@ public class NixMoneyServiceImpl implements NixMoneyService {
             Integer requestId = Integer.valueOf(params.get("PAYMENT_ID"));
             String merchantTransactionId = params.get("PAYMENT_BATCH_NUM");
             Currency currency = currencyService.findByName(params.get("PAYMENT_UNITS"));
-            Merchant merchant = merchantService.findByName("Nix Money");
+            Merchant merchant = merchantService.findByName(MERCHANT_NAME);
             BigDecimal amount = BigDecimal.valueOf(Double.parseDouble(params.get("PAYMENT_AMOUNT"))).setScale(9);
 
             RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)

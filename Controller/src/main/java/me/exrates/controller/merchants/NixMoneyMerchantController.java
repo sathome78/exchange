@@ -2,7 +2,6 @@ package me.exrates.controller.merchants;
 
 import me.exrates.service.NixMoneyService;
 import me.exrates.service.exception.RefillRequestAlreadyAcceptedException;
-import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +27,7 @@ public class NixMoneyMerchantController {
     private static final Logger logger = LogManager.getLogger("merchant");
 
     @RequestMapping(value = "payment/success", method = RequestMethod.POST)
-    public ResponseEntity<Void> statusPayment(@RequestParam Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
+    public ResponseEntity<Void> statusPayment(@RequestParam Map<String, String> params) {
 
         final ResponseEntity<Void> responseOK = new ResponseEntity<>(OK);
         logger.info("Response: " + params);
