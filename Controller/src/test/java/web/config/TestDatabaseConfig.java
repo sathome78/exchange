@@ -8,14 +8,23 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.datasource.init.DataSourceInitializer;
+import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 
+import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
 @ComponentScan({"me.exrates.ngcontroller"})
 @PropertySource(value = {"classpath:/db.properties"})
 public class TestDatabaseConfig {
+    private final static String SCHEMA_NAME = "birzha";
+    private final static String VERIFICATION_TABLE_NAME = "user";
 
     @Value("#{systemProperties['db.master.url'] ?: 'jdbc:mysql://localhost:3306/birzha?useUnicode=true&characterEncoding=UTF-8&useSSL=false&autoReconnect=true'}")
     private String url;
@@ -29,13 +38,27 @@ public class TestDatabaseConfig {
     @Value("${db.master.password:root}")
     private String password;
 
-    private static String schemaName = "birzha";
+    @PostConstruct
+    protected void initialize() {
+        try {
+            DatabaseMetaData md = dataSource().getConnection().getMetaData();
+            ResultSet rs = md.getTables(null, null, VERIFICATION_TABLE_NAME, null);
+            if (rs.first()) {
+                System.out.println("\nDatabase structure exists!!!\n");
+            } else {
+                System.out.println("\nCreating Database structure!!!\n");
+                dataSourceInitializer();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("There was an error creating an Database Connectivity.");
+        }
+    }
 
     @Bean
     public DatabaseConfig databaseConfig() {
         DatabaseConfigImpl config = new DatabaseConfigImpl();
         config.setUrl(url);
-        config.setSchema(schemaName);
+        config.setSchema(SCHEMA_NAME);
         config.setDriverClassName(driverClassName);
         config.setPassword(password);
         config.setUser(user);
@@ -44,12 +67,23 @@ public class TestDatabaseConfig {
 
     @Bean(name = "testDataSource")
     public DataSource dataSource() {
-        String dbUrl = createConnectionURL(this.url, schemaName);
+        String dbUrl = createConnectionURL(this.url, SCHEMA_NAME);
         return createDataSource(this.user, this.password, dbUrl);
     }
 
+    @Bean
+    public DataSourceInitializer dataSourceInitializer() {
+        ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator();
+        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/init_structure.sql"));
+
+        DataSourceInitializer dataSourceInitializer = new DataSourceInitializer();
+        dataSourceInitializer.setDataSource(dataSource());
+        dataSourceInitializer.setDatabasePopulator(resourceDatabasePopulator);
+        return dataSourceInitializer;
+    }
+
     private static String createConnectionURL(String dbUrl, String newSchemaName) {
-        return dbUrl.replace(schemaName, newSchemaName);
+        return dbUrl.replace(SCHEMA_NAME, newSchemaName);
     }
 
     private HikariDataSource createDataSource(String user, String password, String url) {
