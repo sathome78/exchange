@@ -5,12 +5,8 @@ import com.yandex.money.api.methods.RequestPayment;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import me.exrates.model.CreditsOperation;
-import me.exrates.model.Payment;
 import me.exrates.model.condition.MicroserviceConditional;
-import me.exrates.model.dto.RefillRequestCreateDto;
-import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.service.YandexMoneyService;
-import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.impl.YandexMoneyServiceImpl;
 import me.exrates.service.properties.InOutProperties;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.core.ParameterizedTypeReference;
@@ -20,14 +16,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Service
 @Conditional(MicroserviceConditional.class)
 @RequiredArgsConstructor
-public class YandexMoneyServiceMsImpl implements YandexMoneyService {
+public class YandexMoneyServiceMsImpl extends YandexMoneyServiceImpl {
 
     private static final String API_MERCHANT_GET_TEMPORARY_AUTH_CODE = "/api/merchant/yamoney/getTemporaryAuthCode";
     private static final String API_MERCHANT_GET_ACCESS_TOKEN = "/api/merchant/yamoney/getAccessToken";
@@ -35,36 +29,6 @@ public class YandexMoneyServiceMsImpl implements YandexMoneyService {
     private final InOutProperties properties;
     private final RestTemplate template;
     private final ObjectMapper mapper;
-
-    @Override
-    public List<String> getAllTokens() {
-        return null;
-    }
-
-    @Override
-    public String getTokenByUserEmail(String userEmail) {
-        return null;
-    }
-
-    @Override
-    public boolean addToken(String token, String email) {
-        return false;
-    }
-
-    @Override
-    public boolean updateTokenByUserEmail(String newToken, String email) {
-        return false;
-    }
-
-    @Override
-    public boolean deleteTokenByUserEmail(String email) {
-        return false;
-    }
-
-    @Override
-    public String getTemporaryAuthCode(String redirectURI) {
-       return null;
-    }
 
     @Override
     public String getTemporaryAuthCode() {
@@ -98,40 +62,5 @@ public class YandexMoneyServiceMsImpl implements YandexMoneyService {
                 builder.toUriString(),
                 HttpMethod.POST,
                 new HttpEntity<>(mapper.writeValueAsString(creditsOperation)), new ParameterizedTypeReference<Optional<RequestPayment>>(){}).getBody();
-    }
-
-    @Override
-    public int saveInputPayment(Payment payment) {
-        return 0;
-    }
-
-    @Override
-    public Optional<Payment> getPaymentById(Integer id) {
-        return Optional.empty();
-    }
-
-    @Override
-    public void deletePayment(Integer id) {
-
-    }
-
-    @Override
-    public Map<String, String> refill(RefillRequestCreateDto request) {
-        return null;
-    }
-
-    @Override
-    public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-
-    }
-
-    @Override
-    public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
-        return null;
-    }
-
-    @Override
-    public boolean isValidDestinationAddress(String address) {
-        return false;
     }
 }

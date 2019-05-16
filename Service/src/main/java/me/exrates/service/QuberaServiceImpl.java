@@ -42,13 +42,20 @@ public class QuberaServiceImpl implements QuberaService {
 
     private static final Logger logger = LogManager.getLogger(QuberaServiceImpl.class);
 
-    private final CurrencyService currencyService;
-    private final GtagService gtagService;
-    private final MerchantService merchantService;
-    private final RefillService refillService;
-    private final QuberaDao quberaDao;
-    private final KycHttpClient kycHttpClient;
-    private final UserService userService;
+    @Autowired
+    private CurrencyService currencyService;
+    @Autowired
+    private GtagService gtagService;
+    @Autowired
+    private MerchantService merchantService;
+    @Autowired
+    private RefillService refillService;
+    @Autowired
+    private QuberaDao quberaDao;
+    @Autowired
+    private KycHttpClient kycHttpClient;
+    @Autowired
+    private UserService userService;
 
     private @Value("${qubera.threshold.length}")
     int thresholdLength;
@@ -57,22 +64,6 @@ public class QuberaServiceImpl implements QuberaService {
     private @Value("${qubera.master.account}")
     String masterAccount;
 
-    @Autowired
-    public QuberaServiceImpl(CurrencyService currencyService,
-                             GtagService gtagService,
-                             MerchantService merchantService,
-                             RefillService refillService,
-                             QuberaDao quberaDao,
-                             KycHttpClient kycHttpClient,
-                             UserService userService) {
-        this.currencyService = currencyService;
-        this.gtagService = gtagService;
-        this.merchantService = merchantService;
-        this.refillService = refillService;
-        this.quberaDao = quberaDao;
-        this.kycHttpClient = kycHttpClient;
-        this.userService = userService;
-    }
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
