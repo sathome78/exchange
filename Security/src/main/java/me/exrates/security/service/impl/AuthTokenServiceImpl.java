@@ -325,7 +325,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
             return apiAuthTokenDao.deleteAllByUsername(username);
         } else {
             apiAuthTokenDao.prolongToken(tokenId);
-            return apiAuthTokenDao.deleteAllWithoutCurrent(tokenId, username);
+            return apiAuthTokenDao.deleteAllExceptCurrent(tokenId, username);
         }
     }
 }

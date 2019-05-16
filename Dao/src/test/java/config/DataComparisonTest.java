@@ -1,7 +1,8 @@
-package me.exrates.dao.util;
+package config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.io.FileUtils;
@@ -24,9 +25,11 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
 
+@Log4j2
 public class DataComparisonTest extends AbstractDatabaseContextTest {
 
     private static final String JSON_SUFFIX = ".json";
@@ -36,10 +39,6 @@ public class DataComparisonTest extends AbstractDatabaseContextTest {
 
     private final ObjectMapper objectMapper = createObjectMapper();
 
-    protected DataComparisonTest(String schemaName) {
-        super(schemaName);
-    }
-
     private ObjectMapper createObjectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -48,7 +47,7 @@ public class DataComparisonTest extends AbstractDatabaseContextTest {
         return objectMapper;
     }
 
-    protected void assertSQLWithFile(String... queries) {
+    private void assertSQLWithFile(String... queries) {
         SQLReader reader = new SQLReader();
         try {
             List<Table> read = reader.read(queries);
@@ -58,12 +57,12 @@ public class DataComparisonTest extends AbstractDatabaseContextTest {
         }
     }
 
-    protected AssertWrapperBuilder around() {
-        return new AssertWrapperBuilder();
+    private void assertObjectWithFile(Object obj) {
+        assertJsonWithFile(toStringJson(obj));
     }
 
-    protected void assertObjectWithFile(Object obj) {
-        assertJsonWithFile(toStringJson(obj));
+    protected AssertWrapperBuilder around() {
+        return new AssertWrapperBuilder();
     }
 
     private void assertJsonWithFile(String actual) {
@@ -116,11 +115,11 @@ public class DataComparisonTest extends AbstractDatabaseContextTest {
                 throw new RuntimeException("Unable to write actual file to path " + fullPath, e);
             }
 
-            if (logger.isErrorEnabled()) {
-                logger.error("!!!       Found comparison issue for " + testClassIdentifier + "." + testIdentifier);
-                logger.error(formatLine("Expected Path", path));
-                logger.error(formatLine("Actual Path", fullPath));
-                logger.error(formatLine("Error message", err.getMessage()));
+            if (log.isErrorEnabled()) {
+                log.error("!!!       Found comparison issue for " + testClassIdentifier + "." + testIdentifier);
+                log.error(formatLine("Expected Path", path));
+                log.error(formatLine("Actual Path", fullPath));
+                log.error(formatLine("Error message", err.getMessage()));
             }
 
             throw new RuntimeException(err);
@@ -193,6 +192,38 @@ public class DataComparisonTest extends AbstractDatabaseContextTest {
                 return map;
             } catch (Exception e) {
                 throw new RuntimeException(e);
+            }
+        }
+    }
+
+    protected void truncateTables(String ... tableNames) throws SQLException {
+        Connection conn = null;
+        try {
+            conn = dataSource.getConnection();
+            for(String table : tableNames) {
+                conn.createStatement().execute(String.format("TRUNCATE TABLE %s", table));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (Objects.nonNull(conn)) {
+                conn.close();
+            }
+        }
+    }
+
+    protected void prepareTestData(String ... sqls) throws SQLException {
+        Connection conn = null;
+        try {
+            conn = dataSource.getConnection();
+            for(String sql : sqls) {
+                conn.createStatement().execute(sql);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (Objects.nonNull(conn)) {
+                conn.close();
             }
         }
     }

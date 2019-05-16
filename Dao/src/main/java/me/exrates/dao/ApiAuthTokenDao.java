@@ -22,5 +22,5 @@ public interface ApiAuthTokenDao {
 
     boolean deleteAllByUsername(String username);
 
-    boolean deleteAllWithoutCurrent(Long tokenId, String username);
+    boolean deleteAllExceptCurrent(Long tokenId, String username);
 }

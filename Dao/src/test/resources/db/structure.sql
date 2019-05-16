@@ -788,24 +788,22 @@ CREATE TABLE `GTAG_REFILL_REQUESTS` (
 DROP TABLE IF EXISTS `IEO_CLAIM`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
  SET character_set_client = utf8mb4 ;
-CREATE TABLE `IEO_CLAIM` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `ieo_id` int(11) NOT NULL,
-  `currency_name` varchar(64) NOT NULL,
-  `maker_id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `amount` double(40,9) NOT NULL,
-  `rate` double(40,9) NOT NULL,
-  `price_in_btc` double(40,9) NOT NULL,
-  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `status` enum('SUCCESS','FAILED','NONE','REVOKED') DEFAULT 'NONE',
-  PRIMARY KEY (`id`),
-  KEY `user_id` (`user_id`),
-  KEY `maker_id` (`maker_id`),
-  KEY `ieo_id` (`ieo_id`),
-  CONSTRAINT `IEO_CLAIM_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `USER` (`id`),
-  CONSTRAINT `IEO_CLAIM_ibfk_2` FOREIGN KEY (`maker_id`) REFERENCES `USER` (`id`),
-  CONSTRAINT `IEO_CLAIM_ibfk_3` FOREIGN KEY (`ieo_id`) REFERENCES `IEO_DETAILS` (`id`)
+create table IEO_CLAIM
+(
+    id            int auto_increment
+        primary key,
+    ieo_id        int                                                                     not null,
+    currency_name varchar(64)                                                             not null,
+    maker_id      int                                                                     not null,
+    user_id       int                                                                     not null,
+    amount        double(40, 9)                                                           not null,
+    rate          double(40, 9)                                                           not null,
+    price_in_btc  double(40, 9)                                                           not null,
+    created       timestamp                                     default CURRENT_TIMESTAMP not null,
+    status        enum ('SUCCESS', 'FAILED', 'NONE', 'REVOKED') default 'NONE'            null,
+    constraint IEO_CLAIM_ibfk_1 foreign key (user_id) references USER (id),
+    constraint IEO_CLAIM_ibfk_2 foreign key (maker_id) references USER (id),
+    constraint IEO_CLAIM_ibfk_3 foreign key (ieo_id) references IEO_DETAILS (id)
 ) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=latin1;
 
 
@@ -816,24 +814,25 @@ CREATE TABLE `IEO_CLAIM` (
 DROP TABLE IF EXISTS `IEO_DETAILS`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
  SET character_set_client = utf8mb4 ;
-CREATE TABLE `IEO_DETAILS` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `currency_name` varchar(10) NOT NULL,
-  `currency_description` varchar(255) DEFAULT NULL,
-  `maker_id` int(11) NOT NULL,
-  `rate` double NOT NULL,
-  `amount` double NOT NULL,
-  `available_amount` double DEFAULT '0',
-  `contributors` int(11) DEFAULT '0',
-  `status` enum('PENDING','RUNNING','SUCCEEDED','FAILED','PROCESSING_FAIL','TERMINATED') DEFAULT 'PENDING',
-  `min_amount` double DEFAULT '0',
-  `max_amount_per_claim` double DEFAULT '0',
-  `max_amount_per_user` double DEFAULT '0',
-  `starts_at` datetime NOT NULL,
-  `terminates_at` datetime NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `created_by` int(11) NOT NULL,
-  PRIMARY KEY (`id`)
+create table IEO_DETAILS
+(
+    id                   int auto_increment
+        primary key,
+    currency_name        varchar(10)                                                                                                   not null,
+    currency_description varchar(255)                                                                                                  null,
+    maker_id             int                                                                                                           not null,
+    rate                 double                                                                                                        not null,
+    amount               double                                                                                                        not null,
+    available_amount     double                                                                              default 0                 null,
+    contributors         int                                                                                 default 0                 null,
+    status               enum ('PENDING', 'RUNNING', 'SUCCEEDED', 'FAILED', 'PROCESSING_FAIL', 'TERMINATED') default 'PENDING'         null,
+    min_amount           double                                                                              default 0                 null,
+    max_amount_per_claim double                                                                              default 0                 null,
+    max_amount_per_user  double                                                                              default 0                 null,
+    starts_at            datetime                                                                                                      not null,
+    terminates_at        datetime                                                                                                      not null,
+    created_at           timestamp                                                                           default CURRENT_TIMESTAMP not null,
+    created_by           int                                                                                                           not null
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
 
 
@@ -844,11 +843,14 @@ CREATE TABLE `IEO_DETAILS` (
 DROP TABLE IF EXISTS `IEO_RESTRICTED_COUNTRY`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
  SET character_set_client = utf8mb4 ;
-CREATE TABLE `IEO_RESTRICTED_COUNTRY` (
-  `ieo_id` int(11) NOT NULL,
-  `country_code` varchar(64) NOT NULL,
-  UNIQUE KEY `ieo_id` (`ieo_id`,`country_code`),
-  CONSTRAINT `IEO_RESTRICTED_COUNTRY_ibfk_1` FOREIGN KEY (`ieo_id`) REFERENCES `IEO_DETAILS` (`id`)
+create table IEO_RESTRICTED_COUNTRY
+(
+    ieo_id       int         not null,
+    country_code varchar(64) not null,
+    constraint ieo_id
+        unique (ieo_id, country_code),
+    constraint IEO_RESTRICTED_COUNTRY_ibfk_1
+        foreign key (ieo_id) references IEO_DETAILS (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 
@@ -859,13 +861,14 @@ CREATE TABLE `IEO_RESTRICTED_COUNTRY` (
 DROP TABLE IF EXISTS `IEO_RESULT`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
  SET character_set_client = utf8mb4 ;
-CREATE TABLE `IEO_RESULT` (
-  `claim_id` int(11) DEFAULT NULL,
-  `ieo_id` int(11) NOT NULL,
-  `available_amount` double(40,9) DEFAULT '0.000000000',
-  `status` enum('SUCCESS','FAILED','NONE') NOT NULL DEFAULT 'NONE',
-  KEY `ieo_id` (`ieo_id`),
-  CONSTRAINT `IEO_RESULT_ibfk_1` FOREIGN KEY (`ieo_id`) REFERENCES `IEO_DETAILS` (`id`)
+create table IEO_RESULT
+(
+    claim_id         int                                                    null,
+    ieo_id           int                                                    not null,
+    available_amount double(40, 9)                      default 0.000000000 null,
+    status           enum ('SUCCESS', 'FAILED', 'NONE') default 'NONE'      not null,
+    constraint IEO_RESULT_ibfk_1
+        foreign key (ieo_id) references IEO_DETAILS (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 

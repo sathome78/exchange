@@ -1,7 +1,6 @@
-package web.config;
+package config;
 
 public interface DatabaseConfig {
-    String getSchema();
 
     String getUrl();
 
@@ -10,4 +9,6 @@ public interface DatabaseConfig {
     String getUser();
 
     String getPassword();
+
+    String getSchemaName ();
 }
