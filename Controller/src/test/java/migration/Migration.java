@@ -1,4 +1,4 @@
-package com.medxoom;
+package migration;
 
 import org.flywaydb.core.Flyway;
 import org.slf4j.Logger;
