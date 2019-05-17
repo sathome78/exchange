@@ -1,6 +1,7 @@
 package config;
 
 import com.google.common.base.Preconditions;
+import com.google.common.io.Closeables;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
@@ -21,7 +22,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
@@ -31,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -38,6 +43,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import static java.io.File.separator;
@@ -142,7 +148,30 @@ public abstract class AbstractDatabaseContextTest {
         private String password;
 
         @Autowired
-        public DatabaseConfig dbConfig;
+        private DatabaseConfig dbConfig;
+
+        @Autowired
+        private ResourceLoader resourceLoader;
+
+        @PostConstruct
+        public void loadProps() throws IOException {
+            Resource resource = resourceLoader.getResource("classpath:db.properties");
+            if (resource.exists()) {
+                final Properties systemProperties = System.getProperties();
+                final InputStream inputStream = resource.getInputStream();
+                try {
+                    systemProperties.load(inputStream);
+                    log.info("LOAD PROPS: " + System.getProperty("db.master.url"));
+                } finally {
+                    // Guava
+                    Closeables.closeQuietly(inputStream);
+                }
+            } else {
+                String message = "Failed to find file db.properties to load db props";
+                log.error(message);
+                throw new RuntimeException(message);
+            }
+        }
 
         @Bean(name = "testDataSource")
         public DataSource dataSource() {
