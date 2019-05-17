@@ -1,7 +1,7 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.InputOutputDao;
-import me.exrates.dao.configuration.TestConfiguration;
+import config.AbstractDatabaseContextTest;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
@@ -24,7 +24,7 @@ import java.util.Locale;
 import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {TestConfiguration.class, InputOutputDaoImplTest.InnerConf.class})
+@ContextConfiguration(classes = {InputOutputDaoImplTest.InnerConf.class})
 public class InputOutputDaoImplTest {
 
     private static final String EMAIL = "shvets.k@gmail.com";
@@ -75,7 +75,7 @@ public class InputOutputDaoImplTest {
     }
 
     @Configuration
-    static class InnerConf {
+    static class InnerConf extends LegacyAppContextConfig {
 
         @Bean
         public InputOutputDao inputOutputDao() {
@@ -86,5 +86,6 @@ public class InputOutputDaoImplTest {
         public MessageSource messageSource() {
             return Mockito.mock(MessageSource.class);
         }
+
     }
 }

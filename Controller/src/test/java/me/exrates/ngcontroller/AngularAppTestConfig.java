@@ -82,7 +82,7 @@ public class AngularAppTestConfig {
         return Mockito.mock(StompMessenger.class);
     }
 
-    @Bean
+    @Bean(name = "angularTestDataSource")
     public DataSource dataSource() {
         return Mockito.mock(DataSource.class);
     }

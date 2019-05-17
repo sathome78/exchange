@@ -4,7 +4,7 @@ import me.exrates.dao.CurrencyDao;
 import me.exrates.dao.TransactionDao;
 import me.exrates.dao.UserDao;
 import me.exrates.dao.WalletDao;
-import me.exrates.dao.configuration.TestConfiguration;
+import config.AbstractDatabaseContextTest;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.enums.MerchantProcessType;
 import org.junit.Before;
@@ -28,7 +28,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {TestConfiguration.class, WalletDaoImplTest.InnerConf.class})
+@ContextConfiguration(classes = {WalletDaoImplTest.InnerConf.class})
 public class WalletDaoImplTest {
 
     private static final String EMAIL = "shvets.k@gmail.com";
@@ -52,7 +52,7 @@ public class WalletDaoImplTest {
     }
 
     @Configuration
-    static class InnerConf {
+    static class InnerConf extends LegacyAppContextConfig {
 
         @Bean
         public WalletDao walletDao() {
