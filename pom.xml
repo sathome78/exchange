@@ -310,11 +310,16 @@
             <version>${scala.version}</version>
             <scope>test</scope>
         </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.imagination</groupId>-->
+<!--            <artifactId>comparator</artifactId>-->
+<!--            <version>1.1</version>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
         <dependency>
-            <groupId>org.imagination</groupId>
+            <groupId>comparator</groupId>
             <artifactId>comparator</artifactId>
             <version>1.1</version>
-            <scope>test</scope>
         </dependency>
         <!--Test-->
 
