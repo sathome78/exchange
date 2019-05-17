@@ -9,6 +9,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.imagination.comparator.Comparator;
 import org.joda.time.DateTime;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -160,7 +161,7 @@ public class DataComparisonTest extends AbstractDatabaseContextTest {
         List<Table> read(String[] sqls) throws SQLException {
             QueryRunner run = new QueryRunner();
 
-            Connection conn = dataSource.getConnection();
+            Connection conn = DataSourceUtils.getConnection(dataSource);
             List<Table> tables = new ArrayList<>();
             try {
                 for (String sql : sqls) {
@@ -175,7 +176,7 @@ public class DataComparisonTest extends AbstractDatabaseContextTest {
                     tables.add(run.query(conn, sql, h));
                 }
             } finally {
-                conn.close();
+//                conn.close();
             }
             return tables;
         }
@@ -199,7 +200,7 @@ public class DataComparisonTest extends AbstractDatabaseContextTest {
     protected void truncateTables(String ... tableNames) throws SQLException {
         Connection conn = null;
         try {
-            conn = dataSource.getConnection();
+            conn = DataSourceUtils.getConnection(dataSource);
             for(String table : tableNames) {
                 conn.createStatement().execute(String.format("TRUNCATE TABLE %s", table));
             }
@@ -207,7 +208,7 @@ public class DataComparisonTest extends AbstractDatabaseContextTest {
             throw new RuntimeException(e);
         } finally {
             if (Objects.nonNull(conn)) {
-                conn.close();
+//                conn.close();
             }
         }
     }

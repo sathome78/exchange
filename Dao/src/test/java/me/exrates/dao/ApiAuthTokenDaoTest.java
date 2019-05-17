@@ -46,7 +46,7 @@ public class ApiAuthTokenDaoTest extends DataComparisonTest {
         ApiAuthToken apiAuthToken = ApiAuthToken.builder().
                 id(1L).
                 username("user").
-                value("value").
+                value("value1").
                 lastRequest(LocalDateTime.now()).
                 build();
 
@@ -107,7 +107,6 @@ public class ApiAuthTokenDaoTest extends DataComparisonTest {
     public void deleteAllExceptCurrent() {
 
     }
-
 
     @Configuration
     static class InnerConfig extends AppContextConfig {
