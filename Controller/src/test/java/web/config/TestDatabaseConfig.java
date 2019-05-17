@@ -119,7 +119,7 @@ public class TestDatabaseConfig {
 
         try {
             QueryRunner run = new QueryRunner(dataSource());
-            run.query("SELECT 1 FROM user LIMIT 1", handler);
+            run.query("SELECT 1 FROM USER LIMIT 1", handler);
             LOGGER.info("DB has structure.");
             return true;
         } catch (Exception ignore) {
