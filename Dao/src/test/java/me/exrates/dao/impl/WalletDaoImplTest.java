@@ -8,6 +8,7 @@ import config.AbstractDatabaseContextTest;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.enums.MerchantProcessType;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -44,6 +45,7 @@ public class WalletDaoImplTest {
     }
 
     @Test
+    @Ignore
     public void getAllWalletsForUserDetailedTest() {
         List<MyWalletsDetailedDto> allWalletsForUserDetailed = walletDao.getAllWalletsForUserDetailed(EMAIL, WITHDRAW_STATUS_IDS, Locale.ENGLISH, PROCESS_TYPES);
 
