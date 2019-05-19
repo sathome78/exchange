@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
@@ -34,8 +35,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -43,8 +47,10 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import static java.io.File.separator;
 
@@ -135,33 +141,58 @@ public abstract class AbstractDatabaseContextTest {
 
         protected abstract String getSchema();
 
-        @Value("#{systemProperties['db.master.url'] ?: 'jdbc:mysql://localhost:3306/birzha?useUnicode=true&characterEncoding=UTF-8&useSSL=false&autoReconnect=true'}")
+//        @Value("#{systemProperties['db.master.url'] ?: 'jdbc:mysql://localhost:3306/birzha?useUnicode=true&characterEncoding=UTF-8&useSSL=false&autoReconnect=true'}")
+//        private String url;
+//
+//        @Value("#{systemProperties['db.master.classname'] ?: 'com.mysql.jdbc.Driver'}")
+//        private String driverClassName;
+//
+//        @Value("#{systemProperties['db.master.user'] ?: 'root'}")
+//        private String user;
+//
+//        @Value("#{systemProperties['db.master.password'] ?: 'root'}")
+//        private String password;
+
+        @Value("${db.master.url}")
         private String url;
 
-        @Value("#{systemProperties['db.master.classname'] ?: 'com.mysql.jdbc.Driver'}")
+        @Value("$db.master.classname}")
         private String driverClassName;
 
-        @Value("#{systemProperties['db.master.user'] ?: 'root'}")
+        @Value("${db.master.user}")
         private String user;
 
-        @Value("#{systemProperties['db.master.password'] ?: 'root'}")
+        @Value("${db.master.password}")
         private String password;
-
-        @Autowired
-        private DatabaseConfig dbConfig;
 
         @Autowired
         private ResourceLoader resourceLoader;
 
         @PostConstruct
-        public void loadProps() throws IOException {
+        public void testing() throws IOException {
+            log.error("PostConstruct");
+
+            final File sourceDirectory = new File("./../Controller").getCanonicalFile();
+            log.error("FILE EXISTS: " + sourceDirectory.exists());
+
+            log.error("FILE NAME: " + sourceDirectory.getName());
+
+            log.error("FILE DIRS: " + Arrays.toString(sourceDirectory.listFiles()));
+
+
+
+
+
+
             Resource resource = resourceLoader.getResource("classpath:db.properties");
             if (resource.exists()) {
-                final Properties systemProperties = System.getProperties();
-                final InputStream inputStream = resource.getInputStream();
+                log.error("RESOURCE EXISTS: ");
+                final Properties systemProperties = new Properties();
+                final InputStream inputStream = new FileInputStream(resource.getFile());
                 try {
-                    systemProperties.load(inputStream);
-                    log.info("LOAD PROPS: " + System.getProperty("db.master.url"));
+                    log.error("SYSTEM PROPS {} ", systemProperties);
+                    log.error(" FILE CONTENT {} ", readLineByLineJava8(resource.getFile().getPath()));
+                    log.error("LOAD PROPS: " + systemProperties.getProperty("db.master.url"));
                 } finally {
                     // Guava
                     Closeables.closeQuietly(inputStream);
@@ -169,14 +200,50 @@ public abstract class AbstractDatabaseContextTest {
             } else {
                 String message = "Failed to find file db.properties to load db props";
                 log.error(message);
-                throw new RuntimeException(message);
             }
         }
+        private static String readLineByLineJava8(String filePath)
+        {
+            StringBuilder contentBuilder = new StringBuilder();
+            try (Stream<String> stream = Files.lines( Paths.get(filePath), StandardCharsets.UTF_8))
+            {
+                stream.forEach(s -> contentBuilder.append(s).append("\n"));
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+            return contentBuilder.toString();
+        }
+
+
+//
+//        @PostConstruct
+//        public void loadProps() throws IOException {
+//            Resource resource = resourceLoader.getResource("classpath:db.properties");
+//            if (resource.exists()) {
+//                log.info("RESOURCE EXISTS: ");
+//                final Properties systemProperties = System.getProperties();
+//                final InputStream inputStream = resource.getInputStream();
+//                try {
+//                    systemProperties.load(inputStream);
+//                    log.info("LOAD PROPS: " + System.getProperty("db.master.url"));
+//                } finally {
+//                    // Guava
+//                    Closeables.closeQuietly(inputStream);
+//                }
+//            } else {
+//                String message = "Failed to find file db.properties to load db props";
+//                log.error(message);
+//                throw new RuntimeException(message);
+//            }
+//        }
 
         @Bean(name = "testDataSource")
         public DataSource dataSource() {
-            String dbUrl = createConnectionURL(dbConfig.getUrl(), dbConfig.getSchemaName());
-            return createDataSource(dbConfig.getUser(), dbConfig.getPassword(), dbUrl);
+            log.error("DB PROPS: DB URL: " + url);
+            String dbUrl = createConnectionURL(url, getSchema());
+            return createDataSource(user, password, dbUrl);
         }
 
         @Bean
