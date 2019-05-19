@@ -1,11 +1,13 @@
 package config;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.Closeables;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -48,6 +50,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
@@ -84,7 +87,7 @@ public abstract class AbstractDatabaseContextTest {
 
     @PostConstruct
     public void prepareTestSchema() throws SQLException {
-        Preconditions.checkNotNull(dbConfig.getSchemaName(), "Schema name must be defined");
+        Preconditions.checkNotNull(dbConfig.getSchemaName(), "Scheme name must be defined");
         String testSchemaUrl = createConnectionURL(dbConfig.getUrl(), dbConfig.getSchemaName());
         try {
             DriverManager.getConnection(testSchemaUrl, dbConfig.getUser(), dbConfig.getPassword());
@@ -136,137 +139,35 @@ public abstract class AbstractDatabaseContextTest {
     }
 
     @Configuration
-    @PropertySource("classpath:/db.properties")
     public static abstract class AppContextConfig {
 
         protected abstract String getSchema();
 
-//        @Value("#{systemProperties['db.master.url'] ?: 'jdbc:mysql://localhost:3306/birzha?useUnicode=true&characterEncoding=UTF-8&useSSL=false&autoReconnect=true'}")
-//        private String url;
-//
-//        @Value("#{systemProperties['db.master.classname'] ?: 'com.mysql.jdbc.Driver'}")
-//        private String driverClassName;
-//
-//        @Value("#{systemProperties['db.master.user'] ?: 'root'}")
-//        private String user;
-//
-//        @Value("#{systemProperties['db.master.password'] ?: 'root'}")
-//        private String password;
-
-        @Value("${db.master.url}")
-        private String url;
-
-        @Value("$db.master.classname}")
-        private String driverClassName;
-
-        @Value("${db.master.user}")
-        private String user;
-
-        @Value("${db.master.password}")
-        private String password;
-
         @Autowired
-        private ResourceLoader resourceLoader;
-
-        @PostConstruct
-        public void testing() throws IOException {
-            log.error("PostConstruct");
-
-            final File sourceDirectory = new File("./../Controller").getCanonicalFile();
-            log.error("FILE EXISTS: " + sourceDirectory.exists());
-
-            log.error("FILE NAME: " + sourceDirectory.getName());
-
-            log.error("FILE DIRS: " + Arrays.toString(sourceDirectory.listFiles()));
-
-
-
-
-
-
-            Resource resource = resourceLoader.getResource("classpath:db.properties");
-            if (resource.exists()) {
-                log.error("RESOURCE EXISTS: ");
-                final Properties systemProperties = new Properties();
-                final InputStream inputStream = new FileInputStream(resource.getFile());
-                try {
-                    log.error("SYSTEM PROPS {} ", systemProperties);
-                    log.error(" FILE CONTENT {} ", readLineByLineJava8(resource.getFile().getPath()));
-                    log.error("LOAD PROPS: " + systemProperties.getProperty("db.master.url"));
-                } finally {
-                    // Guava
-                    Closeables.closeQuietly(inputStream);
-                }
-            } else {
-                String message = "Failed to find file db.properties to load db props";
-                log.error(message);
-            }
-        }
-        private static String readLineByLineJava8(String filePath)
-        {
-            StringBuilder contentBuilder = new StringBuilder();
-            try (Stream<String> stream = Files.lines( Paths.get(filePath), StandardCharsets.UTF_8))
-            {
-                stream.forEach(s -> contentBuilder.append(s).append("\n"));
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-            return contentBuilder.toString();
-        }
-
-
-//
-//        @PostConstruct
-//        public void loadProps() throws IOException {
-//            Resource resource = resourceLoader.getResource("classpath:db.properties");
-//            if (resource.exists()) {
-//                log.info("RESOURCE EXISTS: ");
-//                final Properties systemProperties = System.getProperties();
-//                final InputStream inputStream = resource.getInputStream();
-//                try {
-//                    systemProperties.load(inputStream);
-//                    log.info("LOAD PROPS: " + System.getProperty("db.master.url"));
-//                } finally {
-//                    // Guava
-//                    Closeables.closeQuietly(inputStream);
-//                }
-//            } else {
-//                String message = "Failed to find file db.properties to load db props";
-//                log.error(message);
-//                throw new RuntimeException(message);
-//            }
-//        }
-
-        @Bean(name = "testDataSource")
-        public DataSource dataSource() {
-            log.error("DB PROPS: DB URL: " + url);
-            String dbUrl = createConnectionURL(url, getSchema());
-            return createDataSource(user, password, dbUrl);
-        }
+        private DatabaseConfig databaseConfig;
 
         @Bean
         public DatabaseConfig databaseConfig() {
+            Properties properties = getProperties();
             return new DatabaseConfig() {
                 @Override
                 public String getUrl() {
-                    return url;
+                    return properties.getProperty("db.master.url");
                 }
 
                 @Override
                 public String getDriverClassName() {
-                    return driverClassName;
+                    return properties.getProperty("db.master.classname");
                 }
 
                 @Override
                 public String getUser() {
-                    return user;
+                    return properties.getProperty("db.master.user");
                 }
 
                 @Override
                 public String getPassword() {
-                    return password;
+                    return properties.getProperty("db.master.password");
                 }
 
                 @Override
@@ -274,6 +175,13 @@ public abstract class AbstractDatabaseContextTest {
                     return getSchema();
                 }
             };
+        }
+
+        @Bean(name = "testDataSource")
+        public DataSource dataSource() {
+            log.debug("DB PROPS: DB URL: " + databaseConfig.getUrl());
+            String dbUrl = createConnectionURL(databaseConfig.getUrl(), getSchema());
+            return createDataSource(databaseConfig.getUser(), databaseConfig.getPassword(), dbUrl);
         }
 
         @Bean(name = "slaveTemplate")
@@ -309,6 +217,37 @@ public abstract class AbstractDatabaseContextTest {
             config.addDataSourceProperty("useServerPrepStmts", "true");
             return new HikariDataSource(config);
         }
+
+        private Properties getProperties() {
+            String resourceDirectory = System.getProperty("profileId");
+            List<String> allowedDirs = ImmutableList.of("dev", "devtest", "uat", "prod");
+
+            if (StringUtils.isBlank(resourceDirectory)
+                    || allowedDirs.stream().noneMatch(resourceDirectory::equalsIgnoreCase)) {
+                throw new RuntimeException("NOT ALLOWED DIR");
+            }
+            String path = "./../Controller/src/main/" + resourceDirectory + "/db.properties";
+            File propsFile = new File(path);
+            final Properties properties = new Properties();
+            String message = "Failed to find file db.properties to load db props";
+            if (propsFile.exists()) {
+                log.debug("RESOURCE EXISTS: ");
+                InputStream inputStream = null;
+                try {
+                    inputStream = new FileInputStream(propsFile);
+                    properties.load(inputStream);
+                } catch (IOException e) {
+                    log.error(message, e);
+                    throw new RuntimeException(message, e);
+                } finally {
+                    Closeables.closeQuietly(inputStream);
+                }
+            } else {
+                log.error(message);
+                throw new RuntimeException(message);
+            }
+            return properties;
+        }
     }
 
     protected static String formatLine(Object key, Object value) {
@@ -331,20 +270,6 @@ public abstract class AbstractDatabaseContextTest {
             return AbstractDatabaseContextTest.this.getClass().getSimpleName() + separator + getMethodName();
         }
     }
-
-//    private void migrateSchema(DataSource rootDataSource) {
-//        final boolean canAccessDefaultMigrations = new ClassPathResource("db/migration").exists();
-//
-//        Flyway flyway = new Flyway();
-//        if (!canAccessDefaultMigrations) {
-//            final File migrationDirectory = new File("./../Controller/src/main/resources/db/migration").getAbsoluteFile();
-//            Preconditions.checkArgument(migrationDirectory.exists(), "Default directory with db migrations not found");
-//            flyway.setLocations("filesystem:" + migrationDirectory.getPath());
-//        }
-//        flyway.setDataSource(rootDataSource);
-//        flyway.setSchemas(schemaName);
-//        flyway.migrate();
-//    }
 
     private void populateSchema(DataSource rootDataSource) throws SQLException {
         ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
