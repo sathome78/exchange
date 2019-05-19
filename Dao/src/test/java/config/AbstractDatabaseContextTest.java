@@ -219,16 +219,21 @@ public abstract class AbstractDatabaseContextTest {
         }
 
         private Properties getProperties() {
+            final Properties properties = new Properties();
             String resourceDirectory = System.getProperty("profileId");
             List<String> allowedDirs = ImmutableList.of("dev", "devtest", "uat", "prod");
 
             if (StringUtils.isBlank(resourceDirectory)
                     || allowedDirs.stream().noneMatch(resourceDirectory::equalsIgnoreCase)) {
-                throw new RuntimeException("NOT ALLOWED DIR");
+                log.debug("Maven profile is not defined");
+                properties.setProperty("db.master.url", "jdbc:mysql://localhost:3306/birzha?useUnicode=true&characterEncoding=UTF-8&useSSL=false&autoReconnect=true");
+                properties.setProperty("db.master.classname", "com.mysql.jdbc.Driver");
+                properties.setProperty("db.master.user", "root");
+                properties.setProperty("db.master.password", "root");
+                return properties;
             }
             String path = "./../Controller/src/main/" + resourceDirectory + "/db.properties";
             File propsFile = new File(path);
-            final Properties properties = new Properties();
             String message = "Failed to find file db.properties to load db props";
             if (propsFile.exists()) {
                 log.debug("RESOURCE EXISTS: ");
