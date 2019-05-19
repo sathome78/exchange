@@ -267,6 +267,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="usdx_log" fileName="${sys:catalina.home}/logs/crypto/usdx_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/usdx_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="ripple_log" fileName="${sys:catalina.home}/logs/crypto/ripple_log.log"
                      filePattern="${sys:catalina.home}/logs/crypto/ripple_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
@@ -849,6 +858,9 @@
         </logger>
         <logger name="stellar_log" level="ALL" additivity="false">
             <AppenderRef ref="stellar_log"/>
+        </logger>
+        <logger name="usdx_log" level="ALL" additivity="false">
+            <AppenderRef ref="usdx_log"/>
         </logger>
         <logger name="ripple_log" level="ALL" additivity="false">
             <AppenderRef ref="ripple_log"/>
