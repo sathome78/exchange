@@ -1,5 +1,6 @@
 package me.exrates.config;
 
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.zaxxer.hikari.HikariConfig;
@@ -272,6 +273,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     @PostConstruct
     public void init() {
+     /*   ElasticApmAttacher.attach();*/
         RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
         List<String> arguments = runtimeMxBean.getInputArguments();
         log.debug(String.join("; ", arguments));

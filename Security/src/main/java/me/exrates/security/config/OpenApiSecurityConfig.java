@@ -3,9 +3,8 @@ package me.exrates.security.config;
 import me.exrates.security.HttpLoggingFilter;
 import me.exrates.security.entryPoint.OpenApiAuthenticationEntryPoint;
 import me.exrates.security.filter.OpenApiAuthenticationFilter;
-import me.exrates.security.filter.RestAlterdiceFilterExp;
-import me.exrates.service.openapi.OpenApiCommonService;
-import me.exrates.service.openapi.impl.OpenApiCommonServiceImpl;
+import me.exrates.security.filter_not_wrapped.LogsRequestFilter;
+import me.exrates.security.filter_not_wrapped.RestAlterdiceFilterExp;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -51,6 +50,7 @@ public class OpenApiSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authenticationEntryPoint(authenticationEntryPoint())
                 .and()
                 .addFilterBefore(new HttpLoggingFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new LogsRequestFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new RestAlterdiceFilterExp(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(openApiAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)

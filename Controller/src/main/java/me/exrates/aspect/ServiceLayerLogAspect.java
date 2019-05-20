@@ -1,5 +1,7 @@
 package me.exrates.aspect;
 
+import co.elastic.apm.api.ElasticApm;
+import co.elastic.apm.api.Transaction;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.logging.MethodsLog;
 import me.exrates.service.events.ApplicationEventWithProcessId;

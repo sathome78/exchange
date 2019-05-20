@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.PinDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.UserStatus;
+import me.exrates.security.HttpLoggingFilter;
 import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.UnconfirmedUserException;
@@ -13,6 +14,7 @@ import me.exrates.security.service.SecureService;
 import me.exrates.service.UserService;
 import geetest.GeetestLib;
 import me.exrates.service.util.IpUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -24,10 +26,16 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.servlet.LocaleResolver;
+import processIdManager.ProcessIDManager;
 
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.io.IOException;
 import java.util.HashMap;
 
 /**
@@ -59,6 +67,20 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
     private @Value("${session.passwordParam}") String passwordParam;
     private String authenticationParamName = "authentication";
 
+    @Override
+    public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
+        ProcessIDManager
+                .getProcessIdFromCurrentThread()
+                .orElseGet(() -> {
+                    ProcessIDManager.registerNewProcessForRequest(HttpLoggingFilter.class, (HttpServletRequest) req);
+                    return StringUtils.EMPTY;
+                });
+        try {
+            super.doFilter(req, res, chain);
+        } finally {
+            ProcessIDManager.unregisterProcessId(getClass());
+        }
+    }
 
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         HttpSession session = request.getSession(false);

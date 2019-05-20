@@ -1,4 +1,4 @@
-package me.exrates.security.filter;
+package me.exrates.security.filter_not_wrapped;
 
 import lombok.extern.log4j.Log4j2;
 import lombok.val;

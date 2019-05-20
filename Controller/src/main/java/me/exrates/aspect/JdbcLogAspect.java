@@ -1,7 +1,12 @@
 package me.exrates.aspect;
 
 
+import co.elastic.apm.api.ElasticApm;
+import co.elastic.apm.api.Span;
+import co.elastic.apm.api.Transaction;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.dto.logging.LogsTypeEnum;
+import me.exrates.model.dto.logging.LogsWrapper;
 import me.exrates.model.dto.logging.LogsTypeEnum;
 import me.exrates.model.dto.logging.LogsWrapper;
 import me.exrates.model.dto.logging.MethodsLog;
@@ -30,6 +35,8 @@ import static me.exrates.service.logs.LoggingUtils.getMethodName;
 @Component
 public class JdbcLogAspect {
 
+    private static final long SLOW_QUERRY_MS = 100/*5000*/;
+
     @Pointcut("execution(* org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate..*(..)) || " +
             "(execution(* org.springframework.jdbc.core.JdbcOperations..*(..))))")
     public void jdbc() {
@@ -45,18 +52,37 @@ public class JdbcLogAspect {
         long start = System.currentTimeMillis();
         String user = getAuthenticatedUser();
         Object result = null;
+        String exStr = StringUtils.EMPTY;
+        String currentProcessId = ProcessIDManager.getProcessIdFromCurrentThread().orElse(StringUtils.EMPTY);
+        Span span = null;
         MethodsLog mLog;
-        String exMessage = StringUtils.EMPTY;
         try {
             result = pjp.proceed();
+            span = ElasticApm.currentSpan();
+            span.addLabel("process_id", currentProcessId);
+            return result;
         } catch (Throwable ex) {
-            exMessage = formatException(ex);
+            exStr = formatException(ex);
             throw ex;
         } finally {
-            mLog = new MethodsLog(method, args, result, user, getExecutionTime(start), exMessage);
+            long exTime = getExecutionTime(start);
+            mLog = new MethodsLog(method, args, result, user, exTime, exStr);
             log.debug(mLog);
             ProcessIDManager.getProcessIdFromCurrentThread().ifPresent(p-> userLogsHandler.onUserLogEvent(new LogsWrapper(mLog, p, LogsTypeEnum.SQL_QUERY)));
+            if (true || exTime > SLOW_QUERRY_MS) {
+                logSlowQuerry(null, span, exTime, StringUtils.EMPTY);
+            }
         }
-        return result;
     }
+
+    private void formatQuerry() {
+
+    }
+
+    private void logSlowQuerry(Transaction transaction, Span span, long execTime, String querry) {
+        span.addLabel("slow_querry", execTime);
+
+    }
+
+
 }

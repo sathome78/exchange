@@ -91,7 +91,7 @@ public class ControllerLogAspects {
     }
 
 
-    @Around("execution(* *(..)) && @annotation(org.springframework.web.bind.annotation.ExceptionHandler)")
+   /* @Around("execution(* *(..)) && @annotation(org.springframework.web.bind.annotation.ExceptionHandler)")
     public Object doBasicProfilingHandlers(ProceedingJoinPoint thisJoinPoint) throws Throwable {
         long start = System.currentTimeMillis();
         Object result = thisJoinPoint.proceed();
@@ -103,57 +103,57 @@ public class ControllerLogAspects {
                 .ifPresent(p -> userLogsHandler.onUserLogEvent(new LogsWrapper(mLog, p, LogsTypeEnum.HTTP_ERROR_HANDLER_RESPONSE)));
         log.error(mLog);
         return result;
-    }
+    }*/
 
 
-    @Around("controller() && allMethod() && !@annotation(me.exrates.model.annotation.NoIdLog) && !execution(* me.exrates.controller.WsController..*(..))")
-    public Object doBasicProfilingControllers(ProceedingJoinPoint pjp) throws Throwable {
-        RequestContextProcessor rcp = new RequestContextProcessor();
-        String clientIP = rcp.getClientIP();
-        String httpMethod = rcp.getHttpMethod();
-        String url = rcp.getFullUrl();
-        String userAgent = rcp.getUserAgent();
-        String requestBody = getRequestBody(rcp);
-        long start = System.currentTimeMillis();
-        int code = 0;
-        String responseBody = null;
-        Object result;
-        String ex = null;
-        try {
-            result =  pjp.proceed();
-            ResponseContextProcessor responseCp = new ResponseContextProcessor();
-            code = responseCp.getStatus();
-            Object body = null;
-            if (result instanceof ResponseEntity) {
-                ResponseEntity res = (ResponseEntity) result;
-                body = res.getBody();
-            }
-            responseBody = (body == null) ? "" : body.toString();
-        } catch (Exception e) {
-            ex = formatException(e);
-            throw e;
-        } finally {
-            ControllerLog controllerLog = new ControllerLog(
-                    getMethodName(pjp),
-                    url,
-                    httpMethod,
-                    getAuthenticatedUser(),
-                    getExecutionTime(start),
-                    code,
-                    userAgent,
-                    clientIP,
-                    rcp.getJwtToken(),
-                    rcp.getJsessionId(),
-                    requestBody,
-                    responseBody,
-                    rcp.getArgs(),
-                    ex);
-            log.debug(controllerLog);
-            ProcessIDManager.getProcessIdFromCurrentThread()
-                    .ifPresent(p -> userLogsHandler.onUserLogEvent(new LogsWrapper(controllerLog, p, LogsTypeEnum.HTTP_REQUEST_LOG)));
-        }
-        return result;
-    }
+//    @Around("controller() && allMethod() && !@annotation(me.exrates.model.annotation.NoIdLog) && !execution(* me.exrates.controller.WsController..*(..))")
+//    public Object doBasicProfilingControllers(ProceedingJoinPoint pjp) throws Throwable {
+//        RequestContextProcessor rcp = new RequestContextProcessor();
+//        String clientIP = rcp.getClientIP();
+//        String httpMethod = rcp.getHttpMethod();
+//        String url = rcp.getFullUrl();
+//        String userAgent = rcp.getUserAgent();
+//        String requestBody = getRequestBody(rcp);
+//        long start = System.currentTimeMillis();
+//        int code = 0;
+//        String responseBody = null;
+//        Object result;
+//        String ex = null;
+//        try {
+//            result =  pjp.proceed();
+//            ResponseContextProcessor responseCp = new ResponseContextProcessor();
+//            code = responseCp.getStatus();
+//            Object body = null;
+//            if (result instanceof ResponseEntity) {
+//                ResponseEntity res = (ResponseEntity) result;
+//                body = res.getBody();
+//            }
+//            responseBody = (body == null) ? "" : body.toString();
+//        } catch (Exception e) {
+//            ex = formatException(e);
+//            throw e;
+//        } finally {
+//            ControllerLog controllerLog = new ControllerLog(
+//                    getMethodName(pjp),
+//                    url,
+//                    httpMethod,
+//                    getAuthenticatedUser(),
+//                    getExecutionTime(start),
+//                    code,
+//                    userAgent,
+//                    clientIP,
+//                    rcp.getJwtToken(),
+//                    rcp.getJsessionId(),
+//                    requestBody,
+//                    responseBody,
+//                    rcp.getArgs(),
+//                    ex);
+//            log.debug(controllerLog);
+//            ProcessIDManager.getProcessIdFromCurrentThread()
+//                    .ifPresent(p -> userLogsHandler.onUserLogEvent(new LogsWrapper(controllerLog, p, LogsTypeEnum.HTTP_REQUEST_LOG)));
+//        }
+//        return result;
+//    }
 
 
     private static class RequestContextProcessor {

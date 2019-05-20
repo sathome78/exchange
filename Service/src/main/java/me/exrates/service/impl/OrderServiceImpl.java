@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import co.elastic.apm.api.CaptureSpan;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
@@ -398,6 +399,7 @@ public class OrderServiceImpl implements OrderService {
         return prepareNewOrder(activeCurrencyPair, orderType, userEmail, amount, rate, null, baseType);
     }
 
+    @CaptureSpan("create_order")
     @Override
     public OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, Integer sourceId, OrderBaseType baseType) {
         Currency spendCurrency = null;
@@ -624,6 +626,7 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
+    @CaptureSpan("create_order")
     @Override
     public String createOrder(OrderCreateDto orderCreateDto, OrderActionEnum action, Locale locale) {
         Optional<String> autoAcceptResult = this.autoAccept(orderCreateDto, locale);
@@ -660,6 +663,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
+    @CaptureSpan("create_order")
     @Override
     @Transactional(rollbackFor = {Exception.class})
     public int createOrder(OrderCreateDto orderCreateDto, OrderActionEnum action, List<ExOrder> eventsList, boolean partialAccept) {
@@ -768,6 +772,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
+    @CaptureSpan("create_order")
     @Override
     @Transactional
     public OrderCreationResultDto createPreparedOrderRest(OrderCreateDto orderCreateDto, Locale locale) {
@@ -788,6 +793,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
+    @CaptureSpan("create_order")
     @Override
     @Transactional
     public OrderCreationResultDto prepareAndCreateOrderRest(String currencyPairName, OperationType orderType,
@@ -804,6 +810,7 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
+    @CaptureSpan("create_order")
     @Override
     @Transactional(rollbackFor = {Exception.class})
     public Optional<String> autoAccept(OrderCreateDto orderCreateDto, Locale locale) {
@@ -827,6 +834,7 @@ public class OrderServiceImpl implements OrderService {
         successMessage.append("\"}");
         return Optional.of(successMessage.toString());
     }
+
 
     @Override
     @Transactional(rollbackFor = Exception.class)

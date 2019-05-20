@@ -4,11 +4,8 @@ import me.exrates.model.enums.AdminAuthority;
 import me.exrates.model.enums.UserRole;
 import me.exrates.security.HttpLoggingFilter;
 import me.exrates.security.filter.*;
-import me.exrates.security.filter_not_wrapped.AjaxAwareAccessDeniedHandler;
-import me.exrates.security.filter_not_wrapped.CapchaAuthorizationFilter;
-import me.exrates.security.filter_not_wrapped.CustomConcurrentSessionFilter;
+import me.exrates.security.filter_not_wrapped.*;
 import me.exrates.security.postprocessor.OnlineMethodPostProcessor;
-import me.exrates.security.filter_not_wrapped.QRAuthorizationFilter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,9 +50,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Autowired
   public SecurityConfig(PasswordEncoder passwordEncoder, UserDetailsService userDetailsService) {
-    SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
-    this.passwordEncoder = passwordEncoder;
-    this.userDetailsService = userDetailsService;
+      SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
+      this.passwordEncoder = passwordEncoder;
+        this.userDetailsService = userDetailsService;
   }
 
   @Bean
@@ -76,19 +73,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   @Bean
   public CapchaAuthorizationFilter customUsernamePasswordAuthenticationFilter()
           throws Exception {
-    CapchaAuthorizationFilter customUsernamePasswordAuthenticationFilter = new CapchaAuthorizationFilter();
-    customUsernamePasswordAuthenticationFilter
-            .setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher("/login", "POST"));
-    customUsernamePasswordAuthenticationFilter
-            .setAuthenticationManager(authenticationManagerBean());
-    customUsernamePasswordAuthenticationFilter
-            .setUsernameParameter("username");
-    customUsernamePasswordAuthenticationFilter
-            .setPasswordParameter("password");
-    customUsernamePasswordAuthenticationFilter
-            .setAuthenticationSuccessHandler(loginSuccessHandler());
-    customUsernamePasswordAuthenticationFilter
-            .setAuthenticationFailureHandler(loginFailureHandler());
+      CapchaAuthorizationFilter customUsernamePasswordAuthenticationFilter = new CapchaAuthorizationFilter();
+      customUsernamePasswordAuthenticationFilter
+              .setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher("/login", "POST"));
+      customUsernamePasswordAuthenticationFilter
+              .setAuthenticationManager(authenticationManagerBean());
+      customUsernamePasswordAuthenticationFilter
+              .setUsernameParameter("username");
+      customUsernamePasswordAuthenticationFilter
+              .setPasswordParameter("password");
+      customUsernamePasswordAuthenticationFilter
+              .setAuthenticationSuccessHandler(loginSuccessHandler());
+      customUsernamePasswordAuthenticationFilter
+              .setAuthenticationFailureHandler(loginFailureHandler());
 
 
     return customUsernamePasswordAuthenticationFilter;
@@ -119,24 +116,23 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Bean
   public CustomConcurrentSessionFilter customConcurrentSessionFilter() {
-    return new CustomConcurrentSessionFilter(sessionRegistry());
+      return new CustomConcurrentSessionFilter(sessionRegistry());
   }
 
   @Autowired
   public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-    auth
+      auth
             .userDetailsService(userDetailsService)
             .passwordEncoder(passwordEncoder);
   }
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
-    http.addFilterBefore(new HttpLoggingFilter(), UsernamePasswordAuthenticationFilter.class);
-    http.addFilterBefore(customUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
-    http.addFilterBefore(customQRAuthorizationFilter(), CapchaAuthorizationFilter.class);
-    http.addFilterBefore(characterEncodingFilter(), ChannelProcessingFilter.class);
-    http.addFilterAt(customConcurrentSessionFilter(), ConcurrentSessionFilter.class);
-    http
+      http.addFilterBefore(customUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+      http.addFilterBefore(customQRAuthorizationFilter(), CapchaAuthorizationFilter.class);
+      http.addFilterBefore(characterEncodingFilter(), ChannelProcessingFilter.class);
+      http.addFilterAt(customConcurrentSessionFilter(), ConcurrentSessionFilter.class);
+      http
             .authorizeRequests()
             /*ADMIN ...*/
             .antMatchers(POST, "/2a8fy7b07dxe44/edituser/submit",

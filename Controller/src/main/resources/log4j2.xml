@@ -1074,6 +1074,7 @@
             <AppenderRef ref="dao_log"/>
         </logger>
         <logger name="Jdbc_query_log" level="ALL" additivity="false">
+            <AppenderRef ref="jdbc_query_log"/>
             <AppenderRef ref="Socket"/>
             <AppenderRef ref="jdbc_query_log"/>
         </logger>
