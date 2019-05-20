@@ -46,6 +46,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.annotation.Transactional;
+import org.web3j.abi.datatypes.Bool;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
@@ -117,6 +118,8 @@ public class BitcoinServiceImpl implements BitcoinService {
 
     private Boolean supportReferenceLine;
 
+    private Boolean useSendManyForWithdraw;
+
     private ScheduledExecutorService newTxCheckerScheduler = Executors.newSingleThreadScheduledExecutor();
 
 
@@ -136,11 +139,12 @@ public class BitcoinServiceImpl implements BitcoinService {
 
     public BitcoinServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations, Integer blockTargetForFee,
                               Boolean rawTxEnabled, Boolean supportSubtractFee, Boolean supportWalletNotifications) {
-        this(propertySource, merchantName, currencyName, minConfirmations, blockTargetForFee, rawTxEnabled, supportSubtractFee, supportWalletNotifications, false);
+        this(propertySource, merchantName, currencyName, minConfirmations, blockTargetForFee, rawTxEnabled, supportSubtractFee, supportWalletNotifications, false, true);
     }
 
     public BitcoinServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations, Integer blockTargetForFee,
-                              Boolean rawTxEnabled, Boolean supportSubtractFee, Boolean supportWalletNotifications, Boolean supportReferenceLine) {
+                              Boolean rawTxEnabled, Boolean supportSubtractFee, Boolean supportWalletNotifications, Boolean supportReferenceLine,
+                              Boolean useSendManyForWithdraw) {
         Properties props = new Properties();
         try {
             props.load(getClass().getClassLoader().getResourceAsStream(propertySource));
@@ -157,6 +161,8 @@ public class BitcoinServiceImpl implements BitcoinService {
             this.supportSubtractFee = supportSubtractFee;
             this.supportWalletNotifications = supportWalletNotifications;
             this.supportReferenceLine = supportReferenceLine;
+
+            this.useSendManyForWithdraw = useSendManyForWithdraw;
         } catch (IOException e) {
             log.error(e);
         }
@@ -189,7 +195,7 @@ public class BitcoinServiceImpl implements BitcoinService {
                 log.info("{} not started, pass props error", merchantName);
                 return;
             }
-            bitcoinWalletService.initCoreClient(nodePropertySource, passSource, supportInstantSend, supportSubtractFee, supportReferenceLine);
+            bitcoinWalletService.initCoreClient(nodePropertySource, passSource, supportInstantSend, supportSubtractFee, supportReferenceLine, useSendManyForWithdraw);
             bitcoinWalletService.initBtcdDaemon(zmqEnabled);
             bitcoinWalletService.blockFlux().subscribe(this::onIncomingBlock);
             if (supportWalletNotifications) {
