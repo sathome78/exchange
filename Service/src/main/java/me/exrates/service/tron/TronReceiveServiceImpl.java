@@ -6,6 +6,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.MerchantSpecParamDto;
+import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.TronReceivedTransactionDto;
 import me.exrates.model.dto.TronTransactionTypeEnum;
 import org.json.JSONArray;
@@ -29,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 public class TronReceiveServiceImpl {
 
     private final TronNodeService nodeService;
-    private final TronService tronService;
+    private final TronServiceImpl tronService;
     private final MerchantSpecParamsDao specParamsDao;
     private final TronTransactionsService tronTransactionsService;
     private final TronTokenContext tronTokenContext;
@@ -42,7 +43,7 @@ public class TronReceiveServiceImpl {
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     @Autowired
-    public TronReceiveServiceImpl(TronNodeService nodeService, TronService tronService, MerchantSpecParamsDao specParamsDao, TronTransactionsService tronTransactionsService, TronTokenContext tronTokenContext) {
+    public TronReceiveServiceImpl(TronNodeService nodeService, TronServiceImpl tronService, MerchantSpecParamsDao specParamsDao, TronTransactionsService tronTransactionsService, TronTokenContext tronTokenContext) {
         this.nodeService = nodeService;
         this.tronService = tronService;
         this.specParamsDao = specParamsDao;
@@ -94,10 +95,12 @@ public class TronReceiveServiceImpl {
                         default: throw new RuntimeException("unsupported tx type");
                     }
                     setAdditionalTxInfo(p);
+                    RefillRequestAcceptDto dto = tronService.createRequest(p);
+                    p.setId(dto.getRequestId());
                     if (p.isConfirmed()) {
-                        tronTransactionsService.createAndProcessTransaction(p);
+                        tronTransactionsService.processTransaction(p);
                     } else {
-                        tronService.createAndPutOnBchExam(p);
+                        tronService.putOnBchExam(dto);
                     }
                 } catch (Exception e) {
                     log.error(e);

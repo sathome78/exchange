@@ -4,7 +4,6 @@ import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.TronReceivedTransactionDto;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -61,8 +60,7 @@ public interface TronService extends IRefillable, IWithdrawable {
 
     RefillRequestAcceptDto createRequest(TronReceivedTransactionDto dto);
 
-    @Transactional
-    void createAndPutOnBchExam(TronReceivedTransactionDto tronDto);
+    void putOnBchExam(RefillRequestAcceptDto requestAcceptDto);
 
     int getMerchantId();
 
