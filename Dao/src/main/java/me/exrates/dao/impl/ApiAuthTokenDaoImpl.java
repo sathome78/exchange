@@ -5,14 +5,12 @@ import me.exrates.dao.ApiAuthTokenDao;
 import me.exrates.dao.rowmappers.ApiAuthTokenRowMapper;
 import me.exrates.model.ApiAuthToken;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -26,9 +24,6 @@ import static java.util.Collections.singletonMap;
 public class ApiAuthTokenDaoImpl implements ApiAuthTokenDao {
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-
-    private RowMapper<ApiAuthToken> ROW_MAPPER =
-            (rs, i) -> new ApiAuthToken(rs.getLong(1), rs.getString(2), rs.getString(3), LocalDateTime.now());
 
     @Override
     public long createToken(ApiAuthToken token) {

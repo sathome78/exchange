@@ -127,7 +127,6 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         Long id = apiAuthTokenDao.createToken(token);
         token.setId(id);
         return token;
-
     }
 
     @Override
@@ -282,7 +281,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
             if (savedToken.getExpiredAt().before(new Date())) {
                 return apiAuthTokenDao.deleteAllByUsername(username);
             }
-            return apiAuthTokenDao.deleteAllWithoutCurrent(tokenId, username);
+            return apiAuthTokenDao.deleteAllExceptCurrent(tokenId, username);
         } else {
             throw new TokenException("Token not found", ErrorCode.TOKEN_NOT_FOUND);
         }
