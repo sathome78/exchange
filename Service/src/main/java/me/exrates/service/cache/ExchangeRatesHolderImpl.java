@@ -166,6 +166,8 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     public void deleteCurrencyPairFromCache(int currencyPairId) {
         final String currencyPairName = currencyService.findCurrencyPairById(currencyPairId).getName();
         ratesRedisRepository.delete(currencyPairName);
+        ratesMap.remove(currencyPairId);
+        loadingCache.invalidate(currencyPairId);
     }
 
     private void initExchangePairsCache() {
@@ -229,7 +231,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     private Object getRatesMapSyncSynchronizerSafe(Integer pairId) {
         if (!locks.containsKey(pairId)) {
             synchronized (safeSync) {
-               locks.putIfAbsent(pairId, new Object());
+                locks.putIfAbsent(pairId, new Object());
             }
         }
         return locks.get(pairId);
@@ -375,7 +377,12 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
                 StopWatch timer = new StopWatch();
                 log.info("<<CACHE>>: Start loading cache item for id: " + currencyPairId);
                 String currencyName = currencyService.getCurrencyName(currencyPairId);
-                ExOrderStatisticsShortByPairsDto result = ratesRedisRepository.get(currencyName);
+                ExOrderStatisticsShortByPairsDto result;
+                if (ratesMap.containsKey(currencyPairId)) {
+                    result = ratesRedisRepository.get(currencyName);
+                } else {
+                    result = refreshItem(currencyPairId);
+                }
                 String message = String.format("<<CACHE>>: Finished loading cache item for id: %d, result: %s, timer: %d s",
                         currencyPairId, (result != null ? result.getCurrencyPairName() : "FAILED"), timer.getTime(TimeUnit.SECONDS));
                 log.info(message);
