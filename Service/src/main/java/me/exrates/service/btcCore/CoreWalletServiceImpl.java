@@ -427,7 +427,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
         try {
             String result;
             synchronized (SENDING_LOCK) {
-                unlockWallet(walletPassword, 15);
+                unlockWallet(walletPassword, 10);
                 if(useSendManyForWithdraw) {
                     Map<String, BigDecimal> payments = new HashMap<>();
                     payments.put(address, amount);
