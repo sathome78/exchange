@@ -169,7 +169,7 @@ public class StellarServiceImpl implements StellarService {
         Optional<Integer> id;
         String destinationTag;
         do {
-            destinationTag = CryptoUtils.generateDestinationTag(userId, MAX_TAG_DESTINATION_DIGITS);
+            destinationTag = CryptoUtils.generateDestinationTag(userId, MAX_TAG_DESTINATION_DIGITS, currency.getName());
             id = refillService.getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(destinationTag, currency.getId(), merchant.getId());
         } while (id.isPresent());
         return destinationTag;
