@@ -3,13 +3,11 @@ package me.exrates.aspect;
 
 import co.elastic.apm.api.ElasticApm;
 import co.elastic.apm.api.Span;
-import co.elastic.apm.api.Transaction;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.logging.LogsTypeEnum;
 import me.exrates.model.dto.logging.LogsWrapper;
-import me.exrates.model.dto.logging.LogsTypeEnum;
-import me.exrates.model.dto.logging.LogsWrapper;
 import me.exrates.model.dto.logging.MethodsLog;
+import me.exrates.model.loggingTxContext.QuerriesCountThreadLocal;
 import me.exrates.service.logs.UserLogsHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -22,13 +20,9 @@ import processIdManager.ProcessIDManager;
 
 
 import java.util.Arrays;
-import java.util.Optional;
+import java.util.Map;
 
-import static me.exrates.service.logs.LoggingUtils.doBaseProfiling;
-import static me.exrates.service.logs.LoggingUtils.formatException;
-import static me.exrates.service.logs.LoggingUtils.getAuthenticatedUser;
-import static me.exrates.service.logs.LoggingUtils.getExecutionTime;
-import static me.exrates.service.logs.LoggingUtils.getMethodName;
+import static me.exrates.service.logs.LoggingUtils.*;
 
 @Log4j2(topic = "Jdbc_query_log")
 @Aspect
@@ -42,46 +36,55 @@ public class JdbcLogAspect {
     public void jdbc() {
     }
 
+
     @Autowired
     private UserLogsHandler userLogsHandler;
 
     @Around("jdbc()")
     public Object doBasicProfiling(ProceedingJoinPoint pjp) throws Throwable {
         String method = getMethodName(pjp);
-        String args = Arrays.toString(pjp.getArgs());
+        String args = formatQuerry(pjp.getArgs());
         long start = System.currentTimeMillis();
         String user = getAuthenticatedUser();
         Object result = null;
         String exStr = StringUtils.EMPTY;
         String currentProcessId = ProcessIDManager.getProcessIdFromCurrentThread().orElse(StringUtils.EMPTY);
-        Span span = null;
+        Span span = ElasticApm.currentSpan().startSpan().setName(method);
         MethodsLog mLog;
         try {
             result = pjp.proceed();
-            span = ElasticApm.currentSpan();
             span.addLabel("process_id", currentProcessId);
+            span.addLabel("fullSql", args);
             return result;
         } catch (Throwable ex) {
+            span.captureException(ex);
             exStr = formatException(ex);
             throw ex;
         } finally {
+            QuerriesCountThreadLocal.inc();
+            span.end();
             long exTime = getExecutionTime(start);
             mLog = new MethodsLog(method, args, result, user, exTime, exStr);
             log.debug(mLog);
             ProcessIDManager.getProcessIdFromCurrentThread().ifPresent(p-> userLogsHandler.onUserLogEvent(new LogsWrapper(mLog, p, LogsTypeEnum.SQL_QUERY)));
-            if (true || exTime > SLOW_QUERRY_MS) {
-                logSlowQuerry(null, span, exTime, StringUtils.EMPTY);
+            if (exTime > SLOW_QUERRY_MS) {
+                logSlowQuerry(span, exTime);
             }
         }
     }
 
-    private void formatQuerry() {
-
+    private String formatQuerry(Object[] args) {
+        try {
+            String sql = (String) args[0];
+            Map<String, ?> querryArgs = (Map<String, ?>) args[1];
+            return completeSql(sql, querryArgs);
+        } catch (Exception e) {
+            return Arrays.toString(args);
+        }
     }
 
-    private void logSlowQuerry(Transaction transaction, Span span, long execTime, String querry) {
+    private void logSlowQuerry(Span span, long execTime) {
         span.addLabel("slow_querry", execTime);
-
     }
 
 

@@ -5,6 +5,7 @@ import co.elastic.apm.api.Transaction;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import me.exrates.model.dto.logging.ControllerLog;
+import me.exrates.model.loggingTxContext.QuerriesCountThreadLocal;
 import me.exrates.service.util.IpUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
@@ -57,6 +58,7 @@ public class LogsRequestFilter extends GenericFilterBean {
         Transaction transaction = ElasticApm.currentTransaction();
         String result;
         try {
+            QuerriesCountThreadLocal.init();
             transaction.addLabel("process_id" , ProcessIDManager.getProcessIdFromCurrentThread().orElse(StringUtils.EMPTY));
             filterChain.doFilter(request, response);
         }
@@ -65,6 +67,8 @@ public class LogsRequestFilter extends GenericFilterBean {
                 result = getResponse(response);
                 transaction.setResult(result);
                 transaction.addLabel("result", result);
+                Integer txCount = QuerriesCountThreadLocal.getCountAndUnsetVarialbe();
+                transaction.addLabel("querries_count", txCount);
                 log.debug(new ControllerLog(
                         getFullUrl(request),
                         getHttpMethod(request),
@@ -73,9 +77,13 @@ public class LogsRequestFilter extends GenericFilterBean {
                         response.getStatusCode(),
                         getUserAgent(request),
                         getClientIP(request),
+                        StringUtils.EMPTY,
+                        StringUtils.EMPTY,
                         getRequestBody(request),
                         result,
-                        getArgs(request)));
+                        getArgs(request),
+                        txCount)
+                );
             }
             response.copyBodyToResponse();
         }

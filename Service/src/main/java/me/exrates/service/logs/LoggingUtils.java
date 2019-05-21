@@ -88,6 +88,11 @@ public class LoggingUtils {
         return getMethodName(fullClassName, signature.getMethod().getName());
     }
 
+    public static String getShortMethodName(ProceedingJoinPoint pjp) {
+        MethodSignature signature = (MethodSignature) pjp.getSignature();
+        return signature.getMethod().getName();
+    }
+
     public static String getMethodName(String fullClassName, String methodName) {
         return String.join("#", fullClassName.substring(fullClassName.lastIndexOf(".") + 1), methodName);
     }

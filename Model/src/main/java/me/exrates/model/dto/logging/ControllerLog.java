@@ -19,4 +19,5 @@ public class ControllerLog {
     private String requestBody;
     private String responseBody;
     private String args;
+    private Integer querriesCount;
 }
