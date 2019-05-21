@@ -171,6 +171,11 @@ public abstract class AbstractDatabaseContextTest {
                 }
 
                 @Override
+                public String getRootSchemeName() {
+                    return properties.getProperty("db.root.name");
+                }
+
+                @Override
                 public String getSchemaName() {
                     return getSchema();
                 }
@@ -180,7 +185,7 @@ public abstract class AbstractDatabaseContextTest {
         @Bean(name = "testDataSource")
         public DataSource dataSource() {
             log.debug("DB PROPS: DB URL: " + databaseConfig.getUrl());
-            String dbUrl = createConnectionURL(databaseConfig.getUrl(), getSchema());
+            String dbUrl = databaseConfig.getUrl().replace(databaseConfig.getRootSchemeName() + "?", getSchema() + "?");
             return createDataSource(databaseConfig.getUser(), databaseConfig.getPassword(), dbUrl);
         }
 
@@ -230,6 +235,7 @@ public abstract class AbstractDatabaseContextTest {
                 properties.setProperty("db.master.classname", "com.mysql.jdbc.Driver");
                 properties.setProperty("db.master.user", "root");
                 properties.setProperty("db.master.password", "root");
+                properties.setProperty("db.root.name", "birzha");
                 return properties;
             }
             String path = "./../Controller/src/main/" + resourceDirectory + "/db.properties";
@@ -297,8 +303,8 @@ public abstract class AbstractDatabaseContextTest {
         return new HikariDataSource(config);
     }
 
-    private static String createConnectionURL(String dbUrl, String newSchemaName) {
-        return dbUrl.replace("birzha", newSchemaName);
+    private String createConnectionURL(String dbUrl, String newSchemaName) {
+        return dbUrl.replace(dbConfig.getRootSchemeName() + "?", newSchemaName + "?");
     }
 
     private boolean isSchemeValid(DataSource rootDataSource) {
