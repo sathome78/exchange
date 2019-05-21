@@ -48,6 +48,7 @@ import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequ
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import web.config.DatabaseConfig;
+import web.config.TestContextConfig;
 import web.config.TestDatabaseConfig;
 
 import javax.sql.DataSource;
@@ -89,7 +90,7 @@ import static web.Parameters.ROOT;
 import static web.Parameters.SETTINGS_STOP_ON_ERROR;
 
 @RunWith(Parameterized.class)
-@ContextConfiguration(classes = {TestDatabaseConfig.class})
+@ContextConfiguration(classes = {TestDatabaseConfig.class, TestContextConfig.class})
 @WebAppConfiguration
 public class RootTest {
 
