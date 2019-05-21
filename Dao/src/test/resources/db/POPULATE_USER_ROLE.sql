@@ -1,0 +1,12 @@
+INSERT INTO USER_ROLE (id, name, user_role_business_feature_id, user_role_group_feature_id, user_role_report_group_feature_id) VALUES (1, 'ADMINISTRATOR', 1, 1, 1);
+INSERT INTO USER_ROLE (id, name, user_role_business_feature_id, user_role_group_feature_id, user_role_report_group_feature_id) VALUES (2, 'ACCOUNTANT', 1, 1, 1);
+INSERT INTO USER_ROLE (id, name, user_role_business_feature_id, user_role_group_feature_id, user_role_report_group_feature_id) VALUES (3, 'ADMIN_USER', 1, 1, 1);
+INSERT INTO USER_ROLE (id, name, user_role_business_feature_id, user_role_group_feature_id, user_role_report_group_feature_id) VALUES (4, 'USER', 2, 2, 2);
+INSERT INTO USER_ROLE (id, name, user_role_business_feature_id, user_role_group_feature_id, user_role_report_group_feature_id) VALUES (5, 'ROLE_CHANGE_PASSWORD', null, 2, null);
+INSERT INTO USER_ROLE (id, name, user_role_business_feature_id, user_role_group_feature_id, user_role_report_group_feature_id) VALUES (6, 'EXCHANGE', 3, 2, 2);
+INSERT INTO USER_ROLE (id, name, user_role_business_feature_id, user_role_group_feature_id, user_role_report_group_feature_id) VALUES (7, 'VIP_USER', 4, 2, 2);
+INSERT INTO USER_ROLE (id, name, user_role_business_feature_id, user_role_group_feature_id, user_role_report_group_feature_id) VALUES (8, 'TRADER', 5, 2, 3);
+INSERT INTO USER_ROLE (id, name, user_role_business_feature_id, user_role_group_feature_id, user_role_report_group_feature_id) VALUES (9, 'FIN_OPERATOR', 1, 1, 1);
+INSERT INTO USER_ROLE (id, name, user_role_business_feature_id, user_role_group_feature_id, user_role_report_group_feature_id) VALUES (10, 'BOT_TRADER', 6, 3, 4);
+INSERT INTO USER_ROLE (id, name, user_role_business_feature_id, user_role_group_feature_id, user_role_report_group_feature_id) VALUES (11, 'ICO_MARKET_MAKER', 7, 2, 2);
+INSERT INTO USER_ROLE (id, name, user_role_business_feature_id, user_role_group_feature_id, user_role_report_group_feature_id) VALUES (12, 'OUTER_MARKET_BOT', 9, 2, 4);

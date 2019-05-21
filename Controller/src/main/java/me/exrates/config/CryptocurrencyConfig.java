@@ -190,7 +190,7 @@ public class CryptocurrencyConfig {
     public BitcoinService brecoService() {
         return new BitcoinServiceImpl("merchants/breco_wallet.properties",
                 "BRECO", "BRECO", 30, 20, false,
-                false, true, true);
+                false, true, true, true);
     }
 
     @Bean(name = "ftoServiceImpl")
@@ -352,7 +352,9 @@ public class CryptocurrencyConfig {
 
 	@Bean(name = "vollarServiceImpl")
 	public BitcoinService vollarServiceImpl() {
-		return new BitcoinServiceImpl("merchants/vollar_wallet.properties","VOLLAR","VOLLAR", 30, 20, false, true);
+		return new BitcoinServiceImpl("merchants/vollar_wallet.properties",
+                "VOLLAR","VOLLAR", 30, 20,
+                false, true, true, false, false);
   }
 
 	@Bean(name = "wolfServiceImpl")
