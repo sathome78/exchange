@@ -1,4 +1,4 @@
-package me.exrates.controller.openAPI;
+package unit.exrates.controller.openAPI;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;

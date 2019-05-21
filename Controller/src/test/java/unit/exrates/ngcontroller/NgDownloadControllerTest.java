@@ -1,4 +1,4 @@
-package me.exrates.ngcontroller;
+package unit.exrates.ngcontroller;
 
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.ReportDto;
@@ -6,6 +6,7 @@ import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.ngService.BalanceService;
+import me.exrates.ngcontroller.NgDownloadController;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
@@ -32,7 +33,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Matchers.anyMapOf;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;

@@ -1,10 +1,11 @@
-package me.exrates.ngcontroller;
+package unit.exrates.ngcontroller;
 
 import me.exrates.model.OpenApiToken;
 import me.exrates.model.User;
 import me.exrates.model.dto.NotificationResultDto;
 import me.exrates.model.dto.openAPI.OpenApiTokenPublicDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.ngcontroller.NgTokenSettingsController;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.OpenApiTokenService;
 import me.exrates.service.UserService;

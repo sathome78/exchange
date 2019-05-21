@@ -1,4 +1,4 @@
-package me.exrates.ngcontroller;
+package unit.exrates.ngcontroller;
 
 import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.TransferRequestFlatDto;
@@ -12,6 +12,7 @@ import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.ngModel.RefillPendingRequestDto;
 import me.exrates.model.ngUtil.PagedResult;
 import me.exrates.ngService.BalanceService;
+import me.exrates.ngcontroller.NgBalanceController;
 import me.exrates.service.RefillService;
 import me.exrates.service.TransferService;
 import me.exrates.service.UserService;

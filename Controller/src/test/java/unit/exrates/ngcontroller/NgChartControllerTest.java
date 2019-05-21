@@ -1,10 +1,11 @@
-package me.exrates.ngcontroller;
+package unit.exrates.ngcontroller;
 
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.CandleDto;
 import me.exrates.model.enums.ChartTimeFramesEnum;
 import me.exrates.ngService.NgOrderService;
+import me.exrates.ngcontroller.NgChartController;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import org.junit.Before;

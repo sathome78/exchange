@@ -1,4 +1,4 @@
-package me.exrates.ngcontroller;
+package unit.exrates.ngcontroller;
 
 import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.User;
@@ -9,6 +9,7 @@ import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.ngModel.PasswordCreateDto;
+import me.exrates.ngcontroller.NgUserController;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.security.service.NgUserService;

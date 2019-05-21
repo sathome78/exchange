@@ -1,6 +1,7 @@
-package me.exrates.controller;
+package unit.exrates.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import me.exrates.controller.WsController;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.AlertDto;

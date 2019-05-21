@@ -1,4 +1,4 @@
-package me.exrates.ngcontroller;
+package unit.exrates.ngcontroller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;

@@ -1,4 +1,4 @@
-package me.exrates.controller.openAPI;
+package unit.exrates.controller.openAPI;
 
 import me.exrates.model.dto.CallbackURL;
 import me.exrates.model.dto.OrderCreationResultDto;

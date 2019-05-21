@@ -1,6 +1,6 @@
-package me.exrates.controller.openAPI;
+package unit.exrates.controller.openAPI;
 
-import me.exrates.controller.openAPI.config.WebAppTestConfig;
+import unit.exrates.controller.openAPI.config.WebAppTestConfig;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.constants.ErrorApiTitles;
@@ -13,7 +13,6 @@ import me.exrates.security.config.OpenApiSecurityConfig;
 import me.exrates.service.exception.process.NotCreatableOrderException;
 import me.exrates.service.util.OpenApiUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +28,6 @@ import org.springframework.web.util.NestedServletException;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import static me.exrates.controller.openAPI.TestUtils.getFakeOrderCreationResultDto;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -59,7 +57,7 @@ public class OpenApiOrderControllerTest extends OpenApiCommonTest {
     @Test
     public void createOrder_successTest() throws Exception {
         when(orderService.prepareAndCreateOrderRest(anyString(), anyObject(), anyObject(), any(), anyString()))
-                .thenReturn(getFakeOrderCreationResultDto());
+                .thenReturn(TestUtils.getFakeOrderCreationResultDto());
 
         mockMvc.perform(MockMvcRequestBuilders.post("/openapi/v1/orders/create")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -134,7 +132,7 @@ public class OpenApiOrderControllerTest extends OpenApiCommonTest {
     public void createOrder_invalidPriceAndAmountTest() throws Exception {
         String cp = "btc-usd";
 
-        when(orderService.prepareAndCreateOrderRest(anyString(), anyObject(), anyObject(), any(), anyString())).thenReturn(getFakeOrderCreationResultDto());
+        when(orderService.prepareAndCreateOrderRest(anyString(), anyObject(), anyObject(), any(), anyString())).thenReturn(TestUtils.getFakeOrderCreationResultDto());
 
         mockMvc.perform(MockMvcRequestBuilders.post("/openapi/v1/orders/create")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)

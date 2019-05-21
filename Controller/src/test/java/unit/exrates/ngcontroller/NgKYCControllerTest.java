@@ -1,4 +1,4 @@
-package me.exrates.ngcontroller;
+package unit.exrates.ngcontroller;
 
 import me.exrates.model.dto.kyc.DocTypeEnum;
 import me.exrates.model.dto.kyc.EventStatus;
@@ -9,6 +9,7 @@ import me.exrates.model.dto.kyc.VerificationStep;
 import me.exrates.model.dto.kyc.responces.DispatchInfo;
 import me.exrates.model.dto.kyc.responces.KycStatusResponseDto;
 import me.exrates.model.dto.kyc.responces.OnboardingResponseDto;
+import me.exrates.ngcontroller.NgKYCController;
 import me.exrates.service.KYCService;
 import me.exrates.service.KYCSettingsService;
 import me.exrates.service.UserService;

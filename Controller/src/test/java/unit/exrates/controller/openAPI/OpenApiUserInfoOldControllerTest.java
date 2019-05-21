@@ -1,12 +1,9 @@
-package me.exrates.controller.openAPI;
+package unit.exrates.controller.openAPI;
 
-import me.exrates.controller.openAPI.config.WebAppTestConfig;
-import me.exrates.dao.exception.notfound.UserNotFoundException;
-import me.exrates.model.User;
+import unit.exrates.controller.openAPI.config.WebAppTestConfig;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.exceptions.OpenApiException;
 import me.exrates.security.config.OpenApiSecurityConfig;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;

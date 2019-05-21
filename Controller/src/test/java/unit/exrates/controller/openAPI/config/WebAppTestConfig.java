@@ -1,4 +1,4 @@
-package me.exrates.controller.openAPI.config;
+package unit.exrates.controller.openAPI.config;
 
 import me.exrates.dao.IeoDetailsRepository;
 import me.exrates.security.service.OpenApiAuthService;

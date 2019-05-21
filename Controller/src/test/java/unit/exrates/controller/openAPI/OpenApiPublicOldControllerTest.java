@@ -1,6 +1,6 @@
-package me.exrates.controller.openAPI;
+package unit.exrates.controller.openAPI;
 
-import me.exrates.controller.openAPI.config.WebAppTestConfig;
+import unit.exrates.controller.openAPI.config.WebAppTestConfig;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.enums.IntervalType;
 import me.exrates.model.enums.OrderType;

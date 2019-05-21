@@ -1,8 +1,9 @@
-package me.exrates.ngcontroller;
+package unit.exrates.ngcontroller;
 
 import me.exrates.model.User;
 import me.exrates.model.dto.Generic2faResponseDto;
 import me.exrates.model.ngExceptions.NgResponseException;
+import me.exrates.ngcontroller.NgTwoFaController;
 import me.exrates.security.service.NgUserService;
 import me.exrates.service.UserService;
 import me.exrates.service.notifications.G2faService;

@@ -1,4 +1,4 @@
-package me.exrates.ngcontroller;
+package unit.exrates.ngcontroller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.dao.chat.telegram.TelegramChatDao;
@@ -16,6 +16,7 @@ import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import me.exrates.ngService.NgOrderService;
+import me.exrates.ngcontroller.NgPublicController;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.service.NgUserService;
 import me.exrates.service.ChatService;

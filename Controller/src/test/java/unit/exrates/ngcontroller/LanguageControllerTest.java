@@ -1,6 +1,7 @@
-package me.exrates.ngcontroller;
+package unit.exrates.ngcontroller;
 
 import me.exrates.model.ngExceptions.NgResponseException;
+import me.exrates.ngcontroller.LanguageController;
 import me.exrates.service.UserService;
 import org.junit.Assert;
 import org.junit.Before;

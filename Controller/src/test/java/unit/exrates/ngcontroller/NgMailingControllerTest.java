@@ -1,5 +1,6 @@
-package me.exrates.ngcontroller;
+package unit.exrates.ngcontroller;
 
+import me.exrates.ngcontroller.NgMailingController;
 import me.exrates.service.SendMailService;
 import org.junit.Before;
 import org.junit.Test;

@@ -1,4 +1,4 @@
-package me.exrates.ngcontroller;
+package unit.exrates.ngcontroller;
 
 import me.exrates.model.NotificationOption;
 import me.exrates.model.SessionParams;
@@ -13,6 +13,7 @@ import me.exrates.model.ngModel.UserDocVerificationDto;
 import me.exrates.model.ngModel.UserInfoVerificationDto;
 import me.exrates.model.ngModel.enums.VerificationDocumentType;
 import me.exrates.ngService.UserVerificationService;
+import me.exrates.ngcontroller.NgUserSettingsController;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.service.AuthTokenService;
