@@ -1,10 +1,10 @@
-<config xmlns="config" active="true" onlyThis="false" patch="IEO_DETAILS">
+<config xmlns="config" active="true" onlyThis="false" patch="default,USER_AND_USER_ROLE">
 
     <description>
         ngcontroller package
     </description>
 
-    <get url="/api/public/v2/ieo">
+    <get url="/api/public/v2/if_email_exists?email=delfin693@yandex.ru">
 
         <header name="Content-Type" value="application/json"></header>
 

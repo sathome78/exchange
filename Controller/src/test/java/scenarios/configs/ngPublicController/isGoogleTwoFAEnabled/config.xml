@@ -1,0 +1,13 @@
+<config xmlns="config" active="true" onlyThis="true" patch="default,test">
+
+    <description>
+        NgPublicController
+    </description>
+
+    <get url="/api/public/v2/is_google_2fa_enabled/?email=delfin693@yandex.ru">
+
+        <header name="Content-Type" value="application/json"/>
+
+        <response code="200" file="action_1.json"/>
+    </get>
+</config>
