@@ -50,6 +50,7 @@ import org.springframework.web.context.WebApplicationContext;
 import web.config.DatabaseConfig;
 import web.config.TestContextConfig;
 import web.config.TestDatabaseConfig;
+import web.config.WebAppConfig;
 
 import javax.sql.DataSource;
 import java.io.File;

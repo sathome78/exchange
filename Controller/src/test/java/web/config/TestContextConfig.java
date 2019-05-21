@@ -1,19 +1,29 @@
 package web.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import me.exrates.dao.ApiAuthTokenDao;
 import me.exrates.dao.OrderDao;
 import me.exrates.dao.StopOrderDao;
 import me.exrates.dao.UserDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.dao.chat.telegram.TelegramChatDao;
+import me.exrates.dao.impl.ApiAuthTokenDaoImpl;
+import me.exrates.dao.impl.OrderDaoImpl;
+import me.exrates.dao.impl.StopOrderDaoImpl;
+import me.exrates.dao.impl.UserDaoImpl;
+import me.exrates.dao.impl.WalletDaoImpl;
 import me.exrates.ngService.BalanceService;
 import me.exrates.ngService.NgOrderService;
 import me.exrates.ngService.UserVerificationService;
 import me.exrates.ngcontroller.NgOptionsController;
 import me.exrates.security.ipsecurity.IpBlockingService;
+import me.exrates.security.ipsecurity.IpBlockingServiceImpl;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.security.service.NgUserService;
 import me.exrates.security.service.SecureService;
+import me.exrates.security.service.impl.NgUserServiceImpl;
+import me.exrates.security.service.impl.SecureServiceImpl;
+import me.exrates.security.service.impl.UserDetailsServiceImpl;
 import me.exrates.service.ChatService;
 import me.exrates.service.CommissionService;
 import me.exrates.service.CurrencyService;
@@ -39,28 +49,48 @@ import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
 import me.exrates.service.cache.ExchangeRatesHolder;
+import me.exrates.service.impl.CommissionServiceImpl;
+import me.exrates.service.impl.CurrencyServiceImpl;
+import me.exrates.service.impl.DashboardServiceImpl;
+import me.exrates.service.impl.GtagRefillServiceImpl;
+import me.exrates.service.impl.InputOutputServiceImpl;
+import me.exrates.service.impl.KYCSettingsServiceImpl;
+import me.exrates.service.impl.MerchantServiceImpl;
 import me.exrates.service.impl.NewsParserImpl;
+import me.exrates.service.impl.NotificationServiceImpl;
+import me.exrates.service.impl.OpenApiTokenServiceImpl;
+import me.exrates.service.impl.OrderServiceImpl;
+import me.exrates.service.impl.ReferralServiceImpl;
+import me.exrates.service.impl.RefillServiceImpl;
+import me.exrates.service.impl.SendMailServiceImpl;
+import me.exrates.service.impl.SessionParamsServiceImpl;
+import me.exrates.service.impl.TemporalTokenServiceImpl;
+import me.exrates.service.impl.TransferServiceImpl;
 import me.exrates.service.impl.UserServiceImpl;
-import me.exrates.service.merchantStrategy.IMerchantService;
+import me.exrates.service.impl.WalletServiceImpl;
+import me.exrates.service.impl.WithdrawServiceImpl;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
+import me.exrates.service.merchantStrategy.MerchantServiceContextImpl;
 import me.exrates.service.notifications.G2faService;
+import me.exrates.service.notifications.Google2faNotificatorServiceImpl;
 import me.exrates.service.stomp.StompMessenger;
+import me.exrates.service.stomp.StompMessengerImpl;
 import me.exrates.service.stopOrder.StopOrderService;
+import me.exrates.service.stopOrder.StopOrderServiceImpl;
 import me.exrates.service.userOperation.UserOperationService;
-import me.exrates.service.util.RateLimitService;
+import me.exrates.service.userOperation.UserOperationServiceImpl;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
-import javax.sql.DataSource;
-import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 
 @Configuration
 @EnableWebMvc
@@ -69,6 +99,12 @@ import java.util.Map;
         "me.exrates.controller.advice"
 })
 public class TestContextConfig {
+
+    @Autowired
+    private MessageSource messageSource;
+    @Autowired
+    private HttpServletRequest httpServletRequest;
+
     @Bean
     public UserService userService() {
         return new UserServiceImpl();
@@ -76,37 +112,30 @@ public class TestContextConfig {
 
     @Bean
     public NgUserService ngUserService() {
-        return Mockito.mock(NgUserService.class);
+        return new NgUserServiceImpl(userDao(),
+                userService(),
+                messageSource,
+                sendMailService(),
+                authTokenService(),
+                referralService(),
+                ipBlockingService(),
+                temporalTokenService(),
+                httpServletRequest);
     }
 
     @Bean
     public StompMessenger stompMessenger() {
-        return Mockito.mock(StompMessenger.class);
-    }
-
-    @Bean(name = "angularTestDataSource")
-    public DataSource dataSource() {
-        return Mockito.mock(DataSource.class);
-    }
-
-    @Bean("slaveTemplate")
-    public NamedParameterJdbcTemplate slaveTemplate() {
-        return Mockito.mock(NamedParameterJdbcTemplate.class);
-    }
-
-    @Bean("masterTemplate")
-    public NamedParameterJdbcTemplate masterTemplate() {
-        return Mockito.mock(NamedParameterJdbcTemplate.class);
+        return new StompMessengerImpl();
     }
 
     @Bean
     public InputOutputService inputOutputService() {
-        return Mockito.mock(InputOutputService.class);
+        return new InputOutputServiceImpl();
     }
 
     @Bean
     public WalletDao walletDao() {
-        return Mockito.mock(WalletDao.class);
+        return new WalletDaoImpl();
     }
 
     @Bean
@@ -116,47 +145,37 @@ public class TestContextConfig {
 
     @Bean
     public MerchantServiceContext merchantServiceContext() {
-        return Mockito.mock(MerchantServiceContext.class);
-    }
-
-    @Bean
-    public Map<String, IMerchantService> merchantServiceMap() {
-        return Mockito.mock(Map.class);
+        return new MerchantServiceContextImpl();
     }
 
     @Bean
     public MerchantService merchantService() {
-        return Mockito.mock(MerchantService.class);
-    }
-
-    @Bean
-    public LocaleResolver localeResolver() {
-        return Mockito.mock(LocaleResolver.class);
+        return new MerchantServiceImpl();
     }
 
     @Bean
     public RefillService refillService() {
-        return Mockito.mock(RefillService.class);
+        return new RefillServiceImpl();
     }
 
     @Bean
     public WalletService walletService() {
-        return Mockito.mock(WalletService.class);
+        return new WalletServiceImpl();
     }
 
     @Bean
     public CurrencyService currencyService() {
-        return Mockito.mock(CurrencyService.class);
+        return new CurrencyServiceImpl();
     }
 
     @Bean
     public OrderService orderService() {
-        return Mockito.mock(OrderService.class);
+        return new OrderServiceImpl();
     }
 
     @Bean
     public OrderDao orderDao() {
-        return Mockito.mock(OrderDao.class);
+        return new OrderDaoImpl();
     }
 
     @Bean
@@ -166,22 +185,17 @@ public class TestContextConfig {
 
     @Bean
     public StopOrderDao stopOrderDao() {
-        return Mockito.mock(StopOrderDao.class);
+        return new StopOrderDaoImpl();
     }
 
     @Bean
     public DashboardService dashboardService() {
-        return Mockito.mock(DashboardService.class);
-    }
-
-    @Bean
-    public SimpMessagingTemplate simpMessagingTemplate() {
-        return Mockito.mock(SimpMessagingTemplate.class);
+        return new DashboardServiceImpl();
     }
 
     @Bean
     public StopOrderService stopOrderService() {
-        return Mockito.mock(StopOrderService.class);
+        return new StopOrderServiceImpl();
     }
 
     @Bean
@@ -191,32 +205,27 @@ public class TestContextConfig {
 
     @Bean
     public KYCSettingsService kycSettingsService() {
-        return Mockito.mock(KYCSettingsService.class);
+        return new KYCSettingsServiceImpl();
     }
 
     @Bean
     public SendMailService sendMailService() {
-        return Mockito.mock(SendMailService.class);
+        return new SendMailServiceImpl();
     }
 
     @Bean
     public CommissionService commissionService() {
-        return Mockito.mock(CommissionService.class);
+        return new CommissionServiceImpl();
     }
 
     @Bean
     public WithdrawService withdrawService() {
-        return Mockito.mock(WithdrawService.class);
+        return new WithdrawServiceImpl();
     }
 
     @Bean
     public TransferService transferService() {
-        return Mockito.mock(TransferService.class);
-    }
-
-    @Bean
-    public RateLimitService rateLimitService() {
-        return Mockito.mock(RateLimitService.class);
+        return new TransferServiceImpl();
     }
 
     @Bean
@@ -226,32 +235,42 @@ public class TestContextConfig {
 
     @Bean
     public IpBlockingService ipBlockingService() {
-        return Mockito.mock(IpBlockingService.class);
+        return new IpBlockingServiceImpl();
     }
 
     @Bean
     public UserDao userDao() {
-        return Mockito.mock(UserDao.class);
+        return new UserDaoImpl();
     }
 
     @Bean
     public AuthTokenService authTokenService() {
+//        return new AuthTokenServiceImpl(passwordEncoder,
+//                getApiAuthTokenDao(),
+//                userDetailsService(),
+//                sessionParamsService(),
+//                referralService());
         return Mockito.mock(AuthTokenService.class);
     }
 
     @Bean
+    public ApiAuthTokenDao getApiAuthTokenDao() {
+        return new ApiAuthTokenDaoImpl(masterTemplate());
+    }
+
+    @Bean
     public ReferralService referralService() {
-        return Mockito.mock(ReferralService.class);
+        return new ReferralServiceImpl();
     }
 
     @Bean
     public TemporalTokenService temporalTokenService() {
-        return Mockito.mock(TemporalTokenService.class);
+        return new TemporalTokenServiceImpl();
     }
 
     @Bean
     public G2faService g2faService() {
-        return Mockito.mock(G2faService.class);
+        return new Google2faNotificatorServiceImpl();
     }
 
     @Bean
@@ -261,32 +280,27 @@ public class TestContextConfig {
 
     @Bean
     public UserOperationService userOperationService() {
-        return Mockito.mock(UserOperationService.class);
+        return new UserOperationServiceImpl();
     }
 
     @Bean
     public SecureService secureService() {
-        return Mockito.mock(SecureService.class);
+        return new SecureServiceImpl();
     }
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return Mockito.mock(UserDetailsService.class);
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return Mockito.mock(PasswordEncoder.class);
+        return new UserDetailsServiceImpl();
     }
 
     @Bean
     public NotificationService notificationService() {
-        return Mockito.mock(NotificationService.class);
+        return new NotificationServiceImpl();
     }
 
     @Bean
     public SessionParamsService sessionParamsService() {
-        return Mockito.mock(SessionParamsService.class);
+        return new SessionParamsServiceImpl();
     }
 
     @Bean
@@ -301,7 +315,7 @@ public class TestContextConfig {
 
     @Bean
     public GtagRefillService gtagRefillService() {
-        return Mockito.mock(GtagRefillService.class);
+        return new GtagRefillServiceImpl();
     }
 
     @Bean
@@ -326,11 +340,21 @@ public class TestContextConfig {
 
     @Bean
     public OpenApiTokenService openApiTokenService() {
-        return Mockito.mock(OpenApiTokenService.class);
+        return new OpenApiTokenServiceImpl();
     }
 
     @Bean
     public NewsParser newsParser() {
         return new NewsParserImpl();
+    }
+
+    @Bean("slaveTemplate")
+    public NamedParameterJdbcTemplate slaveTemplate() {
+        return Mockito.mock(NamedParameterJdbcTemplate.class);
+    }
+
+    @Bean("masterTemplate")
+    public NamedParameterJdbcTemplate masterTemplate() {
+        return Mockito.mock(NamedParameterJdbcTemplate.class);
     }
 }
