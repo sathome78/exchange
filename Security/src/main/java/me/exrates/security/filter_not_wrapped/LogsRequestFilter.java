@@ -1,6 +1,7 @@
 package me.exrates.security.filter_not_wrapped;
 
 import co.elastic.apm.api.ElasticApm;
+import co.elastic.apm.api.Span;
 import co.elastic.apm.api.Transaction;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
@@ -33,6 +34,8 @@ import static me.exrates.service.logs.LoggingUtils.*;
 
 @Log4j2(topic = "Controller_layer_log")
 public class LogsRequestFilter extends GenericFilterBean {
+
+    private static final long SLOW_REQUEST_THREESHOLD_MS = 5000;
 
     private static final List<MediaType> VISIBLE_TYPES = Arrays.asList(
             MediaType.valueOf("text/*"),
@@ -69,11 +72,12 @@ public class LogsRequestFilter extends GenericFilterBean {
                 transaction.addLabel("result", result);
                 Integer txCount = QuerriesCountThreadLocal.getCountAndUnsetVarialbe();
                 transaction.addLabel("querries_count", txCount);
+                long execTime = getExecutionTime(start);
                 log.debug(new ControllerLog(
                         getFullUrl(request),
                         getHttpMethod(request),
                         getAuthenticatedUser(),
-                        getExecutionTime(start),
+                        execTime,
                         response.getStatusCode(),
                         getUserAgent(request),
                         getClientIP(request),
@@ -84,9 +88,15 @@ public class LogsRequestFilter extends GenericFilterBean {
                         getArgs(request),
                         txCount)
                 );
+                logSlowRequest(transaction, execTime);
             }
             response.copyBodyToResponse();
         }
+    }
+
+    private void logSlowRequest(Transaction transaction, long execTime) {
+        if (execTime > SLOW_REQUEST_THREESHOLD_MS)
+        transaction.addLabel("slow_request", execTime);
     }
 
     private boolean needToLog(HttpServletRequest request) {

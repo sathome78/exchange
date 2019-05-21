@@ -5,7 +5,6 @@ public class QuerriesCountThreadLocal {
 
     private static final ThreadLocal userThreadLocal = new ThreadLocal();
 
-    private static void set(Context context) {userThreadLocal.set(context);}
 
     public static Integer inc() {
         Context context = get();

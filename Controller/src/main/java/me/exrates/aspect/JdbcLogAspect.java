@@ -29,7 +29,7 @@ import static me.exrates.service.logs.LoggingUtils.*;
 @Component
 public class JdbcLogAspect {
 
-    private static final long SLOW_QUERRY_MS = 100/*5000*/;
+    private static final long SLOW_QUERRY_THREESHOLD_MS = 1000;
 
     @Pointcut("execution(* org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate..*(..)) || " +
             "(execution(* org.springframework.jdbc.core.JdbcOperations..*(..))))")
@@ -62,14 +62,12 @@ public class JdbcLogAspect {
             throw ex;
         } finally {
             QuerriesCountThreadLocal.inc();
-            span.end();
             long exTime = getExecutionTime(start);
             mLog = new MethodsLog(method, args, result, user, exTime, exStr);
             log.debug(mLog);
             ProcessIDManager.getProcessIdFromCurrentThread().ifPresent(p-> userLogsHandler.onUserLogEvent(new LogsWrapper(mLog, p, LogsTypeEnum.SQL_QUERY)));
-            if (exTime > SLOW_QUERRY_MS) {
-                logSlowQuerry(span, exTime);
-            }
+            logSlowQuerry(span, exTime);
+            span.end();
         }
     }
 
@@ -84,7 +82,9 @@ public class JdbcLogAspect {
     }
 
     private void logSlowQuerry(Span span, long execTime) {
-        span.addLabel("slow_querry", execTime);
+        if (execTime > SLOW_QUERRY_THREESHOLD_MS) {
+            span.addLabel("slow_querry", execTime);
+        }
     }
 
 
