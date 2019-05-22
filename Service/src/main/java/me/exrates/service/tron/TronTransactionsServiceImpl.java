@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
@@ -127,11 +126,9 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
         return rawResponse.getBoolean("confirmed");
     }
 
-    @Transactional
     @Override
-    public void createAndProcessTransaction(TronReceivedTransactionDto p) {
-        RefillRequestAcceptDto acceptDto = tronService.createRequest(p);
-        processTransaction(acceptDto.getRequestId(), p.getAddressBase58(), p.getHash(), p.getAmount(), p.getMerchantId(), p.getCurrencyId());
+    public void processTransaction(TronReceivedTransactionDto p) {
+        processTransaction(p.getId(), p.getAddressBase58(), p.getHash(), p.getAmount(), p.getMerchantId(), p.getCurrencyId());
     }
 
     @Override
