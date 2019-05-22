@@ -12,6 +12,7 @@ public class HttpCallsLog {
     private String requestHeaders;
     private String requestBody;
     private long executionTime;
+    private String userEmail;
     private String responseStatus;
     private String response;
     private String responseHeaders;

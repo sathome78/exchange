@@ -1,6 +1,8 @@
 package httpClient;
 
 
+import co.elastic.apm.api.ElasticApm;
+import co.elastic.apm.api.Span;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
@@ -15,6 +17,9 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import processIdManager.ProcessIDManager;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -30,71 +35,101 @@ import java.util.List;
 @Log4j2(topic = "http_client")
 public class CommonHttpClientImpl implements CommonHttpClient {
 
+    private static final String NAME = "CommonHttpClient_REQUEST";
+
+    private static final String TYPE = "3RD_party_request";
+
     private final CloseableHttpClient client = HttpClients.createDefault();
 
     @Override
     public HttpResponseWithEntity execute(HttpUriRequest request) throws IOException {
         long start = System.currentTimeMillis();
+        String authUser = getAuthenticatedUser();
         String requestBody = tryToGetBodyFromRequest(request);
+        Span span = ElasticApm.currentTransaction().startSpan(TYPE, StringUtils.EMPTY, TYPE);
+        span.setName(NAME);
+        String prId = ProcessIDManager.getCurrentOrRegisterNewProcess(getClass());
+        HttpCallsLog callsLog = null;
         try (CloseableHttpResponse response = client.execute(request)) {
             String resEntityToString = getResponseEntityFromResponse(response.getEntity());
             HttpResponseWithEntity httpResponseWithEntity = new HttpResponseWithEntity(response, resEntityToString, response.getStatusLine().getStatusCode());
-            log.debug(new HttpCallsLog(
+            callsLog = new HttpCallsLog(
                     request.getURI().toString(),
                     request.getMethod(),
                     Arrays.toString(request.getAllHeaders()),
                     requestBody,
                     getExecutionTime(start),
+                    authUser,
                     response.getStatusLine().toString(),
                     resEntityToString,
                     Arrays.toString(response.getAllHeaders()),
-                    StringUtils.EMPTY));
+                    StringUtils.EMPTY);
             EntityUtils.consume(response.getEntity());
             return httpResponseWithEntity;
         } catch (Exception e) {
-            log.debug(new HttpCallsLog(
+            callsLog = new HttpCallsLog(
                     request.getURI().toString(),
                     request.getMethod(),
                     Arrays.toString(request.getAllHeaders()),
                     requestBody,
                     getExecutionTime(start),
+                    authUser,
                     StringUtils.EMPTY,
                     StringUtils.EMPTY,
                     StringUtils.EMPTY,
-                    formatException(e)));
+                    formatException(e));
+            span.captureException(e);
             throw e;
+        } finally {
+            span.addLabel("process_id", prId);
+            span.addLabel("full_request_log", callsLog != null ? callsLog.toString() : null);
+            log.debug(callsLog);
+            span.end();
         }
     }
 
     @Override
     public <T> T execute(HttpUriRequest request, ResponseHandler<? extends T> responseHandler) throws IOException {
         long start = System.currentTimeMillis();
+        String authUser = getAuthenticatedUser();
         String requestBody = tryToGetBodyFromRequest(request);
+        Span span = ElasticApm.currentTransaction().startSpan(TYPE, StringUtils.EMPTY, TYPE);
+        span.setName(NAME);
+        String prId = ProcessIDManager.getCurrentOrRegisterNewProcess(getClass());
+        HttpCallsLog callsLog = null;
         try {
             T response = client.execute(request, responseHandler);
-            log.debug(new HttpCallsLog(
+            callsLog = new HttpCallsLog(
                     request.getURI().toString(),
                     request.getMethod(),
                     Arrays.toString(request.getAllHeaders()),
                     requestBody,
                     getExecutionTime(start),
+                    authUser,
                     StringUtils.EMPTY,
                     response.toString(),
                     StringUtils.EMPTY,
-                    StringUtils.EMPTY));
+                    StringUtils.EMPTY);
             return response;
         } catch (Exception e) {
-            log.debug(new HttpCallsLog(
+            callsLog = new HttpCallsLog(
                     request.getURI().toString(),
                     request.getMethod(),
                     Arrays.toString(request.getAllHeaders()),
                     requestBody,
                     getExecutionTime(start),
+                    authUser,
                     StringUtils.EMPTY,
                     StringUtils.EMPTY,
                     StringUtils.EMPTY,
-                    formatException(e)));
+                    formatException(e));
+            span.captureException(e);
             throw e;
+        } finally {
+            span.addLabel("process_id", prId);
+            span.addLabel("full_request_log", callsLog != null ? callsLog.toString() : null);
+            span.end();
+            log.debug(callsLog);
         }
     }
 
@@ -126,21 +161,9 @@ public class CommonHttpClientImpl implements CommonHttpClient {
     }
 
 
-    public static void main(String[] args) throws UnsupportedEncodingException {
-        CommonHttpClientImpl client = new CommonHttpClientImpl();
-        HttpGet httpGet = new HttpGet("http://api.geetest.com/register.php?gt=034eb227cbea45e4780ec3624921356b&json_format=1&user_id=test&client_type=web&ip_address=127.0.0.1");
-        HttpPost httpPost = new HttpPost("http://www.example.com");
-        String json = "";
-        httpPost.addHeader("content", "hidden");
-        List<NameValuePair> params = new ArrayList<NameValuePair>();
-        params.add(new BasicNameValuePair("username", "John"));
-        params.add(new BasicNameValuePair("password", "pass"));
-        try {
-            HttpResponseWithEntity response = client.execute(httpGet);
-            System.out.println(response);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public static String getAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication == null ? null : authentication.getName();
     }
 
 }

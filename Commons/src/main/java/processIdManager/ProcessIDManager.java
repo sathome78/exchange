@@ -1,6 +1,7 @@
 package processIdManager;
 
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -31,6 +32,14 @@ public class ProcessIDManager {
         String parentProcessId = request.getHeader(X_REQUEST_ID_HEADER);
         String newProcessId = generateId(parentProcessId);
         setProcessId(newProcessId);
+    }
+
+    public static String getCurrentOrRegisterNewProcess(Class<?> cls) {
+        return getProcessIdFromCurrentThread()
+                .orElseGet(() -> {
+                    registerNewThreadForParentProcessId(cls, Optional.empty());
+                    return getProcessIdFromCurrentThread().orElse(StringUtils.EMPTY);
+                });
     }
 
     public static void registerNewProcessForRequest(Class<?> cls, HttpServletRequest request, ProcessCallback pc) {

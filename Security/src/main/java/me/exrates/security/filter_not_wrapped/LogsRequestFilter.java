@@ -95,8 +95,9 @@ public class LogsRequestFilter extends GenericFilterBean {
     }
 
     private void logSlowRequest(Transaction transaction, long execTime) {
-        if (execTime > SLOW_REQUEST_THREESHOLD_MS)
-        transaction.addLabel("slow_request", execTime);
+        if (execTime > SLOW_REQUEST_THREESHOLD_MS) {
+            transaction.addLabel("slow_request", execTime);
+        }
     }
 
     private boolean needToLog(HttpServletRequest request) {
