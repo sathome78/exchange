@@ -193,4 +193,6 @@ public interface RefillService {
     default void processRefillRequest(WalletOperationMsDto walletOperationMsDto){
         throw new NotImplementedException();
     }
+
+    String getPrivKeyByAddress(String address);
 }

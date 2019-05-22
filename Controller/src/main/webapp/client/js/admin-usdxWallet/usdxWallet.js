@@ -2,9 +2,15 @@ var txHistoryDataTable;
 var urlBase;
 
 $(function () {
+    var $passwordModal = $('#usdx-password-modal');
+
     urlBase = '/2a8fy7b07dxe44/usdxWallet/';
 
-    updateTxHistoryTable();
+    updateUsdxTxHistoryTable();
+
+    $('#button-reset-trans-fields').click(function () {
+        resetUsdxTransactionForm();
+    });
 
     $('#create-refill').click(function () {
         var formData = $('#createRefillForm').serialize();
@@ -22,42 +28,66 @@ $(function () {
         })
     });
 
-    $('#button-send-trans').click(function () {
-        var formData = $('#usdx-transaction').serialize();
+    $('#button-usdx-send-trans').click(function () {
+        $($passwordModal).modal();
+    });
+
+    $('#button-send-usdx-wallet-transaction-pass').click(function () {
         $.ajax({
             url: urlBase + 'sendTransaction',
             type: 'POST',
             headers: {
                 'X-CSRF-Token': $("input[name='_csrf']").val()
             },
-            data: formData,
-            success: function (data) {
-                alert(data);
+            data: {
+                password: $('#usdx-password').val(),
+                accountName: $('#accountNameUsdxWallet').val(),
+                amount: $('#amountUsdxWallet').val(),
+                currency: $('#currencyUsdxWallet').val(),
+                memo: $('#memoUsdxWallet').val(),
+                customData: $('#customDataUsdxWallet').val()
+            },
+            success: function () {
+                resetUsdxTransactionForm();
+                $($passwordModal).modal('hide');
+                location.reload();
             }
         })
     });
 
     $('#accountNameUsdxWallet').on("change keyup", function(){
-        checkSendTransactionForm();
+        checkUsdxTransactionForm();
     });
     $('#amountUsdxWallet').on("change keyup", function(){
-        checkSendTransactionForm();
+        checkUsdxTransactionForm();
+    });
+    $('#memoUsdxWallet').on("change keyup", function(){
+        checkUsdxTransactionForm();
+    });
+    $('#customDataUsdxWallet').on("change keyup", function(){
+        checkUsdxTransactionForm();
     });
 });
 
-function checkSendTransactionForm() {
+function resetUsdxTransactionForm() {
+    $('#usdx-transaction')[0].reset();
+
+    checkUsdxTransactionForm();
+}
+
+function checkUsdxTransactionForm() {
     var accountName = $('#accountNameUsdxWallet').val();
     var amount = $('#amountUsdxWallet').val();
     var currency = $('#currencyUsdxWallet').val();
 
     if (accountName && amount && currency) {
-        $("#button-send-trans").prop('disabled', false);
+        $("#button-usdx-send-trans").prop('disabled', false);
     } else {
-        $("#button-send-trans").prop('disabled', true);
+        $("#button-usdx-send-trans").prop('disabled', true);
     }
 }
 
-function updateTxHistoryTable() {
+function updateUsdxTxHistoryTable() {
     var $txHistoryTable = $('#txHistory');
     var viewMessage = $('#viewMessage').text();
     var url = urlBase + 'history';
@@ -157,7 +187,7 @@ function viewTransactionData($elem) {
     $.get(url, function (data) {
         if (data['result']) {
             var result = data['result'];
-            $('#btcTxInfoTable').show();
+            $('#usdxTxInfoTable').show();
             $('#no-address').hide();
             hideRowIfAbsent('#info-id', result.id);
             hideRowIfAbsent('#info-dateCreation', result.dateCreation);
@@ -168,16 +198,15 @@ function viewTransactionData($elem) {
                 $('#create-refill').show();
                 var $form = $('#createRefillForm');
                 $($form).find('input[name="txId"]').val(rowData.transferId);
-                $($form).find('input[name="address"]').val(rowData.memo);
             } else {
                 $('#create-refill').hide();
             }
         } else {
-            $('#btcTxInfoTable').hide();
+            $('#usdxTxInfoTable').hide();
             $('#create-refill').hide();
             $('#no-address').show();
         }
-        $('#btc-tx-info-modal').modal();
+        $('#usdx-transaction-info-modal').modal();
     })
 }
 
