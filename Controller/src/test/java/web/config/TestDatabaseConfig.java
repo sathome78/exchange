@@ -14,6 +14,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.datasource.init.DataSourceInitializer;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
+import org.springframework.test.context.TestPropertySource;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
@@ -21,7 +22,18 @@ import java.sql.ResultSetMetaData;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
-@PropertySource(value = {"classpath:/db.properties"})
+@TestPropertySource(value = {
+        "classpath:/db.properties",
+        "classpath:/news.properties",
+        "classpath:/mail.properties",
+        "classpath:/angular.properties",
+        "classpath:/twitter.properties",
+        "classpath:/angular.properties",
+        "classpath:/merchants/stellar.properties",
+        "classpath:/geetest.properties",
+        "classpath:/merchants/qiwi.properties",
+        "classpath:/cache.properties"
+})
 public class TestDatabaseConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestDatabaseConfig.class);
     private final static String SCHEMA_NAME = "birzha_test";
@@ -69,6 +81,13 @@ public class TestDatabaseConfig {
     public DataSourceInitializer dataSourceInitializer() {
         ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator();
         resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/init_structure.sql"));
+        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_CURRENCY.sql"));
+        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_ROLE_BUSINESS_FEATURE.sql"));
+        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_ROLE_GROUP_FEATURE.sql"));
+        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_ROLE_REPORT_GROUP_FEATURE.sql"));
+        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_ROLE.sql"));
+        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_OPERATION_TYPE.sql"));
+        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_COMMISSION.sql"));
 
         DataSourceInitializer dataSourceInitializer = new DataSourceInitializer();
         dataSourceInitializer.setDataSource(dataSource());

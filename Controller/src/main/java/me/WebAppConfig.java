@@ -1,4 +1,4 @@
-package me.exrates.config;
+package me;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -8,6 +8,8 @@ import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.SSMGetter;
 import me.exrates.aspect.LoggingAspect;
+import me.exrates.config.CryptocurrencyConfig;
+import me.exrates.config.WebSocketConfig;
 import me.exrates.config.ext.JsonMimeInterceptor;
 import me.exrates.config.ext.LogableErrorHandler;
 import me.exrates.controller.filter.LoggingFilter;
@@ -139,7 +141,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 )
 @PropertySource(value = {
         "classpath:/db.properties",
-        "classpath:/uploadfiles.properties",
         "classpath:/news.properties",
         "classpath:/mail.properties",
         "classpath:/angular.properties",
