@@ -46,8 +46,8 @@ public class LightHouseController {
                 params.put("memo", String.valueOf(usdxTransaction.getMemo()));
                 params.put("amount", String.valueOf(usdxTransaction.getAmount()));
 
-                //For security reason must get header from request and check it
-                usdxService.checkHeaderOnValidForSecurity(request.getHeader(usdxService.getUsdxRestApiService().getSecurityHeaderName()), usdxTransaction);
+                //Additional || For security reason should get header from request and check it
+                //usdxService.checkHeaderOnValidForSecurity(request.getHeader(usdxService.getUsdxRestApiService().getSecurityHeaderName()), usdxTransaction);
 
                 usdxService.processPayment(params);
                 }

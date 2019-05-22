@@ -105,18 +105,20 @@ public class LightHouseServiceImpl implements UsdxService {
             throw new RefillRequestMemoIsNullException(String.format("USDX Wallet transaction with transfer id: %s. MEMO is NULL", merchantTransactionId));
         }
 
-        if(usdxRestApiService.getTransactionStatus(merchantTransactionId) == null){
+        UsdxTransaction usdxTransaction = usdxRestApiService.getTransactionStatus(merchantTransactionId);
+
+        if(usdxTransaction == null){
             log.warn("USDX Wallet transaction with transfer id {} not exists in transactions history.", merchantTransactionId);
             throw new RefillRequestFakePaymentReceivedException(String.format("USDX Wallet transaction with transfer id {} not exists in transactions history. Params: %s",
                     params.toString()));
         }
 
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
-                .address(memo)
+                .address(usdxTransaction.getMemo())
                 .merchantId(merchant.getId())
                 .currencyId(currency.getId())
-                .amount(amount)
-                .merchantTransactionId(merchantTransactionId)
+                .amount(usdxTransaction.getAmount())
+                .merchantTransactionId(usdxTransaction.getTransferId())
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
 
