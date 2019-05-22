@@ -144,7 +144,7 @@ public abstract class AbstractDatabaseContextTest {
         protected abstract String getSchema();
 
         @Autowired
-        private DatabaseConfig databaseConfig;
+        protected DatabaseConfig databaseConfig;
 
         @Bean
         public DatabaseConfig databaseConfig() {
@@ -184,8 +184,8 @@ public abstract class AbstractDatabaseContextTest {
 
         @Bean(name = "testDataSource")
         public DataSource dataSource() {
-            log.debug("DB PROPS: DB URL: " + databaseConfig.getUrl());
             String dbUrl = databaseConfig.getUrl().replace(databaseConfig.getRootSchemeName() + "?", getSchema() + "?");
+            log.debug("DB PROPS: DB URL: " + databaseConfig.getUrl());
             return createDataSource(databaseConfig.getUser(), databaseConfig.getPassword(), dbUrl);
         }
 
