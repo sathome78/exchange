@@ -1270,8 +1270,14 @@ public class AdminController {
 
     @PostMapping("/2a8fy7b07dxe44/usdxWallet/sendTransaction")
     @ResponseBody
-    public UsdxTransaction sendUsdxWalletTransaction(UsdxTransaction usdxTransaction){
-        return usdxService.getUsdxRestApiService().transferAssetsToUserAccount(usdxTransaction);
+    public UsdxTransaction sendUsdxWalletTransaction(@RequestParam String password, UsdxTransaction usdxTransaction){
+        return usdxService.sendUsdxTransactionToExternalWallet(password, usdxTransaction);
+    }
+
+    @PostMapping("/2a8fy7b07dxe44/usdxWallet/createTransaction")
+    @ResponseBody
+    public void getUsdxCreateRefill(@RequestParam Map<String, String> params) {
+        usdxService.createRefillRequestAdmin(params);
     }
 
     @RequestMapping("/2a8fy7b07dxe44/usdxWallet/history")

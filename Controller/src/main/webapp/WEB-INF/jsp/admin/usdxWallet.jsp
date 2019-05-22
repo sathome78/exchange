@@ -80,9 +80,19 @@
                     </div>
                 </div>
 
-                <button id="button-send-trans" class="btn btn-primary" style="margin-top:15px; margin-bottom:15px; width:100%;text-align: center;" disabled>
-                    <loc:message code="admin.submit"/>
-                </button>
+                    <div class="col-md-1"></div>
+                    <button id="button-reset-trans-fields" class="col-md-2 btn btn-warning" style="margin-top:15px; margin-bottom:15px;">
+                        <loc:message code="admin.reset"/>
+                    </button>
+
+                    <div class="col-md-2"></div>
+
+                    <button type="button" id="button-usdx-send-trans" class="col-md-6 btn btn-primary" style="margin-top:15px; margin-bottom:15px;" disabled>
+                        <loc:message code="admin.submit"/>
+                    </button>
+
+                    <div class="col-md-1"></div>
+
                 </form>
             </div>
 
@@ -110,8 +120,32 @@
         </div>
 </main>
 
+<div id="usdx-password-modal" class="modal fade">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title"><loc:message code="btcWallet.password.title"/></h4>
+            </div>
+            <div class="modal-body">
+                <p><loc:message code="btcWallet.password.prompt"/></p>
+                <form id="usdx-password-form" class="form_full_width form_auto_height">
+                    <div class="input-block-wrapper">
+                        <div class="col-md-12 input-block-wrapper__input-wrapper">
+                            <input name="password" class="input-block-wrapper__input admin-form-input" type="text" id="usdx-password">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <button id="button-send-usdx-wallet-transaction-pass" class="delete-order-info__button blue-box" type="button"><loc:message code="admin.submit"/></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-<div id="btc-tx-info-modal" class="modal fade order-info__modal modal-form-dialog" tabindex="-1" role="dialog">
+<div id="usdx-transaction-info-modal" class="modal fade order-info__modal modal-form-dialog" tabindex="-1" role="dialog">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -121,7 +155,7 @@
             </div>
             <div class="modal-body">
                 <div class="well">
-                    <table id="btcTxInfoTable" class="table">
+                    <table id="usdxTxInfoTable" class="table">
                         <tbody>
                         <tr>
                             <td><loc:message code="transaction.id"/></td>
@@ -154,7 +188,6 @@
                 <div hidden>
                     <form id="createRefillForm">
                         <input name="txId">
-                        <input name="address">
                     </form>
                 </div>
 

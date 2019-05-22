@@ -163,11 +163,10 @@ public class UsdxRestApiServiceImpl implements UsdxRestApiService {
     }
 
     @Override
-    public String generateSecurityHeaderValue(String body){
-        String currentTime = String.valueOf(System.currentTimeMillis());
-        String value = algorithmService.sha256(body + apiKey + currentTime);
+    public String generateSecurityHeaderValue(String timestamp, String body){
+        String value = algorithmService.sha256(body + apiKey + timestamp);
 
-        return "t=" + currentTime + ", v1=" + value;
+        return "t=" + timestamp + ", v1=" + value;
     }
 
     @Override
@@ -187,7 +186,7 @@ public class UsdxRestApiServiceImpl implements UsdxRestApiService {
         HttpClientBuilder b = HttpClientBuilder.create();
         List<Header> headers = new ArrayList<>();
 
-        headers.add(new BasicHeader(SECURITY_HEADER_NAME, generateSecurityHeaderValue(body)));
+        headers.add(new BasicHeader(SECURITY_HEADER_NAME, generateSecurityHeaderValue(String.valueOf(System.currentTimeMillis()), body)));
 
         b.setDefaultHeaders(headers);
 
