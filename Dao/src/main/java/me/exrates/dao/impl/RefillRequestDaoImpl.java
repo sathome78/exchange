@@ -1522,4 +1522,20 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         log.debug("Refill request ({}) status has not been updated. Cause: wrong status for update", id);
         return false;
     }
+
+    @Override
+    public boolean setPropertyNeedTransfer(int userId, int currencyId, int merchantId, String address, Boolean needTransfer) {
+        String sql = "UPDATE REFILL_REQUEST_ADDRESS " +
+                "SET need_transfer = :need_transfer " +
+                "WHERE user_id = :user_id AND currency_id = :currency_id AND merchant_id = :merchant_id AND address = :address";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("user_id", userId);
+        params.put("currency_id", currencyId);
+        params.put("merchant_id", merchantId);
+        params.put("address", address);
+        params.put("need_transfer", needTransfer);
+
+        return namedParameterJdbcTemplate.update(sql, params) > 0;
+    }
 }

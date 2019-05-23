@@ -3,6 +3,7 @@ package me.exrates.dao;
 import config.DataComparisonTest;
 import me.exrates.dao.impl.ApiAuthTokenDaoImpl;
 import me.exrates.model.ApiAuthToken;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,7 @@ import java.util.Optional;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertFalse;
-
+@Ignore
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = ApiAuthTokenDaoTest.InnerConfig.class)
 public class ApiAuthTokenDaoTest extends DataComparisonTest {

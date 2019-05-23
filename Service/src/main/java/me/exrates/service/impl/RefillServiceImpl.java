@@ -50,6 +50,7 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.TransactionDescription;
 import me.exrates.model.vo.WalletOperationData;
+import me.exrates.model.vo.WalletOperationMsDto;
 import me.exrates.service.CommissionService;
 import me.exrates.service.CompanyWalletService;
 import me.exrates.service.CurrencyService;
@@ -64,6 +65,7 @@ import me.exrates.service.WalletService;
 import me.exrates.service.exception.CreatorForTheRefillRequestNotDefinedException;
 import me.exrates.service.exception.FileLoadingException;
 import me.exrates.service.exception.InvalidAmountException;
+import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAlreadyAcceptedException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestConditionsForAcceptAreCorruptedException;
@@ -1336,6 +1338,17 @@ public class RefillServiceImpl implements RefillService {
     @Override
     public String getPrivKeyByAddress(String address) {
         return refillRequestDao.getPrivKeyByAddress(address);
+    }
+
+    @Override
+    public void processRefillRequest(WalletOperationMsDto walletOperationMsDto) {
+        throw new NotImplimentedMethod("");
+    }
+
+    @Transactional
+    @Override
+    public boolean changeRefillRequestStatusToOnPending(int id) {
+        return refillRequestDao.changeRefillRequestStatusToOnPending(id);
     }
 
     @Transactional
