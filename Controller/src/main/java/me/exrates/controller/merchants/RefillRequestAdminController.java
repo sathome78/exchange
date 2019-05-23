@@ -21,8 +21,8 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.RequestLimitExceededException;
-import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
+import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,15 +31,27 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.security.Principal;
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -141,6 +153,17 @@ public class RefillRequestAdminController {
         Integer id = refillService.manualCreateRefillRequestCrypto(refillDto, locale);
         return new JSONObject().put("message", messageSource.getMessage("message.refill.manual.created",
                 new String[]{id.toString()}, locale)).toString();
+    }
+
+    @AdminLoggable
+    @PostMapping(value = "/2a8fy7b07dxe44/refill/change-status")
+    @ResponseBody
+    public ResponseEntity changeRefillRequestStatusToOnPending(@RequestParam("refillRequestId") int id) {
+        log.debug("Change refill request status to {}", RefillStatusEnum.ON_PENDING);
+
+        return refillService.changeRefillRequestStatusToOnPending(id)
+                ? ResponseEntity.ok().build()
+                : ResponseEntity.badRequest().build();
     }
 
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)

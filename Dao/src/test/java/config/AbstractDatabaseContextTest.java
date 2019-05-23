@@ -291,6 +291,8 @@ public abstract class AbstractDatabaseContextTest {
         populator.addScript(new ClassPathResource("db/POPULATE_USER_ROLE_REPORT_GROUP_FEATURE.sql"));
         populator.addScript(new ClassPathResource("db/POPULATE_USER_ROLE.sql"));
         populator.addScript(new ClassPathResource("db/POPULATE_OPERATION_TYPE.sql"));
+        //todo: delete temporary migration scripts
+        populator.addScript(new ClassPathResource("db/TEMPORARY_DELETE_AND_ADD_FIELDS_TO_API_AUTH_TOKEN_TABLE.sql"));
         populator.populate(rootDataSource.getConnection());
     }
 

@@ -47,7 +47,7 @@ public class GapiRecieveService {
         merchant = merchantService.findByName(GapiServiceImpl.MERCHANT_NAME);
     }
 
-    @Scheduled(initialDelay = 10 * 1000, fixedDelay = 1000 * 30 * 1)
+    @Scheduled(initialDelay = 10 * 1000, fixedDelay = 1000 * 60 * 5)
     void checkIncomePayment() {
         log.info("*** GAPI *** Scheduler start");
         List<String> listOfAddress = refillService.getListOfValidAddressByMerchantIdAndCurrency(merchant.getId(), currency.getId());

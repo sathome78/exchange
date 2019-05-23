@@ -169,5 +169,5 @@ public interface RefillRequestDao {
 
     String getPrivKeyByAddress(String address);
 
-    boolean setPropertyNeedTransfer(int userId, int currencyId, int merchantId, String address, Boolean needTransfer);
+    boolean changeRefillRequestStatusToOnPending(int id);
 }

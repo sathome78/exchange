@@ -1,9 +1,0 @@
-{
-  "sql" : "SELECT * FROM API_AUTH_TOKEN",
-  "content" : [ {
-    "id" : "1",
-    "username" : "username",
-    "value" : "value",
-    "last_request" : "p(any)"
-  } ]
-}

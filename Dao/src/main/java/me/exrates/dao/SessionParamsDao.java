@@ -2,6 +2,7 @@ package me.exrates.dao;
 
 import me.exrates.model.SessionLifeTimeType;
 import me.exrates.model.SessionParams;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
 
@@ -14,7 +15,9 @@ public interface SessionParamsDao {
 
     SessionParams getByUserEmail(String userEmail);
 
-    SessionParams create(SessionParams sessionLifeType);
+    boolean create(SessionParams sessionLifeType);
 
-    void update(SessionParams sessionParams);
+    boolean update(SessionParams sessionParams);
+
+    List<Pair<String, Integer>> getAll();
 }

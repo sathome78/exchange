@@ -27,6 +27,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -1496,18 +1497,29 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     }
 
     @Override
-    public boolean setPropertyNeedTransfer(int userId, int currencyId, int merchantId, String address, Boolean needTransfer) {
-        String sql = "UPDATE REFILL_REQUEST_ADDRESS " +
-                "SET need_transfer = :need_transfer " +
-                "WHERE user_id = :user_id AND currency_id = :currency_id AND merchant_id = :merchant_id AND address = :address";
+    public boolean changeRefillRequestStatusToOnPending(int id) {
+        final Map<String, Object> params = new HashMap<>();
+        params.put("id", id);
+        params.put("status_id", RefillStatusEnum.ON_PENDING.getCode());
 
-        Map<String, Object> params = new HashMap<>();
-        params.put("user_id", userId);
-        params.put("currency_id", currencyId);
-        params.put("merchant_id", merchantId);
-        params.put("address", address);
-        params.put("need_transfer", needTransfer);
+        String sql = "SELECT status_id FROM REFILL_REQUEST WHERE id = :id FOR UPDATE";
 
-        return namedParameterJdbcTemplate.update(sql, params) > 0;
+        Integer statusIdForUpdate;
+        try {
+            statusIdForUpdate = namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class);
+        } catch (DataAccessException ex) {
+            log.debug("Refill request ({}) is blocked or not found", id, ex);
+            return false;
+        }
+
+        if (RefillStatusEnum.convert(statusIdForUpdate) == RefillStatusEnum.CREATED_BY_FACT) {
+            sql = "UPDATE REFILL_REQUEST " +
+                    "SET status_id = :status_id " +
+                    "WHERE id = :id";
+
+            return namedParameterJdbcTemplate.update(sql, params) > 0;
+        }
+        log.debug("Refill request ({}) status has not been updated. Cause: wrong status for update", id);
+        return false;
     }
 }
