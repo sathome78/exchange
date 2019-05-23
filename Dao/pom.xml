@@ -40,10 +40,13 @@
             </activation>
         </profile>
         <profile>
-            <id>uat</id>
+            <id>devtest</id>
         </profile>
         <profile>
-            <id>devtest</id>
+            <id>uat</id>
+            <properties>
+                <maven.test.skip>true</maven.test.skip>
+            </properties>
         </profile>
         <profile>
             <id>prod</id>
