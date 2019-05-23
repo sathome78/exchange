@@ -1,7 +1,6 @@
 package me.exrates.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.Lists;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -373,7 +372,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @DependsOn("slaveForReportsDataSource")
     @Bean(name = "slaveForReportsTemplate")
     public NamedParameterJdbcTemplate slaveForReportsTemplate(@Qualifier("slaveForReportsDataSource") DataSource dataSource) {
-        return new NamedParameterJdbcTemplate(dataSource);
+        return new NamedParameterJdbcTemplateWrapper(dataSource);
     }
 
     @Primary
@@ -2335,5 +2334,4 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         build.register(new LoggingFilter());
         return build;
     }
-
 }

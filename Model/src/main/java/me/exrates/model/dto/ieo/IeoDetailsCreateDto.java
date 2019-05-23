@@ -45,6 +45,10 @@ public class IeoDetailsCreateDto {
     private LocalDateTime startDate;
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime endDate;
+    private String content;
+    private Boolean isTestIeo;
+    private Integer countTestTransaction;
+    private String logo;
 
     public IEODetails toIEODetails(int makerId, int creatorId) {
         return IEODetails.builder()
@@ -63,6 +67,10 @@ public class IeoDetailsCreateDto {
                 .endDate(endDate)
                 .makerId(makerId)
                 .createdBy(creatorId)
+                .logo(logo)
+                .testIeo(isTestIeo)
+                .countTestTransaction(countTestTransaction)
+                .content(content)
                 .build();
     }
 

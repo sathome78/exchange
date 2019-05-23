@@ -5,7 +5,6 @@ import me.exrates.model.SessionParams;
 import me.exrates.model.User;
 import me.exrates.model.dto.PageLayoutSettingsDto;
 import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.enums.ColorScheme;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.ngExceptions.NgResponseException;
@@ -35,7 +34,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.util.NestedServletException;
 
-import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -382,7 +380,7 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
         params.setSessionLifeTypeId(400);
 
         when(sessionService.isSessionTimeValid(anyInt())).thenReturn(Boolean.TRUE);
-        when(sessionService.saveOrUpdate(anyObject(), anyString())).thenReturn(params);
+        when(sessionService.saveOrUpdate(anyObject(), anyString())).thenReturn(Boolean.TRUE);
 
         mockMvc.perform(put(BASE_URL + SESSION_INTERVAL)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -775,32 +773,5 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
             String expected = "Failed to convert attributes {}.";
             assertEquals(expected, e.getCause().getMessage());
         }
-    }
-
-    @Test
-    public void refreshToken() throws Exception {
-        AuthTokenDto mockTokenDto = new AuthTokenDto();
-        mockTokenDto.setToken("TEST_TOKEN");
-        mockTokenDto.setNickname("TEST_NICKNAME");
-        mockTokenDto.setUserId(100);
-        mockTokenDto.setAvatarPath("TEST_AVATAR_PATH");
-        mockTokenDto.setLocale(Locale.ENGLISH);
-        mockTokenDto.setFinPasswordSet(Boolean.TRUE);
-        mockTokenDto.setReferralReference("TEST_REFRRAL_REFERENCE");
-
-        when(authTokenService.refreshTokenNg(anyString(), any(HttpServletRequest.class))).thenReturn(mockTokenDto);
-
-        mockMvc.perform(get(BASE_URL + "/token/refresh")
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token", is("TEST_TOKEN")))
-                .andExpect(jsonPath("$.nickname", is("TEST_NICKNAME")))
-                .andExpect(jsonPath("$.avatarPath", is("TEST_AVATAR_PATH")))
-                .andExpect(jsonPath("$.finPasswordSet", is(Boolean.TRUE)))
-                .andExpect(jsonPath("$.referralReference", is("TEST_REFRRAL_REFERENCE")))
-                .andExpect(jsonPath("$.id", is(100)))
-                .andExpect(jsonPath("$.language", is("en")));
-
-        verify(authTokenService, times(1)).refreshTokenNg(anyString(), any(HttpServletRequest.class));
     }
 }

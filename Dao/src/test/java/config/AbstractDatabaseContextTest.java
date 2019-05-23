@@ -144,7 +144,7 @@ public abstract class AbstractDatabaseContextTest {
         protected abstract String getSchema();
 
         @Autowired
-        private DatabaseConfig databaseConfig;
+        protected DatabaseConfig databaseConfig;
 
         @Bean
         public DatabaseConfig databaseConfig() {
@@ -171,6 +171,11 @@ public abstract class AbstractDatabaseContextTest {
                 }
 
                 @Override
+                public String getRootSchemeName() {
+                    return properties.getProperty("db.root.name");
+                }
+
+                @Override
                 public String getSchemaName() {
                     return getSchema();
                 }
@@ -179,8 +184,8 @@ public abstract class AbstractDatabaseContextTest {
 
         @Bean(name = "testDataSource")
         public DataSource dataSource() {
+            String dbUrl = databaseConfig.getUrl().replace(databaseConfig.getRootSchemeName() + "?", getSchema() + "?");
             log.debug("DB PROPS: DB URL: " + databaseConfig.getUrl());
-            String dbUrl = createConnectionURL(databaseConfig.getUrl(), getSchema());
             return createDataSource(databaseConfig.getUser(), databaseConfig.getPassword(), dbUrl);
         }
 
@@ -230,6 +235,7 @@ public abstract class AbstractDatabaseContextTest {
                 properties.setProperty("db.master.classname", "com.mysql.jdbc.Driver");
                 properties.setProperty("db.master.user", "root");
                 properties.setProperty("db.master.password", "root");
+                properties.setProperty("db.root.name", "birzha");
                 return properties;
             }
             String path = "./../Controller/src/main/" + resourceDirectory + "/db.properties";
@@ -285,6 +291,8 @@ public abstract class AbstractDatabaseContextTest {
         populator.addScript(new ClassPathResource("db/POPULATE_USER_ROLE_REPORT_GROUP_FEATURE.sql"));
         populator.addScript(new ClassPathResource("db/POPULATE_USER_ROLE.sql"));
         populator.addScript(new ClassPathResource("db/POPULATE_OPERATION_TYPE.sql"));
+        //todo: delete temporary migration scripts
+        populator.addScript(new ClassPathResource("db/TEMPORARY_DELETE_AND_ADD_FIELDS_TO_API_AUTH_TOKEN_TABLE.sql"));
         populator.populate(rootDataSource.getConnection());
     }
 
@@ -297,8 +305,8 @@ public abstract class AbstractDatabaseContextTest {
         return new HikariDataSource(config);
     }
 
-    private static String createConnectionURL(String dbUrl, String newSchemaName) {
-        return dbUrl.replace("birzha", newSchemaName);
+    private String createConnectionURL(String dbUrl, String newSchemaName) {
+        return dbUrl.replace(dbConfig.getRootSchemeName() + "?", newSchemaName + "?");
     }
 
     private boolean isSchemeValid(DataSource rootDataSource) {

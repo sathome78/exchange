@@ -1,7 +1,7 @@
 package me.exrates.dao;
 
-import me.exrates.dao.impl.ApiAuthTokenDaoImpl;
 import config.DataComparisonTest;
+import me.exrates.dao.impl.ApiAuthTokenDaoImpl;
 import me.exrates.model.ApiAuthToken;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,6 +15,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Optional;
 
 import static junit.framework.TestCase.assertEquals;
@@ -34,7 +35,7 @@ public class ApiAuthTokenDaoTest extends DataComparisonTest {
     protected void before() {
         try {
             truncateTables(TABLE_TOKEN);
-            String sql = "INSERT INTO " + TABLE_TOKEN + " (id, username, value) VALUE (1, \'username\', \'value\');";
+            String sql = "INSERT INTO " + TABLE_TOKEN + " (id, username, value, expired_at) VALUE (1, \'username\', \'value\', \'" + LocalDateTime.now().minusHours(1) + "');";
             prepareTestData(sql);
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -42,13 +43,14 @@ public class ApiAuthTokenDaoTest extends DataComparisonTest {
     }
 
     @Test
-    public void createToken_successful() {
-        ApiAuthToken apiAuthToken = ApiAuthToken.builder().
-                id(1L).
-                username("user").
-                value("value1").
-                lastRequest(LocalDateTime.now()).
-                build();
+
+    public void createToken_successfull() {
+        ApiAuthToken apiAuthToken = ApiAuthToken.builder()
+                .id(1L)
+                .username("user")
+                .value("value1")
+                .expiredAt(new Date())
+                .build();
 
         around()
                 .withSQL("SELECT * FROM " + TABLE_TOKEN)
@@ -69,43 +71,45 @@ public class ApiAuthTokenDaoTest extends DataComparisonTest {
     }
 
     @Test
-    public void prolongToken() {
-        assertTrue(apiAuthTokenDao.prolongToken(1l));
-    }
-
-    @Test
-    public void prolongToken_ifNotFound() {
-        assertFalse(apiAuthTokenDao.prolongToken(2l));
-    }
-
-    @Test
     public void deleteExpiredToken() {
+        final boolean deleted = apiAuthTokenDao.deleteExpiredToken(1L);
 
+        assertTrue(deleted);
     }
 
     @Test
     public void deleteExpiredToken_ifNotFound() {
+        final boolean deleted = apiAuthTokenDao.deleteExpiredToken(2L);
 
+        assertFalse(deleted);
     }
 
     @Test
     public void deleteAllByUsername() {
+        final boolean deleted = apiAuthTokenDao.deleteAllByUsername("username");
 
+        assertTrue(deleted);
     }
 
     @Test
     public void deleteAllByUsername_ifNotFound() {
+        final boolean deleted = apiAuthTokenDao.deleteAllByUsername("username2");
 
+        assertFalse(deleted);
     }
 
     @Test
     public void deleteAllExpired() {
+        final int count_of_deleted = apiAuthTokenDao.deleteAllExpired();
 
+        assertEquals(1, count_of_deleted);
     }
 
     @Test
     public void deleteAllExceptCurrent() {
+        final boolean deleted = apiAuthTokenDao.deleteAllExceptCurrent(1L, "username");
 
+        assertFalse(deleted);
     }
 
     @Configuration

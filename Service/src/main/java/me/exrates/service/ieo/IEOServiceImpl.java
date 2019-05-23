@@ -1,4 +1,4 @@
-package me.exrates.service.impl;
+package me.exrates.service.ieo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
@@ -18,21 +18,25 @@ import me.exrates.model.dto.ieo.IEOStatusInfo;
 import me.exrates.model.dto.ieo.IeoDetailsCreateDto;
 import me.exrates.model.dto.ieo.IeoDetailsUpdateDto;
 import me.exrates.model.dto.kyc.KycCountryDto;
+import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.IEODetailsStatus;
 import me.exrates.model.enums.PolicyEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.exceptions.IeoException;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.IEOService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
-import me.exrates.service.ieo.IEOQueueService;
 import me.exrates.service.stomp.StompMessenger;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.amqp.rabbit.annotation.EnableRabbit;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -41,20 +45,25 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+@EnableRabbit
 @Service
 @Log4j2
 public class IEOServiceImpl implements IEOService {
     private static final Logger logger = LogManager.getLogger(IEOServiceImpl.class);
+    private final static String IEO_CLAIM_QUEUE = "ieo_claims";
+    private static Set<String> fakePopulatedSet = new HashSet<>();
 
     private final CurrencyService currencyService;
     private final IEOClaimRepository ieoClaimRepository;
-    private final IEOQueueService ieoQueueService;
     private final UserService userService;
     private final KYCSettingsDao kycSettingsDao;
     private final IeoDetailsRepository ieoDetailsRepository;
@@ -63,84 +72,86 @@ public class IEOServiceImpl implements IEOService {
     private final StompMessenger stompMessenger;
     private final ObjectMapper objectMapper;
     private final IEOSubscribeRepository ieoSubscribeRepository;
+    private final RabbitTemplate rabbitTemplate;
 
     @Autowired
     public IEOServiceImpl(IEOClaimRepository ieoClaimRepository,
                           IeoDetailsRepository ieoDetailsRepository,
                           CurrencyService currencyService,
-                          IEOQueueService ieoQueueService,
                           UserService userService,
                           WalletService walletService,
                           KYCSettingsDao kycSettingsDao,
                           SendMailService sendMailService,
                           StompMessenger stompMessenger,
                           ObjectMapper objectMapper,
-                          IEOSubscribeRepository ieoSubscribeRepository) {
+                          IEOSubscribeRepository ieoSubscribeRepository,
+                          RabbitTemplate rabbitTemplate) {
         this.ieoClaimRepository = ieoClaimRepository;
         this.userService = userService;
         this.ieoDetailsRepository = ieoDetailsRepository;
         this.currencyService = currencyService;
         this.walletService = walletService;
-        this.ieoQueueService = ieoQueueService;
         this.kycSettingsDao = kycSettingsDao;
         this.sendMailService = sendMailService;
         this.stompMessenger = stompMessenger;
         this.objectMapper = objectMapper;
         this.ieoSubscribeRepository = ieoSubscribeRepository;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
-    @Transactional
     @Override
     public ClaimDto addClaim(ClaimDto claimDto, String email) {
+        claimDto.setEmail(email);
+        claimDto.setUuid(UUID.randomUUID().toString());
+        logger.info("Add claim to queue {}", claimDto.getUuid());
+        rabbitTemplate.convertAndSend(IEO_CLAIM_QUEUE, claimDto);
+        return claimDto;
+    }
+
+
+    @RabbitListener(queues = IEO_CLAIM_QUEUE, containerFactory = "ieoListenerContainerFactory")
+    @Transactional
+    public void saveClaim(ClaimDto claimDto) {
+        logger.info("Starting save claim uuid {}", claimDto.getUuid());
+        String email = claimDto.getEmail();
         IEODetails ieoDetails = ieoDetailsRepository.findOpenIeoByCurrencyName(claimDto.getCurrencyName());
         if (ieoDetails == null) {
-            String message = String.format("Failed to create claim while IEO for %s not started or already finished",
-                    claimDto.getCurrencyName());
+            String message = String.format("Failed to create claim %s while IEO for %s not started or already finished",
+                    claimDto.getUuid(), claimDto.getCurrencyName());
             logger.warn(message);
-            throw new IeoException(ErrorApiTitles.IEO_NOT_STARTED_YET_OR_ALREADY_FINISHED, message);
+            sendErrorEmail(message, claimDto.getEmail());
+            return;
+        }
+
+        if (ieoDetails.getTestIeo()) {
+            populateTestIeo(ieoDetails.getCurrencyName());
         }
 
         IEOStatusInfo statusInfo = checkUserStatusForIEO(email, ieoDetails.getId());
 
         if (!statusInfo.isPolicyCheck() || !statusInfo.isCountryCheck() || !statusInfo.isKycCheck()) {
-            String message = "Failed to create claim, as user KYC status check failed for ieo: " + claimDto.getCurrencyName();
+            String message = String.format("Failed to create claim %s, as user KYC status check failed for ieo: %s ",
+                    claimDto.getUuid(), claimDto.getCurrencyName());
             logger.warn(message);
-            throw new IeoException(ErrorApiTitles.IEO_CHECK_KYC_STATUS_FAILURE, message);
+            sendErrorEmail(message, claimDto.getEmail());
+            return;
         }
 
         User user = userService.findByEmail(email);
-
         validateUserAmountRestrictions(ieoDetails, user, claimDto);
-
         IEOClaim ieoClaim = new IEOClaim(ieoDetails.getId(), claimDto.getCurrencyName(), ieoDetails.getMakerId(), user.getId(), claimDto.getAmount(),
-                ieoDetails.getRate());
-
-        int currencyId = currencyService.findByName("BTC").getId();
-        BigDecimal available = walletService.getAvailableAmountInBtcLocked(user.getId(), currencyId);
-        if (available.compareTo(ieoClaim.getPriceInBtc()) < 0) {
-            String message = String.format("Failed to apply as user has insufficient funds: suggested %s BTC, but available is %s BTC",
-                    available.toPlainString(), ieoClaim.getPriceInBtc());
-            logger.warn(message);
-            throw new IeoException(ErrorApiTitles.IEO_INSUFFICIENT_BUYER_FUNDS, message);
-        }
+                ieoDetails.getRate(), claimDto.getUuid(), email, false);
 
         ieoClaim = ieoClaimRepository.save(ieoClaim);
 
         if (ieoClaim == null) {
             String message = "Failed to save user's claim";
             logger.warn(message);
-            throw new IeoException(ErrorApiTitles.IEO_CLAIM_SAVE_FAILURE, message);
+            sendErrorEmail(message, claimDto.getEmail());
+            return;
         }
-        boolean result = walletService.reserveUserBtcForIeo(ieoClaim.getUserId(), ieoClaim.getPriceInBtc());
-        if (!result) {
-            String message = String.format("Failed to reserve %s BTC from user's account", ieoClaim.getPriceInBtc());
-            logger.warn(message);
-            throw new IeoException(ErrorApiTitles.IEO_USER_RESERVE_BTC_FAILURE, message);
-        }
-        ieoClaim.setCreatorEmail(email);
-        ieoQueueService.add(ieoClaim);
-        claimDto.setId(ieoClaim.getId());
-        return claimDto;
+
+        logger.info("Added claim {} to IEO processor", claimDto.getUuid());
     }
 
     @Override
@@ -291,7 +302,6 @@ public class IEOServiceImpl implements IEOService {
     public boolean approveSuccessIeo(int ieoId, String adminEmail) {
         // 1. change currency to main
         // 2. change role for maker to simple user
-        // 3. move btc amount from ieo reserved to active balance
         logger.info("Start approve to success IEO id {}, email {}", ieoId, adminEmail);
         User user = userService.findByEmail(adminEmail);
         if (user.getRole() != UserRole.ADMIN_USER) {
@@ -317,7 +327,6 @@ public class IEOServiceImpl implements IEOService {
             throw new IeoException(ErrorApiTitles.IEO_FAILED_MOVE_TO_SUCCESS, message);
         }
 
-        //todo check all currency pair ??? create currency pairs ???
         CurrencyPair ieoBtcPair = currencyService.getCurrencyPairByName(ieoDetails.getCurrencyName() + "/" + "BTC");
         if (ieoBtcPair != null) {
             ieoBtcPair.setPairType(CurrencyPairType.MAIN);
@@ -442,5 +451,43 @@ public class IEOServiceImpl implements IEOService {
     private void updateIeoStatusesForAll() {
         ieoDetailsRepository.updateIeoStatusesToRunning();
         ieoDetailsRepository.updateIeoStatusesToTerminated();
+    }
+
+    private void sendErrorEmail(String message, String email) {
+        Email emailError = new Email();
+        emailError.setSubject("IEO claim save error");
+        emailError.setMessage(message);
+        emailError.setTo(email);
+        sendMailService.sendInfoMail(emailError);
+    }
+
+    private void populateTestIeo(String currencyName) {
+        if (isPopulateAlready(currencyName)) {
+            return;
+        }
+        IEODetails ieoDetail = ieoDetailsRepository.findOpenIeoByCurrencyName(currencyName);
+        int countTransactions = ieoDetail.getCountTestTransaction();
+        BigDecimal availableAmount = ieoDetail.getAvailableAmount();
+        BigDecimal averageSumTransaction = BigDecimalProcessing.doAction(availableAmount,
+                new BigDecimal(countTransactions),
+                ActionType.DEVIDE);
+        for (int i = 0; i < countTransactions + 1; i++) {
+            IEOClaim ieoClaim = new IEOClaim(ieoDetail.getId(),
+                    ieoDetail.getCurrencyName(),
+                    ieoDetail.getMakerId(),
+                    -2,
+                    averageSumTransaction,
+                    ieoDetail.getRate(),
+                    UUID.randomUUID().toString(),
+                    "test_ieo@gmail.com",
+                    true);
+            ieoClaimRepository.save(ieoClaim);
+        }
+
+        fakePopulatedSet.add(currencyName);
+    }
+
+    private boolean isPopulateAlready(String currencyName) {
+        return fakePopulatedSet.contains(currencyName);
     }
 }

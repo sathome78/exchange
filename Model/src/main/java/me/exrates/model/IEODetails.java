@@ -2,13 +2,11 @@ package me.exrates.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import me.exrates.model.enums.IEODetailsStatus;
-import me.exrates.model.serializer.LocalDateSerializer;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -40,11 +38,19 @@ public class IEODetails {
     private LocalDateTime startDate;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime soldOutAt;
     @JsonIgnore
     private LocalDateTime createdAt;
     @JsonIgnore
     private int createdBy;
     private int version;
+    private String content;
+
+    @JsonIgnore
+    private Boolean testIeo;
+    @JsonIgnore
+    private Integer countTestTransaction;
 
     private boolean readyToIeo;
 

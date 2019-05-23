@@ -1270,8 +1270,14 @@ public class AdminController {
 
     @PostMapping("/2a8fy7b07dxe44/usdxWallet/sendTransaction")
     @ResponseBody
-    public UsdxTransaction sendUsdxWalletTransaction(UsdxTransaction usdxTransaction){
-        return usdxService.getUsdxRestApiService().transferAssetsToUserAccount(usdxTransaction);
+    public UsdxTransaction sendUsdxWalletTransaction(@RequestParam String password, UsdxTransaction usdxTransaction){
+        return usdxService.sendUsdxTransactionToExternalWallet(password, usdxTransaction);
+    }
+
+    @PostMapping("/2a8fy7b07dxe44/usdxWallet/createTransaction")
+    @ResponseBody
+    public void getUsdxCreateRefill(@RequestParam Map<String, String> params) {
+        usdxService.createRefillRequestAdmin(params);
     }
 
     @RequestMapping("/2a8fy7b07dxe44/usdxWallet/history")
@@ -1615,6 +1621,19 @@ public class AdminController {
         DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
         filterData.initFilterItems();
         return refillService.getAdressesShortDto(dataTableParams, filterData);
+    }
+
+    @AdminLoggable
+    @RequestMapping(value = "/2a8fy7b07dxe44/refillAddresses/set-need-transfer", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity setPropertyNeedTransfer(@RequestParam int userId,
+                                                  @RequestParam int currencyId,
+                                                  @RequestParam int merchantId,
+                                                  @RequestParam String address,
+                                                  @RequestParam Boolean needTransfer) {
+        return refillService.setPropertyNeedTransfer(userId, currencyId, merchantId, address, needTransfer)
+                ? ResponseEntity.ok().build()
+                : ResponseEntity.badRequest().build();
     }
 
     @AdminLoggable

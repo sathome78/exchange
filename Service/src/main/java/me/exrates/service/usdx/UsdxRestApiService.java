@@ -24,7 +24,7 @@ public interface UsdxRestApiService {
 
     String getSecurityHeaderName();
 
-    String generateSecurityHeaderValue(String body);
+    String generateSecurityHeaderValue(String timestamp, String body);
 
     String getStringJsonUsdxTransaction(UsdxTransaction usdxTransaction);
 }

@@ -1,5 +1,6 @@
 package me.exrates.service.usdx;
 
+import lombok.SneakyThrows;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
@@ -13,32 +14,29 @@ import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.*;
-import me.exrates.service.usdx.model.UsdxApiResponse;
 import me.exrates.service.usdx.model.UsdxTransaction;
 import me.exrates.service.usdx.model.enums.UsdxWalletAsset;
 import me.exrates.service.util.CryptoUtils;
 import me.exrates.service.util.WithdrawUtils;
 import org.apache.commons.lang.math.NumberUtils;
-import org.apache.http.message.BasicHeader;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import org.stellar.sdk.responses.TransactionResponse;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
 @Log4j2(topic = "usdx_log")
 @Service
 @PropertySource("classpath:/merchants/usdx.properties")
-@Conditional(MonolitConditional.class)
 public class LightHouseServiceImpl implements UsdxService {
 
     private static final String LIGHTHOUSE_CURRENCY_NAME = UsdxWalletAsset.LHT.name();
@@ -107,18 +105,20 @@ public class LightHouseServiceImpl implements UsdxService {
             throw new RefillRequestMemoIsNullException(String.format("USDX Wallet transaction with transfer id: %s. MEMO is NULL", merchantTransactionId));
         }
 
-        if(usdxRestApiService.getTransactionStatus(merchantTransactionId) == null){
+        UsdxTransaction usdxTransaction = usdxRestApiService.getTransactionStatus(merchantTransactionId);
+
+        if(usdxTransaction == null){
             log.warn("USDX Wallet transaction with transfer id {} not exists in transactions history.", merchantTransactionId);
             throw new RefillRequestFakePaymentReceivedException(String.format("USDX Wallet transaction with transfer id {} not exists in transactions history. Params: %s",
                     params.toString()));
         }
 
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
-                .address(memo)
+                .address(usdxTransaction.getMemo())
                 .merchantId(merchant.getId())
                 .currencyId(currency.getId())
-                .amount(amount)
-                .merchantTransactionId(merchantTransactionId)
+                .amount(usdxTransaction.getAmount())
+                .merchantTransactionId(usdxTransaction.getTransferId())
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
 
@@ -181,7 +181,8 @@ public class LightHouseServiceImpl implements UsdxService {
 
     @Override
     public void checkHeaderOnValidForSecurity(String securityHeaderValue, UsdxTransaction usdxTransaction) {
-        String usdxTransactionValueForSignature = usdxRestApiService.generateSecurityHeaderValue(usdxRestApiService.getStringJsonUsdxTransaction(usdxTransaction));
+        String timestampFromRequest = securityHeaderValue.substring(securityHeaderValue.indexOf("t=")+2, securityHeaderValue.indexOf(","));
+        String usdxTransactionValueForSignature = usdxRestApiService.generateSecurityHeaderValue(timestampFromRequest, usdxRestApiService.getStringJsonUsdxTransaction(usdxTransaction));
 
         if(!securityHeaderValue.equals(usdxTransactionValueForSignature)){
             log.error("USDX Wallet ERROR with transfer id: {} IS FAKE. Header value: {}", usdxTransaction.getTransferId(), usdxTransactionValueForSignature);
@@ -189,5 +190,30 @@ public class LightHouseServiceImpl implements UsdxService {
                     usdxTransaction.getTransferId(), usdxTransactionValueForSignature));
         }
     }
+
+    @SneakyThrows
+    @Override
+    public void createRefillRequestAdmin(Map<String, String> params){
+        String merchantTransactionId = params.get("txId");
+
+        UsdxTransaction usdxTransaction = usdxRestApiService.getTransactionStatus(merchantTransactionId);
+
+        Map<String, String> paramsMap = new HashMap<>();
+        paramsMap.put("transferId", usdxTransaction.getTransferId());
+        paramsMap.put("memo", usdxTransaction.getMemo());
+        paramsMap.put("amount", usdxTransaction.getAmount().toPlainString());
+
+        processPayment(paramsMap);
+    }
+
+    @Override
+    public UsdxTransaction sendUsdxTransactionToExternalWallet(String password, UsdxTransaction usdxTransaction){
+        if(!password.equals(merchantService.getPassMerchantProperties(merchant.getName()).getProperty("wallet.password"))){
+            log.info("USDX Wallet. Invalid password. Time to try: {}", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+            throw new IncorrectCoreWalletPasswordException("Invalid password");
+        }
+        return usdxRestApiService.transferAssetsToUserAccount(usdxTransaction);
+    }
+
 
 }

@@ -2,7 +2,6 @@ package me.exrates.controller.merchants;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.service.exception.RefillRequestAlreadyAcceptedException;
-import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestMemoIsNullException;
 import me.exrates.service.exception.UsdxApiException;
 import me.exrates.service.usdx.UsdxService;
@@ -10,8 +9,6 @@ import me.exrates.service.usdx.model.UsdxTransaction;
 import me.exrates.service.usdx.model.enums.UsdxTransactionStatus;
 import me.exrates.service.usdx.model.enums.UsdxTransactionType;
 import me.exrates.service.usdx.model.enums.UsdxWalletAsset;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -23,9 +20,10 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
-@Log4j2
+@Log4j2(topic = "usdx_log")
 @Controller
 public class LightHouseController {
 
@@ -48,8 +46,8 @@ public class LightHouseController {
                 params.put("memo", String.valueOf(usdxTransaction.getMemo()));
                 params.put("amount", String.valueOf(usdxTransaction.getAmount()));
 
-                //For security reason must get header from request and check it
-                usdxService.checkHeaderOnValidForSecurity(request.getHeader(usdxService.getUsdxRestApiService().getSecurityHeaderName()), usdxTransaction);
+                //Additional || For security reason should get header from request and check it
+                //usdxService.checkHeaderOnValidForSecurity(request.getHeader(usdxService.getUsdxRestApiService().getSecurityHeaderName()), usdxTransaction);
 
                 usdxService.processPayment(params);
                 }

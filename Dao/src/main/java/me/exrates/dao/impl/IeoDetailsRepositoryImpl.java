@@ -33,10 +33,10 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
     public IEODetails save(IEODetails ieoDetails) {
 
         String sql = "INSERT INTO IEO_DETAILS"
-                + " (currency_name, currency_description, descirption, maker_id, rate, amount, available_amount, contributors, status, min_amount, max_amount_per_claim," +
-                " max_amount_per_user, starts_at, terminates_at, created_by)"
+                + " (currency_name, currency_description, description, maker_id, rate, amount, available_amount, contributors, status, min_amount, max_amount_per_claim," +
+                " max_amount_per_user, starts_at, terminates_at, created_by, content, test_ieo, count_test_transaction, logo)"
                 + " VALUES(:currency_name, :currency_description, :description, :maker_id, :rate, :amount, :available_amount, :contributors, :status, :min_amount, :max_amount_per_claim,"
-                + " :max_amount_per_user, :starts_at, :terminates_at, :created_by)";
+                + " :max_amount_per_user, :starts_at, :terminates_at, :created_by, :content, :test_ieo, :count_test_transaction, :logo)";
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource params = getGeneralParams(ieoDetails);
@@ -54,9 +54,12 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
     @Override
     public IEODetails update(IEODetails ieoDetails) {
 
-        String sql = "UPDATE IEO_DETAILS SET currency_name = :currency_name, currency_description = :currency_description, maker_id = :maker_id, rate = :rate, amount = :amount," +
+        String sql = "UPDATE IEO_DETAILS SET currency_name = :currency_name, currency_description = :currency_description, " +
+                "maker_id = :maker_id, rate = :rate, amount = :amount," +
                 " contributors = :contributors, status = :status, min_amount = :min_amount, max_amount_per_claim = :max_amount_per_claim," +
-                " max_amount_per_user = :max_amount_per_user, starts_at = :starts_at, terminates_at = :terminates_at WHERE id = :id";
+                " max_amount_per_user = :max_amount_per_user, starts_at = :starts_at, terminates_at = :terminates_at, " +
+                " description = :description, content = :content, logo = :logo, test_ieo = :test_ieo " +
+                "  WHERE id = :id";
 
         MapSqlParameterSource params = getGeneralParams(ieoDetails);
         try {
@@ -74,14 +77,16 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
 
         String sql = "UPDATE IEO_DETAILS SET rate = :rate, amount = :amount," +
                 " status = :status, min_amount = :min_amount, max_amount_per_claim = :max_amount_per_claim," +
-                " max_amount_per_user = :max_amount_per_user, starts_at = :starts_at, terminates_at = :terminates_at WHERE id = :id ";
+                " max_amount_per_user = :max_amount_per_user, starts_at = :starts_at, terminates_at = :terminates_at, " +
+                " description = :description, content = :content, logo = :logo, test_ieo = :test_ieo" +
+                " WHERE id = :id ";
 
         MapSqlParameterSource params = getGeneralParams(ieoDetails);
         try {
             jdbcTemplate.update(sql, params);
         } catch (DataAccessException e) {
-            log.error("Failed to insert IEO Details ", e);
-            throw new RuntimeException(String.format("Error insert ieo details for %s to DB", ieoDetails.getCurrencyName()));
+            log.error("Failed to update IEO Details ", e);
+            throw new RuntimeException(String.format("Error update ieo details for %s to DB", ieoDetails.getCurrencyName()));
         }
         return ieoDetails;
     }
@@ -170,6 +175,28 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
         return jdbcTemplate.update(sql, new HashMap<>()) > 0;
     }
 
+    @Override
+    public Collection<IEODetails> findAllRunningAndAvailableIeo() {
+        String sql = "SELECT * FROM IEO_DETAILS WHERE status = 'RUNNING' AND starts_at < NOW() AND terminates_at > NOW()";
+        return jdbcTemplate.query(sql, ieoDetailsRowMapper());
+    }
+
+    @Override
+    public boolean updateIeoSoldOutTime(int ieoId) {
+        String sql = "UPDATE IEO_DETAILS SET sold_out_at = CURRENT_TIMESTAMP WHERE id = :id";
+        MapSqlParameterSource params = new MapSqlParameterSource("id", ieoId);
+        return jdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public boolean updateIeoDetailStatus(IEODetailsStatus status, int idIeo) {
+        String sql = "UPDATE IEO_DETAILS SET status = :status WHERE id = :id";
+        MapSqlParameterSource params = new MapSqlParameterSource("id", idIeo);
+        params.addValue("status", status.name());
+        return jdbcTemplate.update(sql, params) > 0;
+
+    }
+
     private RowMapper<IEODetails> ieoDetailsRowMapper() {
         return (rs, row) -> IEODetails.builder()
                 .id(rs.getInt("id"))
@@ -190,6 +217,10 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
                 .endDate(rs.getTimestamp("terminates_at") == null ? null : rs.getTimestamp("terminates_at").toLocalDateTime())
                 .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
                 .createdBy(rs.getInt("created_by"))
+                .soldOutAt(rs.getTimestamp("sold_out_at") == null ? null : rs.getTimestamp("sold_out_at").toLocalDateTime())
+                .testIeo(rs.getObject("test_ieo") == null ? false : rs.getBoolean("test_ieo"))
+                .countTestTransaction(rs.getObject("count_test_transaction") == null ? null : rs.getInt("count_test_transaction"))
+                .content(rs.getString("content"))
                 .build();
     }
 
@@ -210,6 +241,10 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
                 .addValue("max_amount_per_user", ieoDetails.getMaxAmountPerUser())
                 .addValue("starts_at", ieoDetails.getStartDate())
                 .addValue("terminates_at", ieoDetails.getEndDate())
+                .addValue("content", ieoDetails.getContent())
+                .addValue("test_ieo", ieoDetails.getTestIeo())
+                .addValue("count_test_transaction", ieoDetails.getCountTestTransaction())
+                .addValue("logo", ieoDetails.getLogo())
                 .addValue("version", ieoDetails.getVersion());
     }
 }

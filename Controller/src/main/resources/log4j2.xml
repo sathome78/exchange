@@ -690,6 +690,24 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="gapi_log" fileName="${sys:catalina.home}/logs/merchants/gapi.log"
+                     filePattern="${sys:catalina.home}/logs/merchants/gapi_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="algorithm_log" fileName="${sys:catalina.home}/logs/merchants/algorithm.log"
+                     filePattern="${sys:catalina.home}/logs/merchants/algorithm_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="nixmoney_log" fileName="${sys:catalina.home}/logs/merchants/nixmoney_log.log"
                      filePattern="${sys:catalina.home}/logs/merchants/nixmoney_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
@@ -728,7 +746,7 @@
         </RollingFile>
     </Appenders>
     <Loggers>
-        <Logger name="jdbc_logger" level="ALL" additivity="false">
+        <Logger name="jdbc_logger" level="INFO" additivity="false">
             <appender-ref ref="jdbc_log" />
         </Logger>
         <Logger name="merchant" level="DEBUG" additivity="false">
@@ -1005,6 +1023,12 @@
         </logger>
         <logger name="aisi_log" level="ALL" additivity="false">
             <AppenderRef ref="aisi_log"/>
+        </logger>
+        <logger name="algorithm_log" level="ALL" additivity="false">
+            <AppenderRef ref="algorithm_log"/>
+        </logger>
+        <logger name="gapi_log" level="ALL" additivity="false">
+            <AppenderRef ref="gapi_log"/>
         </logger>
         <logger name="nixmoney_log" level="ALL" additivity="false">
             <AppenderRef ref="nixmoney_log"/>

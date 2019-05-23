@@ -190,7 +190,11 @@ public interface RefillService {
 
     Integer findFlatByUserIdAndMerchantIdAndCurrencyId(int userId, int id, int currencyId);
 
-    default void processRefillRequest(WalletOperationMsDto walletOperationMsDto){
+    default void processRefillRequest(WalletOperationMsDto walletOperationMsDto) {
         throw new NotImplementedException();
     }
+
+    String getPrivKeyByAddress(String address);
+
+    boolean changeRefillRequestStatusToOnPending(int id);
 }

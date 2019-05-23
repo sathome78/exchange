@@ -7,6 +7,8 @@ import me.exrates.service.merchantStrategy.IWithdrawable;
 import me.exrates.service.usdx.model.UsdxTransaction;
 import org.stellar.sdk.responses.TransactionResponse;
 
+import java.util.Map;
+
 public interface UsdxService extends IRefillable, IWithdrawable {
 
     @Override
@@ -66,4 +68,8 @@ public interface UsdxService extends IRefillable, IWithdrawable {
     UsdxRestApiService getUsdxRestApiService();
 
     void checkHeaderOnValidForSecurity(String securityHeaderValue, UsdxTransaction usdxTransaction);
+
+    void createRefillRequestAdmin(Map<String, String> params);
+
+    UsdxTransaction sendUsdxTransactionToExternalWallet(String password, UsdxTransaction usdxTransaction);
 }

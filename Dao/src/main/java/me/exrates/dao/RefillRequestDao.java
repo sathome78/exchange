@@ -166,4 +166,8 @@ public interface RefillRequestDao {
     List<RefillOnConfirmationDto> getOnConfirmationDtos(Integer userId, int currencyId);
 
     Integer findFlatByUserIdAndMerchantIdAndCurrencyId(int userId, int merchantId, int currencyId);
+
+    String getPrivKeyByAddress(String address);
+
+    boolean changeRefillRequestStatusToOnPending(int id);
 }

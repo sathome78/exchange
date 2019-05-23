@@ -34,6 +34,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -159,8 +160,12 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
 
     @Override
     public void addCurrencyPairToCache(int currencyPairId) {
-        final ExOrderStatisticsShortByPairsDto statistic = loadingCache.getUnchecked(currencyPairId);
-        ratesRedisRepository.put(statistic);
+        try {
+            ExOrderStatisticsShortByPairsDto statistic = loadingCache.get(currencyPairId);
+            ratesRedisRepository.put(statistic);
+        } catch (ExecutionException e) {
+            log.error("Failed to load currency pair #" + currencyPairId + " from loading cache as", e);
+        }
     }
 
     @Override
@@ -377,20 +382,8 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     private CacheLoader<Integer, ExOrderStatisticsShortByPairsDto> createCacheLoader() {
         return new CacheLoader<Integer, ExOrderStatisticsShortByPairsDto>() {
             @Override
-            public ExOrderStatisticsShortByPairsDto load(Integer currencyPairId) throws Exception {
-                StopWatch timer = new StopWatch();
-                log.info("<<CACHE>>: Start loading cache item for id: " + currencyPairId);
-                String currencyName = currencyService.getCurrencyName(currencyPairId);
-                ExOrderStatisticsShortByPairsDto result;
-                if (ratesMap.containsKey(currencyPairId)) {
-                    result = ratesRedisRepository.get(currencyName);
-                } else {
-                    result = refreshItem(currencyPairId);
-                }
-                String message = String.format("<<CACHE>>: Finished loading cache item for id: %d, result: %s, timer: %d s",
-                        currencyPairId, (result != null ? result.getCurrencyPairName() : "FAILED"), timer.getTime(TimeUnit.SECONDS));
-                log.info(message);
-                return result;
+            public ExOrderStatisticsShortByPairsDto load(Integer currencyPairId) {
+                return refreshItem(currencyPairId);
             }
 
             @Override

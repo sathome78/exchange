@@ -35,6 +35,9 @@ public class RabbitConfig implements RabbitListenerConfigurer {
     @Value("${rabbit.password}")
     private String password;
 
+    @Value("${rabbit.concurrent.listener.ieo}")
+    private int concurrentListenerIeo;
+
     @Bean
     public ConnectionFactory connectionFactory() {
         logger.info("amqp: {}:{}, {}", host, port, username);
@@ -48,6 +51,15 @@ public class RabbitConfig implements RabbitListenerConfigurer {
     public SimpleRabbitListenerContainerFactory listenerFactory() {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory());
+        return factory;
+    }
+
+    @Bean
+    public SimpleRabbitListenerContainerFactory ieoListenerContainerFactory(ConnectionFactory connectionFactory) {
+        final SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+        factory.setConnectionFactory(connectionFactory);
+        factory.setMaxConcurrentConsumers(concurrentListenerIeo);
+        factory.setConcurrentConsumers(concurrentListenerIeo);
         return factory;
     }
 
