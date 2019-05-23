@@ -4,7 +4,7 @@
         ngcontroller package. Testing methods NgPublicController
     </description>
 
-    <get url="/api/public/v2/is_google_2fa_enabled/?email=delfin693@yandex.ru">
+    <get url="/api/public/v2/is_google_2fa_enabled?email=delfin693@yandex.ru">
 
         <header name="Content-Type" value="application/json"/>
 

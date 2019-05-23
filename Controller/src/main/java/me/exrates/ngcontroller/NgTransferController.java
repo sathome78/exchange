@@ -100,8 +100,8 @@ public class NgTransferController {
     private final SecureService secureService;
     private final CurrencyService currencyService;
 
-    @Value("${dev.mode}")
-    private boolean DEV_MODE;
+//    @Value("${dev.mode}")
+    private boolean DEV_MODE = true;
 
     @Autowired
     public NgTransferController(RateLimitService rateLimitService,

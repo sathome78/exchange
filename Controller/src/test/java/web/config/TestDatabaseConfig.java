@@ -24,15 +24,15 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 @TestPropertySource(value = {
         "classpath:/db.properties",
-        "classpath:/news.properties",
-        "classpath:/mail.properties",
-        "classpath:/angular.properties",
-        "classpath:/twitter.properties",
-        "classpath:/angular.properties",
-        "classpath:/merchants/stellar.properties",
-        "classpath:/geetest.properties",
-        "classpath:/merchants/qiwi.properties",
-        "classpath:/cache.properties"
+        "classpath:/dev/news.properties",
+        "classpath:/dev/mail.properties",
+        "classpath:/dev/angular.properties",
+        "classpath:/dev/twitter.properties",
+        "classpath:/dev/angular.properties",
+        "classpath:/dev/merchants/stellar.properties",
+        "classpath:/dev/geetest.properties",
+        "classpath:/dev/merchants/qiwi.properties",
+        "classpath:/dev/cache.properties"
 })
 public class TestDatabaseConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestDatabaseConfig.class);
@@ -81,13 +81,13 @@ public class TestDatabaseConfig {
     public DataSourceInitializer dataSourceInitializer() {
         ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator();
         resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/init_structure.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_CURRENCY.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_ROLE_BUSINESS_FEATURE.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_ROLE_GROUP_FEATURE.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_ROLE_REPORT_GROUP_FEATURE.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_ROLE.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_OPERATION_TYPE.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_COMMISSION.sql"));
+//        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_CURRENCY.sql"));
+//        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_ROLE_BUSINESS_FEATURE.sql"));
+//        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_ROLE_GROUP_FEATURE.sql"));
+//        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_ROLE_REPORT_GROUP_FEATURE.sql"));
+//        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_ROLE.sql"));
+//        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_OPERATION_TYPE.sql"));
+//        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_COMMISSION.sql"));
 
         DataSourceInitializer dataSourceInitializer = new DataSourceInitializer();
         dataSourceInitializer.setDataSource(dataSource());
