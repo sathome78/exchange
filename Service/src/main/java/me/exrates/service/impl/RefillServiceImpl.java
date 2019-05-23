@@ -1347,8 +1347,8 @@ public class RefillServiceImpl implements RefillService {
 
     @Transactional
     @Override
-    public boolean changeRefillRequestStatusToOnPending(int id) {
-        return refillRequestDao.changeRefillRequestStatusToOnPending(id);
+    public boolean setPropertyNeedTransfer(int userId, int currencyId, int merchantId, String address, Boolean needTransfer) {
+        return refillRequestDao.setPropertyNeedTransfer(userId, currencyId, merchantId, address, needTransfer);
     }
 
     @Transactional

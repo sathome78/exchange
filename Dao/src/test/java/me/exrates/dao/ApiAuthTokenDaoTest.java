@@ -3,6 +3,8 @@ package me.exrates.dao;
 import config.DataComparisonTest;
 import me.exrates.dao.impl.ApiAuthTokenDaoImpl;
 import me.exrates.model.ApiAuthToken;
+import org.apache.commons.lang3.mutable.MutableBoolean;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.sql.SQLException;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Optional;
@@ -26,7 +29,9 @@ import static org.junit.Assert.assertFalse;
 @ContextConfiguration(classes = ApiAuthTokenDaoTest.InnerConfig.class)
 public class ApiAuthTokenDaoTest extends DataComparisonTest {
 
-    private final String TABLE_TOKEN = "API_AUTH_TOKEN";
+    private final String TABLE = "API_AUTH_TOKEN";
+    private final String SELECT_ALL = "SELECT * FROM " + TABLE;
+    private final LocalDateTime TEST_TIME_UTC = LocalDateTime.now(Clock.systemUTC()).minusHours(1);
 
     @Autowired
     private ApiAuthTokenDao apiAuthTokenDao;
@@ -34,8 +39,8 @@ public class ApiAuthTokenDaoTest extends DataComparisonTest {
     @Override
     protected void before() {
         try {
-            truncateTables(TABLE_TOKEN);
-            String sql = "INSERT INTO " + TABLE_TOKEN + " (id, username, value, expired_at) VALUE (1, \'username\', \'value\', \'" + LocalDateTime.now().minusHours(1) + "');";
+            truncateTables(TABLE);
+            String sql = "INSERT INTO " + TABLE + " (id, username, value, expired_at) VALUE (1, \'username\', \'value\', \'" + TEST_TIME_UTC + "');";
             prepareTestData(sql);
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -53,7 +58,7 @@ public class ApiAuthTokenDaoTest extends DataComparisonTest {
                 .build();
 
         around()
-                .withSQL("SELECT * FROM " + TABLE_TOKEN)
+                .withSQL(SELECT_ALL)
                 .run(() -> apiAuthTokenDao.createToken(apiAuthToken));
     }
 
@@ -72,44 +77,68 @@ public class ApiAuthTokenDaoTest extends DataComparisonTest {
 
     @Test
     public void deleteExpiredToken() {
-        final boolean deleted = apiAuthTokenDao.deleteExpiredToken(1L);
+        MutableBoolean result = new MutableBoolean(false);
+        around()
+                .withSQL(SELECT_ALL)
+                .run(() -> result.setValue(apiAuthTokenDao.deleteExpiredToken(1L)));
 
-        assertTrue(deleted);
+        assertTrue(result.getValue());
     }
 
     @Test
     public void deleteExpiredToken_ifNotFound() {
-        final boolean deleted = apiAuthTokenDao.deleteExpiredToken(2L);
+        MutableBoolean result = new MutableBoolean(false);
+        around()
+                .withSQL(SELECT_ALL)
+                .run(() -> apiAuthTokenDao.deleteExpiredToken(2L));
 
-        assertFalse(deleted);
+        assertFalse(result.getValue());
     }
 
     @Test
     public void deleteAllByUsername() {
-        final boolean deleted = apiAuthTokenDao.deleteAllByUsername("username");
+        MutableBoolean result = new MutableBoolean(false);
+        around()
+                .withSQL(SELECT_ALL)
+                .run(() -> result.setValue(apiAuthTokenDao.deleteAllByUsername("username")));
 
-        assertTrue(deleted);
+        assertTrue(result.getValue());
     }
 
     @Test
     public void deleteAllByUsername_ifNotFound() {
-        final boolean deleted = apiAuthTokenDao.deleteAllByUsername("username2");
-
-        assertFalse(deleted);
+        MutableBoolean result = new MutableBoolean(false);
+        around()
+                .withSQL(SELECT_ALL)
+                .run(() -> result.setValue(apiAuthTokenDao.deleteAllByUsername("username2")));
+        assertFalse(result.getValue());
     }
 
     @Test
     public void deleteAllExpired() {
-        final int count_of_deleted = apiAuthTokenDao.deleteAllExpired();
+        MutableInt numberOfAffectedRows = new MutableInt(0);
+        around()
+                .withSQL(SELECT_ALL)
+                .run(() -> numberOfAffectedRows.setValue(apiAuthTokenDao.deleteAllExpired()));
 
-        assertEquals(1, count_of_deleted);
+        assertTrue(numberOfAffectedRows.getValue() == 1);
     }
 
     @Test
-    public void deleteAllExceptCurrent() {
-        final boolean deleted = apiAuthTokenDao.deleteAllExceptCurrent(1L, "username");
+    public void deleteAllExceptCurrent() throws SQLException {
+        String sql = "INSERT INTO " + TABLE + " (id, username, value, expired_at) VALUES "
+                + "(2, \'username\', \'value\', \'" + TEST_TIME_UTC + "'), "
+                + "(3, \'username\', \'value\', \'" + TEST_TIME_UTC + "'), "
+                + "(4, \'username\', \'value\', \'" + TEST_TIME_UTC + "');";
+        prepareTestData(sql);
 
-        assertFalse(deleted);
+        MutableBoolean result = new MutableBoolean(false);
+
+        around()
+                .withSQL(SELECT_ALL)
+                .run(() -> result.setValue(apiAuthTokenDao.deleteAllExceptCurrent(1L, "username")));
+
+        assertTrue(result.getValue());
     }
 
     @Configuration

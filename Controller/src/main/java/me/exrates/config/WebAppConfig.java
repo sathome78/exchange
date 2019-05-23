@@ -372,7 +372,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @DependsOn("slaveForReportsDataSource")
     @Bean(name = "slaveForReportsTemplate")
     public NamedParameterJdbcTemplate slaveForReportsTemplate(@Qualifier("slaveForReportsDataSource") DataSource dataSource) {
-        return new NamedParameterJdbcTemplate(dataSource);
+        return new NamedParameterJdbcTemplateWrapper(dataSource);
     }
 
     @Primary

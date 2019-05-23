@@ -746,7 +746,7 @@
         </RollingFile>
     </Appenders>
     <Loggers>
-        <Logger name="jdbc_logger" level="ALL" additivity="false">
+        <Logger name="jdbc_logger" level="INFO" additivity="false">
             <appender-ref ref="jdbc_log" />
         </Logger>
         <Logger name="merchant" level="DEBUG" additivity="false">
