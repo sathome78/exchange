@@ -15,24 +15,16 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TestName;
-import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
@@ -41,7 +33,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -49,11 +40,12 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
 import static java.io.File.separator;
 
@@ -63,6 +55,7 @@ import static java.io.File.separator;
 public abstract class AbstractDatabaseContextTest {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
+    private static final Map<String, DatabaseConfig> schemas = new ConcurrentHashMap<>();
     static final String RESOURCES_ROOT = "src/test/resources/";
 
     @Autowired
@@ -88,6 +81,8 @@ public abstract class AbstractDatabaseContextTest {
     @PostConstruct
     public void prepareTestSchema() throws SQLException {
         Preconditions.checkNotNull(dbConfig.getSchemaName(), "Scheme name must be defined");
+
+        schemas.putIfAbsent(dbConfig.getSchemaName(), new DatabaseConfigImpl(dbConfig));
         String testSchemaUrl = createConnectionURL(dbConfig.getUrl(), dbConfig.getSchemaName());
         try {
             DriverManager.getConnection(testSchemaUrl, dbConfig.getUser(), dbConfig.getPassword());
@@ -110,6 +105,16 @@ public abstract class AbstractDatabaseContextTest {
 
     @AfterClass
     public static void afterClass() {
+        schemas.values().forEach(config -> {
+            try {
+                String dbServerUrl = config.getUrl().replace(config.getRootSchemeName() + "?",  "?");
+                Connection connection = DriverManager.getConnection(dbServerUrl, config.getUser(), config.getPassword());
+                Statement statement = connection.createStatement();
+                statement.execute(String.format("DROP DATABASE IF EXISTS %s;", config.getSchemaName()));
+            } catch (SQLException e) {
+                log.error("Failed to drop database in after class as", e);
+            }
+        });
     }
 
     @Rule
@@ -148,38 +153,7 @@ public abstract class AbstractDatabaseContextTest {
 
         @Bean
         public DatabaseConfig databaseConfig() {
-            Properties properties = getProperties();
-            return new DatabaseConfig() {
-                @Override
-                public String getUrl() {
-                    return properties.getProperty("db.master.url");
-                }
-
-                @Override
-                public String getDriverClassName() {
-                    return properties.getProperty("db.master.classname");
-                }
-
-                @Override
-                public String getUser() {
-                    return properties.getProperty("db.master.user");
-                }
-
-                @Override
-                public String getPassword() {
-                    return properties.getProperty("db.master.password");
-                }
-
-                @Override
-                public String getRootSchemeName() {
-                    return properties.getProperty("db.root.name");
-                }
-
-                @Override
-                public String getSchemaName() {
-                    return getSchema();
-                }
-            };
+            return new DatabaseConfigImpl(getProperties(), getSchema());
         }
 
         @Bean(name = "testDataSource")
@@ -291,7 +265,7 @@ public abstract class AbstractDatabaseContextTest {
         populator.addScript(new ClassPathResource("db/POPULATE_USER_ROLE_REPORT_GROUP_FEATURE.sql"));
         populator.addScript(new ClassPathResource("db/POPULATE_USER_ROLE.sql"));
         populator.addScript(new ClassPathResource("db/POPULATE_OPERATION_TYPE.sql"));
-        //todo: delete temporary migration scripts
+        // temp
         populator.addScript(new ClassPathResource("db/TEMPORARY_DELETE_AND_ADD_FIELDS_TO_API_AUTH_TOKEN_TABLE.sql"));
         populator.populate(rootDataSource.getConnection());
     }

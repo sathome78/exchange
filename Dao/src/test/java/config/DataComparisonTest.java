@@ -202,6 +202,7 @@ public class DataComparisonTest extends AbstractDatabaseContextTest {
         try {
             conn = DataSourceUtils.getConnection(dataSource);
             for(String table : tableNames) {
+                conn.createStatement().execute("SET FOREIGN_KEY_CHECKS = 0");
                 conn.createStatement().execute(String.format("TRUNCATE TABLE %s", table));
             }
         } catch (SQLException e) {
@@ -217,6 +218,7 @@ public class DataComparisonTest extends AbstractDatabaseContextTest {
         Connection conn = null;
         try {
             conn = dataSource.getConnection();
+            conn.createStatement().execute("SET FOREIGN_KEY_CHECKS = 0");
             for(String sql : sqls) {
                 conn.createStatement().execute(sql);
             }
