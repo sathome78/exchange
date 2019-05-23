@@ -167,5 +167,7 @@ public interface RefillRequestDao {
 
     Integer findFlatByUserIdAndMerchantIdAndCurrencyId(int userId, int merchantId, int currencyId);
 
+    String getPrivKeyByAddress(String address);
+
     boolean setPropertyNeedTransfer(int userId, int currencyId, int merchantId, String address, Boolean needTransfer);
 }

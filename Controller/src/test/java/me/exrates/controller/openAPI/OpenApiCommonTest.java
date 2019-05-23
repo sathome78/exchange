@@ -10,6 +10,7 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
+import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.userOperation.UserOperationService;
 import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +52,8 @@ public abstract class OpenApiCommonTest {
     CurrencyService currencyService;
     @Autowired
     WalletService walletService;
+    @Autowired
+    ExchangeApi exchangeApi;
 
     MockMvc mockMvc;
 
