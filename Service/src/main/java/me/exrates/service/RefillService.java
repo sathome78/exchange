@@ -194,5 +194,7 @@ public interface RefillService {
         throw new NotImplementedException();
     }
 
+    String getPrivKeyByAddress(String address);
+
     boolean changeRefillRequestStatusToOnPending(int id);
 }

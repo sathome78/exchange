@@ -829,8 +829,8 @@ public class WalletServiceImpl implements WalletService {
         BigDecimal makerBtcInitialAmount = makerBtcWallet.getIeoReserved();
         makerBtcWallet.setIeoReserved(makerBtcInitialAmount.add(ieoClaim.getPriceInBtc()));
 
-        BigDecimal updateIeoReservedUserBalanceBtc = userBtcWallet.getIeoReserved().subtract(ieoClaim.getPriceInBtc());
-        userBtcWallet.setIeoReserved(updateIeoReservedUserBalanceBtc);
+        BigDecimal updateActiveUserBalanceBtc = userBtcWallet.getActiveBalance().subtract(ieoClaim.getPriceInBtc());
+        userBtcWallet.setActiveBalance(updateActiveUserBalanceBtc);
 
         BigDecimal userIeoInitialAmount = userIeoWallet.getActiveBalance();
         userIeoWallet.setActiveBalance(userIeoInitialAmount.add(ieoClaim.getAmount()));
@@ -840,11 +840,8 @@ public class WalletServiceImpl implements WalletService {
                 && walletDao.update(userIeoWallet);
         log.info("PerformIeoTransfer(), claimID {}, result update wallet {}", ieoClaim.getId(), updateResult);
         if (updateResult) {
-            final Wallet makerWallet = makerBtcWallet;
-            final Wallet userWallet = userIeoWallet;
-            final Wallet userMainWallet = userBtcWallet;
-            CompletableFuture.runAsync(() -> writeTransActionsAsync(ieoClaim, makerBtcInitialAmount, makerWallet,
-                    userIeoInitialAmount, userWallet, userMainWallet, IeoStatusEnum.PROCESSED_BY_CLAIM));
+            writeTransActionsAsync(ieoClaim, makerBtcInitialAmount, makerBtcWallet,
+                    userIeoInitialAmount, userIeoWallet, userBtcWallet, IeoStatusEnum.PROCESSED_BY_CLAIM);
         }
         return updateResult;
     }

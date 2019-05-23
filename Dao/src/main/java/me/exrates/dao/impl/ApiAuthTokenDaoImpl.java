@@ -1,34 +1,33 @@
 package me.exrates.dao.impl;
 
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import me.exrates.dao.ApiAuthTokenDao;
 import me.exrates.dao.rowmappers.ApiAuthTokenRowMapper;
 import me.exrates.model.ApiAuthToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 import static java.util.Collections.singletonMap;
 
 @Repository
-@NoArgsConstructor
+@RequiredArgsConstructor
 public class ApiAuthTokenDaoImpl implements ApiAuthTokenDao {
 
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-    private  NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-
-    @Autowired
-    public ApiAuthTokenDaoImpl(NamedParameterJdbcTemplate jdbcTemplate) {
-        this.namedParameterJdbcTemplate = jdbcTemplate;
-    }
-
+    private RowMapper<ApiAuthToken> ROW_MAPPER =
+            (rs, i) -> new ApiAuthToken(rs.getLong(1), rs.getString(2), rs.getString(3), LocalDateTime.now());
 
     @Override
     public long createToken(ApiAuthToken token) {
@@ -73,5 +72,21 @@ public class ApiAuthTokenDaoImpl implements ApiAuthTokenDao {
         return namedParameterJdbcTemplate.update(sql, singletonMap("duration", tokenDuration));
     }
 
+    @Override
+    public boolean deleteAllByUsername(String username) {
+        final String sql = "DELETE FROM API_AUTH_TOKEN WHERE username = :username";
 
+        return namedParameterJdbcTemplate.update(sql, Collections.singletonMap("username", username)) > 0;
+    }
+
+    @Override
+    public boolean deleteAllExceptCurrent(Long tokenId, String username) {
+        final String sql = "DELETE FROM API_AUTH_TOKEN WHERE id NOT IN (:ids) AND username = :username";
+
+        final Map<String, Object> params = new HashMap<>();
+        params.put("ids", Collections.singletonList(tokenId));
+        params.put("username", username);
+
+        return namedParameterJdbcTemplate.update(sql, params) > 0;
+    }
 }

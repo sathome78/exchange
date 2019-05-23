@@ -1333,6 +1333,11 @@ public class RefillServiceImpl implements RefillService {
         return refillRequestDao.findFlatByUserIdAndMerchantIdAndCurrencyId(userId, merchantId, currencyId);
     }
 
+    @Override
+    public String getPrivKeyByAddress(String address) {
+        return refillRequestDao.getPrivKeyByAddress(address);
+    }
+
     @Transactional
     @Override
     public boolean changeRefillRequestStatusToOnPending(int id) {

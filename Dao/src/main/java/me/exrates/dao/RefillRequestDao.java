@@ -167,5 +167,7 @@ public interface RefillRequestDao {
 
     Integer findFlatByUserIdAndMerchantIdAndCurrencyId(int userId, int merchantId, int currencyId);
 
+    String getPrivKeyByAddress(String address);
+
     boolean changeRefillRequestStatusToOnPending(int id);
 }
