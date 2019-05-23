@@ -1,5 +1,6 @@
 version: '3'
 services:
+
   beat:
     image: docker.elastic.co/apm/apm-server:7.0.1
     ports:
@@ -14,6 +15,7 @@ services:
     depends_on:
       - elasticsearch
       - kibana
+
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.0.1
     # network_mode: "service:elasticsearch"
@@ -29,6 +31,7 @@ services:
       - apm
     ports:
       - "9200:9200"
+
   kibana:
     image: docker.elastic.co/kibana/kibana:7.0.1
     # volumes:
@@ -43,6 +46,15 @@ services:
       - ELASTICSEARCH_PASSWORD=password
     depends_on:
       - elasticsearch
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash-oss:7.0.1
+    depends_on:
+      - elasticsearch
+    networks:
+      - apm
+    ports:
+      - "5044:5044"
 
 networks:
   apm:
