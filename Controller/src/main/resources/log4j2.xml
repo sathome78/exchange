@@ -10,7 +10,7 @@
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message  %n"/>
         </Console>
         <Socket name="Socket" host="${socket.host}" port="${socket.port}">
-            <JsonLayout compact="true" eventEol="true" properties="true"/>
+            <JsonLayout properties="true"/>
             <ThresholdFilter level="${socket.log.level}"/>
             <PatternLayout pattern="%d{dd-MM-yyyy HH:mm:ss.SSS} process-id=%X{process-id} %level - %message%n"/>
         </Socket>
