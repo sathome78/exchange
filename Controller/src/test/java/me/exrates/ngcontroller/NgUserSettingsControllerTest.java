@@ -69,6 +69,7 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
     private static final String BASE_URL = "/api/private/v2/settings";
     private static final String NICKNAME = "/nickname";
     private static final String SESSION_INTERVAL = "/sessionInterval";
+    private static final String IS_VALID = "/isValid";
     private static final String EMAIL_NOTIFICATION = "/notifications";
     private static final String COLOR_SCHEME = "/color-schema";
     private static final String IS_COLOR_BLIND = "/isLowColorEnabled";
@@ -389,6 +390,30 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
 
         verify(sessionService, times(1)).isSessionTimeValid(anyInt());
         verify(sessionService, times(1)).saveOrUpdate(anyObject(), anyString());
+    }
+
+    @Test
+    public void checkSession_tokenIsValid() throws Exception {
+        when(authTokenService.isValid(any(HttpServletRequest.class))).thenReturn(Boolean.TRUE);
+
+        mockMvc.perform(get(BASE_URL + IS_VALID)
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", is(Boolean.TRUE)));
+
+        verify(authTokenService, times(1)).isValid(any(HttpServletRequest.class));
+    }
+
+    @Test
+    public void checkSession_tokenHasExpired() throws Exception {
+        when(authTokenService.isValid(any(HttpServletRequest.class))).thenReturn(Boolean.FALSE);
+
+        mockMvc.perform(get(BASE_URL + IS_VALID)
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", is(Boolean.FALSE)));
+
+        verify(authTokenService, times(1)).isValid(any(HttpServletRequest.class));
     }
 
     @Test

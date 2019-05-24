@@ -346,9 +346,4 @@ public class AuthTokenServiceImpl implements AuthTokenService {
     private Date getExpirationTime(long minutes) {
         return Date.from(LocalDateTime.now().plusMinutes(minutes).atZone(ZoneId.systemDefault()).toInstant());
     }
-
-    private String getAvatarPathPrefix(HttpServletRequest request) {
-        return request.getScheme() + "://" + request.getServerName() +
-                ":" + request.getServerPort() + "/rest";
-    }
 }

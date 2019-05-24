@@ -78,6 +78,7 @@ public class NgUserSettingsController {
     private static final String UPDATE_PASSWORD = "/updateMainPassword";
     private static final String NICKNAME = "/nickname";
     private static final String SESSION_INTERVAL = "/sessionInterval";
+    private static final String IS_VALID = "/isValid";
     private static final String EMAIL_NOTIFICATION = "/notifications";
     private static final String COLOR_SCHEME = "/color-schema";
     private static final String IS_COLOR_BLIND = "/isLowColorEnabled";
@@ -190,6 +191,11 @@ public class NgUserSettingsController {
             return new ResponseModel<>(0);
         }
         return new ResponseModel<>(params.getSessionTimeMinutes());
+    }
+
+    @GetMapping(IS_VALID)
+    public ResponseEntity<Boolean> checkSession(HttpServletRequest request) {
+        return ResponseEntity.ok(authTokenService.isValid(request));
     }
 
     @PutMapping(value = SESSION_INTERVAL, consumes = MediaType.APPLICATION_JSON_VALUE)
