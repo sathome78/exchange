@@ -7,11 +7,15 @@
     </Properties>
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message  %n"/>
+<!--            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message  %n"/>-->
+            <JsonLayout properties="true" objectMessageAsJsonObject="true">
+                <KeyValuePair key="process-id" value="$${ctx:process-id}"/>
+            </JsonLayout>
         </Console>
         <Socket name="Socket" host="${socket.host}" port="${socket.port}">
-            <JsonLayout properties="true" objectMessageAsJsonObject="true"/>
-            <KeyValuePair key="process-id" value="$${ctx:process-id}"/>
+            <JsonLayout properties="true" objectMessageAsJsonObject="true">
+                <KeyValuePair key="process-id" value="$${ctx:process-id}"/>
+            </JsonLayout>
             <ThresholdFilter level="${socket.log.level}"/>
 <!--            <PatternLayout pattern="%d{dd-MM-yyyy HH:mm:ss.SSS} process-id=%X{process-id} %level - %message%n"/>-->
         </Socket>
