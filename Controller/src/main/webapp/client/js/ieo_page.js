@@ -149,7 +149,7 @@ $(function () {
         $('#createdBy').val(data.createdBy);
         $('#version').val(data.version);
         $('#count_test_transactions').val(data.countTestTransactions);
-        $('#is_test_ieo').checked = data.testIeo;
+        $('#is_test_ieo').prop('checked', data.testIeo);
         $('#generalDescription').val(data.description);
         $('#logo_upd').val(data.logo);
         $('#content_upd').val(data.content);
