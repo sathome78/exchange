@@ -11,8 +11,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
+
 @RestController
-@RequestMapping("/inout")
+@RequestMapping(value = "/inout", produces = APPLICATION_JSON_UTF8_VALUE, consumes = APPLICATION_JSON_UTF8_VALUE)
 @RequiredArgsConstructor
 @Conditional(MicroserviceConditional.class)
 public class InputServiceController {
