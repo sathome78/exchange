@@ -10,6 +10,7 @@ import me.exrates.model.enums.IEODetailsStatus;
 import me.exrates.model.serializer.LocalDateTimeDeserializer;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class IeoDetailsCreateDto {
 
+    @Size(min = 2, max = 14, message = "Name must be contain minimal 2 chars, maximum 14")
     @NotNull(message = "Name must not be null")
     private String currencyName;
     @NotNull(message = "Currency description must not be null")

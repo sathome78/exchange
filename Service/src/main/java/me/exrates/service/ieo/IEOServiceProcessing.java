@@ -24,13 +24,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Log4j2
@@ -47,6 +50,8 @@ public class IEOServiceProcessing {
     private final IEOClaimRepository ieoClaimRepository;
     private final CurrencyService currencyService;
     private int CURRENCY_BTC_ID;
+
+    private ScheduledExecutorService sheduler = Executors.newScheduledThreadPool(1);
 
     @Autowired
     public IEOServiceProcessing(WalletService walletService,
@@ -70,21 +75,25 @@ public class IEOServiceProcessing {
         this.CURRENCY_BTC_ID = currencyService.findByName("BTC").getId();
     }
 
-    @Scheduled(fixedDelay = 1000)
+    @PostConstruct()
     public void processClaims() {
-        Collection<IEODetails> ieos = ieoDetailsRepository.findAllRunningAndAvailableIeo();
-        for (IEODetails ieoDetail : ieos) {
-            boolean filled = true;
-            while (filled) {
-                List<IEOClaim> claims = ieoClaimRepository.findUnprocessedIeoClaimsByIeoId(ieoDetail.getId(), CHUNK);
-                if (claims.isEmpty()) {
-                    filled = false;
-                }
-                for (IEOClaim claim : claims) {
-                    processIeoClaim(claim, ieoDetail);
+        Runnable processClaim = () -> {
+            Collection<IEODetails> ieos = ieoDetailsRepository.findAllRunningAndAvailableIeo();
+            for (IEODetails ieoDetail : ieos) {
+                boolean filled = true;
+                while (filled) {
+                    List<IEOClaim> claims = ieoClaimRepository.findUnprocessedIeoClaimsByIeoId(ieoDetail.getId(), CHUNK);
+                    if (claims.isEmpty()) {
+                        filled = false;
+                    }
+                    for (IEOClaim claim : claims) {
+                        processIeoClaim(claim, ieoDetail);
+                    }
                 }
             }
-        }
+        };
+
+        sheduler.scheduleAtFixedRate(processClaim, 5, 1, TimeUnit.SECONDS);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -165,6 +174,8 @@ public class IEOServiceProcessing {
             ieoDetailsRepository.updateIeoDetailStatus(IEODetailsStatus.TERMINATED, ieoDetails.getId());
             ieoDetailsRepository.updateIeoSoldOutTime(ieoDetails.getId());
         }
+        Email email = prepareEmail(principalEmail, notificationMessage);
+        sendMailService.sendInfoMail(email);
         sendNotifications(principalEmail, ieoDetails, notificationMessage);
     }
 

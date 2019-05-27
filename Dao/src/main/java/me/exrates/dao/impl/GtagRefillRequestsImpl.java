@@ -4,7 +4,9 @@ package me.exrates.dao.impl;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.GtagRefillRequests;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -30,7 +32,11 @@ public class GtagRefillRequestsImpl implements GtagRefillRequests {
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("userId", userId);
         }};
-        return namedParameterJdbcTemplate.queryForObject("SELECT COUNT FROM GTAG_REFILL_REQUESTS WHERE USER_ID=:userId FOR UPDATE ", params, Integer.class);
+        try {
+            return namedParameterJdbcTemplate.queryForObject("SELECT COUNT FROM GTAG_REFILL_REQUESTS WHERE USER_ID=:userId ", params, Integer.class);
+        } catch (DataAccessException e) {
+            return 0;
+        }
     }
 
     public void resetCount(Integer userId) {
