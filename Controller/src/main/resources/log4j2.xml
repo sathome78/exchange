@@ -10,9 +10,10 @@
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message  %n"/>
         </Console>
         <Socket name="Socket" host="${socket.host}" port="${socket.port}">
-            <JsonLayout properties="true"/>
+            <JsonLayout properties="true" objectMessageAsJsonObject="true"/>
+            <KeyValuePair key="process-id" value="$${ctx:process-id}"/>
             <ThresholdFilter level="${socket.log.level}"/>
-            <PatternLayout pattern="%d{dd-MM-yyyy HH:mm:ss.SSS} process-id=%X{process-id} %level - %message%n"/>
+<!--            <PatternLayout pattern="%d{dd-MM-yyyy HH:mm:ss.SSS} process-id=%X{process-id} %level - %message%n"/>-->
         </Socket>
         <RollingFile name="Merchants" fileName="${sys:catalina.home}/logs/merchants/merchants.log"
                      filePattern="${sys:catalina.home}/logs/merchants/merchants_%d_%i.log" append="true">
