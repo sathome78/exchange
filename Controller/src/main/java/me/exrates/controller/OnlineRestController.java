@@ -105,6 +105,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.requireNonNull;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 /**
@@ -921,7 +922,7 @@ public class OnlineRestController {
         /**/
         String attributeName = tableId + "Params";
         TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
-        Assert.requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
+        requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
         tableParams.setOffsetAndLimitForSql(page, direction);
         /**/
         String cacheKey = "myOrdersData" + tableId + status + request.getHeader("windowid");
@@ -1006,7 +1007,7 @@ public class OnlineRestController {
         /**/
         String attributeName = tableId + "Params";
         TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
-        Assert.requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
+        requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
         tableParams.setOffsetAndLimitForSql(page, direction);
         /**/
         String cacheKey = "myReferralData" + tableId + request.getHeader("windowid");
@@ -1046,7 +1047,7 @@ public class OnlineRestController {
         /**/
         String attributeName = tableId + "Params";
         TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
-        Assert.requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
+        requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
         tableParams.setOffsetAndLimitForSql(page, direction);
         /**/
         String cacheKey = "myAccountStatement" + tableId + walletId + request.getHeader("windowid");
@@ -1088,7 +1089,7 @@ public class OnlineRestController {
         /**/
         String attributeName = tableId + "Params";
         TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
-        Assert.requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
+        requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
         tableParams.setOffsetAndLimitForSql(page, direction);
         /**/
         String cacheKey = "myInputoutputData" + tableId + request.getHeader("windowid");
@@ -1122,7 +1123,7 @@ public class OnlineRestController {
             HttpServletRequest request) {
         String attributeName = tableId + "Params";
         TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
-        Assert.requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
+        requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
         Integer offset = page == null || tableParams.getPageSize() == -1 ? 0 : (page - 1) * tableParams.getPageSize();
         String cacheKey = "newsList" + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
