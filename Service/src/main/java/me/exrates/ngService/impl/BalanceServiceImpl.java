@@ -316,7 +316,7 @@ public class BalanceServiceImpl implements BalanceService {
                         btcValue = BigDecimalProcessing.doAction(sumBalances, btcUsdRate, ActionType.DEVIDE);
                     } catch (ArithmeticException e) {
                         btcValue = BigDecimal.ZERO;
-                        log.error(e.getMessage());
+                        log.error("my balances divide by zero" + e);
                     }
                     btcBalances = btcBalances.add(btcValue);
                     break;

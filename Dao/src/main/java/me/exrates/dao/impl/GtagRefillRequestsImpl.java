@@ -35,7 +35,7 @@ public class GtagRefillRequestsImpl implements GtagRefillRequests {
         try {
             return namedParameterJdbcTemplate.queryForObject("SELECT COUNT FROM GTAG_REFILL_REQUESTS WHERE USER_ID=:userId ", params, Integer.class);
         } catch (DataAccessException e) {
-            return NumberUtils.INTEGER_ZERO;
+            return 0;
         }
     }
 
