@@ -2,11 +2,11 @@
 INSERT INTO USER_ROLE_BUSINESS_FEATURE (name) VALUE ('OUTER_MARKET_BOT');
 
 INSERT INTO USER_ROLE (name, user_role_business_feature_id, user_role_group_feature_id, user_role_report_group_feature_id)
-VALUES ('OUTER_MARKET_BOT', (SELECT id FROM USER_ROLE_BUSINESS_FEATURE WHERE name = 'OUTER_MARKET_BOT'), 3, 4);
+VALUES ('OUTER_MARKET_BOT', (SELECT id  FROM USER_ROLE_BUSINESS_FEATURE WHERE USER_ROLE_BUSINESS_FEATURE.name = 'OUTER_MARKET_BOT' LIMIT 1), 3, 4);
 
-SET @new_role_id = (SELECT id FROM USER_ROLE WHERE name = 'OUTER_MARKET_BOT');
+SET @new_role_id = (SELECT id FROM USER_ROLE WHERE name = 'OUTER_MARKET_BOT' LIMIT 1);
 
-INSERT INTO USER_ROLE_SETTINGS (user_role_id, order_acception_same_role_only, manual_change_allowed, bot_acception_allowed, considered_for_price_range, use_real_money)
+INSERT IGNORE INTO USER_ROLE_SETTINGS (user_role_id, order_acception_same_role_only, manual_change_allowed, bot_acception_allowed, considered_for_price_range, use_real_money)
 VALUES (@new_role_id, 1, 0, 0, 1, 0);
 
 

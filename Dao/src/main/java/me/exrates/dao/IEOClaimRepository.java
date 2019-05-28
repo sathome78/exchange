@@ -11,8 +11,6 @@ public interface IEOClaimRepository {
 
     IEOClaim save(IEOClaim ieoClaim);
 
-    Collection<IEOClaim> findUnprocessedIeoClaims();
-
     boolean updateStatusIEOClaim(int claimId, IEOResult.IEOResultStatus status);
 
     Collection<Integer> getAllSuccessClaimIdsByIeoId(int claimId);
@@ -20,5 +18,7 @@ public interface IEOClaimRepository {
     List<IEOClaim> getClaimsByIds(List<Integer> ids);
 
     boolean updateClaim(IEOClaim ieoClaim);
+
+    List<IEOClaim> findUnprocessedIeoClaimsByIeoId(Integer ieoId, int chunk);
 }
 

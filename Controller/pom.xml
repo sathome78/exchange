@@ -96,8 +96,10 @@
     <profiles>
         <profile>
             <id>dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <build>
-
                 <finalName>ROOT</finalName>
                 <plugins>
                     <plugin>

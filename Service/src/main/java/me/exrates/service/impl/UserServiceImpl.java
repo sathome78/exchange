@@ -6,6 +6,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.UserDao;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.AdminAuthorityOption;
 import me.exrates.model.Comment;
 import me.exrates.model.Email;
@@ -51,7 +52,6 @@ import me.exrates.service.exception.ResetPasswordExpirationException;
 import me.exrates.service.exception.TokenNotFoundException;
 import me.exrates.service.exception.UnRegisteredUserDeleteException;
 import me.exrates.service.exception.UserCommentNotFoundException;
-import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.service.exception.WrongFinPasswordException;
 import me.exrates.service.exception.api.UniqueEmailConstraintException;
 import me.exrates.service.exception.api.UniqueNicknameConstraintException;
@@ -59,7 +59,6 @@ import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.session.UserSessionService;
 import me.exrates.service.token.TokenScheduler;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,7 +73,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -95,65 +93,13 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.joining;
 
 @Log4j2
 @Service
 public class UserServiceImpl implements UserService {
 
-    @Autowired
-    private UserDao userDao;
-
-    @Autowired
-    private UserSessionService userSessionService;
-
-    @Autowired
-    private SendMailService sendMailService;
-
-    @Autowired
-    private MessageSource messageSource;
-
-    @Autowired
-    private NotificationService notificationService;
-
-    @Autowired
-    private HttpServletRequest request;
-
-    @Autowired
-    private TokenScheduler tokenScheduler;
-
-    @Autowired
-    private ReferralService referralService;
-
-    @Autowired
-    private NotificationsSettingsService settingsService;
-
-    @Autowired
-    private G2faService g2faService;
-
-    @Autowired
-    private ExchangeApi exchangeApi;
-
-    @Autowired
-    private UserSettingService userSettingService;
-
-    BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
-    public static String QR_PREFIX = "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=";
-    public static String APP_NAME = "Exrates";
-
-    private final int USER_FILES_THRESHOLD = 3;
-
-    private final int USER_2FA_NOTIFY_DAYS = 6;
-
-    private final Set<String> USER_ROLES = Stream.of(UserRole.values())
-            .map(UserRole::name)
-            .collect(Collectors.toSet());
-    private final UserRole ROLE_DEFAULT_COMMISSION = UserRole.USER;
-
     private static final Logger LOGGER = LogManager.getLogger(UserServiceImpl.class);
-
     private final static List<String> LOCALES_LIST = new ArrayList<String>() {{
         add("EN");
         add("RU");
@@ -161,7 +107,39 @@ public class UserServiceImpl implements UserService {
         add("ID");
         add("AR");
     }};
-
+    public static String QR_PREFIX = "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=";
+    public static String APP_NAME = "Exrates";
+    private final int USER_FILES_THRESHOLD = 3;
+    private final int USER_2FA_NOTIFY_DAYS = 6;
+    private final Set<String> USER_ROLES = Stream.of(UserRole.values())
+            .map(UserRole::name)
+            .collect(Collectors.toSet());
+    private final UserRole ROLE_DEFAULT_COMMISSION = UserRole.USER;
+    BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    @Autowired
+    private UserDao userDao;
+    @Autowired
+    private UserSessionService userSessionService;
+    @Autowired
+    private SendMailService sendMailService;
+    @Autowired
+    private MessageSource messageSource;
+    @Autowired
+    private NotificationService notificationService;
+    @Autowired
+    private HttpServletRequest request;
+    @Autowired
+    private TokenScheduler tokenScheduler;
+    @Autowired
+    private ReferralService referralService;
+    @Autowired
+    private NotificationsSettingsService settingsService;
+    @Autowired
+    private G2faService g2faService;
+    @Autowired
+    private ExchangeApi exchangeApi;
+    @Autowired
+    private UserSettingService userSettingService;
     private Cache<String, UsersInfoDto> usersInfoCache = CacheBuilder.newBuilder()
             .expireAfterWrite(5, TimeUnit.MINUTES)
             .build();
@@ -958,7 +936,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String findEmailById(int id) {
-        return null;
+        return userDao.getEmailById(id);
     }
 
     @Override

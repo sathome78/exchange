@@ -375,7 +375,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @DependsOn("slaveForReportsDataSource")
     @Bean(name = "slaveForReportsTemplate")
     public NamedParameterJdbcTemplate slaveForReportsTemplate(@Qualifier("slaveForReportsDataSource") DataSource dataSource) {
-        return new NamedParameterJdbcTemplate(dataSource);
+        return new NamedParameterJdbcTemplateWrapper(dataSource);
     }
 
     @Primary
@@ -951,11 +951,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Conditional(MonolitConditional.class)
     public EthTokenService simService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x7528e3040376edd5db8263db2f5bd1bed91467fb");
+        tokensList.add("0xd7cd762f3ebc2c9a3d9bcf0133e06d04c59a1f7d");
         return new EthTokenServiceImpl(
                 tokensList,
                 "SIM",
-                "SIM", false, ExConvert.Unit.ETHER);
+                "SIM", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "amnServiceImpl")
@@ -2162,6 +2162,19 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 10);
     }
 
+    @Bean(name = "rwdsServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public XemMosaicService rwdsService() {
+        return new XemMosaicServiceImpl(
+                "RWDS",
+                "RWDS",
+                new MosaicIdDto("rewards4u", "rwds"),
+                100,
+                2,
+                new Supply(100000000L),
+                0);
+    }
+
     @Bean(name = "darcServiceImpl")
     @Conditional(MonolitConditional.class)
     public XemMosaicService darcService() {
@@ -2328,5 +2341,4 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         build.register(new LoggingFilter());
         return build;
     }
-
 }

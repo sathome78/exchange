@@ -137,6 +137,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             /*ADMIN ...*/
             .antMatchers(POST, "/2a8fy7b07dxe44/edituser/submit",
                     "/2a8fy7b07dxe44/users/deleteUserFile").hasAuthority(AdminAuthority.EDIT_USER.name())
+            .antMatchers(POST, "/2a8fy7b07dxe44/usdxWallet/sendTransaction").hasAuthority(AdminAuthority.MANAGE_BTC_CORE_WALLET.name())
             .antMatchers("/2a8fy7b07dxe44/addComment",
                     "/2a8fy7b07dxe44/deleteUserComment").hasAuthority(AdminAuthority.COMMENT_USER.name())
             .antMatchers("/2a8fy7b07dxe44/updateTransactionAmount").hasAuthority(AdminAuthority.PROCESS_INVOICE.name())
@@ -236,6 +237,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(GET, "/generateReferral").permitAll()
             .antMatchers(POST, "/merchants/edrcoin/payment/received").permitAll()
             .antMatchers(POST, "/merchants/edc/payment/received").permitAll()
+            .antMatchers(POST, "/merchants/lht/payment/received").permitAll()
             .antMatchers(GET, "/merchants/blockchain/payment/received").permitAll()
             .antMatchers(GET, "/merchants/yandexmoney/token/access").permitAll()
             .antMatchers(GET, "/rest/yandexmoney/payment/process").permitAll()
@@ -332,6 +334,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     "/merchants/advcash/payment/status",
                     "/merchants/edrcoin/payment/received",
                     "/merchants/edc/payment/received",
+                    "/merchants/lht/payment/received",
                     "/merchants/liqpay/payment/failure",
                     "/merchants/liqpay/payment/success",
                     "/merchants/liqpay/payment/status",
