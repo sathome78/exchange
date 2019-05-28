@@ -167,6 +167,7 @@ public class IEOServiceProcessing {
         }
         BigDecimal amount = walletService.findUserCurrencyBalance(ieoClaim);
         ieoDetails.setPersonalAmount(amount);
+        ieoDetails.setReadyToIeo(true);
         Email email = prepareEmail(principalEmail, notificationMessage);
         sendMailService.sendInfoMail(email);
         sendNotifications(principalEmail, ieoDetails, notificationMessage);
