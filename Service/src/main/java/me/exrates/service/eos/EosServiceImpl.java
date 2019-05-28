@@ -65,7 +65,7 @@ public class EosServiceImpl implements EosService {
     @Transactional
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
-        String destinationTag = CryptoUtils.generateDestinationTag(request.getUserId(), 15, currency.getName());
+        String destinationTag = CryptoUtils.generateDestinationTag(request.getUserId(), 10, currency.getName());
         String message = messageSource.getMessage("merchants.refill.xlm",
                 new Object[]{mainAddress, destinationTag}, request.getLocale());
         return new HashMap<String, String>() {{

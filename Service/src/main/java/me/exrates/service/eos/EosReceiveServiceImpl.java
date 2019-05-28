@@ -88,8 +88,6 @@ public class EosReceiveServiceImpl implements EosReceiveService {
         map.put("address", dataDto.getMemo());
         map.put("hash", hash);
         map.put("amount", dataDto.getAmount().toPlainString());
-        map.put("to", dataDto.getToAccount());
-        map.put("from", dataDto.getFromAccount());
 
         eosService.processPayment(map);
     }
