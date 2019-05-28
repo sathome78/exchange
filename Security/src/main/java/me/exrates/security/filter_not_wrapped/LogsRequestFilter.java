@@ -7,6 +7,7 @@ import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import me.exrates.model.dto.logging.ControllerLog;
 import me.exrates.model.loggingTxContext.QuerriesCountThreadLocal;
+import me.exrates.security.HttpLoggingFilter;
 import me.exrates.service.util.IpUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
@@ -62,7 +63,7 @@ public class LogsRequestFilter extends GenericFilterBean {
         String result;
         try {
             QuerriesCountThreadLocal.init();
-            transaction.addLabel("process_id" , ProcessIDManager.getProcessIdFromCurrentThread().orElse(StringUtils.EMPTY));
+            transaction.addLabel("process_id" , ProcessIDManager.getCurrentOrRegisterNewProcess(getClass()));
             filterChain.doFilter(request, response);
         }
         finally {
