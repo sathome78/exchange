@@ -16,7 +16,7 @@
 
     <properties>
         <javax.json.version>1.0.4</javax.json.version>
-        <jackson-databind.version>2.6.3</jackson-databind.version>
+        <jackson-databind.version>2.9.5</jackson-databind.version>
     </properties>
 
     <dependencies>
