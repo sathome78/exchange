@@ -3,6 +3,7 @@ package me.exrates.dao.impl;
 import lombok.extern.log4j.Log4j;
 import me.exrates.dao.IEOSubscribeRepository;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -10,9 +11,9 @@ import org.springframework.stereotype.Repository;
 @Log4j
 public class IEOSubscribeRepositoryImpl implements IEOSubscribeRepository {
 
-    private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcOperations jdbcTemplate;
 
-    public IEOSubscribeRepositoryImpl(NamedParameterJdbcTemplate jdbcTemplate) {
+    public IEOSubscribeRepositoryImpl(NamedParameterJdbcOperations jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 

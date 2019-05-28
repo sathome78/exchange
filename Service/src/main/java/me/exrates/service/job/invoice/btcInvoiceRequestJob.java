@@ -29,7 +29,7 @@ public class btcInvoiceRequestJob {
   BitcoinService bitcoinService;
 
   @Scheduled(initialDelay = 180000, fixedDelay = 1000 * 60 * 6)
-  private void invoiceExpiredClean() throws Exception {
+  protected void invoiceExpiredClean() throws Exception {
     try {
       if (EXPIRE_CLEAN_INTERVAL_MINUTES > 0) {
 // TODO REFILL

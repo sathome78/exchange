@@ -7,13 +7,13 @@
     </Properties>
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <JsonLayout complete="true" objectMessageAsJsonObject="true">
+            <JsonLayout compact="true" eventEol="true" objectMessageAsJsonObject="true">
                 <KeyValuePair key="process-id" value="$${ctx:process-id}" />
                 <KeyValuePair key="time" value="$${date:dd-MM-yyyy HH:mm:ss.SSS}"/>
             </JsonLayout>
         </Console>
         <Console name="Console2" target="SYSTEM_OUT">
-            <JsonLayout complete="true" objectMessageAsJsonObject="true">
+            <JsonLayout compact="true" eventEol="true" objectMessageAsJsonObject="true">
                 <KeyValuePair key="process-id" value="$${ctx:process-id}" />
                 <KeyValuePair key="time" value="$${date:dd-MM-yyyy HH:mm:ss.SSS}"/>
             </JsonLayout>

@@ -29,7 +29,7 @@ public class QiwiRecieveService {
     private QiwiService qiwiService;
 
     @Scheduled(initialDelay = 10 * 1000, fixedDelay = 1000 * 60 * 2)
-    private void checkIncomePayment() {
+    protected void checkIncomePayment() {
         log.info("*** Qiwi *** Scheduler start");
 
         qiwiExternalService.getLastTransactions()

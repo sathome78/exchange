@@ -34,7 +34,7 @@ public class RefillRequestJob {
     private MerchantServiceContext serviceContext;
 
     @Scheduled(initialDelay = 180000, fixedDelay = 1000 * 60 * 5)
-    private void refillExpiredClean() throws Exception {
+    protected void refillExpiredClean() throws Exception {
         log.debug("\nstart expired refill cleaning ... ");
         Integer expireCount = refillService.clearExpiredInvoices();
         log.debug("\n... end expired refill cleaning. Mark as expired: " + expireCount);

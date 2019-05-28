@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -146,7 +147,7 @@ public class ApiAuthTokenDaoTest extends DataComparisonTest {
 
         @Autowired
         @Qualifier("masterTemplate")
-        private NamedParameterJdbcTemplate jdbcTemplate;
+        private NamedParameterJdbcOperations jdbcTemplate;
 
         @Override
         protected String getSchema() {
