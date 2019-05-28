@@ -10,7 +10,6 @@ import me.exrates.model.Email;
 import me.exrates.model.IEOClaim;
 import me.exrates.model.IEODetails;
 import me.exrates.model.IEOResult;
-import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.enums.IEODetailsStatus;
@@ -32,7 +31,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @Log4j2
@@ -167,9 +165,8 @@ public class IEOServiceProcessing {
             ieoDetailsRepository.updateIeoDetailStatus(IEODetailsStatus.TERMINATED, ieoDetails.getId());
             ieoDetailsRepository.updateIeoSoldOutTime(ieoDetails.getId());
         }
-        User user = userService.findByEmail(principalEmail);
-        Map<String, String> userCurrencyBalances = walletService.findUserCurrencyBalances(user);
-        ieoDetails.setPersonalAmount(new BigDecimal(userCurrencyBalances.get(ieoDetails.getCurrencyName())));
+        BigDecimal amount = walletService.findUserCurrencyBalance(ieoClaim);
+        ieoDetails.setPersonalAmount(amount);
         Email email = prepareEmail(principalEmail, notificationMessage);
         sendMailService.sendInfoMail(email);
         sendNotifications(principalEmail, ieoDetails, notificationMessage);
