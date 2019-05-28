@@ -7,10 +7,7 @@
     </Properties>
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <JsonLayout compact="true" eventEol="true" objectMessageAsJsonObject="true">
-                <KeyValuePair key="process-id" value="$${ctx:process-id}" />
-                <KeyValuePair key="time" value="$${date:dd-MM-yyyy HH:mm:ss.SSS}"/>
-            </JsonLayout>
+            <PatternLayout pattern="%d{dd MM yyyy HH:mm:ss.SSS} process-id=%X{process-id} %level [%t] %C:%M:%L - %message  %n"/>
         </Console>
         <Console name="Console2" target="SYSTEM_OUT">
             <JsonLayout compact="true" eventEol="true" objectMessageAsJsonObject="true">
@@ -1115,21 +1112,21 @@
             <AppenderRef ref="Console2"/>
         </logger>
         <logger name="Service_layer_log" level="ALL" additivity="false">
-            <AppenderRef ref="Socket"/>
-            <AppenderRef ref="service_log"/>
+<!--            <AppenderRef ref="Socket"/>-->
+<!--            <AppenderRef ref="service_log"/>-->
         </logger>
         <logger name="Dao_layer_log" level="ALL" additivity="false">
-            <AppenderRef ref="Socket"/>
-            <AppenderRef ref="dao_log"/>
+<!--            <AppenderRef ref="Socket"/>-->
+<!--            <AppenderRef ref="dao_log"/>-->
         </logger>
         <logger name="Jdbc_query_log" level="ALL" additivity="false">
             <AppenderRef ref="jdbc_query_log"/>
             <AppenderRef ref="Socket"/>
-            <AppenderRef ref="jdbc_query_log"/>
+            <AppenderRef ref="Console2"/>
         </logger>
         <logger name="http_client" level="ALL" additivity="false">
-            <AppenderRef ref="Socket"/>
-            <AppenderRef ref="http_client"/>
+<!--            <AppenderRef ref="Socket"/>-->
+<!--            <AppenderRef ref="http_client"/>-->
         </logger>
         <Root level="INFO">
             <AppenderRef ref="Console"/>
