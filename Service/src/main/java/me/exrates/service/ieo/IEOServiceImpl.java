@@ -187,8 +187,7 @@ public class IEOServiceImpl implements IEOService {
             } else {
                 item.setPersonalAmount(BigDecimal.ZERO);
             }
-            if (item.getStatus() == IEODetailsStatus.RUNNING
-                    && item.getStatus() == IEODetailsStatus.PENDING) {
+            if (item.getStatus() == IEODetailsStatus.RUNNING) {
                 IEOStatusInfo statusInfo = checkUserStatusForIEO(user.getEmail(), item.getId());
                 item.setReadyToIeo(statusInfo.isKycCheck() && statusInfo.isCountryCheck() && statusInfo.isPolicyCheck());
             }
