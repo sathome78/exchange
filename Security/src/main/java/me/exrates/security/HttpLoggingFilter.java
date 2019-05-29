@@ -1,15 +1,9 @@
 package me.exrates.security;
 
 
-import org.apache.commons.lang3.StringUtils;
 import processIdManager.ProcessIDManager;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -19,17 +13,14 @@ public class HttpLoggingFilter implements Filter {
 
     @Override
     public void init(FilterConfig filterConfig) {
+        System.out.println("init loggigng filter");
         // empty
     }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        ProcessIDManager
-                .getProcessIdFromCurrentThread()
-                .orElseGet(() -> {
-                    ProcessIDManager.registerNewProcessForRequest(HttpLoggingFilter.class, (HttpServletRequest) request);
-                    return StringUtils.EMPTY;
-                });
+        System.out.println("do loggigng filter");
+        ProcessIDManager.registerNewProcessForRequest(HttpLoggingFilter.class, (HttpServletRequest) request);
         try {
             chain.doFilter(request, response);
         } finally {
