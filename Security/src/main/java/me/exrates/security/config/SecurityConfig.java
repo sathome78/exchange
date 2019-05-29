@@ -2,7 +2,6 @@ package me.exrates.security.config;
 
 import me.exrates.model.enums.AdminAuthority;
 import me.exrates.model.enums.UserRole;
-import me.exrates.security.HttpLoggingFilter;
 import me.exrates.security.filter.*;
 import me.exrates.security.filter_not_wrapped.*;
 import me.exrates.security.postprocessor.OnlineMethodPostProcessor;

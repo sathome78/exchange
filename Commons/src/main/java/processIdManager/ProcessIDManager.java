@@ -31,7 +31,9 @@ public class ProcessIDManager {
         logRegistrationByClass(cls);
         String parentProcessId = request.getHeader(X_REQUEST_ID_HEADER);
         String newProcessId = generateId(parentProcessId);
+        System.out.println("new processid " + newProcessId);
         setProcessId(newProcessId);
+        System.out.println("id setted");
     }
 
     public static String getCurrentOrRegisterNewProcess(Class<?> cls) {
