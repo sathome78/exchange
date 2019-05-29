@@ -58,12 +58,13 @@ public class LogsRequestFilter extends GenericFilterBean {
     }
 
     private void doFilterWrapped(ContentCachingRequestWrapper request, ContentCachingResponseWrapper response, FilterChain filterChain) throws ServletException, IOException {
+        ProcessIDManager.registerNewProcessForRequest(getClass(), request);
         long start = System.currentTimeMillis();
         Transaction transaction = ElasticApm.currentTransaction();
         String result;
         try {
             QuerriesCountThreadLocal.init();
-            transaction.addLabel("process_id" , ProcessIDManager.getCurrentOrRegisterNewProcess(getClass()));
+            transaction.addLabel("process_id" , ProcessIDManager.getProcessIdFromCurrentThread().orElse(StringUtils.EMPTY));
             filterChain.doFilter(request, response);
         }
         finally {
