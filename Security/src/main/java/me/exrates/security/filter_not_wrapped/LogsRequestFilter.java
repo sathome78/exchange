@@ -58,7 +58,6 @@ public class LogsRequestFilter extends GenericFilterBean {
     }
 
     private void doFilterWrapped(ContentCachingRequestWrapper request, ContentCachingResponseWrapper response, FilterChain filterChain) throws ServletException, IOException {
-        ProcessIDManager.registerNewProcessForRequest(getClass(), request);
         long start = System.currentTimeMillis();
         Transaction transaction = ElasticApm.currentTransaction();
         String result;
@@ -93,7 +92,6 @@ public class LogsRequestFilter extends GenericFilterBean {
                 logSlowRequest(transaction, execTime);
             }
             response.copyBodyToResponse();
-            ProcessIDManager.unregisterProcessId(getClass());
         }
     }
 
