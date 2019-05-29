@@ -1,6 +1,7 @@
 package me.exrates.security;
 
 
+import org.springframework.web.filter.GenericFilterBean;
 import processIdManager.ProcessIDManager;
 
 import javax.servlet.*;
@@ -9,13 +10,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
 @WebFilter(filterName="logging_filter")
-public class HttpLoggingFilter implements Filter {
+public class HttpLoggingFilter extends GenericFilterBean {
 
-    @Override
-    public void init(FilterConfig filterConfig) {
-        System.out.println("init loggigng filter");
-        // empty
-    }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
