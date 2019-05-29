@@ -67,6 +67,7 @@ public class LogsRequestFilter extends GenericFilterBean {
             filterChain.doFilter(request, response);
         }
         finally {
+            ProcessIDManager.unregisterProcessId(getClass());
             if (needToLog(request)) {
                 result = getResponse(response);
                 transaction.setResult(result);
