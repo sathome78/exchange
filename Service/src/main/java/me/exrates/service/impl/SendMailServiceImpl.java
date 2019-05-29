@@ -36,7 +36,7 @@ public class SendMailServiceImpl implements SendMailService {
     }
 
     @Override
-    public void sendMailMandrill(Email email) {
+    public void sendMailSes(Email email) {
         rabbitTemplate.convertAndSend(EMAIL_SES_QUEUE, email);
     }
 
