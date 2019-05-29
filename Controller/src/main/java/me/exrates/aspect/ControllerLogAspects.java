@@ -82,8 +82,6 @@ public class ControllerLogAspects {
             throw ex;
         } finally {
             MethodsLog mLog = new MethodsLog(method, args, result, user, getExecutionTime(start), errorMsg);
-            ProcessIDManager.getProcessIdFromCurrentThread()
-                    .ifPresent(p -> userLogsHandler.onUserLogEvent(new LogsWrapper(mLog, p, LogsTypeEnum.WS_SUBSCRIBE)));
             log.debug(mLog);
             ProcessIDManager.unregisterProcessId(getClass());
         }

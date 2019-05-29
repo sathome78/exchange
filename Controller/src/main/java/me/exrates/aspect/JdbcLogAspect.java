@@ -65,7 +65,6 @@ public class JdbcLogAspect {
             long exTime = getExecutionTime(start);
             mLog = new MethodsLog(method, args, result, user, exTime, exStr);
             log.debug(mLog);
-            ProcessIDManager.getProcessIdFromCurrentThread().ifPresent(p-> userLogsHandler.onUserLogEvent(new LogsWrapper(mLog, p, LogsTypeEnum.SQL_QUERY)));
             logSlowQuerry(span, exTime);
             span.end();
         }

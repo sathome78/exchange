@@ -7,16 +7,6 @@
 
 
     <filter>
-        <filter-name>HttpLoggingFilter</filter-name>
-        <filter-class>me.exrates.security.HttpLoggingFilter</filter-class>
-    </filter>
-
-    <filter-mapping>
-        <filter-name>HttpLoggingFilter</filter-name>
-        <url-pattern>/*</url-pattern>
-    </filter-mapping>
-
-    <filter>
         <filter-name>LogsRequestFilter</filter-name>
         <filter-class>me.exrates.security.filter_not_wrapped.LogsRequestFilter</filter-class>
     </filter>
@@ -25,8 +15,6 @@
         <filter-name>LogsRequestFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
-
-
 
     <listener>
         <listener-class>se.jiderhamn.classloader.leak.prevention.ClassLoaderLeakPreventorListener</listener-class>

@@ -100,7 +100,7 @@ public class ProcessIDManager {
     }
 
     public static void unregisterProcessId(Class<?> cls) {
-        if (false && LOGGER.isInfoEnabled()) {
+        if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Class " + cls.getSimpleName() + " unregistered process id " + MDC.get(PROCESS_ID));
         }
         MDC.remove(PROCESS_ID);
@@ -118,7 +118,7 @@ public class ProcessIDManager {
     }
 
     private static void setProcessId(String id) {
-        if (false && LOGGER.isInfoEnabled()) {
+        if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Before registered process id " + id);
         }
 
@@ -132,7 +132,7 @@ public class ProcessIDManager {
 
         MDC.put(PROCESS_ID, id);
 
-        if (false && LOGGER.isInfoEnabled()) {
+        if (LOGGER.isInfoEnabled()) {
             LOGGER.info("New process id registered");
         }
     }
