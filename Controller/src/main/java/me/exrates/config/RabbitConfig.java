@@ -28,8 +28,8 @@ public class RabbitConfig implements RabbitListenerConfigurer {
     @Value("${email-info-queue}")
     private String EMAIL_INFO_QUEUE;
 
-    @Value("${email-mandrill-queue}")
-    private String EMAIL_MANDRILL_QUEUE;
+    @Value("${email-ses-queue}")
+    private String EMAIL_SES_QUEUE;
 
     @Value("${email-queue}")
     private String EMAIL_QUEUE;
@@ -61,7 +61,7 @@ public class RabbitConfig implements RabbitListenerConfigurer {
     @Bean
     public Queue emailMandrillQueue() {
         return QueueBuilder
-                .durable(EMAIL_MANDRILL_QUEUE)
+                .durable(EMAIL_SES_QUEUE)
                 .build();
     }
 
