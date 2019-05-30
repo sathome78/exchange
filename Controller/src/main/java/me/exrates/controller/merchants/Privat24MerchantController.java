@@ -1,11 +1,10 @@
 package me.exrates.controller.merchants;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Transaction;
 import me.exrates.service.MerchantService;
 import me.exrates.service.Privat24Service;
 import me.exrates.service.TransactionService;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -27,6 +26,7 @@ import static org.springframework.http.HttpStatus.OK;
 
 @Controller
 @RequestMapping("/merchants/privat24")
+@Log4j2
 public class Privat24MerchantController {
     @Autowired
     private MerchantService merchantService;
@@ -43,19 +43,17 @@ public class Privat24MerchantController {
     @Autowired
     private LocaleResolver localeResolver;
 
-    private static final Logger LOG = LogManager.getLogger("merchant");
-
     @RequestMapping(value = "payment/status", method = RequestMethod.POST)
     public ResponseEntity<Void> statusPayment(final @RequestParam Map<String, String> params,
                                               final RedirectAttributes redir) {
 
-        LOG.debug("Begin method: statusPayment.");
+        log.debug("Begin method: statusPayment.");
         final ResponseEntity<Void> response = new ResponseEntity<>(OK);
-        LOG.info("Response: " + params);
+        log.info("Response: " + params);
 
         String signature = params.get("signature");
         String payment = params.get("payment");
-        LOG.debug("Get status payment: " + payment);
+        log.debug("Get status payment: " + payment);
         String[] arrayResponse = payment.split("&");
         Map<String, String> mapResponse = new HashMap<>();
         for (String value : arrayResponse) {
@@ -74,7 +72,7 @@ public class Privat24MerchantController {
     @RequestMapping(value = "payment/success", method = RequestMethod.POST)
     public RedirectView successPayment(@RequestParam Map<String, String> response, RedirectAttributes redir, final HttpServletRequest request) {
 
-        LOG.debug("Begin method: successPayment.");
+        log.debug("Begin method: successPayment.");
 
         String signature = response.get("signature");
         String payment = response.get("payment");
@@ -83,7 +81,7 @@ public class Privat24MerchantController {
         for (String value : arrayResponse) {
             mapResponse.put(value.split("=")[0], value.split("=")[1]);
         }
-        LOG.info("Response: " + response);
+        log.info("Response: " + response);
 
         Transaction transaction;
         try {
@@ -96,7 +94,7 @@ public class Privat24MerchantController {
                 }
             }
         } catch (EmptyResultDataAccessException e) {
-            LOG.error(e);
+            log.error(e);
             redir.addAttribute("errorNoty", messageSource.getMessage("merchants.incorrectPaymentDetails", null, localeResolver.resolveLocale(request)));
             return new RedirectView("/dashboard");
         }

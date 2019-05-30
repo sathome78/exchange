@@ -13,8 +13,6 @@ import me.exrates.service.TransactionService;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.util.WithdrawUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Conditional;
@@ -40,9 +38,6 @@ public class LiqpayServiceImpl implements LiqpayService {
   private @Value("${liqpay.private_key}") String private_key;
   private @Value("${liqpay.apiVersion}") String apiVersion;
   private @Value("${liqpay.action}") String action;
-
-
-  private static final Logger logger = LogManager.getLogger(AdvcashServiceImpl.class);
 
   @Autowired
   private TransactionService transactionService;

@@ -3,10 +3,15 @@ package me.exrates.service.bitshares;
 import com.google.common.hash.Hashing;
 import lombok.Data;
 import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.MerchantSpecParamDto;
+import me.exrates.model.dto.RefillRequestAcceptDto;
+import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
@@ -15,7 +20,6 @@ import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.util.WithdrawUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,14 +27,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 
 import javax.annotation.PostConstruct;
-import javax.websocket.*;
+import javax.websocket.ClientEndpoint;
+import javax.websocket.ContainerProvider;
+import javax.websocket.OnMessage;
+import javax.websocket.RemoteEndpoint;
+import javax.websocket.Session;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -40,10 +53,10 @@ import static me.exrates.service.bitshares.memo.MemoDecryptor.decryptBTSmemo;
 
 @Data
 @ClientEndpoint
+@Log4j2
 public abstract class BitsharesServiceImpl implements BitsharesService {
 
     private static final long RECONNECT_PERIOD = 60;
-    protected Logger log;
 
     @Autowired
     private MessageSource messageSource;
@@ -82,7 +95,6 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
         this.merchantName = merchantName;
         this.currencyName = currencyName;
         this.decimal = decimal;
-        log = Logger.getLogger(merchantName.toLowerCase());
         Properties props = new Properties();
         try {
             props.load(this.getClass().getClassLoader().getResourceAsStream(propertySource));

@@ -1,6 +1,6 @@
 package me.exrates.ngcontroller;
 
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.dto.BalanceFilterDataDto;
@@ -63,7 +63,7 @@ import java.util.Optional;
 @RequestMapping(value = "/api/private/v2/balances",
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-@Log4j
+@Log4j2
 public class NgBalanceController {
 
     private static final Logger logger = LoggerFactory.getLogger(NgBalanceController.class);

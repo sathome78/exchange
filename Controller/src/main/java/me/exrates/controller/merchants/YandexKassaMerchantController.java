@@ -1,11 +1,10 @@
 package me.exrates.controller.merchants;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Transaction;
 import me.exrates.service.MerchantService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.YandexKassaService;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +24,7 @@ import static org.springframework.http.HttpStatus.OK;
 
 @Controller
 @RequestMapping("/merchants/yandex_kassa")
+@Log4j2
 public class YandexKassaMerchantController {
     @Autowired
     private MerchantService merchantService;
@@ -41,14 +41,12 @@ public class YandexKassaMerchantController {
     @Autowired
     private LocaleResolver localeResolver;
 
-    private static final Logger LOG = LogManager.getLogger("merchant");
-
     @RequestMapping(value = "payment/status", method = RequestMethod.POST)
     public ResponseEntity<Void> statusPayment(final @RequestParam Map<String, String> params) {
 
-        LOG.debug("Begin method: statusPayment.");
+        log.debug("Begin method: statusPayment.");
         final ResponseEntity<Void> response = new ResponseEntity<>(OK);
-        LOG.info("Response: " + params);
+        log.info("Response: " + params);
 
         if (yandexKassaService.confirmPayment(params)) {
             return response;
@@ -60,9 +58,9 @@ public class YandexKassaMerchantController {
     @RequestMapping(value = "payment/success", method = RequestMethod.GET)
     public RedirectView successPayment(@RequestParam final Map<String, String> response, final RedirectAttributes redir, final HttpServletRequest request) {
 
-        LOG.debug("Begin method: successPayment.");
+        log.debug("Begin method: successPayment.");
         Transaction transaction = transactionService.findById(Integer.parseInt(response.get("orderNumber")));
-        LOG.info("Response: " + response);
+        log.info("Response: " + response);
 
         if (transaction.isProvided()) {
 

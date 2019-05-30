@@ -1,6 +1,7 @@
 package me.exrates.service.bitshares.crea;
 
 import com.google.common.hash.Hashing;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.service.bitshares.BitsharesServiceImpl;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -18,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 
 @ClientEndpoint
+@Log4j2
 public class CreaServiceImpl extends BitsharesServiceImpl {
 
 

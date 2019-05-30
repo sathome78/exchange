@@ -1,7 +1,7 @@
 package me.exrates.service.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * Created by ValkSam
  */
-@Log4j
+@Log4j2
 public class LogMessage {
   public static String requestLogMessage(HttpServletRequest request) {
     try {

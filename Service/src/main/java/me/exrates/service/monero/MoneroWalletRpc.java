@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import lombok.extern.log4j.Log4j2;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
@@ -15,7 +16,6 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.apache.log4j.Logger;
 import types.HttpException;
 import types.Pair;
 import utils.JsonUtils;
@@ -28,8 +28,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 
+@Log4j2
 public class MoneroWalletRpc {
-    private static final Logger LOGGER = Logger.getLogger(wallet.MoneroWalletRpc.class);
+    
     public static ObjectMapper MAPPER = new ObjectMapper();
     private String rpcHost;
     private int rpcPort;
@@ -464,7 +465,7 @@ public class MoneroWalletRpc {
                     tx.setUnlockTime(((BigInteger)val).intValue());
                 } else if (!key.equalsIgnoreCase("global_index")) {
                     if (!key.equalsIgnoreCase("destinations")) {
-                        LOGGER.warn("Ignoring unexpected transaction field: '" + key + "'");
+                        log.warn("Ignoring unexpected transaction field: '" + key + "'");
                     } else {
                         List<MoneroPayment> payments = new ArrayList();
                         tx.setPayments(payments);
@@ -544,14 +545,14 @@ public class MoneroWalletRpc {
                 body.put("params", params);
             }
 
-            LOGGER.debug("Sending method '" + method + "' with body: " + JsonUtils.serialize(body));
+            log.debug("Sending method '" + method + "' with body: " + JsonUtils.serialize(body));
             HttpPost post = new HttpPost(this.rpcUri);
             HttpEntity entity = new StringEntity(JsonUtils.serialize(body));
             post.setEntity(entity);
             HttpResponse resp = this.client.execute(post);
             validateHttpResponse(resp);
             Map<String, Object> respMap = JsonUtils.toMap(MAPPER, StreamUtils.streamToString(resp.getEntity().getContent()));
-            LOGGER.debug("Received response to method '" + method + "': " + JsonUtils.serialize(respMap));
+            log.debug("Received response to method '" + method + "': " + JsonUtils.serialize(respMap));
             EntityUtils.consume(resp.getEntity());
             validateRpcResponse(respMap, body);
             return respMap;

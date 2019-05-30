@@ -1,12 +1,12 @@
 package me.exrates.aspect;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Aspect;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -23,15 +23,15 @@ import java.util.stream.Collectors;
 @Aspect
 @Component
 public class LoggingAspect {
-    private static final Logger log = LogManager.getLogger("exceptions_log");
-    private static final Logger logExtended = LogManager.getLogger("exceptions_ext_log");
-    private static final Logger withdrawLog = LogManager.getLogger("withdraw_asp_log");
-    private static final Logger withdrawExtLog = LogManager.getLogger("withdraw_asp_ext_log");
-    private static final Logger refillLog = LogManager.getLogger("refill_asp_log");
-    private static final Logger refillExtLog = LogManager.getLogger("refill_asp_ext_log");
-    private static final Logger transferLog = LogManager.getLogger("transfer_asp_log");
-    private static final Logger transferExtLog = LogManager.getLogger("transfer_asp_ext_log");
-    private static final Logger adminLog = LogManager.getLogger("admin_log");
+    private static final Logger log = LoggerFactory.getLogger("exceptions_log");
+    private static final Logger logExtended = LoggerFactory.getLogger("exceptions_ext_log");
+    private static final Logger withdrawLog = LoggerFactory.getLogger("withdraw_asp_log");
+    private static final Logger withdrawExtLog = LoggerFactory.getLogger("withdraw_asp_ext_log");
+    private static final Logger refillLog = LoggerFactory.getLogger("refill_asp_log");
+    private static final Logger refillExtLog = LoggerFactory.getLogger("refill_asp_ext_log");
+    private static final Logger transferLog = LoggerFactory.getLogger("transfer_asp_log");
+    private static final Logger transferExtLog = LoggerFactory.getLogger("transfer_asp_ext_log");
+    private static final Logger adminLog = LoggerFactory.getLogger("admin_log");
 
 
     @AfterReturning(value = "execution(* * (..)) && " +

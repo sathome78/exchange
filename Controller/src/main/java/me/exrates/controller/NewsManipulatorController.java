@@ -1,6 +1,6 @@
 package me.exrates.controller;
 
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.ErrorInfoDto;
 import me.exrates.model.dto.newsDto.NewsEditorCreationFormDto;
@@ -25,7 +25,7 @@ import java.util.Collections;
 import java.util.Map;
 
 @RestController
-@Log4j
+@Log4j2
 public class NewsManipulatorController {
 
     @Autowired

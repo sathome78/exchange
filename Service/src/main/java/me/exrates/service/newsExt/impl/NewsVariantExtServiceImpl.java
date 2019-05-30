@@ -1,6 +1,6 @@
 package me.exrates.service.newsExt.impl;
 
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.newsExt.NewsVariantExtDao;
 import me.exrates.model.dto.newsDto.NewsTopicDto;
 import me.exrates.model.enums.NewsTypeEnum;
@@ -21,7 +21,7 @@ import java.util.Locale;
  * Created by ValkSam
  */
 @Service
-@Log4j
+@Log4j2
 @PropertySource(value = {"classpath:/materials.properties"})
 public class NewsVariantExtServiceImpl implements NewsVariantExtService {
 

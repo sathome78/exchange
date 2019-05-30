@@ -122,8 +122,6 @@ import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.util.BigDecimalConverter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -209,8 +207,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @Log4j2
 @Controller
 public class AdminController {
-
-    private static final Logger LOG = LogManager.getLogger(AdminController.class);
 
     @Autowired
     private MessageSource messageSource;
@@ -371,10 +367,10 @@ public class AdminController {
             result = referralService.updateReferralLevel(level, oldLevelId, percent);
             return new ResponseEntity<>(singletonMap("id", String.valueOf(result)), OK);
         } catch (final IllegalStateException e) {
-            LOG.error(e);
+            log.error(e);
             return new ResponseEntity<>(singletonMap("error", messageSource.getMessage("admin.refPercentExceedMaximum", null, locale)), BAD_REQUEST);
         } catch (final Exception e) {
-            LOG.error(e);
+            log.error(e);
             return new ResponseEntity<>(singletonMap("error", messageSource.getMessage("admin.failureRefLevelEdit", null, locale)), BAD_REQUEST);
         }
     }
@@ -390,7 +386,7 @@ public class AdminController {
             final String filename = path.substring(path.lastIndexOf('/') + 1);
             userFilesService.deleteUserFile(filename, userId);
         } catch (IOException e) {
-            LOG.error(e);
+            log.error(e);
             return new ResponseEntity<>(singletonMap("error",
                     messageSource.getMessage("admin.internalError", null, locale)), INTERNAL_SERVER_ERROR);
         }
@@ -464,7 +460,7 @@ public class AdminController {
         try {
             userService.addUserComment(GENERAL, newComment, email, sendMessage);
         } catch (Exception e) {
-            LOG.error(e);
+            log.error(e);
             return new ResponseEntity<>(singletonMap("error",
                     messageSource.getMessage("admin.internalError", null, locale)), INTERNAL_SERVER_ERROR);
         }
@@ -483,7 +479,7 @@ public class AdminController {
         try {
             userService.editUserComment(commentId, newComment, email, sendMessage, principal.getName());
         } catch (Exception e) {
-            LOG.error(e);
+            log.error(e);
             return new ResponseEntity<>(singletonMap("error",
                     messageSource.getMessage("admin.internalError", null, locale)), INTERNAL_SERVER_ERROR);
         }
@@ -498,7 +494,7 @@ public class AdminController {
         try {
             userService.deleteUserComment(commentId);
         } catch (Exception e) {
-            LOG.error(e);
+            log.error(e);
             return new ResponseEntity<>(singletonMap("error",
                     messageSource.getMessage("admin.internalError", null, locale)), INTERNAL_SERVER_ERROR);
         }
@@ -733,7 +729,7 @@ public class AdminController {
         try {
             return (Integer) orderService.deleteOrderByAdmin(id);
         } catch (Exception e) {
-            LOG.error(e);
+            log.error(e);
             throw e;
         }
     }
@@ -753,7 +749,7 @@ public class AdminController {
         try {
             return (boolean) stopOrderService.deleteOrderByAdmin(id, localeResolver.resolveLocale(request));
         } catch (Exception e) {
-            LOG.error(e);
+            log.error(e);
             throw e;
         }
     }
@@ -771,7 +767,7 @@ public class AdminController {
                     localeResolver.resolveLocale(request));
             return orderInfo;
         } catch (Exception ex) {
-            LOG.error(ex.getMessage(), ex);
+            log.error(ex.getMessage(), ex);
             DataTable<List<OrderBasicInfoDto>> errorResult = new DataTable<>();
             errorResult.setError(ex.getMessage());
             errorResult.setData(Collections.EMPTY_LIST);
@@ -792,7 +788,7 @@ public class AdminController {
                     localeResolver.resolveLocale(request));
             return orderInfo;
         } catch (Exception ex) {
-            LOG.error(ex.getMessage(), ex);
+            log.error(ex.getMessage(), ex);
             DataTable<List<OrderBasicInfoDto>> errorResult = new DataTable<>();
             errorResult.setError(ex.getMessage());
             errorResult.setData(Collections.EMPTY_LIST);
@@ -958,7 +954,7 @@ public class AdminController {
     @ResponseBody
     public ResponseEntity<Void> changeActiveBalance(@RequestParam Integer userId, @RequestParam("currency") Integer currencyId,
                                                     @RequestParam BigDecimal amount, Principal principal) {
-        LOG.debug("userId = " + userId + ", currencyId = " + currencyId + "? amount = " + amount);
+        log.debug("userId = " + userId + ", currencyId = " + currencyId + "? amount = " + amount);
         walletService.manualBalanceChange(userId, currencyId, amount, principal.getName());
         return new ResponseEntity<>(HttpStatus.OK);
 
@@ -1036,7 +1032,7 @@ public class AdminController {
     public ResponseEntity<Void> editCommission(@RequestParam("operationType") OperationType operationType,
                                                @RequestParam("userRole") String role,
                                                @RequestParam("commissionValue") BigDecimal value) {
-        LOG.debug("operationType = " + operationType + ", userRole = " + role + ", value = " + value);
+        log.debug("operationType = " + operationType + ", userRole = " + role + ", value = " + value);
         commissionService.updateCommission(operationType, role, value);
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -1066,7 +1062,7 @@ public class AdminController {
     @ResponseBody
     public List<MerchantCurrencyOptionsDto> merchantAccessData(@RequestParam List<String> processTypes) {
         List<MerchantCurrencyOptionsDto> merchantCurrencyOptions = merchantService.findMerchantCurrencyOptions(processTypes);
-        LOG.debug(merchantCurrencyOptions);
+        log.debug(merchantCurrencyOptions);
         return merchantCurrencyOptions;
     }
 
@@ -1086,7 +1082,7 @@ public class AdminController {
     public ResponseEntity<Void> toggleBlock(@RequestParam Integer merchantId,
                                             @RequestParam Integer currencyId,
                                             @RequestParam OperationType operationType) {
-        LOG.debug("merchantId = " + merchantId + ", currencyId = " + currencyId + ", operationType = " + operationType);
+        log.debug("merchantId = " + merchantId + ", currencyId = " + currencyId + ", operationType = " + operationType);
         merchantService.toggleMerchantBlock(merchantId, currencyId, operationType);
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -1330,7 +1326,7 @@ public class AdminController {
     @ResponseBody
     public BtcAdminPaymentResponseDto sendToMany(@PathVariable String merchantName,
                                                  @RequestBody List<BtcWalletPaymentItemDto> payments, HttpServletRequest request) {
-        LOG.debug(payments);
+        log.debug(payments);
         BitcoinService walletService = getBitcoinServiceByMerchantName(merchantName);
         BtcAdminPaymentResponseDto responseDto = new BtcAdminPaymentResponseDto();
         responseDto.setResults(walletService.sendToMany(payments));
@@ -1354,7 +1350,7 @@ public class AdminController {
     @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transaction/create", method = RequestMethod.POST)
     @ResponseBody
     public void createBtcRefillRequest(@PathVariable String merchantName, @RequestParam Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-        LOG.debug(params);
+        log.debug(params);
         getBitcoinServiceByMerchantName(merchantName).processPayment(params);
     }
 
@@ -1384,7 +1380,7 @@ public class AdminController {
                                               @RequestParam(value = "onPage", defaultValue = "20") int onPage,
                                               @RequestParam(value = "page", defaultValue = "1") int page,
                                               RefFilterData refFilterData) {
-        LOG.error("filter data " + refFilterData);
+        log.error("filter data " + refFilterData);
         return referralService.getRefsContainerForReq(action, userId, profitUser, onPage, page, refFilterData);
     }
 
@@ -1405,7 +1401,7 @@ public class AdminController {
                 writer.write(transaction);
             }
         } catch (IOException e) {
-            LOG.error("error download transactions " + e);
+            log.error("error download transactions " + e);
         } finally {
             writer.flush();
             writer.close();
@@ -1643,7 +1639,7 @@ public class AdminController {
     public BtcAdminPreparedTxDto prepareRawTransactions(@PathVariable String merchantName,
                                                         @RequestBody List<BtcWalletPaymentItemDto> payments,
                                                         HttpServletRequest request) {
-        LOG.debug(payments);
+        log.debug(payments);
     /*long uniqueAddressesCount = payments.stream().map(BtcWalletPaymentItemDto::getAddress).distinct().count();
     if (uniqueAddressesCount != payments.size()) {
       throw new InvalidBtcPaymentDataException("Only unique addresses allowed in single payment!");
@@ -1837,7 +1833,7 @@ public class AdminController {
     @ExceptionHandler(Exception.class)
     @ResponseBody
     public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
-        LOG.error(exception);
+        log.error(exception);
         exception.printStackTrace();
         return new ErrorInfo(req.getRequestURL(), exception);
     }

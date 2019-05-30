@@ -1,7 +1,7 @@
 package me.exrates.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.dto.newsDto.NewsTopicDto;
 import me.exrates.model.newsEntity.News;
@@ -26,7 +26,7 @@ import static me.exrates.model.enums.NewsTypeEnum.PAGE;
 
 @RestController
 @PropertySource(value = {"classpath:/materials.properties"})
-@Log4j
+@Log4j2
 public class MaterialsController {
     @Autowired
     LocaleResolver localeResolver;

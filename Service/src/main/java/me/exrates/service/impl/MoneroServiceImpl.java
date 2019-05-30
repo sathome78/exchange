@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestAcceptDto;
@@ -12,8 +13,6 @@ import me.exrates.service.MoneroService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.util.WithdrawUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by ajet
  */
+@Log4j2
 public class MoneroServiceImpl implements MoneroService {
 
     private MoneroWallet wallet;
@@ -84,8 +84,6 @@ public class MoneroServiceImpl implements MoneroService {
 
     private static final int INTEGRATED_ADDRESS_DIGITS = 16;
 
-    private Logger log;
-
     public MoneroServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations, Integer decimals) {
 
         Properties props = new Properties();
@@ -101,7 +99,6 @@ public class MoneroServiceImpl implements MoneroService {
             this.currencyName = currencyName;
             this.minConfirmations = minConfirmations;
             this.decimals = decimals;
-            this.log = LogManager.getLogger(props.getProperty("monero.log"));
         } catch (IOException e) {
             log.error(e);
         }
@@ -200,7 +197,6 @@ public class MoneroServiceImpl implements MoneroService {
             log.info(merchantName + ": Checking transactions...");
             log.info(new java.util.Date());
             HashMap<String, String> mapAddresses = new HashMap<>();
-            Set<String> payments = new HashSet<>();
 
             log.info(ADDRESSES.toString());
             for (String address : ADDRESSES) {

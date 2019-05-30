@@ -1,7 +1,7 @@
 package me.exrates.service.newsExt.impl;
 
 
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.newsExt.NewsExtDao;
 import me.exrates.dao.newsExt.NewsVariantExtDao;
 import me.exrates.model.dto.newsDto.NewsEditorCreationFormDto;
@@ -34,7 +34,7 @@ import java.util.UUID;
  * excluded repository/doa
  */
 @Service
-@Log4j
+@Log4j2
 @PropertySource(value = {"classpath:/news.properties"})
 public class NewsExtServiceImpl implements NewsExtService {
   @Value("${news.ext.locationDir}")

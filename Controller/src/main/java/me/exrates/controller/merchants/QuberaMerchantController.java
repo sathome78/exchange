@@ -1,5 +1,6 @@
 package me.exrates.controller.merchants;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.dto.AccountCreateDto;
 import me.exrates.model.dto.qubera.AccountInfoDto;
@@ -11,8 +12,6 @@ import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.service.QuberaService;
 import me.exrates.service.exception.RefillRequestAlreadyAcceptedException;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -38,9 +37,9 @@ import java.util.Map;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 @RestController
+@Log4j2
 public class QuberaMerchantController {
 
-    private static final Logger logger = LogManager.getLogger(QuberaMerchantController.class);
     private final static String PRIVATE_KYC = "/api/private/v2";
     private final QuberaService quberaService;
 
@@ -51,7 +50,7 @@ public class QuberaMerchantController {
 
     @PostMapping(value = "/merchants/qubera/payment/status", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> statusPayment(@RequestBody QuberaRequestDto requestDto) {
-        logger.info("Response: " + requestDto.getParams());
+        log.info("Response: " + requestDto.getParams());
         quberaService.logResponse(requestDto);
         try {
             if (!(requestDto.getState().equalsIgnoreCase("Rejected"))) {
@@ -69,7 +68,7 @@ public class QuberaMerchantController {
 
     @RequestMapping(value = "/merchants/qubera/payment/success", method = RequestMethod.GET)
     public ResponseEntity successPayment(@RequestParam Map<String, String> response) {
-        logger.debug(response);
+        log.debug(response);
         return ResponseEntity.ok().build();
     }
 

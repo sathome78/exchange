@@ -3,8 +3,6 @@ package me.exrates.controller.merchants;
 import me.exrates.service.LiqpayService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.TransactionService;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
@@ -36,8 +34,6 @@ public class LiqpayMerchantController {
 
     @Autowired
     private LocaleResolver localeResolver;
-
-    private static final Logger logger = LogManager.getLogger("merchant");
 
     private static final String merchantInputErrorPage = "redirect:/merchants/input";
 

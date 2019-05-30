@@ -5,8 +5,6 @@ import me.exrates.model.News;
 import me.exrates.model.dto.NewsSummaryDto;
 import me.exrates.model.form.NewsEditorCreationForm;
 import me.exrates.service.NewsService;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -31,7 +29,6 @@ import java.util.zip.ZipInputStream;
 @RestController
 @PropertySource(value = {"classpath:/news.properties"})
 public class NewsControllerRest {
-    private static final Logger LOG = LogManager.getLogger(NewsControllerRest.class);
     private final int DEAFAULT_PAGE_SIZE = 20;
     private final String TITLE_DESCRIPTION_FILE_NAME = "title.md";
     private final String BRIEF_DESCRIPTION_FILE_NAME = "brief.md";

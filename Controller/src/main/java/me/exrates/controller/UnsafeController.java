@@ -1,7 +1,5 @@
 package me.exrates.controller;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.springframework.stereotype.Controller;
 
 /**
@@ -9,8 +7,6 @@ import org.springframework.stereotype.Controller;
  */
 @Controller
 public class UnsafeController {
-
-    private static final Logger LOGGER = LogManager.getLogger(UnsafeController.class);
 /*
     @RequestMapping(value = "unsafe/rescanEDCBlockchain")
     public ResponseEntity<String> rescanEDCBlockchain(@RequestParam("from") final int from, @RequestParam("to") final int to) {

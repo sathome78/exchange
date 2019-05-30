@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.condition.MonolitConditional;
@@ -12,7 +13,6 @@ import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestFakePaymentReceivedException;
 import me.exrates.service.exception.RefillRequestIdNeededException;
 import me.exrates.service.util.WithdrawUtils;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Conditional;
@@ -26,15 +26,13 @@ import java.util.Properties;
 @Service
 @PropertySource("classpath:/merchants/payeer.properties")
 @Conditional(MonolitConditional.class)
+@Log4j2
 public class PayeerServiceImpl implements PayeerService {
 
   private @Value("${payeer.url}") String url;
   private @Value("${payeer.m_shop}") String m_shop;
   private @Value("${payeer.m_desc}") String m_desc;
   private @Value("${payeer.m_key}") String m_key;
-
-
-  private static final Logger logger = org.apache.log4j.LogManager.getLogger("merchant");
 
   @Autowired
   private AlgorithmService algorithmService;
@@ -102,7 +100,7 @@ public class PayeerServiceImpl implements PayeerService {
 
     final String gaTag = refillService.getUserGAByRequestId(requestId);
 
-    logger.debug("Process of sending data to Google Analytics...");
+    log.debug("Process of sending data to Google Analytics...");
     gtagService.sendGtagEvents(amount.toString(), currency.getName(), gaTag);
   }
 

@@ -1,6 +1,7 @@
 package me.exrates.service.bitshares.ppy;
 
 import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.service.bitshares.BitsharesServiceImpl;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -18,6 +19,7 @@ import java.io.IOException;
 @ClientEndpoint
 @Service("ppyServiceImpl")
 @Conditional(MonolitConditional.class)
+@Log4j2
 public class PPYServiceImpl extends BitsharesServiceImpl {
 
     private static final String name = "PPY";

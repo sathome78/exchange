@@ -1,9 +1,8 @@
 package me.exrates.controller;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.SurveyDto;
 import me.exrates.service.SurveyService;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
@@ -19,10 +18,9 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @Controller
+@Log4j2
 public class SurveyController {
 
-    private static final Logger log_result = LogManager.getLogger("survey_result");
-    private static final Logger log = LogManager.getLogger("survey");
     @Autowired
     private MessageSource messageSource;
     @Autowired
@@ -31,7 +29,7 @@ public class SurveyController {
     @RequestMapping(value = "/survey/saveAsDone", method = POST)
     @ResponseBody
     public void saveAsDone(@RequestParam String surveyToken, @RequestBody String surveyResultJsonString, Principal principal) {
-        log_result.info(String.format("survey: %s user: %s  answer: %s", surveyToken, principal.getName(), surveyResultJsonString));
+        log.info(String.format("survey: %s user: %s  answer: %s", surveyToken, principal.getName(), surveyResultJsonString));
         surveyService.savePollAsDoneByUser(principal.getName());
     }
 

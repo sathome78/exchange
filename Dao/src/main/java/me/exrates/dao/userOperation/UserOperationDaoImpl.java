@@ -1,23 +1,25 @@
 package me.exrates.dao.userOperation;
 
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.userOperation.UserOperationAuthorityOption;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
  * @author Vlad Dziubak
  * Date: 01.08.2018
  */
-@Log4j
+@Log4j2
 @Repository
 public class UserOperationDaoImpl implements UserOperationDao {
 

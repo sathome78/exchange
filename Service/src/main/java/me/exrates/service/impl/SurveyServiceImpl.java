@@ -12,8 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class SurveyServiceImpl implements SurveyService {
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.LogManager.getLogger("survey");
-
   @Autowired
   private
   UserDao userDao;

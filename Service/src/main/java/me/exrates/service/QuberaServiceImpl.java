@@ -1,6 +1,7 @@
 package me.exrates.service;
 
 import com.google.common.collect.Maps;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.QuberaDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
@@ -24,8 +25,6 @@ import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestIdNeededException;
 import me.exrates.service.kyc.http.KycHttpClient;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Conditional;
@@ -38,9 +37,8 @@ import java.util.Map;
 @Service
 @PropertySource("classpath:/merchants/qubera.properties")
 @Conditional(MonolitConditional.class)
+@Log4j2
 public class QuberaServiceImpl implements QuberaService {
-
-    private static final Logger logger = LogManager.getLogger(QuberaServiceImpl.class);
 
     private final CurrencyService currencyService;
     private final GtagService gtagService;
@@ -114,7 +112,7 @@ public class QuberaServiceImpl implements QuberaService {
         // todo send notification to transfer to master account
 
         final String gaTag = refillService.getUserGAByRequestId(requestId);
-        logger.info("Process of sending data to Google Analytics...");
+        log.info("Process of sending data to Google Analytics...");
         gtagService.sendGtagEvents(paymentAmount, currency.getName(), gaTag);
     }
 
@@ -141,7 +139,7 @@ public class QuberaServiceImpl implements QuberaService {
         Currency currency = currencyService.findByName(accountCreateDto.getCurrencyCode());
         if (account.length() >= thresholdLength) {
             String error = "Count chars of request is over limit {}" + account.length();
-            logger.error(error);
+            log.error(error);
             throw new NgDashboardException(error, Constants.ErrorApi.QUBERA_PARAMS_OVER_LIMIT);
         }
 
@@ -167,7 +165,7 @@ public class QuberaServiceImpl implements QuberaService {
     public AccountInfoDto getInfoAccount(String email) {
         String account = quberaDao.getAccountByUserEmail(email);
         if (account == null) {
-            logger.error("Account not found " + email);
+            log.error("Account not found " + email);
             throw new NgDashboardException("Account not found " + email,
                     Constants.ErrorApi.QUBERA_ACCOUNT_NOT_FOUND_ERROR);
         }
@@ -180,7 +178,7 @@ public class QuberaServiceImpl implements QuberaService {
         String account = quberaDao.getAccountByUserEmail(email);
 
         if (account == null) {
-            logger.error("Account not found " + email);
+            log.error("Account not found " + email);
             throw new NgDashboardException("Account not found " + email,
                     Constants.ErrorApi.QUBERA_ACCOUNT_NOT_FOUND_ERROR);
         }
@@ -199,7 +197,7 @@ public class QuberaServiceImpl implements QuberaService {
         String account = quberaDao.getAccountByUserEmail(email);
 
         if (account == null) {
-            logger.error("Account not found " + email);
+            log.error("Account not found " + email);
             throw new NgDashboardException("Account not found " + email,
                     Constants.ErrorApi.QUBERA_ACCOUNT_NOT_FOUND_ERROR);
         }
@@ -230,7 +228,7 @@ public class QuberaServiceImpl implements QuberaService {
         String account = quberaDao.getAccountByUserEmail(email);
 
         if (account == null) {
-            logger.error("Account not found " + email);
+            log.error("Account not found " + email);
             throw new NgDashboardException("Account not found " + email,
                     Constants.ErrorApi.QUBERA_ACCOUNT_NOT_FOUND_ERROR);
         }
@@ -245,7 +243,7 @@ public class QuberaServiceImpl implements QuberaService {
                     externalPaymentDto.getTransferDetails().getAmount().toPlainString()
                     + "available balance " +
                     balanceAccount.getAvailableBalance().getAmount().toPlainString();
-            logger.error(messageError);
+            log.error(messageError);
             throw new NgDashboardException(messageError, Constants.ErrorApi.QUBERA_NOT_ENOUGH_MONEY_FOR_PAYMENT);
         }
 

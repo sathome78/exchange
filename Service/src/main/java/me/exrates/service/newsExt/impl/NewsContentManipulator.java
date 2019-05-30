@@ -1,6 +1,6 @@
 package me.exrates.service.newsExt.impl;
 
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.newsDto.NewsDto;
 import me.exrates.model.dto.newsDto.NewsListDto;
 import me.exrates.model.dto.newsDto.NewsSyncDataDto;
@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  */
 
 @Component
-@Log4j
+@Log4j2
 public class NewsContentManipulator {
   @Value("${news.ext.locationDir}")
   private String newsLocationDir;

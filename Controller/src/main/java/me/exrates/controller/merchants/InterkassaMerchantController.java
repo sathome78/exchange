@@ -1,9 +1,8 @@
 package me.exrates.controller.merchants;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.service.InterkassaService;
 import me.exrates.service.exception.RefillRequestAlreadyAcceptedException;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,16 +16,15 @@ import java.util.Map;
 
 @Controller
 @RequestMapping("/merchants/interkassa")
+@Log4j2
 public class InterkassaMerchantController {
 
     @Autowired
     private InterkassaService interkassaService;
 
-    private static final Logger LOGGER = LogManager.getLogger("merchant");
-
     @PostMapping(value = "/payment/status")
     public ResponseEntity<Void> statusPayment(@RequestParam Map<String, String> params) {
-        LOGGER.info("Response: " + params);
+        log.info("Response: " + params);
         try {
             interkassaService.processPayment(params);
             return new ResponseEntity<>(HttpStatus.OK);
@@ -39,7 +37,7 @@ public class InterkassaMerchantController {
 
     @PostMapping(value = "/payment/success")
     public RedirectView successPayment(@RequestParam Map<String, String> response) {
-        LOGGER.debug(response);
+        log.debug(response);
         return new RedirectView("/dashboard");
     }
 }

@@ -14,7 +14,6 @@ import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -36,8 +35,6 @@ public class QiwiServiceImpl implements QiwiService {
 
     private final static String MERCHANT_NAME = "QIWI";
     private final static String CURRENCY_NAME = "RUB";
-
-    private static final Logger logger = org.apache.log4j.LogManager.getLogger(QiwiServiceImpl.class);
 
     @Autowired
     private MerchantService merchantService;
@@ -143,7 +140,7 @@ public class QiwiServiceImpl implements QiwiService {
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         }
         final String gaTag = refillService.getUserGAByRequestId(requestId);
-        logger.debug("Process of sending data to Google Analytics...");
+        log.debug("Process of sending data to Google Analytics...");
         gtagService.sendGtagEvents(fullAmount.toString(), currency.getName(), gaTag);
     }
 

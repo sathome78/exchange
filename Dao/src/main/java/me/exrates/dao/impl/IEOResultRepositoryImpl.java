@@ -1,17 +1,16 @@
 package me.exrates.dao.impl;
 
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.IEOResultRepository;
 import me.exrates.model.IEOClaim;
 import me.exrates.model.IEOResult;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@Log4j
+@Log4j2
 public class IEOResultRepositoryImpl implements IEOResultRepository {
 
     private final NamedParameterJdbcOperations jdbcTemplate;

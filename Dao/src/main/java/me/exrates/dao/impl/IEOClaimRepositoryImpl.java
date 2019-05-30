@@ -1,6 +1,6 @@
 package me.exrates.dao.impl;
 
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.IEOClaimRepository;
 import me.exrates.model.IEOClaim;
 import me.exrates.model.IEOResult;
@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -19,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 @Repository
-@Log4j
+@Log4j2
 public class IEOClaimRepositoryImpl implements IEOClaimRepository {
 
     private final NamedParameterJdbcOperations jdbcTemplate;
