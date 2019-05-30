@@ -169,7 +169,9 @@ public class IEOServiceProcessing {
         ieoDetails.setPersonalAmount(amount);
         ieoDetails.setReadyToIeo(true);
         Email email = prepareEmail(principalEmail, notificationMessage);
-        sendMailService.sendInfoMail(email);
+        if (!ieoDetails.getTestIeo()) {
+            sendMailService.sendInfoMail(email);
+        }
         sendNotifications(principalEmail, ieoDetails, notificationMessage);
     }
 
@@ -199,7 +201,7 @@ public class IEOServiceProcessing {
 
     private void sendNotifications(String userEmail, IEODetails ieoDetails, UserNotificationMessage message) {
         try {
-            if (StringUtils.isNotEmpty(userEmail)) {
+            if (StringUtils.isNotEmpty(userEmail) && !ieoDetails.getTestIeo()) {
                 stompMessenger.sendPersonalMessageToUser(userEmail, message);
             }
         } catch (Exception e) {
