@@ -176,7 +176,6 @@ public class RootTest {
         //this is where the magic happens, we actually do "by hand" what the spring runner would do for us,
         // read the JavaDoc for the class bellow to know exactly what it does, the method names are quite accurate though
         new TestContextManager(getClass()).prepareTestInstance(this);
-
         this.api = MockMvcBuilders.webAppContextSetup(ctx).build();
 
         String url = databaseConfig.getUrl();
@@ -314,7 +313,7 @@ public class RootTest {
         }
     }
 
-    private static void apply(Connection c, SQLSource queries) throws Exception {
+    private static void apply(Connection c, SQLSource queries) {
         String runningSql = null;
         try {
             for (String sql : queries.iterator()) {
@@ -681,7 +680,7 @@ public class RootTest {
                           String suffix,
                           String expected,
                           String actual,
-                          AdditionalOperation op) throws IOException, InterruptedException {
+                          AdditionalOperation op) throws IOException {
 
             int position = pos.get();
 

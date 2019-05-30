@@ -74,8 +74,8 @@ public class NgUserController {
     private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
 
-//    @Value("${dev.mode}")
-    private boolean DEV_MODE = true;
+    @Value("${dev.mode}")
+    private boolean DEV_MODE;
 
     @Autowired
     public NgUserController(IpBlockingService ipBlockingService, AuthTokenService authTokenService,

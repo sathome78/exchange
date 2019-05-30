@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.datasource.init.DataSourceInitializer;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
@@ -22,18 +22,7 @@ import java.sql.ResultSetMetaData;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
-@TestPropertySource(value = {
-        "classpath:/db.properties",
-        "classpath:/dev/news.properties",
-        "classpath:/dev/mail.properties",
-        "classpath:/dev/angular.properties",
-        "classpath:/dev/twitter.properties",
-        "classpath:/dev/angular.properties",
-        "classpath:/dev/merchants/stellar.properties",
-        "classpath:/dev/geetest.properties",
-        "classpath:/dev/merchants/qiwi.properties",
-        "classpath:/dev/cache.properties"
-})
+@TestPropertySource(value = {"classpath:/db.properties"})
 public class TestDatabaseConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestDatabaseConfig.class);
     private final static String SCHEMA_NAME = "birzha_test";
@@ -81,13 +70,6 @@ public class TestDatabaseConfig {
     public DataSourceInitializer dataSourceInitializer() {
         ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator();
         resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/init_structure.sql"));
-//        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_CURRENCY.sql"));
-//        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_ROLE_BUSINESS_FEATURE.sql"));
-//        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_ROLE_GROUP_FEATURE.sql"));
-//        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_ROLE_REPORT_GROUP_FEATURE.sql"));
-//        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_ROLE.sql"));
-//        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_OPERATION_TYPE.sql"));
-//        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_COMMISSION.sql"));
 
         DataSourceInitializer dataSourceInitializer = new DataSourceInitializer();
         dataSourceInitializer.setDataSource(dataSource());
@@ -143,5 +125,10 @@ public class TestDatabaseConfig {
             LOGGER.info("DB doesn't have structure.");
             return false;
         }
+    }
+
+    @Bean
+    public static PropertySourcesPlaceholderConfigurer propertyConfigInDev() {
+        return new PropertySourcesPlaceholderConfigurer();
     }
 }
