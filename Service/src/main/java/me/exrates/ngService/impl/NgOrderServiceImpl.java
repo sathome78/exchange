@@ -125,6 +125,10 @@ public class NgOrderServiceImpl implements NgOrderService {
         User user = userService.findByEmail(email);
         CurrencyPair currencyPair = currencyService.findCurrencyPairById(inputOrder.getCurrencyPairId());
 
+        if (currencyPair.isHidden()) {
+            throw new NgDashboardException(String.format("No possibility to create order by hidden currency pair: %s", currencyPair.getName()));
+        }
+
         OrderCreateDto prepareNewOrder = orderService.prepareNewOrder(currencyPair, operationType, user.getEmail(),
                 inputOrder.getAmount(), inputOrder.getRate(), baseType);
 

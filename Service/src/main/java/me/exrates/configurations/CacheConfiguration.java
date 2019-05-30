@@ -48,7 +48,7 @@ public class CacheConfiguration {
     @Bean(CURRENCY_PAIRS_LIST_BY_TYPE_CACHE)
     public Cache cacheCurrencyPairListByType() {
         return new GuavaCache(CURRENCY_PAIRS_LIST_BY_TYPE_CACHE, CacheBuilder.newBuilder()
-                .expireAfterWrite(5, TimeUnit.MINUTES)
+                .expireAfterWrite(1, TimeUnit.MINUTES)
                 .build());
     }
 }
