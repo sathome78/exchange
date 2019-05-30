@@ -30,7 +30,7 @@ public class RequestOnBoardingDto {
 
     public static RequestOnBoardingDto createOfParams(String callBackUrl, String email, String uid, String docId) {
         InterfaceSetting interfaceSetting = new InterfaceSetting("configCISDemo", "EN");
-        ResultHandler resultHandler = new ResultHandler(callBackUrl, new CisConf("demo", uid, true));
+        ResultHandler resultHandler = new ResultHandler(callBackUrl, new CisConf("creacard-qubera", uid, true));
         ContactData contactData = new ContactData("EMAIL", email);
         List<DocumentToCapture> documentsToCapture = Arrays.asList(
                 new DocumentToCapture(

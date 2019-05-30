@@ -14,22 +14,22 @@ import java.util.Optional;
  */
 public interface AuthTokenService {
 
+    @Scheduled(fixedDelay = 12 * 60 * 60 * 1000, initialDelay = 60 * 1000)
+    void deleteExpiredTokens();
+
     Optional<AuthTokenDto> retrieveToken(String username, String password);
 
     UserDetails getUserByToken(String token);
 
-    @Scheduled(fixedDelay = 24L * 60L * 60L * 1000L, initialDelay = 60000L)
-    void deleteExpiredTokens();
-
     Optional<AuthTokenDto> retrieveTokenNg(UserAuthenticationDto dto);
 
     Optional<AuthTokenDto> retrieveTokenNg(String email);
-
-    AuthTokenDto refreshTokenNg(String email, HttpServletRequest request);
 
     boolean isValid(HttpServletRequest request);
 
     UserDetails getUserByToken(String token, String ip);
 
     boolean sessionExpiredProcessing(String token, User user);
+
+    void updateSessionLifetime(String token, int intervalInMinutes);
 }

@@ -1515,7 +1515,7 @@ CREATE TABLE `REFILL_REQUEST` (
   `user_id` int(11) DEFAULT NULL,
   `commission_id` int(11) DEFAULT NULL,
   `merchant_id` int(11) DEFAULT NULL,
-  `merchant_transaction_id` varchar(256) DEFAULT NULL,
+  `merchant_transaction_id` varchar(128) DEFAULT NULL,
   `refill_request_param_id` int(11) DEFAULT NULL,
   `refill_request_address_id` int(11) DEFAULT NULL,
   `admin_holder_id` int(11) DEFAULT NULL,
@@ -2817,5 +2817,3 @@ CREATE TABLE `schema_version` (
   PRIMARY KEY (`installed_rank`),
   KEY `schema_version_s_idx` (`success`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
-SET FOREIGN_KEY_CHECKS=1;

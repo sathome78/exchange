@@ -8,6 +8,7 @@ import me.exrates.model.SessionParams;
 import me.exrates.model.enums.SessionLifeTypeEnum;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -21,6 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.security.Principal;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Created by maks on 31.03.2017.
@@ -30,12 +32,18 @@ import java.util.List;
 @PropertySource("classpath:session.properties")
 public class SessionParamsServiceImpl implements SessionParamsService {
 
-    private @Value("${session.default_session_lifetime_minutes}") int defaultSessionLifetimeMinutes;
-    private @Value("${session.lifeTypeParamName}") String sessionLifeTimeParamName;
-    private @Value("${session.timeParamName}") String sessionTimeMinutesParamName;
-    private @Value("${session.lastRequestParamName}") String sessionLastRequestParamName;
-    private @Value("${session.time.min}") int minSessionLifetime;
-    private @Value("${session.time.max}") int maxSessionLifetime;
+    private @Value("${session.default_session_lifetime_minutes}")
+    int defaultSessionLifetimeMinutes;
+    private @Value("${session.lifeTypeParamName}")
+    String sessionLifeTimeParamName;
+    private @Value("${session.timeParamName}")
+    String sessionTimeMinutesParamName;
+    private @Value("${session.lastRequestParamName}")
+    String sessionLastRequestParamName;
+    private @Value("${session.time.min}")
+    int minSessionLifetime;
+    private @Value("${session.time.max}")
+    int maxSessionLifetime;
 
     @Autowired
     private SessionParamsDao sessionParamsDao;
@@ -75,17 +83,16 @@ public class SessionParamsServiceImpl implements SessionParamsService {
 
     @Transactional
     @Override
-    public SessionParams saveOrUpdate(SessionParams sessionParams, String userEmail) {
+    public boolean saveOrUpdate(SessionParams sessionParams, String userEmail) {
         SessionParams oldParams = this.getByUserEmail(userEmail);
-        if (oldParams == null) {
-            sessionParams.setId(null);
+
+        if (Objects.isNull(oldParams)) {
             sessionParams.setUserId(userService.getIdByEmail(userEmail));
-            sessionParamsDao.create(sessionParams);
+            return sessionParamsDao.create(sessionParams);
         } else {
             sessionParams.setId(oldParams.getId());
-            sessionParamsDao.update(sessionParams);
+            return sessionParamsDao.update(sessionParams);
         }
-        return null;
     }
 
     @Override
@@ -144,4 +151,8 @@ public class SessionParamsServiceImpl implements SessionParamsService {
         return jsonObject;
     }
 
+    @Override
+    public List<Pair<String, Integer>> getAll() {
+        return sessionParamsDao.getAll();
+    }
 }

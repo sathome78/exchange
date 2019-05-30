@@ -1,0 +1,24 @@
+{
+  "sql" : "SELECT * FROM API_AUTH_TOKEN",
+  "content" : [ {
+    "id" : "1",
+    "username" : "username",
+    "value" : "value",
+    "expired_at" : "p(any)"
+  }, {
+    "id" : "2",
+    "username" : "username",
+    "value" : "value",
+    "expired_at" : "p(any)"
+  }, {
+    "id" : "3",
+    "username" : "username",
+    "value" : "value",
+    "expired_at" : "p(any)"
+  }, {
+    "id" : "4",
+    "username" : "username",
+    "value" : "value",
+    "expired_at" : "p(any)"
+  } ]
+}

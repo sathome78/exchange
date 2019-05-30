@@ -11,4 +11,6 @@ public interface DatabaseConfig {
     String getPassword();
 
     String getSchemaName ();
+
+    String getRootSchemeName();
 }

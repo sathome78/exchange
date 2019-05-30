@@ -109,6 +109,7 @@ import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.process.OrderAcceptionException;
 import me.exrates.service.exception.process.OrderCancellingException;
 import me.exrates.service.exception.process.OrderCreationException;
+import me.exrates.service.usdx.UsdxService;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.NotificatorsService;
@@ -116,6 +117,7 @@ import me.exrates.service.notifications.Subscribable;
 import me.exrates.service.omni.OmniService;
 import me.exrates.service.session.UserSessionService;
 import me.exrates.service.stopOrder.StopOrderService;
+import me.exrates.service.usdx.model.UsdxTransaction;
 import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.util.BigDecimalConverter;
 import org.apache.commons.collections4.CollectionUtils;
@@ -268,6 +270,8 @@ public class AdminController {
     private AdkService adkService;
     @Autowired
     private OmniService omniService;
+    @Autowired
+    private UsdxService usdxService;
 
 
     @Autowired
@@ -1216,6 +1220,18 @@ public class AdminController {
         return modelAndView;
     }
 
+    @RequestMapping("/2a8fy7b07dxe44/usdxWallet")
+    public ModelAndView usdxWallet() {
+        ModelAndView modelAndView = new ModelAndView("/admin/usdxWallet");
+        modelAndView.addObject("merchant", usdxService.getMerchant().getName());
+        modelAndView.addObject("currency", usdxService.getCurrency().getName());
+        modelAndView.addObject("title", "USDX Wallet");
+        modelAndView.addObject("usdxBalance", usdxService.getUsdxRestApiService().getAccountBalance().getUsdxBalance());
+        modelAndView.addObject("lhtBalance", usdxService.getUsdxRestApiService().getAccountBalance().getLhtBalance());
+
+        return modelAndView;
+    }
+
     @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transactions", method = RequestMethod.GET)
     @ResponseBody
     public List<BtcTransactionHistoryDto> getBtcTransactions(@PathVariable String merchantName) {
@@ -1250,6 +1266,30 @@ public class AdminController {
     @ResponseBody
     public List<RefillRequestAddressShortDto> getOmniBlockedAddressses() {
         return omniService.getBlockedAddressesOmni();
+    }
+
+    @PostMapping("/2a8fy7b07dxe44/usdxWallet/sendTransaction")
+    @ResponseBody
+    public UsdxTransaction sendUsdxWalletTransaction(@RequestParam String password, UsdxTransaction usdxTransaction){
+        return usdxService.sendUsdxTransactionToExternalWallet(password, usdxTransaction);
+    }
+
+    @PostMapping("/2a8fy7b07dxe44/usdxWallet/createTransaction")
+    @ResponseBody
+    public void getUsdxCreateRefill(@RequestParam Map<String, String> params) {
+        usdxService.createRefillRequestAdmin(params);
+    }
+
+    @RequestMapping("/2a8fy7b07dxe44/usdxWallet/history")
+    @ResponseBody
+    public List<UsdxTransaction> getUsdxWalletAllTransactions(){
+        return usdxService.getUsdxRestApiService().getAllTransactions();
+    }
+
+    @RequestMapping("/2a8fy7b07dxe44/usdxWallet/transaction")
+    @ResponseBody
+    public UsdxTransaction getUsdxWalletTransaction(String transferId){
+        return usdxService.getUsdxRestApiService().getTransactionStatus(transferId);
     }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/omniWallet/createTransaction", method = RequestMethod.POST)
@@ -1581,6 +1621,19 @@ public class AdminController {
         DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
         filterData.initFilterItems();
         return refillService.getAdressesShortDto(dataTableParams, filterData);
+    }
+
+    @AdminLoggable
+    @RequestMapping(value = "/2a8fy7b07dxe44/refillAddresses/set-need-transfer", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity setPropertyNeedTransfer(@RequestParam int userId,
+                                                  @RequestParam int currencyId,
+                                                  @RequestParam int merchantId,
+                                                  @RequestParam String address,
+                                                  @RequestParam Boolean needTransfer) {
+        return refillService.setPropertyNeedTransfer(userId, currencyId, merchantId, address, needTransfer)
+                ? ResponseEntity.ok().build()
+                : ResponseEntity.badRequest().build();
     }
 
     @AdminLoggable

@@ -30,8 +30,8 @@ public class IEOClaimRepositoryImpl implements IEOClaimRepository {
 
     @Override
     public IEOClaim save(IEOClaim ieoClaim) {
-        final String sql = "INSERT INTO IEO_CLAIM (currency_name, ieo_id, maker_id, user_id, amount, rate, price_in_btc) " +
-                "VALUES (:currency_name, :ieo_id, :maker_id, :user_id, :amount, :rate, :price_in_btc)";
+        final String sql = "INSERT INTO IEO_CLAIM (currency_name, ieo_id, maker_id, user_id, amount, rate, price_in_btc, uuid, test) " +
+                "VALUES (:currency_name, :ieo_id, :maker_id, :user_id, :amount, :rate, :price_in_btc, :uuid, :test)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("currency_name", ieoClaim.getCurrencyName())
@@ -40,19 +40,14 @@ public class IEOClaimRepositoryImpl implements IEOClaimRepository {
                 .addValue("user_id", ieoClaim.getUserId())
                 .addValue("rate", ieoClaim.getRate())
                 .addValue("price_in_btc", ieoClaim.getPriceInBtc())
-                .addValue("amount", ieoClaim.getAmount());
+                .addValue("amount", ieoClaim.getAmount())
+                .addValue("test", ieoClaim.isTestClaim())
+                .addValue("uuid", ieoClaim.getUuid());
         if (jdbcTemplate.update(sql, params, keyHolder) > 0) {
             ieoClaim.setId(keyHolder.getKey().intValue());
             return ieoClaim;
         }
         return null;
-    }
-
-    @Override
-    public Collection<IEOClaim> findUnprocessedIeoClaims() {
-        final String sql = "SElECT * FROM IEO_CLAIM WHERE status = :status";
-        MapSqlParameterSource params = new MapSqlParameterSource("status", IEOResult.IEOResultStatus.NONE.name());
-        return jdbcTemplate.query(sql, params, ieoClaimRowMapper());
     }
 
     @Override
@@ -90,6 +85,13 @@ public class IEOClaimRepositoryImpl implements IEOClaimRepository {
         return jdbcTemplate.update(sql, params) > 0;
     }
 
+    @Override
+    public List<IEOClaim> findUnprocessedIeoClaimsByIeoId(Integer ieoId, int chunk) {
+        String sql = "SElECT * FROM IEO_CLAIM WHERE ieo_id = :id AND status = 'NONE' ORDER BY created ASC LIMIT " + chunk;
+        MapSqlParameterSource params = new MapSqlParameterSource("id", ieoId);
+        return jdbcTemplate.query(sql, params, ieoClaimRowMapper());
+    }
+
     private RowMapper<IEOClaim> ieoClaimRowMapper() {
         return (rs, row) -> {
             IEOClaim ieoClaim = new IEOClaim();
@@ -101,8 +103,10 @@ public class IEOClaimRepositoryImpl implements IEOClaimRepository {
             ieoClaim.setAmount(rs.getBigDecimal("amount"));
             ieoClaim.setRate(rs.getBigDecimal("rate"));
             ieoClaim.setPriceInBtc(rs.getBigDecimal("price_in_btc"));
-            ieoClaim.setCreated(rs.getDate("created"));
+            ieoClaim.setCreated(rs.getTimestamp("created"));
             ieoClaim.setStatus(IEOResult.IEOResultStatus.valueOf(rs.getString("status")));
+            ieoClaim.setUuid(rs.getString("uuid"));
+            ieoClaim.setTestClaim(rs.getBoolean("test"));
             return ieoClaim;
         };
     }

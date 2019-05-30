@@ -8,9 +8,13 @@ import me.exrates.model.dto.ieo.IeoDetailsCreateDto;
 import me.exrates.model.dto.ieo.IeoDetailsUpdateDto;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Collection;
 
 public interface IEOService {
+
+    void saveClaim(ClaimDto claimDto);
+
     ClaimDto addClaim(ClaimDto claimDto, String email);
 
     IEOStatusInfo checkUserStatusForIEO(String email, int idIeo);

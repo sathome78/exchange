@@ -33,7 +33,7 @@ public class NewsParserImpl implements NewsParser {
 
     private static final Logger logger = LoggerFactory.getLogger(NewsParserImpl.class);
 
-    private static final int TIMEOUT = 10 * 1000;
+    private static final int TIMEOUT = 30 * 1000;
     private static final String USER_AGENT = "Mozilla";
 
     private LoadingCache<Integer, List<Feed>> CACHE = CacheBuilder.newBuilder()

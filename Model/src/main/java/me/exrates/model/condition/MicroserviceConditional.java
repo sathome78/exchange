@@ -10,7 +10,7 @@ import redis.clients.jedis.Jedis;
 import java.io.IOException;
 import java.util.Properties;
 
-@Log4j2
+@Log4j2(topic = "inout")
 public class MicroserviceConditional implements Condition {
 
     private static final String INOUT_IS_ENABLED_JEDIS_KEY = "inout.isEnabled";
@@ -19,6 +19,7 @@ public class MicroserviceConditional implements Condition {
     @SneakyThrows
     private Jedis getJedis() {
         Properties properties = getJedisProperties();
+        log.info("Redis props: " + properties.toString());
         return new Jedis(properties.getProperty("redis.host"), Integer.parseInt(properties.getProperty("redis.port")));
     }
 
@@ -30,6 +31,7 @@ public class MicroserviceConditional implements Condition {
 
     public MicroserviceConditional(){
         isEnabled = Boolean.parseBoolean(getJedis().get(INOUT_IS_ENABLED_JEDIS_KEY));
+        log.info("isEnabled = " + isEnabled);
     }
 
     @Override

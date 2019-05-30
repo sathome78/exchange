@@ -1,13 +1,11 @@
 package me.exrates.model.dto.ieo;
 
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import me.exrates.model.IEODetails;
-import me.exrates.model.enums.IEODetailsStatus;
 import me.exrates.model.serializer.LocalDateTimeDeserializer;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
@@ -43,6 +41,14 @@ public class IEODetailsFlatDto {
     private String priceString;
     private BigDecimal availableBalance;
     private String currencyInPairName;
+    private String logo;
+    private String description;
+    private Boolean testIeo;
+    private Integer countTestTransactions;
+    private String content;
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    private LocalDateTime soldAt;
 
     public IEODetailsFlatDto(IEODetails ieoDetails) {
         this.id = ieoDetails.getId();
@@ -63,5 +69,11 @@ public class IEODetailsFlatDto {
         this.currencyDescription = ieoDetails.getCurrencyDescription();
         this.priceString = String.format("1 %s = %s BTC", currencyName, rate.toPlainString());
         this.availableBalance = ieoDetails.getAvailableAmount();
+        this.logo = ieoDetails.getLogo();
+        this.description = ieoDetails.getDescription();
+        this.testIeo = ieoDetails.getTestIeo();
+        this.countTestTransactions = ieoDetails.getCountTestTransaction();
+        this.soldAt = ieoDetails.getSoldOutAt();
+        this.content = ieoDetails.getContent();
     }
 }
