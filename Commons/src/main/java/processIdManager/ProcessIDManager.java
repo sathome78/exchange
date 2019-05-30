@@ -31,9 +31,7 @@ public class ProcessIDManager {
         logRegistrationByClass(cls);
         String parentProcessId = request.getHeader(X_REQUEST_ID_HEADER);
         String newProcessId = generateId(parentProcessId);
-        System.out.println("new processid " + newProcessId);
         setProcessId(newProcessId);
-        System.out.println("id setted");
     }
 
     public static String getCurrentOrRegisterNewProcess(Class<?> cls) {
@@ -105,7 +103,6 @@ public class ProcessIDManager {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Class " + cls.getSimpleName() + " unregistered process id " + MDC.get(PROCESS_ID));
         }
-        System.out.println(Thread.currentThread().getName());
         MDC.remove(PROCESS_ID);
     }
 
@@ -115,7 +112,7 @@ public class ProcessIDManager {
     }
 
     private static void logRegistrationByClass(Class<?> cls) {
-        if (false && LOGGER.isInfoEnabled()) {
+        if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Class " + cls.getSimpleName() + " started registration of new process id");
         }
     }

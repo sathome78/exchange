@@ -69,17 +69,7 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
-        ProcessIDManager
-                .getProcessIdFromCurrentThread()
-                .orElseGet(() -> {
-                    ProcessIDManager.registerNewProcessForRequest(HttpLoggingFilter.class, (HttpServletRequest) req);
-                    return StringUtils.EMPTY;
-                });
-        try {
-            super.doFilter(req, res, chain);
-        } finally {
-            ProcessIDManager.unregisterProcessId(getClass());
-        }
+        super.doFilter(req, res, chain);
     }
 
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
