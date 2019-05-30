@@ -89,6 +89,8 @@ public class CurrencyDaoImpl implements CurrencyDao {
         /**/
         currencyPair.setMarket(rs.getString("market"));
 
+        currencyPair.setHidden(rs.getBoolean("hidden"));
+
         return currencyPair;
 
     };
@@ -352,7 +354,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
     @Override
     public CurrencyPair findCurrencyPairById(int currencyPairId) {
-        String sql = "SELECT id, currency1_id, currency2_id, name, market, type," +
+        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, hidden, " +
                 "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
                 "(select name from CURRENCY where id = currency2_id) as currency2_name " +
                 " FROM CURRENCY_PAIR WHERE id = :currencyPairId";
