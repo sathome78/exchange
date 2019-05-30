@@ -59,7 +59,6 @@ import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.session.UserSessionService;
 import me.exrates.service.token.TokenScheduler;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,7 +73,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -95,7 +93,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.joining;
 
 @Log4j2
@@ -472,7 +469,7 @@ public class UserServiceImpl implements UserService {
         if (tokenType.equals(TokenType.REGISTRATION)
                 || tokenType.equals(TokenType.CHANGE_PASSWORD)
                 || tokenType.equals(TokenType.CHANGE_FIN_PASSWORD)) {
-            sendMailService.sendMailMandrill(email);
+            sendMailService.sendMailSes(email);
         } else {
             sendMailService.sendMail(email);
         }
