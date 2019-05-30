@@ -62,6 +62,7 @@ public class LogsRequestFilter extends GenericFilterBean {
         Transaction transaction = ElasticApm.currentTransaction();
         String result;
         try {
+            System.out.println(Thread.currentThread().getName());
             QuerriesCountThreadLocal.init();
             transaction.addLabel("process_id" , ProcessIDManager.getProcessIdFromCurrentThread().orElse(StringUtils.EMPTY));
             filterChain.doFilter(request, response);
@@ -74,6 +75,7 @@ public class LogsRequestFilter extends GenericFilterBean {
                 Integer txCount = QuerriesCountThreadLocal.getCountAndUnsetVarialbe();
                 transaction.addLabel("querries_count", txCount);
                 long execTime = getExecutionTime(start);
+                System.out.println(Thread.currentThread().getName());
                 log.debug(new ControllerLog(
                         getFullUrl(request),
                         getHttpMethod(request),

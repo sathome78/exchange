@@ -105,6 +105,7 @@ public class ProcessIDManager {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Class " + cls.getSimpleName() + " unregistered process id " + MDC.get(PROCESS_ID));
         }
+        System.out.println(Thread.currentThread().getName());
         MDC.remove(PROCESS_ID);
     }
 
@@ -131,7 +132,7 @@ public class ProcessIDManager {
                     " because it has conflict with existing process id " + old +
                     ".Please ensure that you have called unregisterProcessId method for current thread");
         }
-
+        System.out.println(Thread.currentThread().getName());
         MDC.put(PROCESS_ID, id);
 
         if (LOGGER.isInfoEnabled()) {
