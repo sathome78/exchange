@@ -43,6 +43,9 @@
             <id>devtest</id>
         </profile>
         <profile>
+            <id>feature</id>
+        </profile>
+        <profile>
             <id>uat</id>
             <properties>
                 <maven.test.skip>true</maven.test.skip>
