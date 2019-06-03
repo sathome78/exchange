@@ -77,6 +77,11 @@ public class TestDatabaseConfig {
         return dataSourceInitializer;
     }
 
+    @Bean
+    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
+        return new PropertySourcesPlaceholderConfigurer();
+    }
+
     private static String createConnectionURL(String dbUrl, String newSchemaName) {
         return dbUrl.replace(SCHEMA_NAME, newSchemaName);
     }
@@ -125,10 +130,5 @@ public class TestDatabaseConfig {
             LOGGER.info("DB doesn't have structure.");
             return false;
         }
-    }
-
-    @Bean
-    public static PropertySourcesPlaceholderConfigurer propertyConfigInDev() {
-        return new PropertySourcesPlaceholderConfigurer();
     }
 }
