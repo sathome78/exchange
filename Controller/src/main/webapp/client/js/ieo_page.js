@@ -74,7 +74,7 @@ $(function () {
 
     $('#ieo_create_close').click(function () {
         /*clear data*/
-        $('#create_ieo_form').find("input, textarea").val("");
+        $("#update_ieo-form  :input:not(:checkbox):not(:button) textarea").val("");
         $('#create_ieo').hide();
     });
 
@@ -84,7 +84,7 @@ $(function () {
 
     $('#ieo_update_close').click(function () {
         /*clear data*/
-        $('#update_ieo-form').find("input, textarea").val("");
+        $("#update_ieo-form  :input:not(:checkbox):not(:button) textarea").val("");
         $('#update_ieo').hide();
     });
 
@@ -170,7 +170,7 @@ $(function () {
                 $('#ieo_create_send').attr("disabled", false);
                 successNoty("Ieo created!");
                 loadIeoTable();
-                $('#create_ieo_form').find("input, textarea").val("");
+                $("#update_ieo-form  :input:not(:checkbox):not(:button) textarea").val("");
                 $('#create_ieo').hide();
             },
             error: function(msg) {
@@ -190,7 +190,7 @@ $(function () {
             success: function(data) {
                 successNoty("Ieo updated!");
                 loadIeoTable();
-                $('#update_ieo-form').find("input, textarea").val("");
+                $("#update_ieo-form  :input:not(:checkbox):not(:button) textarea").val("");
                 $('#update_ieo').hide();
             },
             error: function(errMsg) {
