@@ -7,7 +7,7 @@
 
     <filter>
         <filter-name>MDCFilter</filter-name>
-        <filter-class>me.exrates.security.HttpLoggingFilter</filter-class>
+        <filter-class>me.exrates.security.HttpProcessIdFilter</filter-class>
     </filter>
 
     <filter-mapping>
@@ -17,7 +17,7 @@
 
     <filter>
         <filter-name>LogsRequestFilter</filter-name>
-        <filter-class>me.exrates.security.filter_not_wrapped.LogsRequestFilter</filter-class>
+        <filter-class>me.exrates.security.filter_not_wrapped.HttpLogsFilter</filter-class>
     </filter>
 
     <filter-mapping>

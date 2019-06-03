@@ -16,6 +16,7 @@ public class ControllerLog {
     private String clientIP;
     private String jwtToken;
     private String jSessionId;
+    private String reqHeaders;
     private String requestBody;
     private String responseBody;
     private String args;

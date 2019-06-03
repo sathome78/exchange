@@ -1,10 +1,9 @@
 package me.exrates.security.config;
 
-import me.exrates.security.HttpLoggingFilter;
+import me.exrates.security.HttpProcessIdFilter;
 import me.exrates.security.entryPoint.OpenApiAuthenticationEntryPoint;
 import me.exrates.security.filter.OpenApiAuthenticationFilter;
-import me.exrates.security.filter_not_wrapped.LogsRequestFilter;
-import me.exrates.security.filter_not_wrapped.RestAlterdiceFilterExp;
+import me.exrates.security.filter_not_wrapped.HttpLogsFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -49,9 +48,8 @@ public class OpenApiSecurityConfig extends WebSecurityConfigurerAdapter {
                 .exceptionHandling()
                 .authenticationEntryPoint(authenticationEntryPoint())
                 .and()
-                .addFilterBefore(new HttpLoggingFilter(), UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(new LogsRequestFilter(), UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(new RestAlterdiceFilterExp(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new HttpProcessIdFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new HttpLogsFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(openApiAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
@@ -61,7 +59,7 @@ public class OpenApiSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Override
-    public void configure(WebSecurity web) throws Exception {
+    public void configure(WebSecurity web) {
         web.ignoring().antMatchers(GET, "/openapi/v1/public/**");
     }
 }

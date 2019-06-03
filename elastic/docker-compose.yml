@@ -47,18 +47,18 @@ services:
     depends_on:
       - elasticsearch
 
-  logstash:
-    image: docker.elastic.co/logstash/logstash-oss:7.0.1
-    volumes:
-      - D:/work/config/logstash-sample.conf:/usr/share/logstash/pipeline/logstash.conf
-    depends_on:
-      - elasticsearch
-    networks:
-      - apm
-    ports:
-      - "5044:5044"
-      - "7000:7000"
-      - "9600:9600"
+#  logstash:
+#    image: docker.elastic.co/logstash/logstash-oss:7.0.1
+#    volumes:
+#      - D:/work/config/logstash-sample.conf:/usr/share/logstash/pipeline/logstash.conf
+#    depends_on:
+#      - elasticsearch
+#    networks:
+#      - apm
+#    ports:
+#      - "5044:5044"
+#      - "7000:7000"
+#      - "9600:9600"
 
 networks:
   apm:

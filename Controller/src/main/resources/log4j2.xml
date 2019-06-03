@@ -15,14 +15,14 @@
                 <KeyValuePair key="time" value="$${date:dd-MM-yyyy HH:mm:ss.SSS}"/>
             </JsonLayout>
         </Console>
-        <Socket name="Socket" host="${socket.host}" port="${socket.port}">
+<!--        <Socket name="Socket" host="${socket.host}" port="${socket.port}">-->
 <!--            <JsonLayout complete="true" eventEol="true" objectMessageAsJsonObject="true">-->
 <!--                <KeyValuePair key="process-id" value="$${ctx:process-id}" />-->
 <!--                <KeyValuePair key="time" value="$${date:dd-MM-yyyy HH:mm:ss.SSS}"/>-->
 <!--            </JsonLayout>-->
 <!--            <ThresholdFilter level="${socket.log.level}"/>-->
 <!--            <PatternLayout pattern="%d{dd-MM-yyyy HH:mm:ss.SSS} process-id=%X{process-id} %level - %message%n"/>-->
-        </Socket>
+<!--        </Socket>-->
         <Socket name="Socket" host="${socket.host}" port="${socket.port}">
             <JsonLayout complete="true" compact="false" />
         </Socket>

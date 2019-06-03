@@ -1,45 +1,44 @@
 package me.exrates.security.filter_not_wrapped;
 
 import co.elastic.apm.api.ElasticApm;
-import co.elastic.apm.api.Span;
 import co.elastic.apm.api.Transaction;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import me.exrates.model.dto.logging.ControllerLog;
 import me.exrates.model.loggingTxContext.QuerriesCountThreadLocal;
-import me.exrates.security.HttpLoggingFilter;
 import me.exrates.service.util.IpUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
+import org.springframework.web.util.WebUtils;
 import processIdManager.ProcessIDManager;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static me.exrates.service.logs.LoggingUtils.*;
 
 @Log4j2(topic = "Controller_layer_log")
-public class LogsRequestFilter extends GenericFilterBean {
+public class HttpLogsFilter extends GenericFilterBean {
 
     private static final long SLOW_REQUEST_THREESHOLD_MS = 5000;
 
     private static final List<MediaType> VISIBLE_TYPES = Arrays.asList(
-            MediaType.valueOf("text/*"),
             MediaType.APPLICATION_FORM_URLENCODED,
             MediaType.APPLICATION_JSON,
             MediaType.APPLICATION_XML,
@@ -62,7 +61,6 @@ public class LogsRequestFilter extends GenericFilterBean {
         Transaction transaction = ElasticApm.currentTransaction();
         String result;
         try {
-            System.out.println(Thread.currentThread().getName());
             QuerriesCountThreadLocal.init();
             transaction.addLabel("process_id" , ProcessIDManager.getProcessIdFromCurrentThread().orElse(StringUtils.EMPTY));
             filterChain.doFilter(request, response);
@@ -75,7 +73,6 @@ public class LogsRequestFilter extends GenericFilterBean {
                 Integer txCount = QuerriesCountThreadLocal.getCountAndUnsetVarialbe();
                 transaction.addLabel("querries_count", txCount);
                 long execTime = getExecutionTime(start);
-                System.out.println(Thread.currentThread().getName());
                 log.debug(new ControllerLog(
                         getFullUrl(request),
                         getHttpMethod(request),
@@ -84,8 +81,9 @@ public class LogsRequestFilter extends GenericFilterBean {
                         response.getStatusCode(),
                         getUserAgent(request),
                         getClientIP(request),
-                        StringUtils.EMPTY,
-                        StringUtils.EMPTY,
+                        getJwtToken(request),
+                        getJsessionId(request),
+                        logApiRequestHeader(request),
                         getRequestBody(request),
                         result,
                         getArgs(request),
@@ -206,4 +204,22 @@ public class LogsRequestFilter extends GenericFilterBean {
     private static long getExecutionTime(long start) {
         return System.currentTimeMillis() - start;
     }
+
+    private static String logApiRequestHeader(ContentCachingRequestWrapper request) {
+        final StringBuilder sb = new StringBuilder();
+        Collections.list(request.getHeaderNames()).stream().filter(p->p.contains("api") || p.contains("API")).forEach(headerName ->
+                Collections.list(request.getHeaders(headerName)).forEach(headerValue ->
+                        sb.append(String.format(" %s: %s; " , headerName, headerValue))));
+        return sb.toString();
+    }
+
+    private String getJwtToken(ContentCachingRequestWrapper request) {
+        return request.getHeader("Exrates-Rest-Token");
+    }
+
+    private String getJsessionId(ContentCachingRequestWrapper request) {
+        Cookie cookie = WebUtils.getCookie(request, "JSESSIONID");
+        return cookie == null ? null : cookie.getValue();
+    }
+
 }
