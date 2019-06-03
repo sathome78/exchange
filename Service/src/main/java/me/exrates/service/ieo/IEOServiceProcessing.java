@@ -206,7 +206,7 @@ public class IEOServiceProcessing {
             /*ignore*/
         }
         try {
-            stompMessenger.sendDetailsIeo(details.getId(), objectMapper.writeValueAsString(email));
+            stompMessenger.sendDetailsIeo(details.getId(), objectMapper.writeValueAsString(details));
         } catch (Exception e) {
             /*ignore*/
         }
