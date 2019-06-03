@@ -71,6 +71,16 @@ public class TestDatabaseConfig {
         ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator();
         resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/init_structure.sql"));
 
+        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_CURRENCY.sql"));
+        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_MERCHANT.sql"));
+        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_STATUS.sql"));
+        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_ROLE_BUSINESS_FEATURE.sql"));
+        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_ROLE_GROUP_FEATURE.sql"));
+        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_ROLE_REPORT_GROUP_FEATURE.sql"));
+        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_ROLE.sql"));
+        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_OPERATION_TYPE.sql"));
+        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_COMMISSION.sql"));
+
         DataSourceInitializer dataSourceInitializer = new DataSourceInitializer();
         dataSourceInitializer.setDataSource(dataSource());
         dataSourceInitializer.setDatabasePopulator(resourceDatabasePopulator);
