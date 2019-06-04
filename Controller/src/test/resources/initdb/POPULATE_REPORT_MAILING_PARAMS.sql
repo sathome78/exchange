@@ -1,0 +1,2 @@
+INSERT INTO REPORT_MAILING_PARAMS (id, param_name, param_value) VALUES (1, 'ENABLE_REPORT_MAILING', 'true');
+INSERT INTO REPORT_MAILING_PARAMS (id, param_name, param_value) VALUES (2, 'MAIL_TIME', '00:00');

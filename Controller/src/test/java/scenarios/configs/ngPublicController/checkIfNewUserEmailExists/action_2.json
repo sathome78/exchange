@@ -1,0 +1,8 @@
+{
+  "url" : "http://localhost/api/public/v2/if_email_exists",
+  "cause" : "NgResponseException",
+  "detail" : "User with email wrong@yandex.ru not found",
+  "title" : "USER_EMAIL_NOT_FOUND",
+  "uuid" : null,
+  "code" : 400
+}

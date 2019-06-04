@@ -1,0 +1,2 @@
+INSERT INTO SERVICE_ALERTS (alert_type, enable, time_of_start, length, launch_date) VALUES ('UPDATE', 0, null, null, null);
+INSERT INTO SERVICE_ALERTS (alert_type, enable, time_of_start, length, launch_date) VALUES ('TECHNICAL_WORKS', 0, null, null, null);

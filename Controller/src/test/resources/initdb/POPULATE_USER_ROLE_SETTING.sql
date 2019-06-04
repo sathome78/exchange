@@ -1,0 +1,12 @@
+INSERT INTO USER_ROLE_SETTINGS (user_role_id, order_acception_same_role_only, manual_change_allowed, bot_acception_allowed, considered_for_price_range, use_real_money) VALUES (1, 0, 0, 0, 1, 1);
+INSERT INTO USER_ROLE_SETTINGS (user_role_id, order_acception_same_role_only, manual_change_allowed, bot_acception_allowed, considered_for_price_range, use_real_money) VALUES (2, 0, 0, 0, 0, 1);
+INSERT INTO USER_ROLE_SETTINGS (user_role_id, order_acception_same_role_only, manual_change_allowed, bot_acception_allowed, considered_for_price_range, use_real_money) VALUES (3, 0, 0, 0, 1, 1);
+INSERT INTO USER_ROLE_SETTINGS (user_role_id, order_acception_same_role_only, manual_change_allowed, bot_acception_allowed, considered_for_price_range, use_real_money) VALUES (4, 0, 1, 0, 1, 1);
+INSERT INTO USER_ROLE_SETTINGS (user_role_id, order_acception_same_role_only, manual_change_allowed, bot_acception_allowed, considered_for_price_range, use_real_money) VALUES (5, 0, 0, 0, 0, 1);
+INSERT INTO USER_ROLE_SETTINGS (user_role_id, order_acception_same_role_only, manual_change_allowed, bot_acception_allowed, considered_for_price_range, use_real_money) VALUES (6, 0, 0, 0, 0, 1);
+INSERT INTO USER_ROLE_SETTINGS (user_role_id, order_acception_same_role_only, manual_change_allowed, bot_acception_allowed, considered_for_price_range, use_real_money) VALUES (7, 0, 1, 0, 0, 1);
+INSERT INTO USER_ROLE_SETTINGS (user_role_id, order_acception_same_role_only, manual_change_allowed, bot_acception_allowed, considered_for_price_range, use_real_money) VALUES (8, 0, 0, 0, 1, 0);
+INSERT INTO USER_ROLE_SETTINGS (user_role_id, order_acception_same_role_only, manual_change_allowed, bot_acception_allowed, considered_for_price_range, use_real_money) VALUES (9, 0, 0, 0, 0, 1);
+INSERT INTO USER_ROLE_SETTINGS (user_role_id, order_acception_same_role_only, manual_change_allowed, bot_acception_allowed, considered_for_price_range, use_real_money) VALUES (10, 1, 0, 1, 1, 0);
+INSERT INTO USER_ROLE_SETTINGS (user_role_id, order_acception_same_role_only, manual_change_allowed, bot_acception_allowed, considered_for_price_range, use_real_money) VALUES (11, 0, 0, 0, 0, 1);
+INSERT INTO USER_ROLE_SETTINGS (user_role_id, order_acception_same_role_only, manual_change_allowed, bot_acception_allowed, considered_for_price_range, use_real_money) VALUES (12, 0, 0, 0, 0, 1);

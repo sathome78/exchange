@@ -1,0 +1,14 @@
+INSERT INTO `2FA_NOTIFICATION_MESSAGES` (id, event, type, message) VALUES (1, 'LOGIN', 'EMAIL', 'response.login.pin.email');
+INSERT INTO `2FA_NOTIFICATION_MESSAGES` (id, event, type, message) VALUES (2, 'WITHDRAW', 'EMAIL', 'response.withdraw.pin.email');
+INSERT INTO `2FA_NOTIFICATION_MESSAGES` (id, event, type, message) VALUES (3, 'TRANSFER', 'EMAIL', 'response.transfer.pin.email');
+INSERT INTO `2FA_NOTIFICATION_MESSAGES` (id, event, type, message) VALUES (4, 'LOGIN', 'TELEGRAM', 'response.login.pin.telegram');
+INSERT INTO `2FA_NOTIFICATION_MESSAGES` (id, event, type, message) VALUES (5, 'WITHDRAW', 'TELEGRAM', 'response.withdraw.pin.telegram');
+INSERT INTO `2FA_NOTIFICATION_MESSAGES` (id, event, type, message) VALUES (6, 'TRANSFER', 'TELEGRAM', 'response.transfer.pin.telegram');
+INSERT INTO `2FA_NOTIFICATION_MESSAGES` (id, event, type, message) VALUES (7, 'LOGIN', 'SMS', 'response.login.pin.sms');
+INSERT INTO `2FA_NOTIFICATION_MESSAGES` (id, event, type, message) VALUES (8, 'WITHDRAW', 'SMS', 'response.withdraw.pin.sms');
+INSERT INTO `2FA_NOTIFICATION_MESSAGES` (id, event, type, message) VALUES (9, 'TRANSFER', 'SMS', 'response.transfer.pin.sms');
+INSERT INTO `2FA_NOTIFICATION_MESSAGES` (id, event, type, message) VALUES (10, 'CHANGE_2FA_SETTING', 'EMAIL', 'response.change2fa.pin.email');
+INSERT INTO `2FA_NOTIFICATION_MESSAGES` (id, event, type, message) VALUES (11, 'LOGIN', 'GOOGLE2FA', 'response.login.code.google2fa');
+INSERT INTO `2FA_NOTIFICATION_MESSAGES` (id, event, type, message) VALUES (12, 'WITHDRAW', 'GOOGLE2FA', 'response.withdraw.code.google2fa');
+INSERT INTO `2FA_NOTIFICATION_MESSAGES` (id, event, type, message) VALUES (13, 'TRANSFER', 'GOOGLE2FA', 'response.transfer.code.google2fa');
+INSERT INTO `2FA_NOTIFICATION_MESSAGES` (id, event, type, message) VALUES (14, 'API_TOKEN_SETTING', 'EMAIL', 'response.token.pin.email');
