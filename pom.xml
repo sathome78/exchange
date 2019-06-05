@@ -39,7 +39,6 @@
         <bitcoinj.version>0.14.3</bitcoinj.version>
         <aspectj.version>1.8.10</aspectj.version>
         <rabbit.version>1.7.5.RELEASE</rabbit.version>
-        <flyway.version>4.2.0</flyway.version>
         <rabbit.version>1.7.5.RELEASE</rabbit.version>
         <scala.version>2.11.7</scala.version>
     </properties>
@@ -484,12 +483,6 @@
             <groupId>org.jboss.aerogear</groupId>
             <artifactId>aerogear-otp-java</artifactId>
             <version>1.0.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
-            <version>${flyway.version}</version>
         </dependency>
 
         <dependency>
