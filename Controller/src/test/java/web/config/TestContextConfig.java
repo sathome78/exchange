@@ -125,21 +125,21 @@ public class TestContextConfig extends WebMvcConfigurerAdapter {
     @Value("${qiwi.client.secret}")
     private String qiwiClientSecret;
 
-//    @Value("${twitter.appId}")
-    private String twitterConsumerKey = "WBI5Tr7sfg0GNiOvNGyAzgwf9";
-//    @Value("${twitter.appSecret}")
-    private String twitterConsumerSecret = "1ThTHiHk7nTQK9pS3z27NprqPx2fczmbknxzBsUeoyNSOvlt3m";
-//    @Value("${twitter.accessToken}")
-    private String twitterAccessToken = "927824179738628097-YTWG2obPpKhY6hPvu42KSXT2f4Eljar";
-//    @Value("${twitter.accessTokenSecret}")
-    private String twitterAccessTokenSecret = "kJrcW7dVeukCwP8ZD8JIyFl27KL6mDI3RE2YHVE7N39a5";
+    @Value("classpath:twitter.appId")
+    private String twitterConsumerKey;
+    @Value("classpath:twitter.appSecret")
+    private String twitterConsumerSecret;
+    @Value("classpath:twitter.accessToken")
+    private String twitterAccessToken;
+    @Value("classpath:twitter.accessTokenSecret")
+    private String twitterAccessTokenSecret;
 
-//    @Value("${geetest.captchaId}")
-    private String gtCaptchaId = "034eb227cbea45e4780ec3624921356b";
-//    @Value("${geetest.privateKey}")
-    private String gtPrivateKey = "a046fe4b341960564d33387fc925b6b9";
-//    @Value("${geetest.newFailback}")
-    private String gtNewFailback = "true";
+    @Value("classpath:geetest.captchaId")
+    private String gtCaptchaId;
+    @Value("classpath:geetest.privateKey")
+    private String gtPrivateKey;
+    @Value("classpath:geetest.newFailback")
+    private String gtNewFailback;
 
     @Autowired
     @Qualifier("testDataSource")

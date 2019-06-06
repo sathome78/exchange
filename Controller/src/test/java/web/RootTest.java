@@ -69,6 +69,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -890,7 +891,7 @@ public class RootTest {
 
     private static String dropDatabaseQuery(DataSource dataSource, String schema) {
         StringBuilder o = new StringBuilder();
-        o.append("SET FOREIGN_KEY_CHECKS = 0" + SQL_DELIMITER);
+        o.append(disableFK());
         for (String each : tables(dataSource, schema, true)) {
             o.append("DROP TABLE IF EXISTS ").append(each).append(" CASCADE" + SQL_DELIMITER);
         }
@@ -900,8 +901,33 @@ public class RootTest {
         for (String each : functions(dataSource, schema)) {
             o.append("DROP FUNCTION ").append(each).append(SQL_DELIMITER);
         }
-        o.append("SET FOREIGN_KEY_CHECKS = 1" + SQL_DELIMITER);
+        o.append(enableFK());
         return o.toString();
+    }
+
+    private static <T> T withDisabledFK(DataSource dataSource, Supplier<T> supplier) throws RuntimeException {
+        try {
+            apply(dataSource, Collections.singletonList(new StringsSource(disableFK())));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        try {
+            return supplier.get();
+        } finally {
+            try {
+                apply(dataSource, Collections.singletonList(new StringsSource(enableFK())));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private static String disableFK() {
+        return "SET FOREIGN_KEY_CHECKS = 0" + SQL_DELIMITER;
+    }
+
+    private static String enableFK() {
+        return "SET FOREIGN_KEY_CHECKS = 1" + SQL_DELIMITER;
     }
 
     private static String clearDatabaseQuery(DataSource dataSource, String schema) {

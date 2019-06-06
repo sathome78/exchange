@@ -69,48 +69,8 @@ public class TestDatabaseConfig {
     @Bean
     public DataSourceInitializer dataSourceInitializer() {
         ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator();
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/init_structure.sql"));
-
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_CURRENCY.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_CURRENCY_PAIR.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_MERCHANT.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_STATUS.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_ROLE_BUSINESS_FEATURE.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_ROLE_GROUP_FEATURE.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_ROLE_REPORT_GROUP_FEATURE.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_ROLE.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_OPERATION_TYPE.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_COMMISSION.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_ORDER_TYPE.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_ORDER_STATUS.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_SERVICE_ALERTS.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_REPORT_MAILING_PARAMS.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_REFILL_REQUEST_STATUS.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_2FA_NOTIFICATION_MESSAGES.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_2FA_NOTIFICATOR.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_2FA_NOTIFICATION_PRICE.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_ADMIN_AUTHORITY.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_ADMIN_AUTHORITY_ROLE_DEFAULTS.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_API_PARAMS.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_CLIENT_BANK.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_INVOICE_BANK.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_INVOICE_OPERATION.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_INVOICE_OPERATION_PERMISSION.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_KYC_COUNTRY_CODES.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_KYC_LANGUAGE_CODES.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_MERCHANT_SPEC_PARAMETERS.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_NEWS_TYPE.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_NOTIFICATION_EVENT.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_SESSION_LIFE_TIME.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_TOKEN_TYPE.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_TRANSACTION_SOURCE_TYPE.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_TRANSACTION_STATUS.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_TRANSFER_REQUEST_STATUS.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_COMMENT_TOPIC.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_OPERATION.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_USER_ROLE_SETTING.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/POPULATE_WITHDRAW_REQUEST.sql"));
-
+        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/add-shema-test.sql"));
+//        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/add-schema.sql"));
         DataSourceInitializer dataSourceInitializer = new DataSourceInitializer();
         dataSourceInitializer.setDataSource(dataSource());
         dataSourceInitializer.setDatabasePopulator(resourceDatabasePopulator);
