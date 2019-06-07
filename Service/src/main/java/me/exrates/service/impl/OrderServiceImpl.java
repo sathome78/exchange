@@ -264,7 +264,7 @@ public class OrderServiceImpl implements OrderService {
         coinmarketScheduler.scheduleAtFixedRate(() -> {
             List<CoinmarketApiDto> newData = getCoinmarketDataForActivePairs(null, new BackDealInterval("24 HOUR"));
             coinmarketCachedData = new CopyOnWriteArrayList<>(newData);
-        }, 0, 15, TimeUnit.MINUTES);
+        }, 0, 4, TimeUnit.MINUTES);
     }
 
 
