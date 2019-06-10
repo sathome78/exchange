@@ -22,4 +22,5 @@ public class ClaimDto {
     private String currencyName;
     @NotNull
     private BigDecimal amount;
+    private Boolean test;
 }

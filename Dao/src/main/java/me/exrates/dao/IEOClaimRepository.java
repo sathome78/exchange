@@ -20,5 +20,7 @@ public interface IEOClaimRepository {
     boolean updateClaim(IEOClaim ieoClaim);
 
     List<IEOClaim> findUnprocessedIeoClaimsByIeoId(Integer ieoId, int chunk);
+
+    List<IEOClaim> findUnprocessedTestIeoClaimsByIeoId(Integer ieoId, int chunk);
 }
 

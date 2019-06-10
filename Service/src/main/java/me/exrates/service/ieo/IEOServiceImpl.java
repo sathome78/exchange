@@ -1,6 +1,7 @@
 package me.exrates.service.ieo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.IEOClaimRepository;
 import me.exrates.dao.IEOSubscribeRepository;
@@ -45,12 +46,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -60,7 +62,7 @@ import java.util.stream.Collectors;
 public class IEOServiceImpl implements IEOService {
     private static final Logger logger = LogManager.getLogger(IEOServiceImpl.class);
     private final static String IEO_CLAIM_QUEUE = "ieo_claims";
-    private static Set<String> fakePopulatedSet = new HashSet<>();
+    private static ExecutorService executor = Executors.newSingleThreadExecutor();
 
     private final CurrencyService currencyService;
     private final IEOClaimRepository ieoClaimRepository;
@@ -73,6 +75,7 @@ public class IEOServiceImpl implements IEOService {
     private final ObjectMapper objectMapper;
     private final IEOSubscribeRepository ieoSubscribeRepository;
     private final RabbitTemplate rabbitTemplate;
+    private final IEOServiceProcessing ieoServiceProcessing;
 
     @Autowired
     public IEOServiceImpl(IEOClaimRepository ieoClaimRepository,
@@ -85,7 +88,8 @@ public class IEOServiceImpl implements IEOService {
                           StompMessenger stompMessenger,
                           ObjectMapper objectMapper,
                           IEOSubscribeRepository ieoSubscribeRepository,
-                          RabbitTemplate rabbitTemplate) {
+                          RabbitTemplate rabbitTemplate,
+                          IEOServiceProcessing ieoServiceProcessing) {
         this.ieoClaimRepository = ieoClaimRepository;
         this.userService = userService;
         this.ieoDetailsRepository = ieoDetailsRepository;
@@ -97,6 +101,7 @@ public class IEOServiceImpl implements IEOService {
         this.objectMapper = objectMapper;
         this.ieoSubscribeRepository = ieoSubscribeRepository;
         this.rabbitTemplate = rabbitTemplate;
+        this.ieoServiceProcessing = ieoServiceProcessing;
     }
 
     @Override
@@ -104,10 +109,62 @@ public class IEOServiceImpl implements IEOService {
         claimDto.setEmail(email);
         claimDto.setUuid(UUID.randomUUID().toString());
         logger.info("Add claim to queue {}", claimDto.getUuid());
+
+        if (claimDto.getTest()) {
+            IEODetails ieoDetails = ieoDetailsRepository.findOpenIeoByCurrencyName(claimDto.getCurrencyName());
+
+            if (ieoDetails == null || !ieoDetails.getTestIeo()) {
+                throw new IeoException(ErrorApiTitles.IEO_NOT_FOUND, String.format(
+                        "Failed to create claim, IEO for %s not started or already finished", claimDto.getCurrencyName()));
+            }
+            executor.execute(() -> processTestIeoTask(claimDto, ieoDetails));
+            return claimDto;
+        }
+
         rabbitTemplate.convertAndSend(IEO_CLAIM_QUEUE, claimDto);
         return claimDto;
     }
 
+    public void processTestIeoTask(ClaimDto claimDto, IEODetails ieoDetails) {
+        processTestIeo(ieoDetails);
+        ieoDetails = ieoDetailsRepository.findOne(ieoDetails.getId());
+        try {
+            if (StringUtils.isNotEmpty(claimDto.getEmail())) {
+                stompMessenger.sendPersonalDetailsIeo(claimDto.getEmail(), objectMapper.writeValueAsString(ImmutableList.of(ieoDetails)));
+            }
+        } catch (Exception e) {
+            /*ignore*/
+        }
+        try {
+            stompMessenger.sendDetailsIeo(ieoDetails.getId(), objectMapper.writeValueAsString(ieoDetails));
+        } catch (Exception e) {
+            /*ignore*/
+        }
+
+        try {
+            stompMessenger.sendAllIeos(Collections.singletonList(ieoDetails));
+        } catch (Exception e) {
+            /*ignore*/
+        }
+    }
+
+    private void processTestIeo(IEODetails ieoDetails) {
+        populateTestIeo(ieoDetails);
+        boolean filled = true;
+        while (filled) {
+            List<IEOClaim> claims = ieoClaimRepository.findUnprocessedTestIeoClaimsByIeoId(ieoDetails.getId(), 10);
+            if (claims.isEmpty()) {
+                filled = false;
+            }
+            for (IEOClaim claim : claims) {
+                ieoServiceProcessing.processIeoClaim(claim, ieoDetails);
+            }
+            try {
+                Thread.sleep(1000L);
+            } catch (InterruptedException e) {
+            }
+        }
+    }
 
     @RabbitListener(queues = IEO_CLAIM_QUEUE, containerFactory = "ieoListenerContainerFactory")
     @Transactional
@@ -121,10 +178,6 @@ public class IEOServiceImpl implements IEOService {
             logger.warn(message);
             sendErrorEmail(message, claimDto.getEmail());
             return;
-        }
-
-        if (ieoDetails.getTestIeo()) {
-            populateTestIeo(ieoDetails.getCurrencyName());
         }
 
         IEOStatusInfo statusInfo = checkUserStatusForIEO(email, ieoDetails.getId());
@@ -460,11 +513,8 @@ public class IEOServiceImpl implements IEOService {
         sendMailService.sendInfoMail(emailError);
     }
 
-    private void populateTestIeo(String currencyName) {
-        if (isPopulateAlready(currencyName)) {
-            return;
-        }
-        IEODetails ieoDetail = ieoDetailsRepository.findOpenIeoByCurrencyName(currencyName);
+    private void populateTestIeo(IEODetails ieoDetail) {
+
         int countTransactions = ieoDetail.getCountTestTransaction();
         BigDecimal availableAmount = ieoDetail.getAvailableAmount();
         BigDecimal averageSumTransaction = BigDecimalProcessing.doAction(availableAmount,
@@ -482,11 +532,5 @@ public class IEOServiceImpl implements IEOService {
                     true);
             ieoClaimRepository.save(ieoClaim);
         }
-
-        fakePopulatedSet.add(currencyName);
-    }
-
-    private boolean isPopulateAlready(String currencyName) {
-        return fakePopulatedSet.contains(currencyName);
     }
 }
