@@ -207,6 +207,7 @@
       <artifactId>aws-java-sdk-ssm</artifactId>
       <version>${aws-java-sdk.version}</version>
     </dependency>
+
   </dependencies>
 
   <repositories>
