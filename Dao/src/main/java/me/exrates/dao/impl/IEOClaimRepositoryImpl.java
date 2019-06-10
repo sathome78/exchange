@@ -86,18 +86,11 @@ public class IEOClaimRepositoryImpl implements IEOClaimRepository {
     }
 
     @Override
-    public List<IEOClaim> findUnprocessedIeoClaimsByIeoId(Integer ieoId, int chunk) {
-        String sql = "SElECT * FROM IEO_CLAIM WHERE ieo_id = :id AND status = 'NONE' AND test = 0 ORDER BY created ASC LIMIT " + chunk;
+    public List<IEOClaim> findUnprocessedIeoClaimsByIeoId(Integer ieoId, int chunk, boolean testIeo) {
+        String sql = "SElECT * FROM IEO_CLAIM WHERE ieo_id = :id AND status = 'NONE' AND test = :testIeo ORDER BY created ASC LIMIT " + chunk;
         MapSqlParameterSource params = new MapSqlParameterSource("id", ieoId);
+        params.addValue("testIeo", testIeo);
         return jdbcTemplate.query(sql, params, ieoClaimRowMapper());
-    }
-
-    @Override
-    public List<IEOClaim> findUnprocessedTestIeoClaimsByIeoId(Integer ieoId, int chunk) {
-        String sql = "SElECT * FROM IEO_CLAIM WHERE ieo_id = :id AND status = 'NONE' AND test = 1 ORDER BY created ASC LIMIT " + chunk;
-        MapSqlParameterSource params = new MapSqlParameterSource("id", ieoId);
-        return jdbcTemplate.query(sql, params, ieoClaimRowMapper());
-
     }
 
     private RowMapper<IEOClaim> ieoClaimRowMapper() {

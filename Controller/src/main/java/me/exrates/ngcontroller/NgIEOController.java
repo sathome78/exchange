@@ -72,7 +72,7 @@ public class NgIEOController {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({IeoException.class})
     @ResponseBody
-    public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
+    public ErrorInfo handleIeoException(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 }

@@ -109,15 +109,15 @@ public class IEOServiceImpl implements IEOService {
         claimDto.setEmail(email);
         claimDto.setUuid(UUID.randomUUID().toString());
         logger.info("Add claim to queue {}", claimDto.getUuid());
+        IEODetails details = ieoDetailsRepository.findOpenIeoByCurrencyName(claimDto.getCurrencyName());
 
-        if (claimDto.isTest()) {
-            IEODetails ieoDetails = ieoDetailsRepository.findOpenIeoByCurrencyName(claimDto.getCurrencyName());
+        if (details == null) {
+            throw new IeoException(ErrorApiTitles.IEO_NOT_FOUND, String.format(
+                    "Failed to create claim, IEO for %s not started or already finished", claimDto.getCurrencyName()));
+        }
 
-            if (ieoDetails == null || !ieoDetails.getTestIeo()) {
-                throw new IeoException(ErrorApiTitles.IEO_NOT_FOUND, String.format(
-                        "Failed to create claim, IEO for %s not started or already finished", claimDto.getCurrencyName()));
-            }
-            executor.execute(() -> processTestIeoTask(claimDto, ieoDetails));
+        if (details.getTestIeo()) {
+            executor.execute(() -> processTestIeoTask(claimDto, details));
             return claimDto;
         }
 
@@ -152,7 +152,7 @@ public class IEOServiceImpl implements IEOService {
         populateTestIeo(ieoDetails);
         boolean filled = true;
         while (filled) {
-            List<IEOClaim> claims = ieoClaimRepository.findUnprocessedTestIeoClaimsByIeoId(ieoDetails.getId(), 10);
+            List<IEOClaim> claims = ieoClaimRepository.findUnprocessedIeoClaimsByIeoId(ieoDetails.getId(), 10, true);
             if (claims.isEmpty()) {
                 filled = false;
             }
