@@ -23,8 +23,8 @@ import java.util.concurrent.TimeUnit;
 
 @Configuration
 @TestPropertySource(value = {"classpath:/db.properties"})
-public class TestDatabaseConfig {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TestDatabaseConfig.class);
+public class TestDatabaseContext {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TestDatabaseContext.class);
     private final static String SCHEMA_NAME = "birzha_test";
 
     @Value("#{systemProperties['db.test.url'] ?: 'jdbc:mysql://localhost:3306/birzha_test?useUnicode=true&characterEncoding=UTF-8&useSSL=false&autoReconnect=true'}")
@@ -40,7 +40,7 @@ public class TestDatabaseConfig {
     private String password;
 
     @PostConstruct
-    protected void initialize() {
+    protected void prepareTestSchema() {
         if (hasStructure()) {
             LOGGER.info("Database structure exists!!!");
         } else {
@@ -69,8 +69,8 @@ public class TestDatabaseConfig {
     @Bean
     public DataSourceInitializer dataSourceInitializer() {
         ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator();
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/add-shema-test.sql"));
-//        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/add-schema.sql"));
+        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/disable_fk.sql"));
+        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/add-shema-only-for-tests.sql"));
         DataSourceInitializer dataSourceInitializer = new DataSourceInitializer();
         dataSourceInitializer.setDataSource(dataSource());
         dataSourceInitializer.setDatabasePopulator(resourceDatabasePopulator);

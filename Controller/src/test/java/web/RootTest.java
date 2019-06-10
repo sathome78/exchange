@@ -49,7 +49,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import web.config.DatabaseConfig;
 import web.config.TestContextConfig;
-import web.config.TestDatabaseConfig;
+import web.config.TestDatabaseContext;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -69,7 +69,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -91,7 +90,7 @@ import static web.Parameters.ROOT;
 import static web.Parameters.SETTINGS_STOP_ON_ERROR;
 
 @RunWith(Parameterized.class)
-@ContextConfiguration(classes = {TestContextConfig.class, TestDatabaseConfig.class})
+@ContextConfiguration(classes = {TestContextConfig.class, TestDatabaseContext.class})
 @WebAppConfiguration
 public class RootTest {
 
@@ -903,23 +902,6 @@ public class RootTest {
         }
         o.append(enableFK());
         return o.toString();
-    }
-
-    private static <T> T withDisabledFK(DataSource dataSource, Supplier<T> supplier) throws RuntimeException {
-        try {
-            apply(dataSource, Collections.singletonList(new StringsSource(disableFK())));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        try {
-            return supplier.get();
-        } finally {
-            try {
-                apply(dataSource, Collections.singletonList(new StringsSource(enableFK())));
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
     }
 
     private static String disableFK() {

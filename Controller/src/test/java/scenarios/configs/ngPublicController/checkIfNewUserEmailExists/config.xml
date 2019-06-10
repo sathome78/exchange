@@ -1,4 +1,4 @@
-<config xmlns="config" active="true" onlyThis="false" patch="default,USER_AND_USER_ROLE">
+<config xmlns="config" active="true" onlyThis="false" patch="default,user,temporal_token">
 
     <description>
         ngcontroller package
@@ -11,7 +11,7 @@
         <response code="200" file="action_1.json"/>
 
         <comment>
-            Get collection IEODetails.
+            New User has email.
         </comment>
     </get>
 
@@ -22,7 +22,29 @@
         <response code="400" file="action_2.json"/>
 
         <comment>
-            Get collection IEODetails.
+            Unable to find user at specified email address.
+        </comment>
+    </get>
+
+    <get url="/api/public/v2/if_email_exists?email=exratesbot2@gmail.com">
+
+        <header name="Content-Type" value="application/json"></header>
+
+        <response code="400" file="action_3.json"/>
+
+        <comment>
+            User status equals UserStatus.REGISTERED.
+        </comment>
+    </get>
+
+    <get url="/api/public/v2/if_email_exists?email=solkongendk@gmail.com">
+
+        <header name="Content-Type" value="application/json"></header>
+
+        <response code="400" file="action_4.json"/>
+
+        <comment>
+            User status equals UserStatus.DELETED.
         </comment>
     </get>
 </config>
