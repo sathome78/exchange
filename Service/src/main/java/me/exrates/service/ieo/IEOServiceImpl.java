@@ -110,7 +110,7 @@ public class IEOServiceImpl implements IEOService {
         claimDto.setUuid(UUID.randomUUID().toString());
         logger.info("Add claim to queue {}", claimDto.getUuid());
 
-        if (claimDto.getTest()) {
+        if (claimDto.isTest()) {
             IEODetails ieoDetails = ieoDetailsRepository.findOpenIeoByCurrencyName(claimDto.getCurrencyName());
 
             if (ieoDetails == null || !ieoDetails.getTestIeo()) {
