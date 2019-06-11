@@ -1,0 +1,25 @@
+{
+  "sql" : "SELECT * FROM WALLET",
+  "content" : [ {
+    "id" : "1",
+    "currency_id" : "10",
+    "user_id" : "9",
+    "active_balance" : "1000.0",
+    "reserved_balance" : "0.5",
+    "ieo_reserve" : "0.5"
+  }, {
+    "id" : "2",
+    "currency_id" : "11",
+    "user_id" : "9",
+    "active_balance" : "1000.0",
+    "reserved_balance" : "0.12",
+    "ieo_reserve" : "0.12"
+  }, {
+    "id" : "3",
+    "currency_id" : "4",
+    "user_id" : "10",
+    "active_balance" : "0.0",
+    "reserved_balance" : "0.0",
+    "ieo_reserve" : "0.0"
+  } ]
+}

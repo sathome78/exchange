@@ -2817,5 +2817,3 @@ CREATE TABLE `schema_version` (
   PRIMARY KEY (`installed_rank`),
   KEY `schema_version_s_idx` (`success`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
-SET FOREIGN_KEY_CHECKS=1;
