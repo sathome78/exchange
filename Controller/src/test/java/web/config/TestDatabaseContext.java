@@ -70,7 +70,7 @@ public class TestDatabaseContext {
     public DataSourceInitializer dataSourceInitializer() {
         ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator();
         resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/disable_fk.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/add-shema-only-for-tests.sql"));
+        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/add-schema-only-for-tests.sql"));
         DataSourceInitializer dataSourceInitializer = new DataSourceInitializer();
         dataSourceInitializer.setDataSource(dataSource());
         dataSourceInitializer.setDatabasePopulator(resourceDatabasePopulator);
