@@ -267,6 +267,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="usdx_log" fileName="${sys:catalina.home}/logs/crypto/usdx_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/usdx_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="ripple_log" fileName="${sys:catalina.home}/logs/crypto/ripple_log.log"
                      filePattern="${sys:catalina.home}/logs/crypto/ripple_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
@@ -287,7 +296,7 @@
         </RollingFile>
         <RollingFile name="nem_log" fileName="${sys:catalina.home}/logs/crypto/nem_log.log"
                      filePattern="${sys:catalina.home}/logs/crypto/nem_log%d_%i.log" append="true">
-            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <PatternLayout pattern="%d{dd MM yyyy HH:mm:ss.SSS} %level - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
                 <SizeBasedTriggeringPolicy size="20 MB"/>
@@ -681,6 +690,24 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="gapi_log" fileName="${sys:catalina.home}/logs/merchants/gapi.log"
+                     filePattern="${sys:catalina.home}/logs/merchants/gapi_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="algorithm_log" fileName="${sys:catalina.home}/logs/merchants/algorithm.log"
+                     filePattern="${sys:catalina.home}/logs/merchants/algorithm_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="nixmoney_log" fileName="${sys:catalina.home}/logs/merchants/nixmoney_log.log"
                      filePattern="${sys:catalina.home}/logs/merchants/nixmoney_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
@@ -717,9 +744,18 @@
             </Policies>
             <DefaultRolloverStrategy max="1"/>
         </RollingFile>
+        <RollingFile name="eos_log" fileName="${sys:catalina.home}/logs/crypto/eos.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/eos_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
     </Appenders>
     <Loggers>
-        <Logger name="jdbc_logger" level="ALL" additivity="false">
+        <Logger name="jdbc_logger" level="INFO" additivity="false">
             <appender-ref ref="jdbc_log" />
         </Logger>
         <Logger name="merchant" level="DEBUG" additivity="false">
@@ -850,6 +886,9 @@
         <logger name="stellar_log" level="ALL" additivity="false">
             <AppenderRef ref="stellar_log"/>
         </logger>
+        <logger name="usdx_log" level="ALL" additivity="false">
+            <AppenderRef ref="usdx_log"/>
+        </logger>
         <logger name="ripple_log" level="ALL" additivity="false">
             <AppenderRef ref="ripple_log"/>
         </logger>
@@ -937,7 +976,9 @@
         <logger name="config" level="ALL" additivity="false">
             <AppenderRef ref="config"/>
         </logger>
-
+        <logger name="eos_log" level="ALL" additivity="false">
+            <AppenderRef ref="eos_log"/>
+        </logger>
         <logger name="ip_log" level="ALL" additivity="false">
             <AppenderRef ref="ip_log"/>
         </logger>
@@ -993,6 +1034,12 @@
         </logger>
         <logger name="aisi_log" level="ALL" additivity="false">
             <AppenderRef ref="aisi_log"/>
+        </logger>
+        <logger name="algorithm_log" level="ALL" additivity="false">
+            <AppenderRef ref="algorithm_log"/>
+        </logger>
+        <logger name="gapi_log" level="ALL" additivity="false">
+            <AppenderRef ref="gapi_log"/>
         </logger>
         <logger name="nixmoney_log" level="ALL" additivity="false">
             <AppenderRef ref="nixmoney_log"/>

@@ -78,6 +78,18 @@ public class OpenApiPublicOldControllerTest extends OpenApiCommonTest {
     }
 
     @Test
+    public void getCurrencyRates_successTest() throws Exception {
+        UriComponents uriComponents = UriComponentsBuilder.newInstance()
+                .path("/openapi/v1/public/rates")
+                .build();
+
+        mockMvc.perform(MockMvcRequestBuilders.get(uriComponents.toUri().toString()))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+
+        verify(exchangeApi, times(1)).getRates();
+    }
+
+    @Test
     public void getOrderBook_successTest() throws Exception {
         String cpName = "btc_usd";
 
@@ -212,8 +224,8 @@ public class OpenApiPublicOldControllerTest extends OpenApiCommonTest {
             mockMvc.perform(MockMvcRequestBuilders.get(uriComponents.toUri().toString()))
                     .andExpect(MockMvcResultMatchers.status().isBadRequest());
         } catch (Exception ex) {
-            assertTrue(((NestedServletException)ex).getRootCause() instanceof OpenApiException);
-            OpenApiException exception = (OpenApiException) ((NestedServletException)ex).getRootCause();
+            assertTrue(((NestedServletException) ex).getRootCause() instanceof OpenApiException);
+            OpenApiException exception = (OpenApiException) ((NestedServletException) ex).getRootCause();
             assertEquals(ErrorApiTitles.API_REQUEST_ERROR_LIMIT, exception.getTitle());
             assertEquals("Limit value equals or less than zero", exception.getMessage());
         }

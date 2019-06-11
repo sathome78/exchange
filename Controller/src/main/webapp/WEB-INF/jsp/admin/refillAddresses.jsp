@@ -98,6 +98,7 @@
                     <th><loc:message code="refill.address"/></th>
                     <th><loc:message code="admin.address.additionalFieldName"/></th>
                     <th><loc:message code="refill.requestDatetime"/></th>
+                    <th><loc:message code="refill.needTransfer"/></th>
                 </tr>
                 </thead>
 

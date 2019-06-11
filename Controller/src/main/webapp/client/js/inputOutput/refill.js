@@ -63,6 +63,9 @@ $(function () {
     $('#refill-requests-All').click(function () {
         changeTableViewType(this, "ALL")
     });
+    $('#refill-requests-created-by-fact').click(function () {
+        changeTableViewType(this, "CREATED_BY_FACT")
+    });
 
     function changeTableViewType($elem, newStatus) {
         tableViewType = newStatus;
@@ -161,7 +164,7 @@ $(function () {
                             'X-CSRF-Token': $("input[name='_csrf']").val()
                         },
                         type: 'POST',
-                        data : {comment: comment},
+                        data: {comment: comment},
                         complete: function () {
                             updateRefillTable();
                         }
@@ -216,18 +219,18 @@ $(function () {
     $('#create_refill_request').on('click', function () {
         $('#dialog-refill-create').modal();
     });
-    
+
     $('.rc_item').on('input', function () {
-       if (checkManualRefillFrom()) {
-           $('#refill_create_button').prop("disabled", false)
-       } else {
-           $('#refill_create_button').prop("disabled", true)
-       }
+        if (checkManualRefillFrom()) {
+            $('#refill_create_button').prop("disabled", false)
+        } else {
+            $('#refill_create_button').prop("disabled", true)
+        }
     });
 
 
     $('#refill_create_button').on('click', function (e) {
-       if (!checkManualRefillFrom()){
+        if (!checkManualRefillFrom()) {
             return;
         }
         e.preventDefault();
@@ -238,27 +241,27 @@ $(function () {
         var address = $modal.find("#rc_address").val();
         var currency = $modal.find("#rc_currency_select option:selected:selected").val();
         var data = {
-                "currency" : currency,
-                "email": email,
-                "address": address,
-                "amount": amount,
-                "txHash": merchantTxId
+            "currency": currency,
+            "email": email,
+            "address": address,
+            "amount": amount,
+            "txHash": merchantTxId
         };
         $.ajax({
-                url: '/2a8fy7b07dxe44/refill/crypto_create',
-                async: false,
-                headers: {
-                    'X-CSRF-Token': $("input[name='_csrf']").val()
-                },
-                type: 'POST',
-                contentType: 'application/json',
-                dataType: 'json',
-                data: JSON.stringify(data),
-                success: function (data) {
-                    $modal.modal('hide');
-                    clearManualRefillForm();
-                    successNoty(data.message);
-                }
+            url: '/2a8fy7b07dxe44/refill/crypto_create',
+            async: false,
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json',
+            data: JSON.stringify(data),
+            success: function (data) {
+                $modal.modal('hide');
+                clearManualRefillForm();
+                successNoty(data.message);
+            }
         });
     });
 });
@@ -309,14 +312,14 @@ function fillModal($modal, rowData) {
     $modal.find('#info-status-date').text(rowData.statusModificationDate);
     $modal.find('#info-confirmations').text(rowData.confirmations);
     var recipientBankName = rowData.recipientBankName ? rowData.recipientBankName : '';
-    var recipientBankAccount = rowData.recipientBankAccount ? '</br>'+rowData.recipientBankAccount : '';
-    var recipientBankRecipient = rowData.recipientBankRecipient ? '</br>'+rowData.recipientBankRecipient : '';
+    var recipientBankAccount = rowData.recipientBankAccount ? '</br>' + rowData.recipientBankAccount : '';
+    var recipientBankRecipient = rowData.recipientBankRecipient ? '</br>' + rowData.recipientBankRecipient : '';
     $modal.find('#info-bankRecipient').html(recipientBankName + recipientBankAccount + recipientBankRecipient);
     var payerBankCode = rowData.payerBankCode ? rowData.payerBankCode : '';
-    var payerBankName = rowData.payerBankName ? '</br>'+rowData.payerBankName : '';
-    var payerBankAccount = rowData.payerBankAccount ? '</br>'+rowData.payerBankAccount : '';
-    var userFullName = rowData.userFullName ? '</br>'+rowData.userFullName : '';
-    var payerDataString = payerBankCode+payerBankName+payerBankAccount+userFullName;
+    var payerBankName = rowData.payerBankName ? '</br>' + rowData.payerBankName : '';
+    var payerBankAccount = rowData.payerBankAccount ? '</br>' + rowData.payerBankAccount : '';
+    var userFullName = rowData.userFullName ? '</br>' + rowData.userFullName : '';
+    var payerDataString = payerBankCode + payerBankName + payerBankAccount + userFullName;
     $modal.find('#info-payer-data').html(payerDataString);
     $modal.find('#info-address').text(rowData.address);
     $modal.find('#info-merchant-transaction-id').text(rowData.merchantTransactionId);
@@ -399,14 +402,25 @@ function updateRefillTable() {
                     "name": "REFILL_REQUEST.merchant_id"
                 },
                 {
+                    "data": "status",
+                    "name": "REFILL_REQUEST.status_id",
+                    "render": function (data, type, row) {
+                        if (data) {
+                            var refillRequestId = row.id;
+                            return tableViewType === "CREATED_BY_FACT" ? '<button id="changeStatus' + refillRequestId + '" onclick="changeStatusToOnPending(' + refillRequestId + ')" ' +
+                                'class="action-button table-button-block__button btn" style="font-size: 1.1rem;background-color: #eff9ff">Change to \'ON_PENDING\'</button>' : row.status;
+                        }
+                    },
+                    "className": "text-center"
+                },
+                {
                     "data": "adminHolderEmail",
                     "name": "REFILL_REQUEST.admin_holder_id",
                     "render": function (data, type, row) {
                         if (data && row.isEndStatus) {
                             return '<a href="/2a8fy7b07dxe44/userInfo?id=' + row.adminHolderId + '">' + data + '</a>';
                         } else {
-                            return tableViewType == "ALL" ? row.status : getButtonsSet(row.id, row.sourceType, row.merchantName,
-                                row.buttons, "refillTable");
+                            return tableViewType !== "ALL" ? getButtonsSet(row.id, row.sourceType, row.merchantName, row.buttons, "refillTable") : '';
                         }
                     },
                     "className": "text-center"
@@ -417,4 +431,23 @@ function updateRefillTable() {
             "order": [[0, 'desc']]
         });
     }
+}
+
+function changeStatusToOnPending(refillRequestId) {
+    $.ajax({
+        url: '/2a8fy7b07dxe44/refill/change-status',
+        type: 'POST',
+        headers: {
+            'X-CSRF-Token': $("input[name='_csrf']").val()
+        },
+        data: {
+            "refillRequestId": refillRequestId
+        },
+        success: function () {
+            updateRefillTable();
+        },
+        error: function (err) {
+            console.log(err);
+        }
+    });
 }

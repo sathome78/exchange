@@ -9,13 +9,14 @@ import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.ExOrder;
 import me.exrates.model.IEODetails;
 import me.exrates.model.User;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.ChatHistoryDateWrapperDto;
 import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.dto.OrderBookWrapperDto;
+import me.exrates.model.dto.ieo.EmailIEORequestDTO;
+import me.exrates.model.dto.news.FeedWrapper;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.enums.ChatLang;
@@ -35,6 +36,7 @@ import me.exrates.security.service.NgUserService;
 import me.exrates.service.ChatService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.IEOService;
+import me.exrates.service.NewsParser;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
@@ -61,6 +63,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
@@ -75,7 +78,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.strip;
 
 @RestController
 @RequestMapping(value = "/api/public/v2",
@@ -98,6 +100,7 @@ public class NgPublicController {
     private final NgOrderService ngOrderService;
     private final TelegramChatDao telegramChatDao;
     private final ExchangeRatesHolder exchangeRatesHolder;
+    private final NewsParser newsParser;
 
     @Autowired
     public NgPublicController(ChatService chatService,
@@ -111,7 +114,8 @@ public class NgPublicController {
                               G2faService g2faService,
                               NgOrderService ngOrderService,
                               TelegramChatDao telegramChatDao,
-                              ExchangeRatesHolder exchangeRatesHolder) {
+                              ExchangeRatesHolder exchangeRatesHolder,
+                              NewsParser newsParser) {
         this.chatService = chatService;
         this.currencyService = currencyService;
         this.ipBlockingService = ipBlockingService;
@@ -124,6 +128,7 @@ public class NgPublicController {
         this.ngOrderService = ngOrderService;
         this.exchangeRatesHolder = exchangeRatesHolder;
         this.telegramChatDao = telegramChatDao;
+        this.newsParser = newsParser;
     }
 
     @GetMapping(value = "/if_email_exists")
@@ -309,6 +314,16 @@ public class NgPublicController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/news")
+    public ResponseModel<FeedWrapper> getNews(@RequestParam(required = false, defaultValue = "0") String offset,
+                                              @RequestParam(required = false, defaultValue = "10") String count,
+                                              @RequestParam(required = false, defaultValue = "0") String index) {
+
+        FeedWrapper result = newsParser.getFeeds(Integer.valueOf(offset), Integer.valueOf(count),
+                Integer.valueOf(index));
+        return new ResponseModel<>(result);
+    }
+
     private String fromChatMessage(ChatMessage message) {
         String send = "";
         ChatHistoryDto dto = new ChatHistoryDto();
@@ -369,6 +384,28 @@ public class NgPublicController {
             logger.error("Failed to get all fiat names");
             return Collections.emptyList();
         }
+    }
+
+    @PostMapping(value = "/ieo/subscribe/email", produces = MediaType.APPLICATION_JSON_UTF8_VALUE,
+            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseModel<?> ieoSubscribeEmail(@RequestBody @Valid EmailIEORequestDTO requestDTO) {
+        boolean result = ieoService.subscribeEmail(requestDTO.getEmail());
+        return new ResponseModel<>(result);
+    }
+
+    @PostMapping(value = "/ieo/subscribe/telegram", produces = MediaType.APPLICATION_JSON_UTF8_VALUE,
+            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseModel<?> ieoSubscribeTelegram(@RequestBody @Valid EmailIEORequestDTO requestDTO) {
+        boolean result = ieoService.subscribeTelegram(requestDTO.getEmail());
+        return new ResponseModel<>(result);
+    }
+
+    @GetMapping(value = "/ieo/subscribe", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseModel<?> checkSubscribe(@RequestParam String email) {
+        Map<String, Boolean> result = new HashMap<>(2);
+        result.put("email", ieoService.isUserSubscribeForIEOEmail(email));
+        result.put("telegram", ieoService.isUserSubscribeForIEOTelegram(email));
+        return new ResponseModel<>(result);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

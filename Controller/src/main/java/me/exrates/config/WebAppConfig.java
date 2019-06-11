@@ -330,7 +330,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @DependsOn("slaveForReportsDataSource")
     @Bean(name = "slaveForReportsTemplate")
     public NamedParameterJdbcTemplate slaveForReportsTemplate(@Qualifier("slaveForReportsDataSource") DataSource dataSource) {
-        return new NamedParameterJdbcTemplate(dataSource);
+        return new NamedParameterJdbcTemplateWrapper(dataSource);
     }
 
     @Primary
@@ -854,11 +854,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Conditional(MonolitConditional.class)
     public EthTokenService simService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x7528e3040376edd5db8263db2f5bd1bed91467fb");
+        tokensList.add("0xd7cd762f3ebc2c9a3d9bcf0133e06d04c59a1f7d");
         return new EthTokenServiceImpl(
                 tokensList,
                 "SIM",
-                "SIM", false, ExConvert.Unit.ETHER);
+                "SIM", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "amnServiceImpl")
@@ -1349,7 +1349,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Conditional(MonolitConditional.class)
     public EthTokenService crbtService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x2cf618c19041d9db330d8222b860a624021f30fb");
+        tokensList.add("0x6b7734c5ecc51116b806e2ea6decbb3b97f4f92e");
         return new EthTokenServiceImpl(
                 tokensList,
                 "CRBT",
@@ -1950,6 +1950,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(tokensList, "RVT", "RVT", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "linaServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService linaServiceImpl(){
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xc05d14442a510de4d3d71a3d316585aa0ce32b50");
+        return new EthTokenServiceImpl(tokensList, "LINA","LINA", true, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     @Conditional(MonolitConditional.class)
@@ -2064,6 +2072,19 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 10);
     }
 
+    @Bean(name = "rwdsServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public XemMosaicService rwdsService() {
+        return new XemMosaicServiceImpl(
+                "RWDS",
+                "RWDS",
+                new MosaicIdDto("rewards4u", "rwds"),
+                100,
+                2,
+                new Supply(100000000L),
+                0);
+    }
+
     @Bean(name = "darcServiceImpl")
     @Conditional(MonolitConditional.class)
     public XemMosaicService darcService() {
@@ -2140,7 +2161,8 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Conditional(MicroserviceConditional.class)
     public RestTemplate inoutRestTemplate(LogableErrorHandler errorHandler) {
         RestTemplate restTemplate = new RestTemplate();
-        HttpClientBuilder b = HttpClientBuilder.create();
+
+/*        HttpClientBuilder b = HttpClientBuilder.create();
         List<Header> headers = Lists.newArrayList();
         headers.add(new BasicHeader(inOutProperties.getTokenName(), inOutProperties.getTokenValue()));
         b.setDefaultHeaders(headers);
@@ -2148,8 +2170,9 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
         requestFactory.setHttpClient(client);
         restTemplate.setRequestFactory(requestFactory);
-        restTemplate.setErrorHandler(errorHandler);
+        restTemplate.setErrorHandler(errorHandler);*/
         restTemplate.setInterceptors(Collections.singletonList(new JsonMimeInterceptor()));
+
         return restTemplate;
     }
 
@@ -2220,5 +2243,4 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         build.register(new LoggingFilter());
         return build;
     }
-
 }

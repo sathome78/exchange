@@ -17,6 +17,7 @@ public class IEOResult {
     private int ieoId;
     private IEOResultStatus status;
     private BigDecimal availableAmount;
+    private String message;
 
     public enum IEOResultStatus {
         SUCCESS, FAILED, NONE, REVOKED

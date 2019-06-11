@@ -17,9 +17,8 @@ import java.time.LocalDateTime;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class IeoDetailsUpdateDto {
 
-   /* @NotNull(message = "Description must not be null")
-    private String description;*/
-    /*  private String currencyToPairWith;*/
+    @NotNull(message = "Description must not be null")
+    private String coinDescription;
     @NotNull(message = "Description must not be null")
     private String description;
     @NotNull(message = "Status must not be null")
@@ -42,10 +41,15 @@ public class IeoDetailsUpdateDto {
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime endDate;
 
+    private String content;
+    private Boolean testIeo;
+    private String logo;
+
  public IEODetails toIEODetails(Integer id) {
   return IEODetails.builder()
           .id(id)
-          .currencyDescription(description)
+          .currencyDescription(coinDescription)
+          .description(description)
           .amount(amount)
           .rate(rate)
           .availableAmount(availableBalance)
@@ -55,6 +59,9 @@ public class IeoDetailsUpdateDto {
           .status(IEODetailsStatus.valueOf(status))
           .startDate(startDate)
           .endDate(endDate)
+          .content(content)
+          .testIeo(testIeo)
+          .logo(logo)
           .build();
  }
 
