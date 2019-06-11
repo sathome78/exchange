@@ -665,7 +665,6 @@ public class BitcoinServiceImpl implements BitcoinService {
 
     @Override
     public boolean isValidDestinationAddress(String address) {
-
         return withdrawUtils.isValidDestinationAddress(address);
     }
 

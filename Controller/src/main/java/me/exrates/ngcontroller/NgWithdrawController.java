@@ -129,6 +129,9 @@ public class NgWithdrawController {
         if (StringUtils.isEmpty(requestParamsDto.getSecurityCode())) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
+        if (!merchantService.isValidDestinationAddress(requestParamsDto.getMerchant(), requestParamsDto.getDestination())) {
+            throw new UserOperationAccessException(messageSource.getMessage("withdraw.address.warning_availability", null, Locale.ENGLISH));
+        }
         User user = userService.findByEmail(email);
         if (g2faService.isGoogleAuthenticatorEnable(user.getId())) {
             if (!g2faService.checkGoogle2faVerifyCode(requestParamsDto.getSecurityCode(), user.getId())) {
