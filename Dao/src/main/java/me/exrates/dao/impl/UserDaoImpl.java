@@ -10,9 +10,11 @@ import me.exrates.model.Policy;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
+import me.exrates.model.dto.FilterDto;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserBalancesDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
+import me.exrates.model.dto.UserDashboardDto;
 import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.dto.UserIpReportDto;
 import me.exrates.model.dto.UserSessionInfoDto;
@@ -1122,6 +1124,16 @@ public class UserDaoImpl implements UserDao {
                 .oneOrMoreSuccessInputUsers(successInputUsers.size())
                 .oneOrMoreSuccessOutputUsers(successOutputUsers.size())
                 .build();
+    }
+
+    @Override
+    public UserDashboardDto getUsersDashboard() {
+        String sql = "SELECT u.id AS all_users" +
+                " FROM USER u" +
+                " WHERE u.roleid IN (:user_roles)";
+
+        final List<Integer> allUsersCount = masterTemplate.queryForList(sql, namedParameters, Integer.class);
+        return null;
     }
 
     @Override

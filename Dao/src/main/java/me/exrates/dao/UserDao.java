@@ -7,9 +7,11 @@ import me.exrates.model.Policy;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
+import me.exrates.model.dto.FilterDto;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserBalancesDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
+import me.exrates.model.dto.UserDashboardDto;
 import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.dto.UserIpReportDto;
 import me.exrates.model.dto.UserSessionInfoDto;
@@ -183,6 +185,8 @@ public interface UserDao {
     void updatePinByUserEmail(String userEmail, String pin, NotificationMessageEventEnum event);
 
     UsersInfoDto getUsersInfo(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles);
+
+    UserDashboardDto getUsersDashboard();
 
     List<UserBalancesDto> getUserBalances(List<UserRole> userRoles);
 
