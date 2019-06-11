@@ -1446,7 +1446,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Conditional(MonolitConditional.class)
     public EthTokenService crbtService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x2cf618c19041d9db330d8222b860a624021f30fb");
+        tokensList.add("0x6b7734c5ecc51116b806e2ea6decbb3b97f4f92e");
         return new EthTokenServiceImpl(
                 tokensList,
                 "CRBT",
@@ -2047,6 +2047,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(tokensList, "RVT","RVT", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "linaServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService linaServiceImpl(){
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xc05d14442a510de4d3d71a3d316585aa0ce32b50");
+        return new EthTokenServiceImpl(tokensList, "LINA","LINA", true, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     @Conditional(MonolitConditional.class)
@@ -2254,7 +2262,8 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Conditional(MicroserviceConditional.class)
     public RestTemplate inoutRestTemplate(LogableErrorHandler errorHandler) {
         RestTemplate restTemplate = new RestTemplate();
-        HttpClientBuilder b = HttpClientBuilder.create();
+
+/*        HttpClientBuilder b = HttpClientBuilder.create();
         List<Header> headers = Lists.newArrayList();
         headers.add(new BasicHeader(inOutProperties.getTokenName(), inOutProperties.getTokenValue()));
         b.setDefaultHeaders(headers);
@@ -2262,8 +2271,9 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
         requestFactory.setHttpClient(client);
         restTemplate.setRequestFactory(requestFactory);
-        restTemplate.setErrorHandler(errorHandler);
+        restTemplate.setErrorHandler(errorHandler);*/
         restTemplate.setInterceptors(Collections.singletonList(new JsonMimeInterceptor()));
+
         return restTemplate;
     }
 

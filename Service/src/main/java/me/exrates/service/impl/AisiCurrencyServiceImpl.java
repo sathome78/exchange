@@ -25,7 +25,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
 
 @Log4j2 (topic = "aisi_log")
 @Service
