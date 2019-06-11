@@ -7,7 +7,9 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -30,9 +32,15 @@ public class LocalDateTimeDeserializer extends JsonDeserializer<LocalDateTime> {
             return ZonedDateTime.parse(str).toLocalDateTime();
         } else {
             try {
-                return LocalDateTime.parse(str);
-            } catch (DateTimeParseException ex) {
-                return LocalDateTime.parse(str, FORMATTER);
+                try {
+                    return LocalDateTime.parse(str);
+                } catch (DateTimeParseException ex) {
+                    return LocalDateTime.parse(str, FORMATTER);
+                }
+                //Additional catch block for InOut microservice
+            } catch (DateTimeParseException ex){
+                String[] dateTime = str.split(" ");
+                return LocalDateTime.of(LocalDate.parse(dateTime[0]), LocalTime.parse(dateTime[1]));
             }
         }
     }

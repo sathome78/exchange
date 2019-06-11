@@ -1,12 +1,14 @@
 package me.exrates.service.usdx;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
+import me.exrates.service.usdx.model.UsdxAccountBalance;
 import me.exrates.service.usdx.model.UsdxTransaction;
-import org.stellar.sdk.responses.TransactionResponse;
 
+import java.util.List;
 import java.util.Map;
 
 public interface UsdxService extends IRefillable, IWithdrawable {
@@ -65,11 +67,15 @@ public interface UsdxService extends IRefillable, IWithdrawable {
 
     Currency getCurrency();
 
-    UsdxRestApiService getUsdxRestApiService();
+    UsdxAccountBalance getUsdxAccountBalance();
+
+    List<UsdxTransaction> getAllTransactions();
+
+    UsdxTransaction getTransactionByTransferId(String transferId);
 
     void checkHeaderOnValidForSecurity(String securityHeaderValue, UsdxTransaction usdxTransaction);
 
-    void createRefillRequestAdmin(Map<String, String> params);
+    void createRefillRequestAdmin(Map<String, String> params) throws JsonProcessingException;
 
     UsdxTransaction sendUsdxTransactionToExternalWallet(String password, UsdxTransaction usdxTransaction);
 }
