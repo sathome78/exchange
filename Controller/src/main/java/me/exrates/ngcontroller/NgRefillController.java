@@ -245,6 +245,7 @@ public class NgRefillController {
             );
             if (address.isPresent()) {
                 String message = messageSource.getMessage("refill.messageAboutCurrentAddress", new String[]{address.get()}, locale);
+
                 HashMap<String, Object> response = new HashMap<String, Object>() {{
                     put("address", address.get());
                     put("message", message);

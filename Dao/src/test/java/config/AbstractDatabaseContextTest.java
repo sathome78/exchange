@@ -173,6 +173,11 @@ public abstract class AbstractDatabaseContextTest {
             return new NamedParameterJdbcTemplate(dataSource);
         }
 
+        @Bean(name = "slaveForReportsTemplate")
+        public NamedParameterJdbcTemplate slaveForReportsTemplate(@Qualifier("testDataSource") DataSource dataSource) {
+            return new NamedParameterJdbcTemplate(dataSource);
+        }
+
         @Bean
         public DataSourceTransactionManager dataSourceTransactionManager(@Qualifier("testDataSource") DataSource dataSource) {
             return new DataSourceTransactionManager(dataSource);

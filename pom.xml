@@ -323,24 +323,6 @@
         </dependency>
         <!--Test-->
 
-        <!--Marshalling-->
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.7.1-1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>2.9.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-            <version>2.9.1</version>
-        </dependency>
-        <!--Marshalling-->
-
         <!--Mail-->
         <dependency>
             <groupId>javax.mail</groupId>
@@ -566,6 +548,29 @@
             <version>1.11.433</version>
             <scope>compile</scope>
         </dependency>
+        <!--Marshalling-->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.7.1-1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>2.9.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>2.9.1</version>
+        </dependency>
+        <!--Marshalling-->
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-secretsmanager</artifactId>
+            <version>1.11.433</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
 
@@ -631,6 +636,16 @@
             <id>ProjectRepo</id>
             <name>ProjectRepo</name>
             <url>file://${project.basedir}/Service/libs</url>
+        </repository>
+        <repository>
+            <id>oss.sonatype.org-snapshot</id>
+            <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
         </repository>
     </repositories>
 </project>

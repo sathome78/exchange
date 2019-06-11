@@ -744,6 +744,15 @@
             </Policies>
             <DefaultRolloverStrategy max="1"/>
         </RollingFile>
+        <RollingFile name="eos_log" fileName="${sys:catalina.home}/logs/crypto/eos.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/eos_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
     </Appenders>
     <Loggers>
         <Logger name="jdbc_logger" level="INFO" additivity="false">
@@ -967,7 +976,9 @@
         <logger name="config" level="ALL" additivity="false">
             <AppenderRef ref="config"/>
         </logger>
-
+        <logger name="eos_log" level="ALL" additivity="false">
+            <AppenderRef ref="eos_log"/>
+        </logger>
         <logger name="ip_log" level="ALL" additivity="false">
             <AppenderRef ref="ip_log"/>
         </logger>
