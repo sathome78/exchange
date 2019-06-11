@@ -11,9 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.jdbc.datasource.init.DataSourceInitializer;
-import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.test.context.TestPropertySource;
 
 import javax.annotation.PostConstruct;
@@ -40,12 +37,12 @@ public class TestDatabaseContext {
     private String password;
 
     @PostConstruct
-    protected void prepareTestSchema() {
+    protected void checkTestDatabase() {
         if (hasStructure()) {
-            LOGGER.info("Database structure exists!!!");
+            LOGGER.info("Database structure exists.");
         } else {
-            LOGGER.info("Creating Database structure!!!");
-            dataSourceInitializer();
+            LOGGER.info("DB doesn't have structure.");
+            throw new RuntimeException("DB doesn't have structure.");
         }
     }
 
@@ -64,17 +61,6 @@ public class TestDatabaseContext {
     public DataSource dataSource() {
         String dbUrl = createConnectionURL(this.url, SCHEMA_NAME);
         return createDataSource(this.user, this.password, dbUrl);
-    }
-
-    @Bean
-    public DataSourceInitializer dataSourceInitializer() {
-        ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator();
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/disable_fk.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("/initdb/add-schema-only-for-tests.sql"));
-        DataSourceInitializer dataSourceInitializer = new DataSourceInitializer();
-        dataSourceInitializer.setDataSource(dataSource());
-        dataSourceInitializer.setDatabasePopulator(resourceDatabasePopulator);
-        return dataSourceInitializer;
     }
 
     @Bean

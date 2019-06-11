@@ -21,7 +21,6 @@ import framework.model.impl.instructruction.Break;
 import framework.model.impl.mock.When;
 import framework.model.impl.variable.Variable;
 import framework.parser.ConfigCollector;
-import migration.Migration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -141,7 +140,6 @@ public class RootTest {
     protected AutowireCapableBeanFactory beanFactory;
 
     private MockMvc api;
-
     private File file;
     private ConfigCollector.MappingResult result;
 
@@ -186,9 +184,7 @@ public class RootTest {
 
         if (result.isOk()) {
             Config config = result.config.get();
-            if (config.getActive()) {
-                new DatabaseMigrationRunner(dataSource, databaseConfig).execute();
-            } else {
+            if (!config.getActive()) {
                 Assume.assumeTrue(config.getDescription(), false);
             }
         }
@@ -656,7 +652,6 @@ public class RootTest {
                                 file(entry.getKey(), FileUtils.readFileToByteArray(entry.getValue()));
                     }
                 }
-
                 return request;
             }
             return request;
@@ -836,13 +831,11 @@ public class RootTest {
         }
     }
 
-
     interface Transformation {
         boolean matches(String input);
 
         String apply(String input);
     }
-
 
     public static class Table {
         public final String sql;
@@ -855,61 +848,6 @@ public class RootTest {
         void addRow(Map<String, String> row) {
             this.content.add(row);
         }
-    }
-
-    private static class DatabaseMigrationRunner {
-        private static volatile boolean wasExecuted;
-
-        private final DataSource dataSource;
-        private final DatabaseConfig databaseConfig;
-
-        DatabaseMigrationRunner(DataSource dataSource, DatabaseConfig databaseConfig) {
-            this.dataSource = dataSource;
-            this.databaseConfig = databaseConfig;
-        }
-
-        synchronized void execute() throws Exception {
-            if (!wasExecuted) {
-                try {
-                    migrate();
-                } catch (Exception e) {
-                    StringsSource source = new StringsSource(dropDatabaseQuery(dataSource, databaseConfig.getSchema()));
-                    apply(dataSource, Collections.singletonList(source));
-                    migrate();
-                }
-                wasExecuted = true;
-            }
-        }
-
-        private void migrate() {
-            String description = String.format("Testing tool URL[%s] USER[%s]",
-                    databaseConfig.getUrl(), databaseConfig.getUser());
-            new Migration().apply(dataSource, description);
-        }
-    }
-
-    private static String dropDatabaseQuery(DataSource dataSource, String schema) {
-        StringBuilder o = new StringBuilder();
-        o.append(disableFK());
-        for (String each : tables(dataSource, schema, true)) {
-            o.append("DROP TABLE IF EXISTS ").append(each).append(" CASCADE" + SQL_DELIMITER);
-        }
-        for (String each : views(dataSource, schema)) {
-            o.append("DROP VIEW ").append(each).append(SQL_DELIMITER);
-        }
-        for (String each : functions(dataSource, schema)) {
-            o.append("DROP FUNCTION ").append(each).append(SQL_DELIMITER);
-        }
-        o.append(enableFK());
-        return o.toString();
-    }
-
-    private static String disableFK() {
-        return "SET FOREIGN_KEY_CHECKS = 0" + SQL_DELIMITER;
-    }
-
-    private static String enableFK() {
-        return "SET FOREIGN_KEY_CHECKS = 1" + SQL_DELIMITER;
     }
 
     private static String clearDatabaseQuery(DataSource dataSource, String schema) {

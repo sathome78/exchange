@@ -1849,10 +1849,10 @@ public class TestContextConfig extends WebMvcConfigurerAdapter {
 
     @Bean(name = "linaServiceImpl")
     @Conditional(MonolitConditional.class)
-    public EthTokenService linaServiceImpl(){
+    public EthTokenService linaServiceImpl() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0xc05d14442a510de4d3d71a3d316585aa0ce32b50");
-        return new EthTokenServiceImpl(tokensList, "LINA","LINA", true, ExConvert.Unit.ETHER);
+        return new EthTokenServiceImpl(tokensList, "LINA", "LINA", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "ethereumServiceImpl")
