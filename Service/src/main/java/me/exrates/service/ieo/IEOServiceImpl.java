@@ -19,13 +19,11 @@ import me.exrates.model.dto.ieo.IEOStatusInfo;
 import me.exrates.model.dto.ieo.IeoDetailsCreateDto;
 import me.exrates.model.dto.ieo.IeoDetailsUpdateDto;
 import me.exrates.model.dto.kyc.KycCountryDto;
-import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.IEODetailsStatus;
 import me.exrates.model.enums.PolicyEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.exceptions.IeoException;
-import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.IEOService;
 import me.exrates.service.SendMailService;
@@ -50,6 +48,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -61,6 +60,7 @@ import java.util.stream.Collectors;
 @Log4j2
 public class IEOServiceImpl implements IEOService {
     private static final Logger logger = LogManager.getLogger(IEOServiceImpl.class);
+    private static final int COUNT_CHUNK = 1;
     private final static String IEO_CLAIM_QUEUE = "ieo_claims";
     private static ExecutorService executor = Executors.newSingleThreadExecutor();
 
@@ -152,7 +152,7 @@ public class IEOServiceImpl implements IEOService {
         populateTestIeo(ieoDetails);
         boolean filled = true;
         while (filled) {
-            List<IEOClaim> claims = ieoClaimRepository.findUnprocessedIeoClaimsByIeoId(ieoDetails.getId(), 10, true);
+            List<IEOClaim> claims = ieoClaimRepository.findUnprocessedIeoClaimsByIeoId(ieoDetails.getId(), COUNT_CHUNK, true);
             if (claims.isEmpty()) {
                 filled = false;
             }
@@ -515,22 +515,37 @@ public class IEOServiceImpl implements IEOService {
 
     private void populateTestIeo(IEODetails ieoDetail) {
 
-        int countTransactions = ieoDetail.getCountTestTransaction();
-        BigDecimal availableAmount = ieoDetail.getAvailableAmount();
-        BigDecimal averageSumTransaction = BigDecimalProcessing.doAction(availableAmount,
-                new BigDecimal(countTransactions),
-                ActionType.DEVIDE);
-        for (int i = 0; i < countTransactions + 1; i++) {
+        BigDecimal amount = ieoDetail.getAvailableAmount();
+        Integer[] partsAmount = random(10, amount.intValue());
+
+        for (int i = 0; i < partsAmount.length; i++) {
             IEOClaim ieoClaim = new IEOClaim(ieoDetail.getId(),
                     ieoDetail.getCurrencyName(),
                     ieoDetail.getMakerId(),
                     -2,
-                    averageSumTransaction,
+                    new BigDecimal(partsAmount[i]),
                     ieoDetail.getRate(),
                     UUID.randomUUID().toString(),
                     "test_ieo@gmail.com",
                     true);
             ieoClaimRepository.save(ieoClaim);
         }
+    }
+
+    private Integer[] random(int count, int finalSum) {
+        Random r = new Random();
+        Integer numbers[] = new Integer[count];
+        int sum = 0;
+        for (int i = 0; i < count - 1; i++) {
+            int bound = (finalSum - sum) / 2;
+            if (bound > 0) {
+                numbers[i] = r.nextInt(bound) + 1;
+                sum += numbers[i];
+            } else {
+                numbers[i] = 0;
+            }
+        }
+        numbers[count - 1] = finalSum - sum;
+        return numbers;
     }
 }
