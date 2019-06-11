@@ -14,6 +14,7 @@ import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.*;
+import me.exrates.service.usdx.model.UsdxAccountBalance;
 import me.exrates.service.usdx.model.UsdxTransaction;
 import me.exrates.service.usdx.model.enums.UsdxWalletAsset;
 import me.exrates.service.util.CryptoUtils;
@@ -32,11 +33,13 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Log4j2(topic = "usdx_log")
 @Service
 @PropertySource("classpath:/merchants/usdx.properties")
+@Conditional(MonolitConditional.class)
 public class LightHouseServiceImpl implements UsdxService {
 
     private static final String LIGHTHOUSE_CURRENCY_NAME = UsdxWalletAsset.LHT.name();
@@ -76,10 +79,12 @@ public class LightHouseServiceImpl implements UsdxService {
 
         String message = messageSource.getMessage("merchants.refill.usdx", new Object[]{usdxRestApiService.getAccountName(), destinationTag}, request.getLocale());
 
+        String qrCode = "usdx%3A" + getMainAddress() + "%3Fcurrency%3D" + LIGHTHOUSE_CURRENCY_NAME + "%26memo%3D" + destinationTag + "%26ro%3Dtrue";
+
         return new HashMap<String, String>() {{
             put("address", destinationTag);
             put("message", message);
-            put("qr", usdxRestApiService.getAccountName());
+            put("qr", qrCode);
         }};
     }
 
@@ -161,7 +166,7 @@ public class LightHouseServiceImpl implements UsdxService {
 
     @Override
     public boolean isValidDestinationAddress(String address) {
-        return withdrawUtils.isValidDestinationAddress(usdxRestApiService.getAccountName(), address);
+        return withdrawUtils.isValidDestinationAddress(getMainAddress(), address);
     }
 
     @Override
@@ -175,8 +180,18 @@ public class LightHouseServiceImpl implements UsdxService {
     }
 
     @Override
-    public UsdxRestApiService getUsdxRestApiService(){
-        return usdxRestApiService;
+    public UsdxAccountBalance getUsdxAccountBalance(){
+        return usdxRestApiService.getAccountBalance();
+    }
+
+    @Override
+    public List<UsdxTransaction> getAllTransactions(){
+        return usdxRestApiService.getAllTransactions();
+    }
+
+    @Override
+    public UsdxTransaction getTransactionByTransferId(String transferId){
+        return usdxRestApiService.getTransactionStatus(transferId);
     }
 
     @Override
