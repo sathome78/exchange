@@ -1128,11 +1128,13 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public UserDashboardDto getUsersDashboard() {
-        String sql = "SELECT u.id AS all_users" +
-                " FROM USER u" +
-                " WHERE u.roleid IN (:user_roles)";
+        String sql = "SELECT u.id FROM USER u";
 
-        final List<Integer> allUsersCount = masterTemplate.queryForList(sql, namedParameters, Integer.class);
+        final List<Integer> allUsers = masterTemplate.queryForList(sql, Collections.emptyMap(), Integer.class);
+
+        sql = "SELECT u.id FROM USER u";
+
+        final List<Integer> allVerifiedUsers = masterTemplate.queryForList(sql, Collections.emptyMap(), Integer.class);
         return null;
     }
 
