@@ -208,7 +208,6 @@
       <version>${aws-java-sdk.version}</version>
     </dependency>
   </dependencies>
-
   <repositories>
     <repository>
       <id>btcd-cli4j-inner</id>
