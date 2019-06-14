@@ -2,6 +2,7 @@ package me.exrates.ngcontroller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.controller.exception.OrdersValidationErrorInfo;
 import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
@@ -17,6 +18,7 @@ import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.exceptions.RabbitMqException;
 import me.exrates.model.ngExceptions.NgDashboardException;
+import me.exrates.model.ngExceptions.NgOrderValidationException;
 import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.model.ngUtil.PagedResult;
@@ -240,6 +242,7 @@ public class NgDashboardController {
             @RequestParam(required = false, name = "hideCanceled", defaultValue = "false") Boolean hideCanceled,
             @RequestParam(required = false, name = "dateFrom") String dateFrom,
             @RequestParam(required = false, name = "dateTo") String dateTo,
+            @RequestParam(required = false, name = "limited", defaultValue = "false") Boolean limited,
             HttpServletRequest request) {
         Integer userId = userService.getIdByEmail(getPrincipalEmail());
         Locale locale = localeResolver.resolveLocale(request);
@@ -269,6 +272,7 @@ public class NgDashboardController {
                     sortByCreated,
                     dateTimeFrom,
                     dateTimeTo,
+                    limited,
                     locale);
 
             PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
@@ -328,6 +332,7 @@ public class NgDashboardController {
                     "DESC",
                     null,
                     null,
+                    true,
                     locale);
 
             PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
@@ -415,6 +420,14 @@ public class NgDashboardController {
     @ResponseBody
     public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    @ExceptionHandler({NgOrderValidationException.class})
+    @ResponseBody
+    public OrdersValidationErrorInfo OrderValidationErrorsHandler(HttpServletRequest req, Exception exception) {
+        NgOrderValidationException ex = (NgOrderValidationException) exception;
+        return new OrdersValidationErrorInfo(req.getRequestURL(), ex);
     }
 
     @ResponseStatus(HttpStatus.EXPECTATION_FAILED)

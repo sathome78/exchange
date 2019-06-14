@@ -2335,7 +2335,7 @@ public class OrderServiceImpl implements OrderService {
                                                                          String scope, Integer limit, Integer offset,
                                                                          Boolean hideCanceled, String sortByCreated,
                                                                          LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo,
-                                                                         Locale locale) {
+                                                                         Boolean limited, Locale locale) {
 
         int recordsCount = orderDao.getMyOrdersWithStateCount(
                 userId,
@@ -2346,7 +2346,7 @@ public class OrderServiceImpl implements OrderService {
                 hideCanceled,
                 dateTimeFrom,
                 dateTimeTo);
-        if (nonNull(limit) && limit != 0 && recordsCount > limit) {
+        if (limited && recordsCount > limit) {
             recordsCount = limit;
         }
 

@@ -690,15 +690,6 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="gapi_log" fileName="${sys:catalina.home}/logs/merchants/gapi.log"
-                     filePattern="${sys:catalina.home}/logs/merchants/gapi_log%d_%i.log" append="true">
-            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
-            <Policies>
-                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
-                <SizeBasedTriggeringPolicy size="20 MB"/>
-            </Policies>
-            <DefaultRolloverStrategy max="10"/>
-        </RollingFile>
         <RollingFile name="algorithm_log" fileName="${sys:catalina.home}/logs/merchants/algorithm.log"
                      filePattern="${sys:catalina.home}/logs/merchants/algorithm_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
@@ -1037,9 +1028,6 @@
         </logger>
         <logger name="algorithm_log" level="ALL" additivity="false">
             <AppenderRef ref="algorithm_log"/>
-        </logger>
-        <logger name="gapi_log" level="ALL" additivity="false">
-            <AppenderRef ref="gapi_log"/>
         </logger>
         <logger name="nixmoney_log" level="ALL" additivity="false">
             <AppenderRef ref="nixmoney_log"/>

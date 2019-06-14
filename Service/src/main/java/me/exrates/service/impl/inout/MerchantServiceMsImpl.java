@@ -3,6 +3,7 @@ package me.exrates.service.impl.inout;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.service.exception.CheckDestinationTagException;
 import me.exrates.service.impl.MerchantServiceImpl;
@@ -18,6 +19,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Map;
 
+@Log4j2
 @Service
 @Conditional(MicroserviceConditional.class)
 @RequiredArgsConstructor
@@ -31,7 +33,6 @@ public class MerchantServiceMsImpl extends MerchantServiceImpl {
     private final InOutProperties properties;
 
     @Override
-    @SneakyThrows
     public void checkDestinationTag(Integer merchantId, String memo) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_CHECK_DESTINATION_TAG)
                 .queryParam("merchant_id", merchantId)
@@ -43,7 +44,14 @@ public class MerchantServiceMsImpl extends MerchantServiceImpl {
                 HttpEntity.EMPTY, String.class);
 
         if(response.getStatusCodeValue() == 400){
-            throw objectMapper.readValue(response.getBody(), CheckDestinationTagException.class);
+            CheckDestinationTagException ex;
+            try {
+                ex = objectMapper.readValue(response.getBody(), CheckDestinationTagException.class);
+            } catch (Exception e) {
+                log.error("checkDestinationTag error {}", response.getBody(), e);
+                throw new RuntimeException(e);
+            }
+            throw ex;
         }
     }
 
