@@ -16,9 +16,15 @@ public class MicroserviceConditional implements Condition {
     private static final String INOUT_IS_ENABLED_JEDIS_KEY = "inout.isEnabled";
     private final boolean isEnabled;
 
-    @SneakyThrows
+
     private Jedis getJedis() {
-        Properties properties = getJedisProperties();
+        Properties properties = null;
+        try {
+            properties = getJedisProperties();
+        } catch (IOException e) {
+            log.error("jedis properties not found ");
+            throw new RuntimeException(e);
+        }
         log.info("Redis props: " + properties.toString());
         return new Jedis(properties.getProperty("redis.host"), Integer.parseInt(properties.getProperty("redis.port")));
     }

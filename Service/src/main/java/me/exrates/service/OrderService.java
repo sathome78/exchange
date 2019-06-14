@@ -461,7 +461,8 @@ public interface OrderService {
     Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, String currencyName,
                                                                   OrderStatus orderStatus, String scope, Integer limit,
                                                                   Integer offset, Boolean hideCanceled, String sortByCreated,
-                                                                  LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo, Locale locale);
+                                                                  LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo, Boolean limited,
+                                                                  Locale locale);
 
     @Transactional
     boolean cancelOrders(Collection<Integer> orderIds);

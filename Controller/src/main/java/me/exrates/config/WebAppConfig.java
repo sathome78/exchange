@@ -1,7 +1,6 @@
 package me.exrates.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
@@ -45,10 +44,8 @@ import me.exrates.service.stellar.StellarAsset;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.apache.http.Header;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.message.BasicHeader;
 import org.flywaydb.core.Flyway;
 import org.nem.core.model.primitive.Supply;
 import org.quartz.Scheduler;
@@ -1927,132 +1924,148 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(tokensList, "PLTC", "PLTC", true, ExConvert.Unit.ETHER);
     }
 
-	@Bean(name = "vrbsServiceImpl")
-	@Conditional(MonolitConditional.class)
-    public EthTokenService vrbsServiceImpl(){
-		List<String> tokensList = new ArrayList<>();
-		tokensList.add("0x0e08b02d89ca66cf157c6658c02933ef0bc38cb6");
-		return new EthTokenServiceImpl(tokensList, "VRBS","VRBS", false, ExConvert.Unit.ETHER);
-	}
+    @Bean(name = "vrbsServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService vrbsServiceImpl() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x0e08b02d89ca66cf157c6658c02933ef0bc38cb6");
+        return new EthTokenServiceImpl(tokensList, "VRBS", "VRBS", false, ExConvert.Unit.ETHER);
+    }
 
-	@Bean(name = "zubeServiceImpl")
-	@Conditional(MonolitConditional.class)
-    public EthTokenService zubeServiceImpl(){
-		List<String> tokensList = new ArrayList<>();
-		tokensList.add("0xc5e017450346e4f9a2e477519d65affcfc90586a");
-		return new EthTokenServiceImpl(tokensList, "ZUBE","ZUBE", true, ExConvert.Unit.ETHER);
-	}
+    @Bean(name = "zubeServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService zubeServiceImpl() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xc5e017450346e4f9a2e477519d65affcfc90586a");
+        return new EthTokenServiceImpl(tokensList, "ZUBE", "ZUBE", true, ExConvert.Unit.ETHER);
+    }
 
-	@Bean(name = "elcServiceImpl")
-	@Conditional(MonolitConditional.class)
-    public EthTokenService elcServiceImpl(){
-		List<String> tokensList = new ArrayList<>();
-		tokensList.add("0x2ab2ffaa942851922a50fd640893f5c42b82474e");
-		return new EthTokenServiceImpl(tokensList, "ELC","ELC", false, ExConvert.Unit.AIWEI);
-	}
+    @Bean(name = "elcServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService elcServiceImpl() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x2ab2ffaa942851922a50fd640893f5c42b82474e");
+        return new EthTokenServiceImpl(tokensList, "ELC", "ELC", false, ExConvert.Unit.AIWEI);
+    }
 
     @Bean(name = "tttServiceImpl")
     @Conditional(MonolitConditional.class)
-    public EthTokenService tttServiceImpl(){
+    public EthTokenService tttServiceImpl() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x317572aabc73d59fc55f923750d1c51680fd28b4");
-        return new EthTokenServiceImpl(tokensList, "TTT","TTT", false, ExConvert.Unit.AIWEI);
+        return new EthTokenServiceImpl(tokensList, "TTT", "TTT", false, ExConvert.Unit.AIWEI);
     }
 
     @Bean(name = "rebServiceImpl")
     @Conditional(MonolitConditional.class)
-    public EthTokenService rebServiceImpl(){
+    public EthTokenService rebServiceImpl() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x61383ac89988b498df5363050ff07fe5c52ecdda");
-        return new EthTokenServiceImpl(tokensList, "REB","REB", true, ExConvert.Unit.ETHER);
+        return new EthTokenServiceImpl(tokensList, "REB", "REB", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "rvcServiceImpl")
     @Conditional(MonolitConditional.class)
-    public EthTokenService rvcServiceImpl(){
+    public EthTokenService rvcServiceImpl() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0xa3ebd756729904ba2a39289751d96d9b2eac793b");
-        return new EthTokenServiceImpl(tokensList, "RVC","RVC", false, ExConvert.Unit.ETHER);
+        return new EthTokenServiceImpl(tokensList, "RVC", "RVC", false, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "bioServiceImpl")
     @Conditional(MonolitConditional.class)
-    public EthTokenService bioServiceImpl(){
+    public EthTokenService bioServiceImpl() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0xf18432ef894ef4b2a5726f933718f5a8cf9ff831");
-        return new EthTokenServiceImpl(tokensList, "BIO","BIO", false, ExConvert.Unit.AIWEI);
+        return new EthTokenServiceImpl(tokensList, "BIO", "BIO", false, ExConvert.Unit.AIWEI);
     }
 
     @Bean(name = "vraServiceImpl")
     @Conditional(MonolitConditional.class)
-    public EthTokenService vraServiceImpl(){
+    public EthTokenService vraServiceImpl() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0xdf1d6405df92d981a2fb3ce68f6a03bac6c0e41f");
-        return new EthTokenServiceImpl(tokensList, "VRA","VRA", true, ExConvert.Unit.ETHER);
+        return new EthTokenServiceImpl(tokensList, "VRA", "VRA", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "katServiceImpl")
     @Conditional(MonolitConditional.class)
-    public EthTokenService katServiceImpl(){
+    public EthTokenService katServiceImpl() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0xa858bc1b71a895ee83b92f149616f9b3f6afa0fb");
-        return new EthTokenServiceImpl(tokensList, "KAT","KAT", true, ExConvert.Unit.ETHER);
+        return new EthTokenServiceImpl(tokensList, "KAT", "KAT", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "etaServiceImpl")
     @Conditional(MonolitConditional.class)
-    public EthTokenService etaServiceImpl(){
+    public EthTokenService etaServiceImpl() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x9195e00402abe385f2d00a32af40b271f2e87925");
-        return new EthTokenServiceImpl(tokensList, "ETA","ETA", true, ExConvert.Unit.ETHER);
+        return new EthTokenServiceImpl(tokensList, "ETA", "ETA", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "brcServiceImpl")
     @Conditional(MonolitConditional.class)
-    public EthTokenService brcServiceImpl(){
+    public EthTokenService brcServiceImpl() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x21ab6c9fac80c59d401b37cb43f81ea9dde7fe34");
-        return new EthTokenServiceImpl(tokensList, "BRC","BRC", true, ExConvert.Unit.AIWEI);
+        return new EthTokenServiceImpl(tokensList, "BRC", "BRC", true, ExConvert.Unit.AIWEI);
     }
 
     @Bean(name = "gnyServiceImpl")
     @Conditional(MonolitConditional.class)
-    public EthTokenService gnyServiceImpl(){
+    public EthTokenService gnyServiceImpl() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x247551f2eb3362e222c742e9c788b8957d9bc87e");
-        return new EthTokenServiceImpl(tokensList, "GNY","GNY", true, ExConvert.Unit.ETHER);
+        return new EthTokenServiceImpl(tokensList, "GNY", "GNY", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "novaServiceImpl")
     @Conditional(MonolitConditional.class)
-    public EthTokenService novaServiceImpl(){
+    public EthTokenService novaServiceImpl() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x72fbc0fc1446f5accc1b083f0852a7ef70a8ec9f");
-        return new EthTokenServiceImpl(tokensList, "NOVA","NOVA", true, ExConvert.Unit.ETHER);
+        return new EthTokenServiceImpl(tokensList, "NOVA", "NOVA", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "fstServiceImpl")
     @Conditional(MonolitConditional.class)
-    public EthTokenService fstServiceImpl(){
+    public EthTokenService fstServiceImpl() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0xa1a6f16d26aa53aec17e4001fd8cb6e6d5b17ff7");
-        return new EthTokenServiceImpl(tokensList, "FST","FST", true, ExConvert.Unit.MWEI);
+        return new EthTokenServiceImpl(tokensList, "FST", "FST", true, ExConvert.Unit.MWEI);
     }
 
     @Bean(name = "rvtServiceImpl")
     @Conditional(MonolitConditional.class)
-    public EthTokenService rvtServiceImpl(){
+    public EthTokenService rvtServiceImpl() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x4eef32781db07a9b7d9d36bb9ba81fa08af9d3ab");
-        return new EthTokenServiceImpl(tokensList, "RVT","RVT", true, ExConvert.Unit.ETHER);
+        return new EthTokenServiceImpl(tokensList, "RVT", "RVT", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "linaServiceImpl")
     @Conditional(MonolitConditional.class)
-    public EthTokenService linaServiceImpl(){
+    public EthTokenService linaServiceImpl() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0xc05d14442a510de4d3d71a3d316585aa0ce32b50");
-        return new EthTokenServiceImpl(tokensList, "LINA","LINA", true, ExConvert.Unit.ETHER);
+        return new EthTokenServiceImpl(tokensList, "LINA", "LINA", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "gapiServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService gapiServiceImpl() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x1ac8bd74065e11c07c0fa3687c0dcfb86af76d46");
+        return new EthTokenServiceImpl(tokensList, "GAPI", "GAPI", false, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "embrServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService embrServiceImpl() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x07f74c8480ccfee0d4f803e9bdde8383748b40de");
+        return new EthTokenServiceImpl(tokensList, "EMBR", "EMBR", true, ExConvert.Unit.AIWEI);
     }
 
     //    Qtum tokens:

@@ -7,6 +7,7 @@ import me.exrates.controller.annotation.CheckActiveUserStatus;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.User;
 import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.model.enums.UserEventEnum;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.PinCodeCheckNeedException;
@@ -28,6 +29,7 @@ import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissio
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
+import me.exrates.service.annotation.LogIp;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
@@ -89,6 +91,7 @@ public class TransferRequestController {
 
     private final static String transferRequestCreateDto = "transferRequestCreateDto";
 
+    @LogIp(event = UserEventEnum.TRANSFER_SEND)
     @CheckActiveUserStatus
     @RequestMapping(value = "/transfer/request/create", method = POST)
     @ResponseBody
@@ -127,6 +130,7 @@ public class TransferRequestController {
         return transferService.createTransferRequest(transferRequest);
     }
 
+
     @CheckActiveUserStatus
     @RequestMapping(value = "/transfer/request/checking", method = POST)
     @ResponseBody
@@ -145,6 +149,7 @@ public class TransferRequestController {
         return String.join("", dto.getAmount().stripTrailingZeros().toPlainString(), " ", dto.getCurrencyName());
     }
 
+    @LogIp(event = UserEventEnum.TRANSFER_SEND)
     @CheckActiveUserStatus
     @RequestMapping(value = "/transfer/request/pin", method = POST)
     @ResponseBody
@@ -163,6 +168,7 @@ public class TransferRequestController {
         }
     }
 
+    @LogIp(event = UserEventEnum.TRANSFER_CODE_ACCEPT)
     @CheckActiveUserStatus
     @ResponseBody
     @RequestMapping(value = "/transfer/accept", method = POST, produces = "application/json; charset=utf-8")
