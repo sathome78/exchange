@@ -16,10 +16,7 @@ import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
-import me.exrates.model.dto.filterData.AdminOrderFilterData;
-import me.exrates.model.dto.filterData.AdminStopOrderFilterData;
-import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
-import me.exrates.model.dto.filterData.RefillAddressFilterData;
+import me.exrates.model.dto.filterData.*;
 import me.exrates.model.dto.merchants.btc.*;
 import me.exrates.model.dto.merchants.omni.OmniTxDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
@@ -1705,8 +1702,25 @@ public class AdminController {
         String dateTimePattern = "yyyy-MM-dd_HH:mm";
         LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
         LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
-
         return ResponseEntity.ok(userService.getUsersInfoFromCache(startTime, endTime, userRoles));
+    }
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/ip", method = GET)
+    public String getUsersInfo(Model model) {
+        model.addAttribute("events", Arrays
+                                                    .stream(UserEventEnum.values())
+                                                    .filter(UserEventEnum::isIpLogged)
+                                                    .toArray());
+        return "admin/ipAdresses";
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/2a8fy7b07dxe44/ip/ip_log", method = GET)
+    public DataTable<List<IpLogDto>> getIpDatatable(AdminIpLogsFilterData adminOrderFilterData,
+                                                    @RequestParam Map<String, String> params) {
+        adminOrderFilterData.initFilterItems();
+        DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
+        return userService.getIpAdressesTable(adminOrderFilterData, dataTableParams);
     }
 
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)

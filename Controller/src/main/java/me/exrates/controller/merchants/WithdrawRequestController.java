@@ -13,6 +13,7 @@ import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestInfoDto;
 import me.exrates.model.dto.WithdrawRequestParamsDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.model.enums.UserEventEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
@@ -21,6 +22,7 @@ import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.PinCodeCheckNeedException;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.*;
+import me.exrates.service.annotation.LogIp;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.invoice.MerchantException;
@@ -77,6 +79,7 @@ public class WithdrawRequestController {
 
   private final static String withdrawRequestSessionAttr = "withdrawRequestCreateDto";
 
+  @LogIp(event = UserEventEnum.WITHDRAW)
   @CheckActiveUserStatus
   @RequestMapping(value = "/withdraw/request/create", method = POST)
   @ResponseBody
@@ -118,6 +121,7 @@ public class WithdrawRequestController {
         return String.join("", dto.getAmount().stripTrailingZeros().toPlainString(), " ", dto.getCurrencyName());
     }
 
+    @LogIp(event = UserEventEnum.WITHDRAW)
     @CheckActiveUserStatus
     @RequestMapping(value = "/withdraw/request/pin", method = POST)
     @ResponseBody

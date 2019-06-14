@@ -1,8 +1,10 @@
 package me.exrates.service.impl.inout;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CommissionDao;
 import me.exrates.model.Commission;
 import me.exrates.model.condition.MicroserviceConditional;
@@ -38,6 +40,7 @@ import java.util.Map;
 import static me.exrates.model.enums.ActionType.MULTIPLY_PERCENT;
 import static me.exrates.model.enums.OperationType.INPUT;
 
+@Log4j2
 @Service
 @RequiredArgsConstructor
 @Conditional(MicroserviceConditional.class)
@@ -56,7 +59,6 @@ public class CommissionServiceMsImpl extends CommissionServiceImpl {
 
     @Override
     @Transactional
-    @SneakyThrows
     public CommissionDataDto normalizeAmountAndCalculateCommission(Integer userId,
                                                                    BigDecimal amount,
                                                                    OperationType type,
@@ -74,7 +76,13 @@ public class CommissionServiceMsImpl extends CommissionServiceImpl {
                 .destinationTag(destinationTag)
                 .userRole(userService.getUserRoleFromDB(userId)).build();
 
-        HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(normalizeAmountDto));
+        HttpEntity<?> entity = null;
+        try {
+            entity = new HttpEntity<>(mapper.writeValueAsString(normalizeAmountDto));
+        } catch (JsonProcessingException e) {
+            log.error("error normalizeAmountAndCalculateCommission", e);
+            throw new RuntimeException(e);
+        }
         ResponseEntity<CommissionDataDto> response = template.exchange(
                 builder.toUriString(),
                 HttpMethod.POST,

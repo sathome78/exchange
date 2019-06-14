@@ -6,12 +6,15 @@ import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.UserIpDto;
+import me.exrates.model.enums.UserEventEnum;
 import me.exrates.model.enums.UserIpState;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
+import me.exrates.service.annotation.LogIp;
 import me.exrates.service.util.IpUtils;
+import me.exrates.service.util.RestUtil;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +32,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
 import java.util.Locale;
+
+import static me.exrates.service.util.RestUtil.getUrlFromRequest;
 
 /**
  * Created by Valk on 28.04.2016.
@@ -68,7 +73,7 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
             request.getSession().removeAttribute("successNoty");
         /**/
             String email = authentication.getName();
-            String ip = request.getHeader("X-FORWARDED-FOR");
+            String ip = IpUtils.getIpForDbLog(request);
             if (ip == null) {
                 ip = IpUtils.getClientIpAddress(request, 100);
             }
@@ -93,6 +98,7 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
                 super.setDefaultTargetUrl(lastPage);
             }
             WebUtils.setSessionAttribute(request,"first_entry_after_login", true);
+            userService.logIP(userIpDto.getUserId(), ip, UserEventEnum.LOGIN_SUCCESS, getUrlFromRequest(request));
             super.onAuthenticationSuccess(request, response, authentication);
         } catch (Exception e) {
             log.error(ExceptionUtils.getFullStackTrace(e));
