@@ -1,0 +1,8 @@
+DELETE FROM IP_Log WHERE id > 0;
+
+ALTER TABLE IP_Log
+    ADD COLUMN event enum('REGISTER', 'LOGIN_SUCCESS', 'WITHDRAW', 'CHANGE_PASSWORD', 'RESET_PASSWORD', 'TRANSFER_SEND', 'TRANSFER_CODE_ACCEPT', 'TRADE', 'REFILL_ADDRESS', 'REFILL_REQUEST'),
+    ADD COLUMN url VARCHAR(128) NOT NULL;
+
+create index ip_log_user_id_event_index
+    on IP_Log (user_id, event);

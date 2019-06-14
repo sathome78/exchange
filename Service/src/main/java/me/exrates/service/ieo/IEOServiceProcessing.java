@@ -77,7 +77,7 @@ public class IEOServiceProcessing {
         for (IEODetails ieoDetail : ieos) {
             boolean filled = true;
             while (filled) {
-                List<IEOClaim> claims = ieoClaimRepository.findUnprocessedIeoClaimsByIeoId(ieoDetail.getId(), CHUNK);
+                List<IEOClaim> claims = ieoClaimRepository.findUnprocessedIeoClaimsByIeoId(ieoDetail.getId(), CHUNK, false);
                 if (claims.isEmpty()) {
                     filled = false;
                 }

@@ -12,8 +12,12 @@ import java.util.List;
 @Service
 public class KYCSettingsServiceImpl implements KYCSettingsService {
 
+    private final KYCSettingsDao kycSettingsDao;
+
     @Autowired
-    private KYCSettingsDao kycSettingsDao;
+    public KYCSettingsServiceImpl(KYCSettingsDao kycSettingsDao) {
+        this.kycSettingsDao = kycSettingsDao;
+    }
 
     @Override
     public List<KycCountryDto> getCountriesDictionary() {

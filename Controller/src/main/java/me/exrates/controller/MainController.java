@@ -8,11 +8,7 @@ import me.exrates.model.User;
 import me.exrates.model.UserEmailDto;
 import me.exrates.model.dto.QRCodeDto;
 import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.enums.OrderHistoryPeriod;
-import me.exrates.model.enums.OrderType;
-import me.exrates.model.enums.TokenType;
-import me.exrates.model.enums.UserRole;
-import me.exrates.model.enums.UserStatus;
+import me.exrates.model.enums.*;
 import me.exrates.model.form.FeedbackMessageForm;
 import me.exrates.model.vo.openApiDoc.OpenApiMethodDoc;
 import me.exrates.model.vo.openApiDoc.OpenApiMethodGroup;
@@ -73,6 +69,7 @@ import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
+import static me.exrates.service.util.RestUtil.getUrlFromRequest;
 
 @Controller
 @PropertySource(value = {"classpath:about_us.properties", "classpath:/captcha.properties"})
@@ -199,7 +196,7 @@ public class MainController {
             } else {
                 boolean flag = false;
                 try {
-                    String ip = IpUtils.getClientIpAddress(request, 100);
+                    String ip = IpUtils.getIpForDbLog(request);
                     if (ip == null) {
                         ip = request.getRemoteHost();
                     }
@@ -216,12 +213,15 @@ public class MainController {
                 }
                 if (flag) {
                     final int child = userService.getIdByEmail(user.getEmail());
-                    final int parent = userService.getIdByEmail(user.getParentEmail());
-                    if (child > 0 && parent > 0) {
-                        referralService.bindChildAndParent(child, parent);
-                        logger.info("*** Referal graph | Child: " + user.getEmail() + " && Parent: " + user.getParentEmail());
+                    try {
+                        final int parent = userService.getIdByEmail(user.getParentEmail());
+                        if (child > 0 && parent > 0) {
+                            referralService.bindChildAndParent(child, parent);
+                            logger.info("*** Referal graph | Child: " + user.getEmail() + " && Parent: " + user.getParentEmail());
+                        }
+                    } catch (Exception e) {
+                        logger.error("error get refferal for " + child);
                     }
-
                     String successNoty = null;
                     try {
                         successNoty = URLEncoder.encode(messageSource.getMessage("register.sendletter", null,
@@ -233,6 +233,7 @@ public class MainController {
                     Map<String, Object> body = new HashMap<>();
                     body.put("result", successNoty);
                     body.put("user", user);
+                    userService.logIP(child, user.getIp(), UserEventEnum.REGISTER, getUrlFromRequest(request));
                     return ResponseEntity.ok(body);
 
                 } else {
@@ -311,13 +312,6 @@ public class MainController {
         return model;
     }
 
-    @RequestMapping("/personalpage")
-    public ModelAndView gotoPersonalPage(@ModelAttribute User user, Principal principal) {
-        String host = request.getRemoteHost();
-        String email = principal.getName();
-        String userIP = userService.logIP(email, host);
-        return new ModelAndView("personalpage", "userIP", userIP);
-    }
 
     @RequestMapping(value = "/login", method = RequestMethod.GET)
     public ModelAndView login(HttpSession httpSession, Principal principal,

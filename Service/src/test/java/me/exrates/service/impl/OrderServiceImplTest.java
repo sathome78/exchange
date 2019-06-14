@@ -6058,6 +6058,7 @@ public class OrderServiceImplTest {
                 "DESC",
                 now.minusDays(1),
                 now,
+                false,
                 Locale.ENGLISH);
 
         verify(orderDao, atLeastOnce()).getMyOrdersWithStateCount(anyInt(), any(CurrencyPair.class), anyString(),
@@ -6103,6 +6104,7 @@ public class OrderServiceImplTest {
                 "DESC",
                 now.minusDays(1),
                 now,
+                false,
                 Locale.ENGLISH);
 
         verify(orderDao, atLeastOnce()).getMyOrdersWithStateCount(anyInt(), any(CurrencyPair.class), anyString(),
@@ -6161,6 +6163,7 @@ public class OrderServiceImplTest {
                 "DESC",
                 LocalDateTime.of(2019, 4, 8, 15, 10, 10),
                 LocalDateTime.of(2019, 4, 8, 16, 10, 10),
+                false,
                 Locale.ENGLISH);
 
         assertNotNull(myOrdersWithStateMap);
@@ -6219,6 +6222,7 @@ public class OrderServiceImplTest {
                 "DESC",
                 LocalDateTime.of(2019, 4, 8, 15, 10, 10),
                 LocalDateTime.of(2019, 4, 8, 16, 10, 10),
+                false,
                 Locale.ENGLISH);
 
         assertNotNull(myOrdersWithStateMap);

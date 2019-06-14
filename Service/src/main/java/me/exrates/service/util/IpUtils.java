@@ -9,6 +9,8 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class IpUtils {
 
+    private static final int IP_LENGTH_FOR_DB_LOG = 45;
+
     private IpUtils() {
     }
 
@@ -43,5 +45,9 @@ public class IpUtils {
             }
         }
         return StringUtils.abbreviate(request.getRemoteAddr(), maxLength);
+    }
+
+    public static String getIpForDbLog(HttpServletRequest request) {
+        return getClientIpAddress(request, IP_LENGTH_FOR_DB_LOG);
     }
 }
