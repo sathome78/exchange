@@ -435,7 +435,7 @@ public class UserServiceImpl implements UserService {
         if (tokenType.equals(TokenType.REGISTRATION)
                 || tokenType.equals(TokenType.CHANGE_PASSWORD)
                 || tokenType.equals(TokenType.CHANGE_FIN_PASSWORD)) {
-            sendMailService.sendMailSes(email);
+            sendMailService.sendMail(email);
         } else {
             sendMailService.sendMail(email);
         }
@@ -447,7 +447,7 @@ public class UserServiceImpl implements UserService {
         email.setTo(user.getEmail());
         email.setMessage(messageSource.getMessage(emailText, new Object[]{user.getIp()}, locale));
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
-        sendMailService.sendInfoMail(email);
+        sendMailService.sendMail(email);
     }
 
     public boolean createTemporalToken(TemporalToken token) {

@@ -251,7 +251,7 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
         email.setTo("sell@exrates.top");
         email.setMessage("Insuficcience Service Balance Exception on 1s2u numbers lookup, need to refund balance!");
         email.setSubject("Allert! InsuficcienceServiceBalanceException");
-        sendMailService.sendInfoMail(email);
+        sendMailService.sendMail(email);
     }
 
     private void createOrUpdate(SmsSubscriptionDto dto) {

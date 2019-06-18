@@ -133,7 +133,7 @@ public class withdrawRequestJob {
       Locale locale = new Locale(userLanguage);
       email.setSubject(messageSource.getMessage("withdraw.wallet.insufficientCosts.title", null, locale));
       email.setMessage(messageSource.getMessage("withdraw.wallet.insufficientCosts.body", new Object[]{currencyName}, locale));
-      sendMailService.sendInfoMail(email);
+      sendMailService.sendMail(email);
 
     }
   }

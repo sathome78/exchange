@@ -209,7 +209,7 @@ public class NgUserServiceImpl implements NgUserService {
                 "If this was not you, please change your password and contact us.");
         email.setSubject("Notification of disable 2FA");
 
-        sendMailService.sendMailSes(email);
+        sendMailService.sendMail(email);
     }
 
     @Override
@@ -223,7 +223,7 @@ public class NgUserServiceImpl implements NgUserService {
                 "If this was not you, please change your password and contact us.");
         email.setSubject("Notification of enable 2FA");
 
-        sendMailService.sendMailSes(email);
+        sendMailService.sendMail(email);
     }
 
     @Override
@@ -271,7 +271,7 @@ public class NgUserServiceImpl implements NgUserService {
 
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
         email.setTo(user.getEmail());
-        sendMailService.sendMailSes(email);
+        sendMailService.sendMail(email);
     }
 
     private String getHost() {
