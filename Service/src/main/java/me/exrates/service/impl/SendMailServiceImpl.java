@@ -49,6 +49,9 @@ public class SendMailServiceImpl implements SendMailService {
     @Qualifier("MandrillMailSender")
     private JavaMailSender mandrillMailSender;
     @Autowired
+    @Qualifier("SesMailSender")
+    private JavaMailSender sesMailSender;
+    @Autowired
     @Qualifier("InfoMailSender")
     private JavaMailSender infoMailSender;
     @Value("${mail_info.allowedOnly}")
@@ -117,7 +120,7 @@ public class SendMailServiceImpl implements SendMailService {
                 sendMail(email.toBuilder()
                                 .from(mandrillEmail)
                                 .build(),
-                        mandrillMailSender);
+                        sesMailSender);
                 break;
             }
         }
@@ -137,7 +140,7 @@ public class SendMailServiceImpl implements SendMailService {
                 sendMail(email.toBuilder()
                                 .from(infoEmail)
                                 .build(),
-                        springProfile.equalsIgnoreCase("prod") ? mandrillMailSender : infoMailSender);
+                        springProfile.equalsIgnoreCase("prod") ? sesMailSender : infoMailSender);
             } catch (MailException ex) {
                 log.error(ex);
                 sendMail(email.toBuilder()

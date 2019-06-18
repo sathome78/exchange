@@ -214,6 +214,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     String mailInfoUser;
     @Value("${mail_info.password}")
     String mailInfoPassword;
+    @Value("${mail_ses.host}")
+    String sesHost;
+    @Value("${mail_ses.port}")
+    String sesPort;
+    @Value("${mail_ses.protocol}")
+    String sesProtocol;
+    @Value("${mail_ses.user}")
+    String sesUser;
+    @Value("${mail_ses.password}")
+    String sesPassword;
 
     @Value("${angular.allowed.origins}")
     private String[] angularAllowedOrigins;
@@ -517,6 +527,22 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         javaMailProps.put("mail.smtp.auth", true);
         javaMailProps.put("mail.smtp.starttls.enable", true);
         javaMailProps.put("mail.smtp.ssl.trust", mailMandrillHost);
+        mailSenderImpl.setJavaMailProperties(javaMailProps);
+        return mailSenderImpl;
+    }
+
+    @Bean(name = "SesMailSender")
+    public JavaMailSenderImpl sesMailSenderImpl() {
+        final JavaMailSenderImpl mailSenderImpl = new JavaMailSenderImpl();
+        mailSenderImpl.setHost(sesHost);
+        mailSenderImpl.setPort(Integer.parseInt(sesPort));
+        mailSenderImpl.setProtocol(sesProtocol);
+        mailSenderImpl.setUsername(sesUser);
+        mailSenderImpl.setPassword(sesPassword);
+        final Properties javaMailProps = new Properties();
+        javaMailProps.put("mail.smtp.auth", true);
+        javaMailProps.put("mail.smtp.starttls.enable", true);
+        javaMailProps.put("mail.smtp.ssl.trust", sesHost);
         mailSenderImpl.setJavaMailProperties(javaMailProps);
         return mailSenderImpl;
     }
