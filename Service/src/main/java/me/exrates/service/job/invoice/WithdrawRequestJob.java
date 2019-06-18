@@ -39,7 +39,7 @@ import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.POST_AUTO;
 @Log4j2(topic = "job")
 @PropertySource(value = {"classpath:/job.properties"})
 @Conditional(MonolitConditional.class)
-public class withdrawRequestJob {
+public class WithdrawRequestJob {
   
   
   @Value("${withdraw.rejectErrorTimeout}")
