@@ -2278,22 +2278,9 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
     @Bean("inoutRestTemplate")
-    public RestTemplate inoutRestTemplate(LogableErrorHandler errorHandler) {
+    public RestTemplate inoutRestTemplate() {
         RestTemplate restTemplate = new RestTemplate();
-
-        HttpClientBuilder b = HttpClientBuilder.create();
-        List<Header> headers = Lists.newArrayList();
-        headers.add(new BasicHeader(inOutProperties.getTokenName(), inOutProperties.getTokenValue()));
-        headers.add(new BasicHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON_UTF8_VALUE));
-        headers.add(new BasicHeader(HttpHeaders.ACCEPT, APPLICATION_JSON_UTF8_VALUE));
-
-        b.setDefaultHeaders(headers);
-        HttpClient client = b.build();
-        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-        requestFactory.setHttpClient(client);
-        restTemplate.setRequestFactory(requestFactory);
-//        restTemplate.setErrorHandler(errorHandler);
-//        restTemplate.setInterceptors(Collections.singletonList(new JsonMimeInterceptor()));
+        restTemplate.setInterceptors(Collections.singletonList(new JsonMimeInterceptor()));
 
         return restTemplate;
     }
