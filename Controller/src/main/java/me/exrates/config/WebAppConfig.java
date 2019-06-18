@@ -1,6 +1,7 @@
 package me.exrates.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
@@ -44,8 +45,10 @@ import me.exrates.service.stellar.StellarAsset;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.apache.http.Header;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicHeader;
 import org.flywaydb.core.Flyway;
 import org.nem.core.model.primitive.Supply;
 import org.quartz.Scheduler;
@@ -68,6 +71,7 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.format.FormatterRegistry;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.support.BasicAuthorizationInterceptor;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -117,6 +121,8 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.TreeSet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 
 @Log4j2(topic = "config")
 @EnableAsync
@@ -318,14 +324,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         hikariConfig.setJdbcUrl(dbMasterUrl);
         hikariConfig.setUsername(dbMasterUser);
         hikariConfig.setPassword(dbMasterPassword);
-        hikariConfig.setMaximumPoolSize(50);
+        hikariConfig.setMaximumPoolSize(25);
         DataSource dataSource = new HikariDataSource(hikariConfig);
         Flyway flyway = new Flyway();
         flyway.setDataSource(dataSource);
         flyway.setBaselineOnMigrate(true);
         flyway.setOutOfOrder(true);
         flyway.repair();
-        flyway.migrate();
+//        flyway.migrate();
         return dataSource;
     }
 
@@ -336,7 +342,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         hikariConfig.setJdbcUrl(dbSlaveUrl);
         hikariConfig.setUsername(dbSlaveUser);
         hikariConfig.setPassword(dbSlavePassword);
-        hikariConfig.setMaximumPoolSize(50);
+        hikariConfig.setMaximumPoolSize(20);
         hikariConfig.setReadOnly(true);
         return new HikariDataSource(hikariConfig);
     }
@@ -348,7 +354,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         hikariConfig.setJdbcUrl(dbSlaveForReportsUrl);
         hikariConfig.setUsername(dbSlaveForReportsUser);
         hikariConfig.setPassword(dbSlaveForReportsPassword);
-        hikariConfig.setMaximumPoolSize(50);
+        hikariConfig.setMaximumPoolSize(20);
         hikariConfig.setReadOnly(true);
         return new HikariDataSource(hikariConfig);
     }
@@ -2272,20 +2278,22 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
     @Bean("inoutRestTemplate")
-    @Conditional(MicroserviceConditional.class)
     public RestTemplate inoutRestTemplate(LogableErrorHandler errorHandler) {
         RestTemplate restTemplate = new RestTemplate();
 
-/*        HttpClientBuilder b = HttpClientBuilder.create();
+        HttpClientBuilder b = HttpClientBuilder.create();
         List<Header> headers = Lists.newArrayList();
         headers.add(new BasicHeader(inOutProperties.getTokenName(), inOutProperties.getTokenValue()));
+        headers.add(new BasicHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON_UTF8_VALUE));
+        headers.add(new BasicHeader(HttpHeaders.ACCEPT, APPLICATION_JSON_UTF8_VALUE));
+
         b.setDefaultHeaders(headers);
         HttpClient client = b.build();
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
         requestFactory.setHttpClient(client);
         restTemplate.setRequestFactory(requestFactory);
-        restTemplate.setErrorHandler(errorHandler);*/
-        restTemplate.setInterceptors(Collections.singletonList(new JsonMimeInterceptor()));
+//        restTemplate.setErrorHandler(errorHandler);
+//        restTemplate.setInterceptors(Collections.singletonList(new JsonMimeInterceptor()));
 
         return restTemplate;
     }

@@ -42,6 +42,7 @@ public class MicroserviceConditional implements Condition {
 
     @Override
     public boolean matches(ConditionContext conditionContext, AnnotatedTypeMetadata annotatedTypeMetadata) {
-        return isEnabled;
+//        return isEnabled;
+        return true;
     }
 }

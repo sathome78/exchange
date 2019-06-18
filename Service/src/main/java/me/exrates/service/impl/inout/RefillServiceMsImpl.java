@@ -16,6 +16,7 @@ import me.exrates.model.vo.WalletOperationMsDto;
 import me.exrates.service.CompanyWalletService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
+import me.exrates.service.exception.InoutMicroserviceInternalServerException;
 import me.exrates.service.exception.RefillRequestRevokeException;
 import me.exrates.service.impl.RefillServiceImpl;
 import me.exrates.service.properties.InOutProperties;
@@ -163,22 +164,32 @@ public class RefillServiceMsImpl extends RefillServiceImpl {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_MERCHANT_RETRIEVE_ADDRESS_AND_ADDITIONAL_PARAMS_FOR_REFILL_FOR_MERCHANT_CURRENCIES)
                 .queryParam("userEmail", userEmail);
 
+        // set headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+
         HttpEntity<?> entity = null;
         try {
-            entity = new HttpEntity<>(objectMapper.writeValueAsString(merchantCurrencies));
+            entity = new HttpEntity<>(objectMapper.writeValueAsString(merchantCurrencies), headers);
         } catch (JsonProcessingException e) {
             log.error(e);
             throw new RuntimeException(String.format("Object mapper error. " +
                     "User email: %s | List<MerchantCurrency>: %s", userEmail, merchantCurrencies));
         }
 
-        ResponseEntity<List<MerchantCurrency>> response = template.exchange(
+        try {
+            ResponseEntity<List<MerchantCurrency>> response = template.exchange(
                     builder.toUriString(),
                     HttpMethod.POST,
-                    entity, new ParameterizedTypeReference<List<MerchantCurrency>>() {});
+                    entity, new ParameterizedTypeReference<List<MerchantCurrency>>() {
+                    });
 
             setElements(merchantCurrencies, response);
             return response.getBody();
+        }catch (Exception ex){
+            log.error(ex);
+            throw new InoutMicroserviceInternalServerException(ex.getMessage());
+        }
     }
 
     private void setElements(List<MerchantCurrency> merchantCurrencies, ResponseEntity<List<MerchantCurrency>> response) {

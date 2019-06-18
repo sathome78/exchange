@@ -213,9 +213,16 @@ public class NgRefillController {
 
         int minConfirmations = 0;
         if (isNotEmpty(merchantCurrencyData)) {
-            IRefillable merchant = (IRefillable) merchantServiceContext
+            //TODO for microservice || Add implementation for this method 'getMerchantService'
+            IRefillable merchant = null;
+            try {
+                merchant = (IRefillable) merchantServiceContext
                     .getMerchantService(merchantService.findById(merchantCurrencyData.get(0).getMerchantId()).getServiceBeanName());
-            minConfirmations = isNull(merchant.minConfirmationsRefill()) ? 0 : merchant.minConfirmationsRefill();
+            }catch (Exception ex){
+                logger.error("Error: " + ex);
+            }
+            //TODO do some changes
+                minConfirmations = merchant != null ? isNull(merchant.minConfirmationsRefill()) ? 0 : merchant.minConfirmationsRefill() : 0;
         }
         response.setMinConfirmations(minConfirmations);
         return response;
