@@ -25,35 +25,25 @@ import java.nio.file.Paths;
 public class SendMailServiceImpl implements SendMailService {
 
     @Autowired
-    ApplicationProps props;
-    @Autowired
     ResourceLoader resourceLoader;
+
     @Autowired
     RabbitTemplate rabbitTemplate;
-    @Value("${email-info-queue}")
-    private String EMAIL_INFO_QUEUE;
-    @Value("${email-ses-queue}")
-    private String EMAIL_SES_QUEUE;
+
     @Value("${email-queue}")
     private String EMAIL_QUEUE;
-    @Value("${email-listing-email-queue}")
-    private String EMAIL_LISTING_REQUEST_QUEUE;
+
+    @Value("${listing.email}")
+    private String listingEmail;
+
+    @Value("${listing.subject}")
+    private String listingSubject;
 
     @Override
     public void sendMail(Email email) {
         email.setMessage(prepareTemplate(email.getMessage()));
         rabbitTemplate.convertAndSend(EMAIL_QUEUE, email);
     }
-
-//    @Override
-//    public void sendMailSes(Email email) {
-//        rabbitTemplate.convertAndSend(EMAIL_SES_QUEUE, email);
-//    }
-//
-//    @Override
-//    public void sendInfoMail(Email email) {
-//        rabbitTemplate.convertAndSend(EMAIL_INFO_QUEUE, email);
-//    }
 
     @Override
     public void sendListingRequestEmail(ListingRequest request) {
@@ -63,8 +53,8 @@ public class SendMailServiceImpl implements SendMailService {
         final String text = request.getText();
 
         Email email = Email.builder()
-                .to(props.getListingEmail())
-                .subject(props.getListingSubject())
+                .to(listingEmail)
+                .subject(listingSubject)
                 .message(MessageFormatterUtil.format(name, emailBody, telegram, text))
                 .build();
 
