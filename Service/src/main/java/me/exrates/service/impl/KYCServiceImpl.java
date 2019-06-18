@@ -230,7 +230,10 @@ public class KYCServiceImpl implements KYCService {
     public Pair<String, EventStatus> getVerificationStatus() {
         final String reference = userService.getReferenceId();
 
-        return Pair.of(reference, getVerificationStatus(reference));
+        final EventStatus status = getVerificationStatus(reference);
+        userService.updateKycStatus(status.name());
+
+        return Pair.of(reference, status);
     }
 
     @Override
@@ -298,7 +301,13 @@ public class KYCServiceImpl implements KYCService {
         switch (eventStatus) {
             case ACCEPTED:
                 log.debug("Verification status: {}. Data have been accepted", eventStatus);
+
                 affectedRowCount = userService.updateVerificationStep(userEmail);
+
+                userService.updateKycStatusByEmail(userEmail, eventStatus.name());
+
+                sendStatusNotification(userEmail, eventStatus.name());
+                log.debug("Notification have been send successfully");
                 break;
             case CHANGED:
                 final EventStatus changedTo = getVerificationStatus(reference);
@@ -309,14 +318,15 @@ public class KYCServiceImpl implements KYCService {
                 if (isAccepted) {
                     affectedRowCount = userService.updateVerificationStep(userEmail);
                 }
+                userService.updateKycStatusByEmail(userEmail, changedTo.name());
+
+                sendStatusNotification(userEmail, changedTo.name());
+                log.debug("Notification have been send successfully");
                 break;
         }
         if (affectedRowCount == 0) {
             log.debug("Verification step have not been updated in database");
         }
-        sendStatusNotification(userEmail, eventStatus.getEvent());
-        log.debug("Notification have been send successfully");
-
         return Pair.of(reference, eventStatus);
     }
 
@@ -403,7 +413,8 @@ public class KYCServiceImpl implements KYCService {
 
         UserNotificationType type;
         String msg = String.format(emailMessagePattern, eventStatus);
-        if (eventStatus.equalsIgnoreCase("success")) {
+        if (eventStatus.equalsIgnoreCase("SUCCESS")
+                || eventStatus.equalsIgnoreCase(EventStatus.ACCEPTED.name())) {
             type = UserNotificationType.SUCCESS;
         } else {
             type = UserNotificationType.ERROR;

@@ -1,8 +1,10 @@
 package me.exrates.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
@@ -17,6 +19,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Map;
 
+@Log4j2
 @Service
 @Conditional(MicroserviceConditional.class)
 @RequiredArgsConstructor
@@ -33,11 +36,16 @@ public class PayeerServiceMsImpl implements PayeerService {
     }
 
     @Override
-    @SneakyThrows
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_MERCHANT_PAYEER_PROCESS_PAYMENT);
 
-        HttpEntity<String> entity = new HttpEntity<>(mapper.writeValueAsString(params));
+        HttpEntity<String> entity;
+        try {
+            entity = new HttpEntity<>(mapper.writeValueAsString(params));
+        } catch (JsonProcessingException e) {
+            log.error("Payeer can't map params", e);
+            throw new RuntimeException(e);
+        }
         template.exchange(
                 builder.toUriString(),
                 HttpMethod.POST,

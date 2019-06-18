@@ -8,6 +8,7 @@ import me.exrates.model.UserEmailDto;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.enums.TokenType;
+import me.exrates.model.enums.UserEventEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.model.ngExceptions.NgDashboardException;
@@ -36,6 +37,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
+
+import static me.exrates.service.util.RestUtil.getUrlFromRequest;
 
 @Service
 @PropertySource(value = {"classpath:/angular.properties"})
@@ -100,7 +103,7 @@ public class NgUserServiceImpl implements NgUserService {
 
         int idUser = userDao.getIdByEmail(userEmailDto.getEmail());
         user.setId(idUser);
-
+        userService.logIP(idUser, user.getIp(), UserEventEnum.REGISTER, getUrlFromRequest(request));
         sendEmailWithToken(user,
                 TokenType.REGISTRATION,
                 "emailsubmitregister.subject",

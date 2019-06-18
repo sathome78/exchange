@@ -1,7 +1,6 @@
 package me.exrates.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
@@ -45,10 +44,8 @@ import me.exrates.service.stellar.StellarAsset;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.apache.http.Header;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.message.BasicHeader;
 import org.flywaydb.core.Flyway;
 import org.nem.core.model.primitive.Supply;
 import org.quartz.Scheduler;
@@ -1952,10 +1949,26 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     @Bean(name = "linaServiceImpl")
     @Conditional(MonolitConditional.class)
-    public EthTokenService linaServiceImpl(){
+    public EthTokenService linaServiceImpl() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0xc05d14442a510de4d3d71a3d316585aa0ce32b50");
-        return new EthTokenServiceImpl(tokensList, "LINA","LINA", true, ExConvert.Unit.ETHER);
+        return new EthTokenServiceImpl(tokensList, "LINA", "LINA", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "gapiServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService gapiServiceImpl() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x1ac8bd74065e11c07c0fa3687c0dcfb86af76d46");
+        return new EthTokenServiceImpl(tokensList, "GAPI", "GAPI", false, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "embrServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService embrServiceImpl() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x07f74c8480ccfee0d4f803e9bdde8383748b40de");
+        return new EthTokenServiceImpl(tokensList, "EMBR", "EMBR", true, ExConvert.Unit.AIWEI);
     }
 
     //    Qtum tokens:
