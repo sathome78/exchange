@@ -25,17 +25,8 @@ public class RabbitConfig implements RabbitListenerConfigurer {
 
     private final Logger logger = LogManager.getLogger(RabbitConfig.class);
 
-    @Value("${email-info-queue}")
-    private String EMAIL_INFO_QUEUE;
-
-    @Value("${email-ses-queue}")
-    private String EMAIL_SES_QUEUE;
-
     @Value("${email-queue}")
     private String EMAIL_QUEUE;
-
-    @Value("${email-listing-email-queue}")
-    private String EMAIL_LISTING_REQUEST_QUEUE;
 
     @Value("${rabbit.host}")
     private String host;
@@ -59,27 +50,6 @@ public class RabbitConfig implements RabbitListenerConfigurer {
         factory.setUsername(username);
         factory.setPassword(password);
         return factory;
-    }
-
-    @Bean
-    public Queue emailMandrillQueue() {
-        return QueueBuilder
-                .durable(EMAIL_SES_QUEUE)
-                .build();
-    }
-
-    @Bean
-    public Queue emailInfoQueue() {
-        return QueueBuilder
-                .durable(EMAIL_INFO_QUEUE)
-                .build();
-    }
-
-    @Bean
-    public Queue emailListingRequestQueue() {
-        return QueueBuilder
-                .durable(EMAIL_LISTING_REQUEST_QUEUE)
-                .build();
     }
 
     @Bean
