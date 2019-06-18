@@ -18,12 +18,7 @@ import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import me.exrates.ngService.NgOrderService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.service.NgUserService;
-import me.exrates.service.ChatService;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.IEOService;
-import me.exrates.service.NewsParser;
-import me.exrates.service.OrderService;
-import me.exrates.service.UserService;
+import me.exrates.service.*;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.exception.IllegalChatMessageException;
 import me.exrates.service.notifications.G2faService;
@@ -110,6 +105,8 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
     private IEOService ieoService;
     @Autowired
     private NewsParser newsParser;
+    @Autowired
+    private SendMailService sendMailService;
 
     @InjectMocks
     private NgPublicController ngPublicController;
@@ -120,7 +117,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
     public void setUp() {
         ngPublicController = new NgPublicController(chatService, currencyService, ipBlockingService, ieoService, userService,
                 ngUserService, messagingTemplate, orderService, g2faService, ngOrderService, telegramChatDao, exchangeRatesHolder,
-                newsParser);
+                newsParser, sendMailService);
 
         HandlerExceptionResolver resolver = ((HandlerExceptionResolverComposite) webApplicationContext
                 .getBean("handlerExceptionResolver")).getExceptionResolvers().get(0);
