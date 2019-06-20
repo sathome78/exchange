@@ -7,6 +7,7 @@ import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
 import static me.exrates.model.util.BigDecimalProcessing.normalize;
@@ -58,6 +59,10 @@ To determine which of these forms to be filled, we must set field operationType
     private Integer sourceId;
     private Long tradeId;
 
+    public static final int SCALE = 8;
+    public static final RoundingMode ROUND_MODE = RoundingMode.DOWN;
+    public static final BigDecimal MIN_VALUE = BigDecimal.valueOf(0.00000001);
+
     /*constructors*/
 
     public OrderCreateDto() {
@@ -83,6 +88,7 @@ To determine which of these forms to be filled, we must set field operationType
             this.totalWithComission = doAction(this.total, this.comission, ActionType.ADD);
             this.spentAmount = doAction(this.total, this.comission, ActionType.ADD);
         }
+        total = total.setScale(SCALE, ROUND_MODE);
         return this;
     }
 
@@ -247,7 +253,7 @@ To determine which of these forms to be filled, we must set field operationType
     }
 
     public void setAmount(BigDecimal amount) {
-        this.amount = amount;
+        this.amount = amount.setScale(SCALE, ROUND_MODE);
     }
 
     public BigDecimal getTotal() {

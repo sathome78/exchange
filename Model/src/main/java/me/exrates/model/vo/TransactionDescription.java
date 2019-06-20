@@ -23,7 +23,7 @@ public class TransactionDescription {
     return generate(currentStatusName, actionName);
   }
 
-  private String generate(String currentStatus, String action) {
+  public String generate(String currentStatus, String action) {
     return currentStatus.concat("::").concat(action);
   }
 

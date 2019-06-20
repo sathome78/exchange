@@ -109,6 +109,9 @@
                                        readonly="true"
                                        class="form-control input-block-wrapper__input numericInputField"/>
                             </div>
+                            <div for="total" class="col-md-12 input-block-wrapper__error-wrapper">
+                                <div class="input-block-wrapper__error"></div>
+                            </div>
                         </div>
                         <div class="input-block-wrapper clearfix">
                             <div class="col-md-5 input-block-wrapper__label-wrapper">

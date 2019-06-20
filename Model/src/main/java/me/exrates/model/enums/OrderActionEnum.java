@@ -11,5 +11,6 @@ public enum OrderActionEnum {
   DELETE,
   DELETE_SPLIT,
   ACCEPT,
-  ACCEPTED;
+  ACCEPTED,
+  RETURN_REST;
 }

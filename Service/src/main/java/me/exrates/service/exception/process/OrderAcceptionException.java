@@ -5,8 +5,10 @@ package me.exrates.service.exception.process;
  */
 public class OrderAcceptionException extends ProcessingException {
 
+    private final static String ERR_MSG = "err.accept.error";
+
     public OrderAcceptionException() {
-        super();
+        super(ERR_MSG);
     }
 
     public OrderAcceptionException(String message) {
