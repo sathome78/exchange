@@ -7,7 +7,6 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.SSMGetter;
 import me.exrates.aspect.LoggingAspect;
 import me.exrates.config.ext.JsonMimeInterceptor;
-import me.exrates.config.ext.LogableErrorHandler;
 import me.exrates.controller.filter.LoggingFilter;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.controller.interceptor.MDCInterceptor;
@@ -2273,18 +2272,8 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     @Bean("inoutRestTemplate")
     @Conditional(MicroserviceConditional.class)
-    public RestTemplate inoutRestTemplate(LogableErrorHandler errorHandler) {
+    public RestTemplate inoutRestTemplate() {
         RestTemplate restTemplate = new RestTemplate();
-
-/*        HttpClientBuilder b = HttpClientBuilder.create();
-        List<Header> headers = Lists.newArrayList();
-        headers.add(new BasicHeader(inOutProperties.getTokenName(), inOutProperties.getTokenValue()));
-        b.setDefaultHeaders(headers);
-        HttpClient client = b.build();
-        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-        requestFactory.setHttpClient(client);
-        restTemplate.setRequestFactory(requestFactory);
-        restTemplate.setErrorHandler(errorHandler);*/
         restTemplate.setInterceptors(Collections.singletonList(new JsonMimeInterceptor()));
 
         return restTemplate;
