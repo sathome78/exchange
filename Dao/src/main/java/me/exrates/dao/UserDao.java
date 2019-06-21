@@ -7,25 +7,16 @@ import me.exrates.model.Policy;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
-import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.dto.UserBalancesDto;
-import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
-import me.exrates.model.dto.UserIpDto;
-import me.exrates.model.dto.UserIpReportDto;
-import me.exrates.model.dto.UserSessionInfoDto;
-import me.exrates.model.dto.UserShortDto;
-import me.exrates.model.dto.UsersInfoDto;
+import me.exrates.model.dto.*;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.AdminIpLogsFilterData;
 import me.exrates.model.dto.ieo.IeoUserStatus;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
-import me.exrates.model.enums.NotificationMessageEventEnum;
-import me.exrates.model.enums.PolicyEnum;
-import me.exrates.model.enums.TokenType;
-import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 
 import java.nio.file.Path;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Date;
@@ -85,7 +76,11 @@ public interface UserDao {
 
     int getIdByEmail(String email);
 
-    boolean addIPToLog(int userId, String ip);
+
+    boolean addIpToLog(Integer userId, String ip, UserEventEnum eventEnum, String url);
+
+    PagingData<List<IpLogDto>> getIpLogPage(AdminIpLogsFilterData adminOrderFilterData,
+                                            DataTableParams dataTableParams);
 
     boolean update(UpdateUserDto user);
 

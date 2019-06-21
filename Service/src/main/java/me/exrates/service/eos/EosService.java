@@ -1,12 +1,14 @@
-package me.exrates.service;
+package me.exrates.service.eos;
 
-import me.exrates.service.impl.GapiCurrencyServiceImpl.Transaction;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 
-import java.util.List;
+import java.util.Map;
 
-public interface GapiService extends IRefillable, IWithdrawable {
+
+public interface EosService extends IRefillable, IWithdrawable {
+
+
     @Override
     default Boolean createdRefillRequestRecordNeeded() {
         return false;
@@ -24,17 +26,17 @@ public interface GapiService extends IRefillable, IWithdrawable {
 
     @Override
     default Boolean generatingAdditionalRefillAddressAvailable() {
-        return true;
-    }
-
-    @Override
-    default Boolean additionalFieldForRefillIsUsed() {
         return false;
     }
 
     @Override
     default Boolean additionalTagForWithdrawAddressIsUsed() {
-        return false;
+        return true;
+    }
+
+    @Override
+    default Boolean additionalFieldForRefillIsUsed() {
+        return true;
     }
 
     @Override
@@ -42,7 +44,20 @@ public interface GapiService extends IRefillable, IWithdrawable {
         return false;
     }
 
-    void checkAddressForTransactionReceive(List<String> listOfAddress, Transaction transaction);
+    @Override
+    default boolean specificWithdrawMerchantCommissionCountNeeded() {
+        return true;
+    }
 
-    void onTransactionReceive(Transaction transaction);
+    @Override
+    default String additionalWithdrawFieldName() {
+        return "MEMO";
+    }
+
+    @Override
+    default String additionalRefillFieldName() {
+        return "MEMO";
+    }
+
+    void processPayment(Map<String, String> params);
 }

@@ -1,8 +1,10 @@
 package me.exrates.service.impl.inout;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.dto.RefillRequestCreateDto;
@@ -19,7 +21,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Map;
 
-
+@Log4j2
 @Service
 @Conditional(MicroserviceConditional.class)
 @RequiredArgsConstructor
@@ -37,11 +39,16 @@ public class YandexKassaServiceMsImpl implements YandexKassaService {
     }
 
     @Override
-    @SneakyThrows
     public boolean confirmPayment(Map<String, String> params) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_MERCHANT_YAKASSA_CONFIRM_PAYMENT);
 
-        HttpEntity<String> entity = new HttpEntity<>(mapper.writeValueAsString(params));
+        HttpEntity<String> entity;
+        try {
+            entity = new HttpEntity<>(mapper.writeValueAsString(params));
+        } catch (JsonProcessingException e) {
+            log.error("error confirmPayment", e);
+            throw new RuntimeException(e);
+        }
         return template.exchange(
                 builder.toUriString(),
                 HttpMethod.POST,

@@ -16,7 +16,6 @@
 
     <properties>
         <javax.json.version>1.0.4</javax.json.version>
-        <jackson-databind.version>2.6.3</jackson-databind.version>
     </properties>
 
     <dependencies>
@@ -62,11 +61,6 @@
             <groupId>org.glassfish</groupId>
             <artifactId>javax.json</artifactId>
             <version>${javax.json.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson-databind.version}</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>

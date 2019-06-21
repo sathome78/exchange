@@ -1,8 +1,10 @@
 package me.exrates.service.impl.inout;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
@@ -18,6 +20,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Map;
 
+@Log4j2(topic = "edc_log")
 @Service
 @Conditional(MicroserviceConditional.class)
 @RequiredArgsConstructor
@@ -29,15 +32,22 @@ public class EDCServiceMsImpl implements EDCService {
     private final ObjectMapper mapper;
 
     @Override
-    @SneakyThrows
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_MERCHANT_EDC_PROCESS_PAYMENT);
 
-        HttpEntity<String> entity = new HttpEntity<>(mapper.writeValueAsString(params));
-        template.exchange(
-                builder.toUriString(),
-                HttpMethod.POST,
-                entity, String.class);
+        HttpEntity<String> entity = null;
+        try {
+            entity = new HttpEntity<>(mapper.writeValueAsString(params));
+        } catch (JsonProcessingException e) {
+            log.error("error processPayment edc", e);
+            throw new RuntimeException(e);
+        }
+        try {
+            template.exchange(builder.toUriString(), HttpMethod.POST, entity, String.class);
+
+        }catch (Exception ex){
+            log.error("EDC coin. InOutMicroservice. Error: {}", ex);
+        }
 
     }
 

@@ -356,6 +356,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
+                anyBoolean(),
                 any(Locale.class))
         ).thenReturn(dto);
 
@@ -382,6 +383,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
+                anyBoolean(),
                 any(Locale.class));
         reset(orderService);
     }
@@ -403,6 +405,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
+                anyBoolean(),
                 any(Locale.class))
         ).thenReturn(dto);
 
@@ -429,6 +432,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
+                anyBoolean(),
                 any(Locale.class));
         reset(orderService);
     }
@@ -449,6 +453,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
+                anyBoolean(),
                 any(Locale.class))
         ).thenThrow(Exception.class);
 
@@ -480,6 +485,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
+                anyBoolean(),
                 any(Locale.class));
         reset(orderService);
     }
@@ -501,6 +507,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
+                anyBoolean(),
                 any(Locale.class))
         ).thenReturn(dto);
 
@@ -524,6 +531,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
+                anyBoolean(),
                 any(Locale.class));
         reset(orderService);
     }
@@ -546,6 +554,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
+                anyBoolean(),
                 any(Locale.class))
         ).thenReturn(dto);
 
@@ -572,6 +581,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
+                anyBoolean(),
                 any(Locale.class));
         reset(orderService);
     }
@@ -593,6 +603,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
+                anyBoolean(),
                 any(Locale.class))
         ).thenReturn(dto);
 
@@ -618,6 +629,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
+                anyBoolean(),
                 any(Locale.class));
         reset(orderService);
     }
@@ -637,6 +649,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
+                anyBoolean(),
                 any(Locale.class))
         ).thenThrow(Exception.class);
 
@@ -668,6 +681,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
+                anyBoolean(),
                 any(Locale.class));
         reset(orderService);
     }

@@ -126,6 +126,8 @@ public class WavesServiceImplTest {
                 .thenReturn(Optional.empty());
         when(refillService.findFlatByAddressAndMerchantIdAndCurrencyIdAndHash(eq(USER_EXCHANGE_ADDRESS), anyInt(), anyInt(), anyString()))
                 .thenReturn(Optional.empty());
+        when(refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(anyInt(), anyInt(), anyString()))
+                .thenReturn(Optional.empty());
 
         wavesService.setFeeAccount(FEE_ADDRESS);
         wavesService.setMainAccount(MAIN_ADDRESS);

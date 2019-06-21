@@ -1,9 +1,11 @@
 package me.exrates.service.impl.inout;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yandex.money.api.methods.RequestPayment;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.condition.MicroserviceConditional;
@@ -24,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@Log4j2
 @Service
 @Conditional(MicroserviceConditional.class)
 @RequiredArgsConstructor
@@ -89,15 +92,19 @@ public class YandexMoneyServiceMsImpl implements YandexMoneyService {
     }
 
     @Override
-    @SneakyThrows
     public Optional<RequestPayment> requestPayment(String token, CreditsOperation creditsOperation) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_MERCHANT_REQUEST_PAYMENT)
                 .queryParam("token", token);
 
-        return template.exchange(
-                builder.toUriString(),
-                HttpMethod.POST,
-                new HttpEntity<>(mapper.writeValueAsString(creditsOperation)), new ParameterizedTypeReference<Optional<RequestPayment>>(){}).getBody();
+        try {
+            return template.exchange(
+                    builder.toUriString(),
+                    HttpMethod.POST,
+                    new HttpEntity<>(mapper.writeValueAsString(creditsOperation)), new ParameterizedTypeReference<Optional<RequestPayment>>(){}).getBody();
+        } catch (JsonProcessingException e) {
+            log.error("error requestPayment", e);
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

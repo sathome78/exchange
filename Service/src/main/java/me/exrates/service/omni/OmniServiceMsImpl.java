@@ -3,6 +3,7 @@ package me.exrates.service.omni;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.RefillRequestAddressShortDto;
@@ -31,6 +32,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
+@Log4j2
 @Service
 @Conditional(MicroserviceConditional.class)
 public class OmniServiceMsImpl implements OmniService {
@@ -144,11 +146,16 @@ public class OmniServiceMsImpl implements OmniService {
     }
 
     @Override
-    @SneakyThrows
     public void createRefillRequestAdmin(Map<String, String> params) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_CREATE_TRANSACTION);
 
-        HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(params));
+        HttpEntity<?> entity;
+        try {
+            entity = new HttpEntity<>(mapper.writeValueAsString(params));
+        } catch (JsonProcessingException e) {
+            log.error("error createRefillRequestAdmin", e);
+            throw new RuntimeException(e);
+        }
         template.exchange(
                 builder.toUriString(),
                 HttpMethod.POST,

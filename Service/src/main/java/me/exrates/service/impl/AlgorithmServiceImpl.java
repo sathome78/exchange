@@ -37,7 +37,6 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
  */
 @Service
 @Log4j2(topic = "algorithm_log")
-@PropertySource("classpath:/merchants/gapi_wallet.properties")
 public class AlgorithmServiceImpl implements AlgorithmService {
 
     private static final String DEFAULT_ENCODING = "UTF-8";
@@ -57,7 +56,7 @@ public class AlgorithmServiceImpl implements AlgorithmService {
     @Autowired
     private CurrencyService currencyService;
 
-    @Value("${gapi.secret.name}")
+    // тянуть из свойств
     private String environment;
 
     @Autowired
@@ -180,6 +179,7 @@ public class AlgorithmServiceImpl implements AlgorithmService {
     }
 
     //    У инстанса должна быть iam policy, на чтение aws секретов!!!!!
+    //  Подключение к AWS Серверу для получения ключа
     private String getSecret() {
         String region = "us-east-2";
 
@@ -224,8 +224,8 @@ public class AlgorithmServiceImpl implements AlgorithmService {
         else {
             secret = new String(Base64.getDecoder().decode(getSecretValueResult.getSecretBinary()).array());
         }
-
-        secret = secret.substring(secret.indexOf("gapi_encoding_hash\":") + 21);
+    // парсим строку, что бы получить Value по конкретному ключу
+        secret = secret.substring(secret.indexOf("key_phrase") + "key_phrase".length());
         secret = secret.substring(0, secret.indexOf("\""));
         return secret;
 
