@@ -11,10 +11,12 @@ import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.AdminAuthorityOption;
 import me.exrates.model.Comment;
 import me.exrates.model.Email;
+import me.exrates.model.PagingData;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
 import me.exrates.model.dto.CallbackURL;
+import me.exrates.model.dto.IpLogDto;
 import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserBalancesDto;
@@ -27,7 +29,6 @@ import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminIpLogsFilterData;
-import me.exrates.model.dto.filterData.AdminStopOrderFilterData;
 import me.exrates.model.dto.ieo.IeoUserStatus;
 import me.exrates.model.dto.kyc.VerificationStep;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
@@ -37,6 +38,7 @@ import me.exrates.model.enums.NotificationTypeEnum;
 import me.exrates.model.enums.PolicyEnum;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserCommentTopicEnum;
+import me.exrates.model.enums.UserEventEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
@@ -100,9 +102,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Objects.nonNull;
-import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
-import static org.apache.commons.lang.Validate.notNull;
 
 @Log4j2
 @Service
