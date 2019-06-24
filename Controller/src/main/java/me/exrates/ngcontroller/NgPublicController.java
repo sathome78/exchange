@@ -198,30 +198,6 @@ public class NgPublicController {
         }
     }
 
-    @PostMapping(value = "/chat")
-    public ResponseEntity<Void> sendChatMessage(@RequestBody Map<String, String> body) {
-        String language = body.getOrDefault("LANG", "EN");
-        ChatLang chatLang = ChatLang.toInstance(language);
-        String simpleMessage = body.get("MESSAGE");
-        String email = body.getOrDefault("EMAIL", "");
-        if (isEmpty(simpleMessage)) {
-            String message = "Chat message cannot be empty.";
-            logger.warn(message);
-            throw new NgResponseException(ErrorApiTitles.EMPTY_CHAT_MESSAGE, message);
-        }
-        final ChatMessage message;
-        try {
-            message = chatService.persistPublicMessage(simpleMessage, email, chatLang);
-        } catch (IllegalChatMessageException e) {
-            String msg = "Chat message cannot persist " + e.getMessage();
-            logger.warn(msg, e);
-            throw new NgResponseException(ErrorApiTitles.FAIL_TO_PERSIST_CHAT_MESSAGE, msg);
-        }
-        String destination = "/topic/chat/".concat(language.toLowerCase());
-        simpMessagingTemplate.convertAndSend(destination, fromChatMessage(message));
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
     // apiUrl/info/public/v2/open-orders/0/5
 
     @GetMapping(value = "/open-orders/{pairId}/{precision}")

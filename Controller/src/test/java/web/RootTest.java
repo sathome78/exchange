@@ -6,6 +6,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.gson.JsonObject;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import framework.model.BasePresentBodyRequest;
@@ -570,7 +571,9 @@ public class RootTest {
 
             MockHttpServletRequestBuilder request = createRequest(method);
             request = addRequestHeaders(request, headers);
-            request = addRequestBody(request, method);
+
+            boolean isJson = headers.getOrDefault("Content-Type","").toLowerCase().contains("application/json");
+            request = addRequestBody(request, method, isJson);
 
             MockHttpServletResponse result = api.perform(request).andReturn().getResponse();
             return new WsResponse(result.getStatus(), extractHeaders(result), result.getContentAsString());
@@ -626,7 +629,9 @@ public class RootTest {
             return request;
         }
 
-        private MockHttpServletRequestBuilder addRequestBody(MockHttpServletRequestBuilder request, HttpMethodBlock method) throws IOException {
+        private MockHttpServletRequestBuilder addRequestBody(MockHttpServletRequestBuilder request,
+                                                             HttpMethodBlock method,
+                                                             boolean json) throws IOException {
             if (method instanceof BasePresentBodyRequest) {
                 BasePresentBodyRequest b = (BasePresentBodyRequest) method;
 
@@ -642,8 +647,16 @@ public class RootTest {
                     }
                 }
 
-                for (Map.Entry<String, String> entry : newMap.entrySet()) {
-                    request = request.param(entry.getKey(), entry.getValue());
+                if (json){
+                    JsonObject object = new JsonObject();
+                    for (Map.Entry<String, String> entry : newMap.entrySet()) {
+                        object.addProperty(entry.getKey(), entry.getValue());
+                    }
+                    request.content(object.toString());
+                } else {
+                    for (Map.Entry<String, String> entry : newMap.entrySet()) {
+                        request = request.param(entry.getKey(), entry.getValue());
+                    }
                 }
 
                 if (!b.getFiles().isEmpty()) {
