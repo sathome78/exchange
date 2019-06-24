@@ -86,7 +86,7 @@ public class OpenApiPublicOldControllerTest extends OpenApiCommonTest {
         mockMvc.perform(MockMvcRequestBuilders.get(uriComponents.toUri().toString()))
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
-        verify(exchangeApi, times(1)).getRates();
+        verify(currencyService, times(1)).getRates();
     }
 
     @Test

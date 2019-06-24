@@ -17,7 +17,6 @@ import me.exrates.model.exceptions.OpenApiException;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
-import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.util.CollectionUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -47,15 +46,12 @@ public class OpenApiPublicController {
 
     private final OrderService orderService;
     private final CurrencyService currencyService;
-    private final ExchangeApi exchangeApi;
 
     @Autowired
     public OpenApiPublicController(OrderService orderService,
-                                   CurrencyService currencyService,
-                                   ExchangeApi exchangeApi) {
+                                   CurrencyService currencyService) {
         this.orderService = orderService;
         this.currencyService = currencyService;
-        this.exchangeApi = exchangeApi;
     }
 
     @GetMapping("/ticker")
@@ -70,7 +66,7 @@ public class OpenApiPublicController {
 
     @GetMapping("/rates")
     public ResponseEntity<Map<String, RateDto>> getCurrencyRates() {
-        return ResponseEntity.ok(exchangeApi.getRates());
+        return ResponseEntity.ok(currencyService.getRates());
     }
 
     @RequestMapping("/orderbook/{currency_pair}")

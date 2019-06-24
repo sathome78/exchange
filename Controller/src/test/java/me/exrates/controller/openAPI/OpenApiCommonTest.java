@@ -10,13 +10,11 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
-import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.userOperation.UserOperationService;
 import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -52,8 +50,6 @@ public abstract class OpenApiCommonTest {
     CurrencyService currencyService;
     @Autowired
     WalletService walletService;
-    @Autowired
-    ExchangeApi exchangeApi;
 
     MockMvc mockMvc;
 
@@ -76,7 +72,7 @@ public abstract class OpenApiCommonTest {
             headers.putAll(httpHeaders);
         }
         if (method.equals(HttpMethod.GET)) {
-           return MockMvcRequestBuilders.get(uri).headers(headers).content(content).contentType(contentType);
+            return MockMvcRequestBuilders.get(uri).headers(headers).content(content).contentType(contentType);
         } else if (method.equals(HttpMethod.POST)) {
             return MockMvcRequestBuilders.post(uri).headers(headers).content(content).contentType(contentType);
         }
