@@ -308,6 +308,12 @@ public class InputOutputServiceImpl implements InputOutputService {
         return result;
     }
 
+    @Override
+    public Integer getMinConfirmationsRefillByMerchantId(int merchantId) {
+        IRefillable merchant = (IRefillable) merchantServiceContext.getMerchantService(merchantId);
+        return merchant.minConfirmationsRefill();
+    }
+
     private List<Integer> getOperationTypesList() {
         return OperationType.getInputOutputOperationsList()
                 .stream()
