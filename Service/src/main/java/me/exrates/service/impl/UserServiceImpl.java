@@ -1,6 +1,7 @@
 package me.exrates.service.impl;
 
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -23,6 +24,10 @@ import me.exrates.model.dto.UserIpReportDto;
 import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.UsersInfoDto;
 import me.exrates.model.dto.api.RateDto;
+import me.exrates.model.dto.dataTable.DataTable;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.AdminIpLogsFilterData;
+import me.exrates.model.dto.filterData.AdminStopOrderFilterData;
 import me.exrates.model.dto.ieo.IeoUserStatus;
 import me.exrates.model.dto.kyc.VerificationStep;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
@@ -59,6 +64,7 @@ import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.session.UserSessionService;
 import me.exrates.service.token.TokenScheduler;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,64 +99,16 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.Objects.nonNull;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang.Validate.notNull;
 
 @Log4j2
 @Service
 public class UserServiceImpl implements UserService {
 
-    @Autowired
-    private UserDao userDao;
-
-    @Autowired
-    private UserSessionService userSessionService;
-
-    @Autowired
-    private SendMailService sendMailService;
-
-    @Autowired
-    private MessageSource messageSource;
-
-    @Autowired
-    private NotificationService notificationService;
-
-    @Autowired
-    private HttpServletRequest request;
-
-    @Autowired
-    private TokenScheduler tokenScheduler;
-
-    @Autowired
-    private ReferralService referralService;
-
-    @Autowired
-    private NotificationsSettingsService settingsService;
-
-    @Autowired
-    private G2faService g2faService;
-
-    @Autowired
-    private CurrencyService currencyService;
-
-    @Autowired
-    private UserSettingService userSettingService;
-
-    BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
-    public static String QR_PREFIX = "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=";
-    public static String APP_NAME = "Exrates";
-
-    private final int USER_FILES_THRESHOLD = 3;
-
-    private final int USER_2FA_NOTIFY_DAYS = 6;
-
-    private final Set<String> USER_ROLES = Stream.of(UserRole.values())
-            .map(UserRole::name)
-            .collect(Collectors.toSet());
-    private final UserRole ROLE_DEFAULT_COMMISSION = UserRole.USER;
-
     private static final Logger LOGGER = LogManager.getLogger(UserServiceImpl.class);
-
     private final static List<String> LOCALES_LIST = new ArrayList<String>() {{
         add("EN");
         add("RU");
@@ -158,7 +116,40 @@ public class UserServiceImpl implements UserService {
         add("ID");
         add("AR");
     }};
+    public static String QR_PREFIX = "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=";
+    public static String APP_NAME = "Exrates";
+    private final int USER_FILES_THRESHOLD = 3;
+    private final int USER_2FA_NOTIFY_DAYS = 6;
+    private final Set<String> USER_ROLES = Stream.of(UserRole.values())
+            .map(UserRole::name)
+            .collect(Collectors.toSet());
+    private final UserRole ROLE_DEFAULT_COMMISSION = UserRole.USER;
+    BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    @Autowired
+    private UserDao userDao;
+    @Autowired
+    private UserSessionService userSessionService;
+    @Autowired
+    private SendMailService sendMailService;
+    @Autowired
+    private MessageSource messageSource;
+    @Autowired
+    private NotificationService notificationService;
+    @Autowired
+    private HttpServletRequest request;
+    @Autowired
+    private TokenScheduler tokenScheduler;
+    @Autowired
+    private ReferralService referralService;
+    @Autowired
+    private NotificationsSettingsService settingsService;
+    @Autowired
+    private G2faService g2faService;
+    @Autowired
+    private CurrencyService currencyService;
 
+    @Autowired
+    private UserSettingService userSettingService;
     private Cache<String, UsersInfoDto> usersInfoCache = CacheBuilder.newBuilder()
             .expireAfterWrite(5, TimeUnit.MINUTES)
             .build();
@@ -339,14 +330,10 @@ public class UserServiceImpl implements UserService {
         return userDao.userExistByEmail(email);
     }
 
-    public String logIP(String email, String host) {
-        int id = userDao.getIdByEmail(email);
-        String userIP = userDao.getIP(id);
-        if (userIP == null) {
-            userDao.setIP(id, host);
-        }
-        userDao.addIPToLog(id, host);
-        return userIP;
+    @Override
+    public void logIP(Integer id, String ip, UserEventEnum eventEnum, String url) {
+        Preconditions.checkState(nonNull(id) && !StringUtils.isEmpty(ip));
+        userDao.addIpToLog(id, ip, eventEnum, url);
     }
 
     private String generateRegistrationToken() {
@@ -934,6 +921,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public VerificationStep getVerificationStep(String userEmail) {
+        final int verificationStep = userDao.getVerificationStep(userEmail);
+
+        return VerificationStep.of(verificationStep);
+    }
+
+    @Override
     public int updateReferenceId(String referenceId) {
         return userDao.updateReferenceId(referenceId, getUserEmailFromSecurityContext());
     }
@@ -955,7 +949,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String findEmailById(int id) {
-        return null;
+        return userDao.getEmailById(id);
     }
 
     @Override
@@ -1075,6 +1069,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public boolean updateKycStatus(String status) {
+        return userDao.updateKycStatusByEmail(getUserEmailFromSecurityContext(), status);
+    }
+
+    @Override
     public String getKycReferenceByEmail(String email) {
         return userDao.findKycReferenceByUserEmail(email);
     }
@@ -1111,6 +1110,16 @@ public class UserServiceImpl implements UserService {
     @Override
     public String getPubIdByEmail(String email) {
         return userDao.getPubIdByEmail(email);
+    }
+
+    @Override
+    public DataTable<List<IpLogDto>> getIpAdressesTable(AdminIpLogsFilterData adminOrderFilterData, DataTableParams dataTableParams) {
+        PagingData<List<IpLogDto>> searchResult = userDao.getIpLogPage(adminOrderFilterData, dataTableParams);
+        DataTable<List<IpLogDto>> output = new DataTable<>();
+        output.setData(searchResult.getData());
+        output.setRecordsTotal(searchResult.getTotal());
+        output.setRecordsFiltered(searchResult.getFiltered());
+        return output;
     }
 
 }

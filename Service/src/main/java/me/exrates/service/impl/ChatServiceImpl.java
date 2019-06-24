@@ -1,6 +1,5 @@
 package me.exrates.service.impl;
 
-import javafx.util.Pair;
 import me.exrates.dao.ChatDao;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.User;
@@ -11,6 +10,7 @@ import me.exrates.service.ChatService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.IllegalChatMessageException;
 import me.exrates.service.util.ChatComponent;
+import org.apache.commons.math3.util.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;

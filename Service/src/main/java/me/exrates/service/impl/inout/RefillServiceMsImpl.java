@@ -1,9 +1,13 @@
 package me.exrates.service.impl.inout;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
 import me.exrates.dao.RefillRequestDao;
-import me.exrates.model.*;
+import me.exrates.model.CompanyWallet;
+import me.exrates.model.Currency;
+import me.exrates.model.MerchantCurrency;
+import me.exrates.model.PagingData;
+import me.exrates.model.RefillRequestAddressShortDto;
 import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.dataTable.DataTable;
@@ -16,18 +20,22 @@ import me.exrates.model.vo.WalletOperationMsDto;
 import me.exrates.service.CompanyWalletService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
+import me.exrates.service.exception.InoutMicroserviceInternalServerException;
 import me.exrates.service.exception.RefillRequestRevokeException;
 import me.exrates.service.impl.RefillServiceImpl;
 import me.exrates.service.properties.InOutProperties;
 import me.exrates.service.util.RequestUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,7 +75,7 @@ public class RefillServiceMsImpl extends RefillServiceImpl {
 
     private static final Logger log = LogManager.getLogger("refill");
 
-    public RefillServiceMsImpl(InOutProperties properties, ObjectMapper objectMapper, RestTemplate template, RequestUtil requestUtil, WalletService walletService, CompanyWalletService companyWalletService, RefillRequestDao refillRequestDao, UserService userService) {
+    public RefillServiceMsImpl(InOutProperties properties, ObjectMapper objectMapper, @Qualifier("inoutRestTemplate") RestTemplate template, RequestUtil requestUtil, WalletService walletService, CompanyWalletService companyWalletService, RefillRequestDao refillRequestDao, UserService userService) {
         this.properties = properties;
         this.objectMapper = objectMapper;
         this.template = template;
@@ -79,16 +87,21 @@ public class RefillServiceMsImpl extends RefillServiceImpl {
     }
 
     @Override
-    @SneakyThrows
     public Map<String, Object> createRefillRequest(RefillRequestCreateDto requestCreateDto) {
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + CREATE_REFILL_REQUEST);
-        HttpEntity<?> entity = new HttpEntity<>(objectMapper.writeValueAsString(requestCreateDto), requestUtil.prepareHeaders(requestCreateDto.getUserId()));
-        ResponseEntity<Map<String, Object>> response = template.exchange(
-                builder.toUriString(),
-                HttpMethod.POST,
-                entity, new ParameterizedTypeReference<Map<String, Object>>() {});
+        try {
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + CREATE_REFILL_REQUEST);
+            HttpEntity<?> entity = new HttpEntity<>(objectMapper.writeValueAsString(requestCreateDto), requestUtil.prepareHeaders(requestCreateDto.getUserId()));
+            ResponseEntity<Map<String, Object>> response = template.exchange(
+                    builder.toUriString(),
+                    HttpMethod.POST,
+                    entity, new ParameterizedTypeReference<Map<String, Object>>() {
+                    });
 
-        return response.getBody();
+            return response.getBody();
+        }catch (Exception ex){
+            log.error(ex);
+            throw new RuntimeException("Inout error");
+        }
     }
 
     @Override
@@ -135,11 +148,17 @@ public class RefillServiceMsImpl extends RefillServiceImpl {
     }
 
     @Override
-    @SneakyThrows
     public Map<String, String> callRefillIRefillable(RefillRequestCreateDto request) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_MERCHANT_CALL_REFILL_IREFILLABLE);
 
-        HttpEntity<?> entity = new HttpEntity<>(objectMapper.writeValueAsString(request));
+        HttpEntity<?> entity = null;
+        try {
+            entity = new HttpEntity<>(objectMapper.writeValueAsString(request));
+        } catch (JsonProcessingException e) {
+            log.error(e);
+            throw new RuntimeException(String.format("Object mapper error. " +
+                    "RefillRequestCreateDto: %s", request));
+        }
         ResponseEntity<Map<String, String>> response = template.exchange(
                 builder.toUriString(),
                 HttpMethod.POST,
@@ -149,18 +168,35 @@ public class RefillServiceMsImpl extends RefillServiceImpl {
     }
 
     @Override
-    @SneakyThrows
     public List<MerchantCurrency> retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies, String userEmail) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_MERCHANT_RETRIEVE_ADDRESS_AND_ADDITIONAL_PARAMS_FOR_REFILL_FOR_MERCHANT_CURRENCIES)
                 .queryParam("userEmail", userEmail);
 
-        HttpEntity<?> entity = new HttpEntity<>(objectMapper.writeValueAsString(merchantCurrencies));
-        ResponseEntity<List<MerchantCurrency>> response = template.exchange(
-                builder.toUriString(),
-                HttpMethod.POST,
-                entity, new ParameterizedTypeReference<List<MerchantCurrency>>() {});
-        setElements(merchantCurrencies, response);
-        return response.getBody();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+
+        HttpEntity<?> entity = null;
+        try {
+            entity = new HttpEntity<>(objectMapper.writeValueAsString(merchantCurrencies), headers);
+        } catch (JsonProcessingException e) {
+            log.error(e);
+            throw new RuntimeException(String.format("Object mapper error. " +
+                    "User email: %s | List<MerchantCurrency>: %s", userEmail, merchantCurrencies));
+        }
+
+        try {
+            ResponseEntity<List<MerchantCurrency>> response = template.exchange(
+                    builder.toUriString(),
+                    HttpMethod.POST,
+                    entity, new ParameterizedTypeReference<List<MerchantCurrency>>() {
+                    });
+
+            setElements(merchantCurrencies, response);
+            return response.getBody();
+        }catch (Exception ex){
+            log.error(ex);
+            throw new InoutMicroserviceInternalServerException(ex.getMessage());
+        }
     }
 
     private void setElements(List<MerchantCurrency> merchantCurrencies, ResponseEntity<List<MerchantCurrency>> response) {

@@ -8,6 +8,7 @@ import me.exrates.model.IEODetails;
 import me.exrates.model.enums.IEODetailsStatus;
 import me.exrates.model.serializer.LocalDateTimeDeserializer;
 
+import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -17,9 +18,8 @@ import java.time.LocalDateTime;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class IeoDetailsUpdateDto {
 
-   /* @NotNull(message = "Description must not be null")
-    private String description;*/
-    /*  private String currencyToPairWith;*/
+    @NotNull(message = "Description must not be null")
+    private String coinDescription;
     @NotNull(message = "Description must not be null")
     private String description;
     @NotNull(message = "Status must not be null")
@@ -31,6 +31,7 @@ public class IeoDetailsUpdateDto {
     @NotNull(message = "available balance must not be null")
     private BigDecimal availableBalance;
     @NotNull(message = "Min amount must not be null")
+    @DecimalMin(value = "0.00001", message = "Amount must be greater than 0.00001")
     private BigDecimal minAmount;
     @NotNull(message = "Max amount per user must not be null")
     private BigDecimal maxAmountPerUser;
@@ -42,10 +43,15 @@ public class IeoDetailsUpdateDto {
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime endDate;
 
+    private String content;
+    private Boolean testIeo;
+    private String logo;
+
  public IEODetails toIEODetails(Integer id) {
   return IEODetails.builder()
           .id(id)
-          .currencyDescription(description)
+          .currencyDescription(coinDescription)
+          .description(description)
           .amount(amount)
           .rate(rate)
           .availableAmount(availableBalance)
@@ -55,6 +61,9 @@ public class IeoDetailsUpdateDto {
           .status(IEODetailsStatus.valueOf(status))
           .startDate(startDate)
           .endDate(endDate)
+          .content(content)
+          .testIeo(testIeo)
+          .logo(logo)
           .build();
  }
 

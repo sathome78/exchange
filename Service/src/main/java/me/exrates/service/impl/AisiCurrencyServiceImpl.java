@@ -6,12 +6,14 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.service.AisiCurrencyService;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -25,10 +27,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
 
 @Log4j2 (topic = "aisi_log")
 @Service
+@Conditional(MonolitConditional.class)
 @PropertySource("classpath:/merchants/aisi_wallet.properties")
 public class AisiCurrencyServiceImpl implements AisiCurrencyService {
 

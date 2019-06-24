@@ -2,6 +2,7 @@ package me.exrates.service.tron;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.condition.MonolitConditional;
+import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestAddressDto;
 import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.TronReceivedTransactionDto;

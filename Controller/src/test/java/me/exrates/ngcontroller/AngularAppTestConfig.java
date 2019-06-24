@@ -23,6 +23,7 @@ import me.exrates.service.InputOutputService;
 import me.exrates.service.KYCService;
 import me.exrates.service.KYCSettingsService;
 import me.exrates.service.MerchantService;
+import me.exrates.service.NewsParser;
 import me.exrates.service.NotificationService;
 import me.exrates.service.OpenApiTokenService;
 import me.exrates.service.OrderService;
@@ -44,6 +45,7 @@ import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.util.RateLimitService;
+import me.exrates.service.util.RestApiUtilComponent;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -81,7 +83,7 @@ public class AngularAppTestConfig {
         return Mockito.mock(StompMessenger.class);
     }
 
-    @Bean
+    @Bean(name = "angularTestDataSource")
     public DataSource dataSource() {
         return Mockito.mock(DataSource.class);
     }
@@ -324,5 +326,15 @@ public class AngularAppTestConfig {
     @Bean
     public OpenApiTokenService openApiTokenService() {
         return Mockito.mock(OpenApiTokenService.class);
+    }
+
+    @Bean
+    public NewsParser newsParser() {
+        return Mockito.mock(NewsParser.class);
+    }
+
+    @Bean
+    public RestApiUtilComponent restApiUtils() {
+        return Mockito.mock(RestApiUtilComponent.class);
     }
 }

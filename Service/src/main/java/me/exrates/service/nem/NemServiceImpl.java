@@ -156,7 +156,7 @@ public class NemServiceImpl implements NemService {
         return algorithmService.sha256(String.valueOf(id)).substring(0, 8);
     }
 
-
+    @Transactional
     @Synchronized
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
@@ -203,6 +203,7 @@ public class NemServiceImpl implements NemService {
         }
     }
 
+    @Transactional
     @Synchronized
     @Override
     public void processMosaicPayment(List<NemMosaicTransferDto> mosaics, Map<String, String> params) {

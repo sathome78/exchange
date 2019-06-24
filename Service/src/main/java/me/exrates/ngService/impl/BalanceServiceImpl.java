@@ -311,7 +311,13 @@ public class BalanceServiceImpl implements BalanceService {
             switch (p.getCurrencyName()) {
                 case "USD":
                     usdBalances = usdBalances.add(sumBalances);
-                    BigDecimal btcValue = BigDecimalProcessing.doAction(sumBalances, btcUsdRate, ActionType.DEVIDE);
+                    BigDecimal btcValue;
+                    try {
+                        btcValue = BigDecimalProcessing.doAction(sumBalances, btcUsdRate, ActionType.DEVIDE);
+                    } catch (ArithmeticException e) {
+                        btcValue = BigDecimal.ZERO;
+                        log.error("my balances divide by zero" + e);
+                    }
                     btcBalances = btcBalances.add(btcValue);
                     break;
                 case "BTC":

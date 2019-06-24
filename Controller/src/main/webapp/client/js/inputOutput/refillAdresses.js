@@ -83,6 +83,27 @@ function updateAddressesTable() {
                     "data": "generationDate",
                     "name": "RRA.date_generation",
                     "className": "text-center"
+                },
+                {
+                    "data": "needTransfer",
+                    "name": "RRA.need_transfer",
+                    "className": "text-center",
+                    "render": function (data, type, row) {
+                        var userId = row.userId;
+                        var currencyId = row.currencyId;
+                        var merchantId = row.merchantId;
+                        var address = row.address;
+
+                        var checkbox;
+                        if (data) {
+                            checkbox = '<input id="chkbox" type="checkbox" name="chkbox" ' +
+                                'onchange="setNeedTransfer(this, \'' + userId + '\', \'' + currencyId + '\', \'' + merchantId + '\', \'' + address + '\')" checked />';
+                        } else {
+                            checkbox = '<input id="chkbox" type="checkbox" name="chkbox" ' +
+                                'onchange="setNeedTransfer(this, \'' + userId + '\', \'' + currencyId + '\', \'' + merchantId + '\', \'' + address + '\')" />';
+                        }
+                        return checkbox;
+                    }
                 }
             ],
             "createdRow": function (row, data, index) {
@@ -90,4 +111,27 @@ function updateAddressesTable() {
             "order": [[0, 'desc']]
         });
     }
+}
+
+function setNeedTransfer(elem, userId, currencyId, merchantId, address) {
+    $.ajax({
+        headers: {
+            'X-CSRF-Token': $("input[name='_csrf']").val()
+        },
+        url: '/2a8fy7b07dxe44/refillAddresses/set-need-transfer',
+        type: 'POST',
+        data: {
+            "userId": userId,
+            "currencyId": currencyId,
+            "merchantId": merchantId,
+            "address": address,
+            "needTransfer": elem.checked
+        },
+        success: function () {
+            updateAddressesTable();
+        },
+        error: function (error) {
+            console.log(error);
+        }
+    });
 }

@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 public class TronReceiveServiceImpl {
 
     private final TronNodeService nodeService;
-    private final TronServiceImpl tronService;
+    private final TronService tronService;
     private final MerchantSpecParamsDao specParamsDao;
     private final TronTransactionsService tronTransactionsService;
     private final TronTokenContext tronTokenContext;
@@ -43,7 +43,7 @@ public class TronReceiveServiceImpl {
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     @Autowired
-    public TronReceiveServiceImpl(TronNodeService nodeService, TronServiceImpl tronService, MerchantSpecParamsDao specParamsDao, TronTransactionsService tronTransactionsService, TronTokenContext tronTokenContext) {
+    public TronReceiveServiceImpl(TronNodeService nodeService, TronService tronService, MerchantSpecParamsDao specParamsDao, TronTransactionsService tronTransactionsService, TronTokenContext tronTokenContext) {
         this.nodeService = nodeService;
         this.tronService = tronService;
         this.specParamsDao = specParamsDao;
@@ -54,7 +54,7 @@ public class TronReceiveServiceImpl {
 
     @PostConstruct
     private void init() {
-        scheduler.scheduleAtFixedRate(this::checkBlocks, 5, 5, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::checkBlocks, 0, 5, TimeUnit.MINUTES);
     }
 
     private void checkBlocks() {

@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
@@ -65,9 +66,13 @@ public class BitcoinServiceMsImpl implements BitcoinService {
     }
 
     @Override
-    @SneakyThrows
     public void processPayment(Map<String, String> params) {
-       restTemplate.postForObject(inOutMicroserviceHost + ADMIN_BITCOIN_WALLET_URL + "/transaction/create", mapper.writeValueAsString(params), String.class);
+        try {
+            restTemplate.postForObject(inOutMicroserviceHost + ADMIN_BITCOIN_WALLET_URL + "/transaction/create", mapper.writeValueAsString(params), String.class);
+        } catch (JsonProcessingException e) {
+            log.error("error send process payment", e);
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -102,10 +107,14 @@ public class BitcoinServiceMsImpl implements BitcoinService {
   }
 
   @Override
-  @SneakyThrows
   public DataTable<List<BtcTransactionHistoryDto>> listTransactions(Map<String, String> tableParams){
-      return restTemplate.exchange(inOutMicroserviceHost + ADMIN_BITCOIN_WALLET_URL + "/transactions/pagination", HttpMethod.GET,
-              HttpEntity.EMPTY, new ParameterizedTypeReference<DataTable<List<BtcTransactionHistoryDto>>>() {}, merchantName, mapper.writeValueAsString(tableParams)).getBody();
+      try {
+          return restTemplate.exchange(inOutMicroserviceHost + ADMIN_BITCOIN_WALLET_URL + "/transactions/pagination", HttpMethod.GET,
+                  HttpEntity.EMPTY, new ParameterizedTypeReference<DataTable<List<BtcTransactionHistoryDto>>>() {}, merchantName, mapper.writeValueAsString(tableParams)).getBody();
+      } catch (JsonProcessingException e) {
+          log.error("error getting list of transactions", e);
+          throw new RuntimeException(e);
+      }
   }
 
   @Override
@@ -124,24 +133,36 @@ public class BitcoinServiceMsImpl implements BitcoinService {
     }
 
     @Override
-    @SneakyThrows
     public void setTxFee(BigDecimal fee) {
-        restTemplate.postForObject(inOutMicroserviceHost + ADMIN_BITCOIN_WALLET_URL + "/setFee", mapper.writeValueAsString(fee), String.class, merchantName);
+        try {
+            restTemplate.postForObject(inOutMicroserviceHost + ADMIN_BITCOIN_WALLET_URL + "/setFee", mapper.writeValueAsString(fee), String.class, merchantName);
+        } catch (JsonProcessingException e) {
+            log.error("error process request to change tx fee", e);
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
-    @SneakyThrows
     public void submitWalletPassword(String password) {
-        restTemplate.postForObject(inOutMicroserviceHost + ADMIN_BITCOIN_WALLET_URL + "/setFee", mapper.writeValueAsString(password), String.class, merchantName);
+        try {
+            restTemplate.postForObject(inOutMicroserviceHost + ADMIN_BITCOIN_WALLET_URL + "/setFee", mapper.writeValueAsString(password), String.class, merchantName);
+        } catch (JsonProcessingException e) {
+            log.error("error process request to submit password", e);
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
-    @SneakyThrows
     public List<BtcPaymentResultDetailedDto> sendToMany(List<BtcWalletPaymentItemDto> payments) {
-        return restTemplate.exchange(inOutMicroserviceHost + ADMIN_BITCOIN_WALLET_URL + "/sendToMany",
-                HttpMethod.POST,
-                new HttpEntity<>(mapper.writeValueAsString(payments)),
-                new ParameterizedTypeReference<List<BtcPaymentResultDetailedDto>>(){{}}).getBody();
+        try {
+            return restTemplate.exchange(inOutMicroserviceHost + ADMIN_BITCOIN_WALLET_URL + "/sendToMany",
+                    HttpMethod.POST,
+                    new HttpEntity<>(mapper.writeValueAsString(payments)),
+                    new ParameterizedTypeReference<List<BtcPaymentResultDetailedDto>>(){{}}).getBody();
+        } catch (JsonProcessingException e) {
+            log.error("error process request btc send to many", e);
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -177,9 +198,13 @@ public class BitcoinServiceMsImpl implements BitcoinService {
     }
 
     @Override
-    @SneakyThrows
     public void scanForUnprocessedTransactions(@Nullable String blockHash) {
-        restTemplate.postForObject(inOutMicroserviceHost + ADMIN_BITCOIN_WALLET_URL + "/checkPayments", mapper.writeValueAsString(blockHash), String.class, merchantName);
+        try {
+            restTemplate.postForObject(inOutMicroserviceHost + ADMIN_BITCOIN_WALLET_URL + "/checkPayments", mapper.writeValueAsString(blockHash), String.class, merchantName);
+        } catch (JsonProcessingException e) {
+            log.error("error process request to scan unprocessed", e);
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -188,9 +213,13 @@ public class BitcoinServiceMsImpl implements BitcoinService {
     }
 
     @Override
-    @SneakyThrows
     public void setSubtractFeeFromAmount(boolean subtractFeeFromAmount) {
-        restTemplate.postForObject(inOutMicroserviceHost + ADMIN_BITCOIN_WALLET_URL + "/setSubtractFee", mapper.writeValueAsString(subtractFeeFromAmount), String.class, merchantName);
+        try {
+            restTemplate.postForObject(inOutMicroserviceHost + ADMIN_BITCOIN_WALLET_URL + "/setSubtractFee", mapper.writeValueAsString(subtractFeeFromAmount), String.class, merchantName);
+        } catch (JsonProcessingException e) {
+            log.error("error process request set substract fee", e);
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

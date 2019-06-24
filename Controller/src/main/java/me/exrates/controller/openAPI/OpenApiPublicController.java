@@ -5,6 +5,7 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.CoinmarketApiDto;
+import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.mobileApiDto.CandleChartItemReducedDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
 import me.exrates.model.dto.openAPI.OrderBookItem;
@@ -16,6 +17,7 @@ import me.exrates.model.exceptions.OpenApiException;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
+import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.util.CollectionUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -33,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
@@ -46,12 +47,15 @@ public class OpenApiPublicController {
 
     private final OrderService orderService;
     private final CurrencyService currencyService;
+    private final ExchangeApi exchangeApi;
 
     @Autowired
     public OpenApiPublicController(OrderService orderService,
-                                   CurrencyService currencyService) {
+                                   CurrencyService currencyService,
+                                   ExchangeApi exchangeApi) {
         this.orderService = orderService;
         this.currencyService = currencyService;
+        this.exchangeApi = exchangeApi;
     }
 
     @GetMapping("/ticker")
@@ -62,6 +66,11 @@ public class OpenApiPublicController {
             validateCurrencyPair(currencyPairName);
         }
         return formatCoinmarketData(orderService.getDailyCoinmarketData(currencyPairName));
+    }
+
+    @GetMapping("/rates")
+    public ResponseEntity<Map<String, RateDto>> getCurrencyRates() {
+        return ResponseEntity.ok(exchangeApi.getRates());
     }
 
     @RequestMapping("/orderbook/{currency_pair}")

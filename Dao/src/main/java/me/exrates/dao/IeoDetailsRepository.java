@@ -1,7 +1,7 @@
 package me.exrates.dao;
 
 import me.exrates.model.IEODetails;
-import me.exrates.model.User;
+import me.exrates.model.enums.IEODetailsStatus;
 
 import java.math.BigDecimal;
 import java.util.Collection;
@@ -29,4 +29,10 @@ public interface IeoDetailsRepository {
     boolean updateIeoStatusesToRunning();
 
     boolean updateIeoStatusesToTerminated();
+
+    Collection<IEODetails> findAllRunningAndAvailableIeo();
+
+    boolean updateIeoSoldOutTime(int ieoId);
+
+    boolean updateIeoDetailStatus(IEODetailsStatus status, int idIeo);
 }

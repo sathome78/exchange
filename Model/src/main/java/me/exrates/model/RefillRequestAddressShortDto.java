@@ -16,7 +16,10 @@ public class RefillRequestAddressShortDto {
     private String address;
     private String addressFieldName;
     private String currencyName;
+    private int currencyId;
     private int merchantId;
+    private int userId;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime generationDate;
+    private boolean needTransfer;
 }

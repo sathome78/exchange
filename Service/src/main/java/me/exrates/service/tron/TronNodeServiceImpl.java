@@ -2,12 +2,14 @@ package me.exrates.service.tron;
 
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.TronNewAddressDto;
 import me.exrates.model.dto.TronTransferDto;
 import org.bitcoinj.core.Base58;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.RequestEntity;
@@ -21,6 +23,7 @@ import java.util.Arrays;
 
 @Log4j2(topic = "tron")
 @Service
+@Conditional(MonolitConditional.class)
 @PropertySource("classpath:/merchants/tron.properties")
 public class TronNodeServiceImpl implements TronNodeService {
 
