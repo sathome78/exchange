@@ -58,7 +58,7 @@
                             </label>
                         </div>
                         <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="text"  name="description">
+                            <input type="text"  name="description" size="80%">
                         </div>
                     </div>
                     <%--Currency Description--%>
@@ -69,7 +69,7 @@
                             </label>
                         </div>
                         <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="text"  name="currencyDescription">
+                            <input type="text"  name="currencyDescription" size="80%">
                         </div>
                     </div>
                     <%--coin name--%>

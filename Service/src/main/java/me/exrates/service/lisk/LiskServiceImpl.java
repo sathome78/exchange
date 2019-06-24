@@ -99,7 +99,7 @@ public class LiskServiceImpl implements LiskService {
     @PostConstruct
     private void init() {
         liskRestClient.initClient(propertySource);
-        scheduler.scheduleAtFixedRate(this::processTransactionsForKnownAddresses, 3L, 30L, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::processTransactionsForKnownAddresses, 3L, 1L, TimeUnit.MINUTES);
     }
 
     @PreDestroy
