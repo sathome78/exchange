@@ -9,6 +9,7 @@ import me.exrates.model.enums.OrderStatus;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+import static java.util.Objects.nonNull;
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
 import static me.exrates.model.util.BigDecimalProcessing.normalize;
 
@@ -60,8 +61,11 @@ To determine which of these forms to be filled, we must set field operationType
     private Long tradeId;
 
     public static final int SCALE = 8;
-    public static final RoundingMode ROUND_MODE = RoundingMode.DOWN;
+    public static final RoundingMode ROUND_MODE_FOR_AMOUNTS = RoundingMode.DOWN;
+    public static final RoundingMode ROUND_MODE_FOR_RATES = RoundingMode.UP;
+    public static final RoundingMode ROUND_MODE_FOR_COMISSION = RoundingMode.UP;
     public static final BigDecimal MIN_VALUE = BigDecimal.valueOf(0.00000001);
+    public static final BigDecimal MIN_TOTAL_WITH_COMISSION = BigDecimal.valueOf(0.00000002);
 
     /*constructors*/
 
@@ -73,22 +77,30 @@ To determine which of these forms to be filled, we must set field operationType
         if (operationType == null) {
             return this;
         }
+        comission = BigDecimal.ZERO;
+        this.exchangeRate = exchangeRate.setScale(SCALE, ROUND_MODE_FOR_RATES);
+        if (nonNull(this.stop)) {
+            stop = stop.setScale(SCALE, ROUND_MODE_FOR_RATES);
+        }
         if (operationType == OperationType.SELL) {
             this.spentWalletBalance = this.currencyBaseBalance == null ? BigDecimal.ZERO : this.currencyBaseBalance;
-            this.total = doAction(this.amount, this.exchangeRate, ActionType.MULTIPLY);
+            this.total = doAction(this.amount, this.exchangeRate, ActionType.MULTIPLY).setScale(SCALE, ROUND_MODE_FOR_AMOUNTS);
             this.comissionId = this.comissionForSellId;
-            this.comission = doAction(this.total, this.comissionForSellRate, ActionType.MULTIPLY_PERCENT);
+            if (this.comissionForSellRate.compareTo(BigDecimal.ZERO) > 0) {
+                this.comission = doAction(this.total, this.comissionForSellRate, ActionType.MULTIPLY_PERCENT).setScale(SCALE, ROUND_MODE_FOR_COMISSION).max(MIN_VALUE);
+            }
             this.totalWithComission = doAction(this.total, this.comission.negate(), ActionType.ADD);
             this.spentAmount = this.amount;
         } else if (operationType == OperationType.BUY) {
             this.spentWalletBalance = this.currencyConvertBalance == null ? BigDecimal.ZERO : this.currencyConvertBalance;
-            this.total = doAction(this.amount, this.exchangeRate, ActionType.MULTIPLY);
+            this.total = doAction(this.amount, this.exchangeRate, ActionType.MULTIPLY).setScale(SCALE, ROUND_MODE_FOR_AMOUNTS);
             this.comissionId = this.comissionForBuyId;
-            this.comission = doAction(this.total, this.comissionForBuyRate, ActionType.MULTIPLY_PERCENT);
+            if (this.comissionForBuyRate.compareTo(BigDecimal.ZERO) > 0) {
+                this.comission = doAction(this.total, this.comissionForBuyRate, ActionType.MULTIPLY_PERCENT).setScale(SCALE, ROUND_MODE_FOR_COMISSION).max(MIN_VALUE);
+            }
             this.totalWithComission = doAction(this.total, this.comission, ActionType.ADD);
             this.spentAmount = doAction(this.total, this.comission, ActionType.ADD);
         }
-        total = total.setScale(SCALE, ROUND_MODE);
         return this;
     }
 
@@ -253,7 +265,7 @@ To determine which of these forms to be filled, we must set field operationType
     }
 
     public void setAmount(BigDecimal amount) {
-        this.amount = amount.setScale(SCALE, ROUND_MODE);
+        this.amount = amount.setScale(SCALE, ROUND_MODE_FOR_AMOUNTS);
     }
 
     public BigDecimal getTotal() {

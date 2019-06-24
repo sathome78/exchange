@@ -347,7 +347,7 @@ $(function dashdoardInit() {
                     $(this).val('');
                 }
                 var decimal = $(this).val().split('.')[1];
-                if (decimal && decimal.length >= trading.ROUND_SCALE) {
+                if (decimal && decimal.length > trading.ROUND_SCALE) {
                     $(this).val(+(+$(this).val()).toFixed(trading.ROUND_SCALE));
                 }
             });

@@ -41,8 +41,9 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
     this.commissionSell;
     this.commissionBuy;
     /**/
-    this.ROUND_SCALE = 9;
+    this.ROUND_SCALE = 8;
     this.numeralFormat = '0.[' + '0'.repeat(this.ROUND_SCALE) + ']';
+    this.minComission = 0.00000001;
 
     function onCurrencyPairChange(data) {
         getOrderCommissions();
@@ -493,6 +494,9 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
     function fillCommissionFieldsBuy(totalForBuy) {
         var commission = that.commissionBuy;
         var calculatedCommissionForBuy = +(totalForBuy * commission / 100).toFixed(that.ROUND_SCALE);
+        if (commission !== 0 && calculatedCommissionForBuy === 0) {
+            calculatedCommissionForBuy = that.minComission;
+        }
         var totalWithCommissionForBuy = +(totalForBuy + calculatedCommissionForBuy).toFixed(that.ROUND_SCALE);
         $('#calculatedCommissionForBuy').find('span:first').text(calculatedCommissionForBuy.toFixed(that.ROUND_SCALE));
         $('#totalWithCommissionForBuy').find('span:first').text(totalWithCommissionForBuy.toFixed(that.ROUND_SCALE));
@@ -500,6 +504,9 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
     function fillCommissionFieldsSell(totalForSell) {
         var commission = that.commissionSell;
         var calculatedCommissionForSell = +(totalForSell * commission / 100).toFixed(that.ROUND_SCALE);
+        if (commission !== 0 && calculatedCommissionForSell === 0) {
+            calculatedCommissionForSell = that.minComission;
+        }
         var totalWithCommissionForSell = +(totalForSell - calculatedCommissionForSell).toFixed(that.ROUND_SCALE);
         $('#calculatedCommissionForSell').find('span:first').text(calculatedCommissionForSell.toFixed(that.ROUND_SCALE));
         $('#totalWithCommissionForSell').find('span:first').text(totalWithCommissionForSell.toFixed(that.ROUND_SCALE));
@@ -745,6 +752,8 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
         $stopErrorContainer.empty();
         var $totalErrorContainer = $('#order-create-confirm__modal').find('[for=total]');
         $totalErrorContainer.empty();
+        var $totalWcErrorContainer = $('#order-create-confirm__modal').find('[for=totalwc]');
+        $totalWcErrorContainer.empty();
         $('#order-create-confirm__submit').removeClass('hidden');
         $.ajax({
             headers: {
@@ -792,6 +801,9 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
                     }
                     if (f.split('_')[0] == 'total') {
                         $totalErrorContainer.append('<div class="input-block-wrapper__error">' + responseData[f] + '</div>');
+                    }
+                    if (f.split('_')[0] == 'totalwc') {
+                        $totalWcErrorContainer.append('<div class="input-block-wrapper__error">' + responseData[f] + '</div>');
                     }
                 }
                 var data = responseData.order;

@@ -119,7 +119,6 @@ public class OrderControllerRest {
                 throw new RuntimeException("Try to create stop-order without stop rate");
             }
             OrderCreateDto orderCreateDto = orderService.prepareNewOrder(activeCurrencyPair, orderType, principal.getName(), amount, rate, baseType);
-            orderCreateDto.setOrderBaseType(baseType);
             orderCreateDto.setStop(stop);
             /**/
             OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto, false, null);

@@ -113,7 +113,6 @@ public class NgDashboardController {
     @CheckUserAuthority(authority = UserOperationAuthority.TRADING)
     public ResponseEntity createOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
         OrderCreateDto prepareNewOrder = ngOrderService.prepareOrder(inputOrder);
-
         String result;
         switch (prepareNewOrder.getOrderBaseType()) {
             case STOP_LIMIT: {

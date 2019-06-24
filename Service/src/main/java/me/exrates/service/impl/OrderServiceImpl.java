@@ -139,13 +139,9 @@ import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.NoTransactionException;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
@@ -515,6 +511,9 @@ public class OrderServiceImpl implements OrderService {
             if (orderCreateDto.getTotal().compareTo(OrderCreateDto.MIN_VALUE) < 0) {
                 errors.put("total_" + errors.size(), "order.invalidTotal");
             }
+            if (orderCreateDto.getTotalWithComission().compareTo(OrderCreateDto.MIN_TOTAL_WITH_COMISSION) < 0) {
+                errors.put("totalwc_" + errors.size(), "order.invalidTotalWc");
+            }
         }
         return orderValidationDto;
     }
@@ -598,6 +597,9 @@ public class OrderServiceImpl implements OrderService {
             }
             if (orderCreateDto.getTotal().compareTo(OrderCreateDto.MIN_VALUE) < 0) {
                 errors.put("total_" + errors.size(), "order.invalidTotal");
+            }
+            if (orderCreateDto.getTotalWithComission().compareTo(OrderCreateDto.MIN_TOTAL_WITH_COMISSION) < 0) {
+                errors.put("totalwc_" + errors.size(), "order.invalidTotalWc");
             }
         }
         return orderValidationDto;
@@ -874,7 +876,9 @@ public class OrderServiceImpl implements OrderService {
                             orderCreateDto.getAmount().subtract(cumulativeSum),
                             orderCreateDto.getExchangeRate(),
                             orderCreateDto.getOrderBaseType());
-                    if (remainderNew.getTotal().compareTo(BigDecimal.ZERO) > 0) {
+                    if (remainderNew.getAmount().compareTo(OrderCreateDto.MIN_VALUE) >= 0
+                        && remainderNew.getTotal().compareTo(OrderCreateDto.MIN_VALUE)  >=0
+                        && remainderNew.getTotalWithComission().compareTo(OrderCreateDto.MIN_TOTAL_WITH_COMISSION) >= 0) {
                         profileData.setTime3();
                         Integer createdOrderId = createOrder(remainderNew, CREATE, acceptEventsList, true);
                         profileData.setTime4();
@@ -902,11 +906,13 @@ public class OrderServiceImpl implements OrderService {
                 userById.getEmail(), orderForPartialAccept.getAmountBase().subtract(amountForPartialAccept),
                 orderForPartialAccept.getExRate(), orderForPartialAccept.getId(), newOrder.getOrderBaseType());
         int acceptedId = createOrder(accepted, CREATE, acceptEventsList, true);
-        if (remainder.getTotal().compareTo(BigDecimal.ZERO) <= 0) {
-            returnPartialAcceptUnusedRestToUser(remainder, orderForPartialAccept.getId());
-        } else {
+        if (remainder.getAmount().compareTo(OrderCreateDto.MIN_VALUE) >= 0
+                && remainder.getTotal().compareTo(OrderCreateDto.MIN_VALUE) >= 0
+                && remainder.getTotalWithComission().compareTo(OrderCreateDto.MIN_TOTAL_WITH_COMISSION) >= 0) {
             int remainderId = createOrder(remainder, CREATE_SPLIT, acceptEventsList, true);
             orderCreationResultDto.setOrderIdToOpen(remainderId);
+        } else {
+            returnPartialAcceptUnusedRestToUser(remainder, orderForPartialAccept.getId());
         }
         acceptOrder(newOrder.getUserId(), acceptedId, locale, false, acceptEventsList, true);
         orderCreationResultDto.setOrderIdToAccept(acceptedId);
