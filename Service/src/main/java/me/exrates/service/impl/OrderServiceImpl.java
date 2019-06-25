@@ -911,8 +911,6 @@ public class OrderServiceImpl implements OrderService {
                 && remainder.getTotalWithComission().compareTo(OrderCreateDto.MIN_TOTAL_WITH_COMISSION) >= 0) {
             int remainderId = createOrder(remainder, CREATE_SPLIT, acceptEventsList, true);
             orderCreationResultDto.setOrderIdToOpen(remainderId);
-        } else {
-            returnPartialAcceptUnusedRestToUser(remainder, orderForPartialAccept.getId());
         }
         acceptOrder(newOrder.getUserId(), acceptedId, locale, false, acceptEventsList, true);
         orderCreationResultDto.setOrderIdToAccept(acceptedId);
@@ -1413,22 +1411,6 @@ public class OrderServiceImpl implements OrderService {
         return result;
     }
 
-
-    private void returnPartialAcceptUnusedRestToUser(OrderCreateDto dto, int sourceId){
-        WalletsForOrderCancelDto walletsForOrderCancelDto = walletService.getWalletForOrderByOrderIdAndOperationTypeAndBlock(
-                sourceId,
-                dto.getOperationType());
-        String description = transactionDescription.generate("partial_accept", RETURN_REST.name());
-        WalletTransferStatus transferResult = walletService.walletInnerTransfer(
-                walletsForOrderCancelDto.getWalletId(),
-                dto.getAmount(),
-                TransactionSourceType.ORDER,
-                sourceId,
-                description);
-        if (transferResult != WalletTransferStatus.SUCCESS) {
-            throw new OrderAcceptionException();
-        }
-    }
 
     private String getStatusString(OrderStatus status, Locale ru) {
         String statusString = null;
