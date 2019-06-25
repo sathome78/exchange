@@ -174,10 +174,8 @@ public class NgBalanceController {
         throw new NgBalanceException("Failed to revoke such for operation " + operation);
     }
 
-    // apiUrl/info/private/v2/balances/totalBalance
     @SuppressWarnings("Duplicates")
     @GetMapping("/totalBalance")
-    @ResponseBody
     public Map<String, Object> getUserTotalBalance(HttpServletRequest request) {
         List<MyWalletsStatisticsDto> resultWallet = walletService.getAllWalletsForUserReduced(null, getPrincipalEmail(),
                 localeResolver.resolveLocale(request), CurrencyPairType.MAIN);
@@ -190,7 +188,7 @@ public class NgBalanceController {
             final HashMap<String, BigDecimal> ratesBTC_ETH = new HashMap<>();
             resultOrders
                     .stream()
-                    .filter(p -> p.getCurrencyPairName().contains("BTC/USD") || p.getCurrencyPairName().contains("ETH/USD"))
+                    .filter(p -> p.getCurrencyPairName().equalsIgnoreCase("BTC/USD") || p.getCurrencyPairName().equalsIgnoreCase("ETH/USD"))
                     .forEach(p -> ratesBTC_ETH.put(p.getCurrencyPairName(), new BigDecimal(p.getLastOrderRate())));
 
             final List<WalletTotalUsdDto> walletTotalUsdDtoList = new ArrayList<>();
