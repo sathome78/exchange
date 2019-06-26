@@ -1,1 +1,0 @@
-INSERT INTO IEO_SUBSCRIBE (email, email_subscribe, telegram_subscribe) VALUES ('delfin693@yandex.ru', 1, 1);

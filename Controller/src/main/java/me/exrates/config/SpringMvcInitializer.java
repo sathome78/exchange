@@ -1,6 +1,5 @@
 package me.exrates.config;
 
-import me.WebAppConfig;
 import me.exrates.controller.filter.HeaderFilter;
 import me.exrates.controller.filter.XssRequestFilter;
 import org.apache.logging.log4j.LogManager;

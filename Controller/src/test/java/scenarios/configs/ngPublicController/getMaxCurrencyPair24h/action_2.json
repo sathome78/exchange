@@ -1,8 +1,0 @@
-{
-  "url" : "http://localhost/api/public/v2/info/max/AAA",
-  "cause" : "NgDashboardException",
-  "detail" : "No results",
-  "title" : null,
-  "uuid" : null,
-  "code" : null
-}

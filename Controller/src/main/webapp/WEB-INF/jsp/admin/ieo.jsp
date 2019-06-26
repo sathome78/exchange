@@ -57,8 +57,8 @@
                                 <loc:message code="ieo.description"/>
                             </label>
                         </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper" style="height: auto;">
-                            <textarea name="description"></textarea>
+                        <div class="col-md-9 input-block-wrapper__input-wrapper">
+                            <input type="text"  name="description">
                         </div>
                     </div>
                     <%--Currency Description--%>
@@ -68,8 +68,8 @@
                                 <loc:message code="ieo.coinDescription"/>
                             </label>
                         </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper" style="height: auto;">
-                            <textarea name="currencyDescription"></textarea>
+                        <div class="col-md-9 input-block-wrapper__input-wrapper">
+                            <input type="text"  name="currencyDescription">
                         </div>
                     </div>
                     <%--coin name--%>

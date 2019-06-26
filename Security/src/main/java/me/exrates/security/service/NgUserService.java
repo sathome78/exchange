@@ -23,6 +23,4 @@ public interface NgUserService {
     void sendEmailEnable2Fa(String userEmail);
 
     void resendEmailForFinishRegistration(User user);
-
-    String getUserPublicId();
 }

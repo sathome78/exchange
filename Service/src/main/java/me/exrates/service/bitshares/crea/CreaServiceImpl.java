@@ -1,12 +1,10 @@
 package me.exrates.service.bitshares.crea;
 
 import com.google.common.hash.Hashing;
-import me.exrates.model.condition.MonolitConditional;
 import me.exrates.service.bitshares.BitsharesServiceImpl;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.springframework.context.annotation.Conditional;
 
 import javax.annotation.PostConstruct;
 import javax.websocket.ClientEndpoint;
@@ -20,7 +18,6 @@ import java.util.concurrent.TimeUnit;
 
 
 @ClientEndpoint
-@Conditional(MonolitConditional.class)
 public class CreaServiceImpl extends BitsharesServiceImpl {
 
 

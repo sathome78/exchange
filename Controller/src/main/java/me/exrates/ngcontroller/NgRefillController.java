@@ -213,8 +213,9 @@ public class NgRefillController {
 
         int minConfirmations = 0;
         if (isNotEmpty(merchantCurrencyData)) {
-                minConfirmations = inputOutputService.getMinConfirmationsRefillByMerchantId(merchantCurrencyData.get(0).getMerchantId()) != null
-                        ? inputOutputService.getMinConfirmationsRefillByMerchantId(merchantCurrencyData.get(0).getMerchantId()) : 0;
+            IRefillable merchant = (IRefillable) merchantServiceContext
+                    .getMerchantService(merchantService.findById(merchantCurrencyData.get(0).getMerchantId()).getServiceBeanName());
+            minConfirmations = isNull(merchant.minConfirmationsRefill()) ? 0 : merchant.minConfirmationsRefill();
         }
         response.setMinConfirmations(minConfirmations);
         return response;

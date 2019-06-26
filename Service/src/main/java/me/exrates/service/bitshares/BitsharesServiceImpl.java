@@ -6,7 +6,6 @@ import lombok.SneakyThrows;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
-import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.*;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.GtagService;
@@ -22,7 +21,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.Conditional;
 
 import javax.annotation.PostConstruct;
 import javax.websocket.*;
@@ -42,7 +40,6 @@ import static me.exrates.service.bitshares.memo.MemoDecryptor.decryptBTSmemo;
 
 @Data
 @ClientEndpoint
-@Conditional(MonolitConditional.class)
 public abstract class BitsharesServiceImpl implements BitsharesService {
 
     private static final long RECONNECT_PERIOD = 60;

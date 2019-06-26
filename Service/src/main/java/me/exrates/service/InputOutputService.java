@@ -41,6 +41,4 @@ public interface InputOutputService {
 
     List<MyInputOutputHistoryDto> getUserInputOutputHistory(String userEmail, Integer currencyId, String currencyName, LocalDateTime dateTimeFrom,
                                                             LocalDateTime dateTimeTo, Integer limit, Integer offset, Locale locale);
-
-    Integer getMinConfirmationsRefillByMerchantId(int merchantId);
 }

@@ -301,7 +301,7 @@ public class CryptocurrencyConfig {
 
     @Bean(name = "dimeServiceImpl")
     public BitcoinService dimeServiceImpl() {
-        return new BitcoinServiceImpl("merchants/dime_wallet.properties", "DIME", "DIME", 30, 20, false, false);
+        return new BitcoinServiceImpl("merchants/dime_wallet.properties", "DIME", "DIME", 30, 20, false, true);
     }
 
     @Bean(name = "bsvServiceImpl")

@@ -62,6 +62,7 @@ public class DataTableParams {
         dataTableParams.searchValue = requestParams.getOrDefault("search[value]", "");
         List<String> columnNames = requestParams.entrySet().stream()
                 .filter(entry -> entry.getKey().matches("^columns(.+)name\\]$"))
+                .sorted(Comparator.comparing(Map.Entry::getKey))
                 .map(Map.Entry::getValue)
                 .collect(Collectors.toList());
 

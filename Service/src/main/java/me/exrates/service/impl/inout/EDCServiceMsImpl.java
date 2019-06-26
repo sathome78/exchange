@@ -20,7 +20,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Map;
 
-@Log4j2(topic = "edc_log")
+@Log4j2
 @Service
 @Conditional(MicroserviceConditional.class)
 @RequiredArgsConstructor
@@ -42,12 +42,10 @@ public class EDCServiceMsImpl implements EDCService {
             log.error("error processPayment edc", e);
             throw new RuntimeException(e);
         }
-        try {
-            template.exchange(builder.toUriString(), HttpMethod.POST, entity, String.class);
-
-        }catch (Exception ex){
-            log.error("EDC coin. InOutMicroservice. Error: {}", ex);
-        }
+        template.exchange(
+                builder.toUriString(),
+                HttpMethod.POST,
+                entity, String.class);
 
     }
 

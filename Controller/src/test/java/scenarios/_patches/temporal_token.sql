@@ -1,1 +1,0 @@
-INSERT INTO TEMPORAL_TOKEN (id, value, user_id, expired, date_creation, token_type_id, check_ip, already_used) VALUES (159423, '949c3e56-3377-46f3-8ab8-b9a7e3d87685', 102250, 0, '2019-01-04 08:34:32', 1, null, 0);
