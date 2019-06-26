@@ -1,0 +1,39 @@
+<config xmlns="config" active="true" onlyThis="false" patch="default">
+
+    <description>
+        ngcontroller package. Testing methods NgPublicController
+    </description>
+
+    <get url="/api/public/v2/pair/first/BTC">
+
+        <header name="Content-Type" value="application/json"/>
+
+        <response code="200" file="action_1.json"/>
+
+        <comment>
+            Get collection CURRENCY_PAIR. First part name BTC.
+        </comment>
+    </get>
+
+    <get url="/api/public/v2/pair/second/BTC">
+
+        <header name="Content-Type" value="application/json"/>
+
+        <response code="200" file="action_2.json"/>
+
+        <comment>
+            Get collection CURRENCY_PAIR. Second part name BTC.
+        </comment>
+    </get>
+
+    <get url="/api/public/v2/pair/first/AAA">
+
+        <header name="Content-Type" value="application/json"/>
+
+        <response code="200" file="action_3.json"/>
+
+        <comment>
+            Get empty collection CURRENCY_PAIR. Fake name AAA.
+        </comment>
+    </get>
+</config>

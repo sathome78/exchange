@@ -1,0 +1,91 @@
+[ {
+  "id" : 48,
+  "name" : "BTC/AED",
+  "currency1" : null,
+  "currency2" : null,
+  "market" : "FIAT",
+  "marketName" : null,
+  "pairType" : "MAIN",
+  "hidden" : false,
+  "permittedLink" : false
+}, {
+  "id" : 22,
+  "name" : "BTC/CNY",
+  "currency1" : null,
+  "currency2" : null,
+  "market" : "FIAT",
+  "marketName" : null,
+  "pairType" : "MAIN",
+  "hidden" : false,
+  "permittedLink" : false
+}, {
+  "id" : 2,
+  "name" : "BTC/EUR",
+  "currency1" : null,
+  "currency2" : null,
+  "market" : "FIAT",
+  "marketName" : null,
+  "pairType" : "MAIN",
+  "hidden" : false,
+  "permittedLink" : false
+}, {
+  "id" : 32,
+  "name" : "BTC/IDR",
+  "currency1" : null,
+  "currency2" : null,
+  "market" : "FIAT",
+  "marketName" : null,
+  "pairType" : "MAIN",
+  "hidden" : false,
+  "permittedLink" : false
+}, {
+  "id" : 39,
+  "name" : "BTC/NGN",
+  "currency1" : null,
+  "currency2" : null,
+  "market" : "FIAT",
+  "marketName" : null,
+  "pairType" : "MAIN",
+  "hidden" : false,
+  "permittedLink" : false
+}, {
+  "id" : 44,
+  "name" : "BTC/TRY",
+  "currency1" : null,
+  "currency2" : null,
+  "market" : "FIAT",
+  "marketName" : null,
+  "pairType" : "MAIN",
+  "hidden" : false,
+  "permittedLink" : false
+}, {
+  "id" : 1,
+  "name" : "BTC/USD",
+  "currency1" : null,
+  "currency2" : null,
+  "market" : "USD",
+  "marketName" : null,
+  "pairType" : "MAIN",
+  "hidden" : false,
+  "permittedLink" : false
+}, {
+  "id" : 696,
+  "name" : "BTC/USDT",
+  "currency1" : null,
+  "currency2" : null,
+  "market" : "USDT",
+  "marketName" : null,
+  "pairType" : "MAIN",
+  "hidden" : false,
+  "permittedLink" : false
+}, {
+  "id" : 42,
+  "name" : "BTC/VND",
+  "currency1" : null,
+  "currency2" : null,
+  "market" : "FIAT",
+  "marketName" : null,
+  "pairType" : "MAIN",
+  "hidden" : false,
+  "permittedLink" : false
+} ]

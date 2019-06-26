@@ -1,0 +1,8 @@
+{
+  "url" : "http://localhost/api/public/v2/if_email_exists",
+  "cause" : "NgResponseException",
+  "detail" : "User with email solkongendk@gmail.com is not active",
+  "title" : "USER_NOT_ACTIVE",
+  "uuid" : null,
+  "code" : 400
+}

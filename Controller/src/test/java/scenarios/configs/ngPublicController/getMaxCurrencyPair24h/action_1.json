@@ -1,0 +1,23 @@
+{
+  "data" : {
+    "currencyPairId" : 48,
+    "currencyPairName" : "BTC/AED",
+    "currencyPairPrecision" : 2,
+    "lastOrderRate" : "0",
+    "predLastOrderRate" : "0",
+    "percentChange" : "0",
+    "market" : "FIAT",
+    "priceInUSD" : "0",
+    "type" : "MAIN",
+    "volume" : "0.000000000",
+    "currencyVolume" : "0.000000000",
+    "high24hr" : "0",
+    "low24hr" : "0",
+    "lastOrderRate24hr" : "0.000000000",
+    "hidden" : false,
+    "lastUpdateCache" : "p(any)",
+    "needRefresh" : false,
+    "page" : 0
+  },
+  "error" : null
+}

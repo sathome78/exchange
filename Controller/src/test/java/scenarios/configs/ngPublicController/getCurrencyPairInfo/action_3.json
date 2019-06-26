@@ -1,0 +1,8 @@
+{
+  "url" : "http://localhost/api/public/v2/open-orders/-1/-1",
+  "cause" : "IllegalArgumentException",
+  "detail" : "Digits < 0",
+  "title" : null,
+  "uuid" : null,
+  "code" : null
+}
