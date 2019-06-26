@@ -77,7 +77,12 @@ public enum InvoiceActionTypeEnum {
   CREATE_BY_USER,
   CREATE_BY_FACT,
   PUT_FOR_CONFIRM_USER,
-  PUT_FOR_PENDING,
+  PUT_FOR_PENDING {{
+    getProperty().setActionTypeButton(MOVE_TO_PENDING_BUTTON);
+    getProperty().setAvailableForHolderOnly(false);
+    getProperty().setOperationPermissionOnlyList(Arrays.asList(ACCEPT_DECLINE));
+    getProperty().setLeadsToSuccessFinalState(false);
+  }},
   ACCEPT_HOLDED {{
     getProperty().setActionTypeButton(ACCEPT_HOLDED_BUTTON);
     getProperty().setAvailableForHolderOnly(true);

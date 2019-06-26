@@ -156,7 +156,7 @@ public class KYCServiceImpl implements KYCService {
                 throw new ShuftiProException("ShuftiPro KYC verification service is not available");
             }
         } catch (Exception ex) {
-            throw new ShuftiProException("ShuftiPro KYC verification service is not available");
+            throw new ShuftiProException("ShuftiPro KYC verification service is not available", ex);
         }
 
         final String signature = responseEntity.getHeaders().get(SIGNATURE).get(0);
@@ -268,7 +268,7 @@ public class KYCServiceImpl implements KYCService {
                 throw new ShuftiProException("ShuftiPro KYC status service is not available");
             }
         } catch (Exception ex) {
-            throw new ShuftiProException("ShuftiPro KYC status service is not available");
+            throw new ShuftiProException("ShuftiPro KYC status service is not available", ex);
         }
 
         final String signature = responseEntity.getHeaders().get(SIGNATURE).get(0);

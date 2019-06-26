@@ -26,4 +26,6 @@ public interface NgUserService {
     void resendEmailForFinishRegistration(User user);
 
     void sendErrorReportEmail(ErrorReportDto dto);
+
+    String getUserPublicId();
 }

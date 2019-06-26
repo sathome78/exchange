@@ -9,6 +9,7 @@ import me.exrates.model.IEODetails;
 import me.exrates.model.enums.IEODetailsStatus;
 import me.exrates.model.serializer.LocalDateTimeDeserializer;
 
+import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
@@ -37,6 +38,7 @@ public class IeoDetailsCreateDto {
     @NotNull(message = "available balance must not be null")
     private BigDecimal availableBalance;
     @NotNull(message = "Min amount must not be null")
+    @DecimalMin(value = "0.00001", message = "Amount must be greater than 0.00001")
     private BigDecimal minAmount;
     @NotNull(message = "Max amount per user must not be null")
     private BigDecimal maxAmountPerUser;

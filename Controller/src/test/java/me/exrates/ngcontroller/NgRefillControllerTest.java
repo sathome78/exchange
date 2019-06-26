@@ -15,6 +15,7 @@ import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import org.hamcrest.Matchers;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -179,6 +180,7 @@ public class NgRefillControllerTest extends AngularApiCommonTest {
         verify(currencyService, times(1)).findByName(anyString());
     }
 
+    @Ignore
     @Test
     public void inputCredits_currency_isOk() throws Exception {
         Mockito.when(currencyService.findByName(anyString())).thenReturn(getMockCurrency("TEST_NAME"));
