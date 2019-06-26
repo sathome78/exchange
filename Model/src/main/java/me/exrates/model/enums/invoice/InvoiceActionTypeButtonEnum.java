@@ -16,6 +16,9 @@ public enum InvoiceActionTypeButtonEnum {
   REVOKE_BUTTON {{
     getProperty().put("tableIdListOnly", new String[]{"inputoutput-table", "transfer-table", "unconfirmed-refills-table"});
   }},
+  MOVE_TO_PENDING_BUTTON {{
+    getProperty().put("tableIdListOnly", new String[]{"refillTable"});
+  }},
   SHOW_CODE_BUTTON {{
     getProperty().put("tableIdListOnly", new String[]{"inputoutput-table"});
   }},
@@ -26,7 +29,7 @@ public enum InvoiceActionTypeButtonEnum {
     getProperty().put("tableIdListOnly", new String[]{"withdrawalTable", "refillTable"});
   }},
   DECLINE_BUTTON {{
-    getProperty().put("tableIdListOnly", new String[]{"withdrawalTable"});
+    getProperty().put("tableIdListOnly", new String[]{"withdrawalTable", "refillTable"});
   }},
   DECLINE_HOLDED_BUTTON {{
     getProperty().put("tableIdListOnly", new String[]{"withdrawalTable", "refillTable"});

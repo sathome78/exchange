@@ -10,15 +10,29 @@ import me.exrates.model.Policy;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.IpLogDto;
+import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.dto.UserBalancesDto;
+import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
+import me.exrates.model.dto.UserIpDto;
+import me.exrates.model.dto.UserIpReportDto;
+import me.exrates.model.dto.UserSessionInfoDto;
+import me.exrates.model.dto.UserShortDto;
+import me.exrates.model.dto.UsersInfoDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminIpLogsFilterData;
 import me.exrates.model.dto.ieo.IeoUserStatus;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.AdminAuthority;
+import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.model.enums.PolicyEnum;
+import me.exrates.model.enums.TokenType;
+import me.exrates.model.enums.UserEventEnum;
+import me.exrates.model.enums.UserIpState;
+import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.UserStatus;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
-import me.exrates.model.util.BigDecimalProcessing;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -46,7 +60,17 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
@@ -1520,4 +1544,12 @@ public class UserDaoImpl implements UserDao {
         return masterTemplate.update(sql, params) > 0;
     }
 
+    @Override
+    public String getUserPublicId(String userEmail) {
+        final String sql = "SELECT u.pub_id FROM USER u WHERE u.email = :user_email";
+
+        final Map<String, Object> params = Collections.singletonMap("user_email", userEmail);
+
+        return slaveTemplate.queryForObject(sql, params, String.class);
+    }
 }
