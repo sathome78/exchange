@@ -11,7 +11,7 @@
         <response code="200" file="action_1.json"/>
 
         <comment>
-            2fa google authenticator enabled.
+            Update IEO statuses.
         </comment>
     </get>
 </config>

@@ -521,7 +521,7 @@
   }, {
     "chatId" : null,
     "email" : "Valderi Jose de Almeida Sena",
-    "body" : "Valderi Jose de Almeida Sena:\nDoes anyone know if it is possible to recover LITCOINS that have been deposited in the BITCOINS portfolio?",
+    "body" : "Valderi Jose de Almeida Sena:\r\nDoes anyone know if it is possible to recover LITCOINS that have been deposited in the BITCOINS portfolio?",
     "messageTime" : "2018-12-20T13:47:03",
     "messageReplyUsername" : null,
     "messageReplyText" : "text_reply"
@@ -1039,14 +1039,14 @@
   }, {
     "chatId" : null,
     "email" : "Kateryna ",
-    "body" : "Kateryna admin, [18 груд. 2018 р., 12:08:57 пп]:\nBot will randomly pick the winner and announce it here. \nIf you win, bit will tag you)\n\nعباس امیری, [18 груд. 2018 р., 12:12:55 пп]:",
+    "body" : "Kateryna admin, [18 груд. 2018 р., 12:08:57 пп]:\r\nBot will randomly pick the winner and announce it here. \r\nIf you win, bit will tag you)\r\n\r\nعباس امیری, [18 груд. 2018 р., 12:12:55 пп]:",
     "messageTime" : "2018-12-20T13:50:03",
     "messageReplyUsername" : "Michaela Baldos",
     "messageReplyText" : "text_reply"
   }, {
     "chatId" : null,
     "email" : "Rajesh Kalavadia",
-    "body" : "Henny Naibaho:\n/command1@LotteryDropsEngBot",
+    "body" : "Henny Naibaho:\r\n/command1@LotteryDropsEngBot",
     "messageTime" : "2018-12-20T13:50:08",
     "messageReplyUsername" : null,
     "messageReplyText" : "text_reply"
@@ -1144,7 +1144,7 @@
   }, {
     "chatId" : null,
     "email" : "Alvaro Brocanelli",
-    "body" : "AJ\n/command1@LotteryDropsEngBot",
+    "body" : "AJ\r\n/command1@LotteryDropsEngBot",
     "messageTime" : "2018-12-20T13:50:27",
     "messageReplyUsername" : null,
     "messageReplyText" : "text_reply"
@@ -1158,7 +1158,7 @@
   }, {
     "chatId" : null,
     "email" : "Kateryna ",
-    "body" : "Bot will randomly pick the winner and announce it here. \nIf you win, bit will tag you)",
+    "body" : "Bot will randomly pick the winner and announce it here. \r\nIf you win, bit will tag you)",
     "messageTime" : "2018-12-20T13:50:31",
     "messageReplyUsername" : "Michaela Baldos",
     "messageReplyText" : "text_reply"
