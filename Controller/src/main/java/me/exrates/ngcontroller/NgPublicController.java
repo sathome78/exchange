@@ -40,7 +40,6 @@ import me.exrates.service.NewsParser;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
-import me.exrates.service.exception.IllegalChatMessageException;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.util.IpUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -76,8 +75,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
-import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 @RestController
 @RequestMapping(value = "/api/public/v2",

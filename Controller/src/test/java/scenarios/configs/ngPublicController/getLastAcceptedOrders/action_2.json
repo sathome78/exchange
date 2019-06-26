@@ -1,0 +1,5 @@
+{
+  "errorCode" : "NOT_FOUND_ERROR",
+  "url" : "http://localhost/api/public/v2/accepted-orders/fast",
+  "detail" : "Currency pair not found"
+}

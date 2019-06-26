@@ -1,0 +1,39 @@
+<config xmlns="config" active="true" onlyThis="false" patch="default,user,exorders">
+
+    <description>
+        ngcontroller package. Testing methods NgPublicController
+    </description>
+
+    <get url="/api/public/v2/open-orders/54/8">
+
+        <header name="Content-Type" value="application/json"/>
+
+        <response code="200" file="action_1.json"/>
+
+        <comment>
+            Get collection open orders.
+        </comment>
+    </get>
+
+    <get url="/api/public/v2/open-orders/162/0">
+
+        <header name="Content-Type" value="application/json"/>
+
+        <response code="200" file="action_2.json"/>
+
+        <comment>
+            Return empty collection open orders. Wrong parameters 162 and 0.
+        </comment>
+    </get>
+
+    <get url="/api/public/v2/open-orders/-1/-1">
+
+        <header name="Content-Type" value="application/json"/>
+
+        <response code="400" file="action_3.json"/>
+
+        <comment>
+            Throw IllegalArgumentException. Digits less than 0.
+        </comment>
+    </get>
+</config>

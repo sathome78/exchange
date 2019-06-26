@@ -1,0 +1,15 @@
+[ {
+  "orderType" : "SELL",
+  "lastExrate" : "0",
+  "preLastExrate" : "0",
+  "positive" : false,
+  "total" : "0",
+  "orderBookItems" : [ ]
+}, {
+  "orderType" : "BUY",
+  "lastExrate" : "0",
+  "preLastExrate" : "0",
+  "positive" : false,
+  "total" : "0",
+  "orderBookItems" : [ ]
+} ]

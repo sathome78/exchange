@@ -1,17 +1,17 @@
 <config xmlns="config" active="true" onlyThis="false" patch="default">
 
     <description>
-        ngcontroller package
+        ngcontroller package. Testing methods NgPublicController
     </description>
 
-    <get url="/api/public/v2/all-pairs">
+    <get url="/api/public/v2/currencies/fast">
 
         <header name="Content-Type" value="application/json"/>
 
         <response code="200" file="action_1.json"/>
 
         <comment>
-            Get collection CurrencyPair.
+            Get collection ExOrderStatisticsShortByPairsDto.
         </comment>
     </get>
 </config>

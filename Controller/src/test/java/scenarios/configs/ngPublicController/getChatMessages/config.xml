@@ -6,7 +6,7 @@
 
     <get url="/api/public/v2/chat/history?lang=EN">
 
-        <header name="Content-Type" value="application/json"></header>
+        <header name="Content-Type" value="application/json"/>
 
         <response code="200" file="action_1.json"/>
 

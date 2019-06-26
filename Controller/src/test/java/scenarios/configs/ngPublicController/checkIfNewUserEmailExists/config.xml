@@ -6,7 +6,7 @@
 
     <get url="/api/public/v2/if_email_exists?email=delfin693@yandex.ru">
 
-        <header name="Content-Type" value="application/json"></header>
+        <header name="Content-Type" value="application/json"/>
 
         <response code="200" file="action_1.json"/>
 
@@ -17,7 +17,7 @@
 
     <get url="/api/public/v2/if_email_exists?email=wrong@yandex.ru">
 
-        <header name="Content-Type" value="application/json"></header>
+        <header name="Content-Type" value="application/json"/>
 
         <response code="400" file="action_2.json"/>
 
@@ -28,7 +28,7 @@
 
     <get url="/api/public/v2/if_email_exists?email=exratesbot2@gmail.com">
 
-        <header name="Content-Type" value="application/json"></header>
+        <header name="Content-Type" value="application/json"/>
 
         <response code="400" file="action_3.json"/>
 
@@ -39,7 +39,7 @@
 
     <get url="/api/public/v2/if_email_exists?email=solkongendk@gmail.com">
 
-        <header name="Content-Type" value="application/json"></header>
+        <header name="Content-Type" value="application/json"/>
 
         <response code="400" file="action_4.json"/>
 

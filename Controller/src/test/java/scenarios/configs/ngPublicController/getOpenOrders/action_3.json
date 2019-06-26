@@ -1,0 +1,8 @@
+{
+  "url" : "http://localhost/api/public/v2/info/-1",
+  "cause" : "NgResponseException",
+  "detail" : "Cannot get to currency pair info Currency pair not found",
+  "title" : "FAIL_TO_GET_CURRENCY_PAIR_INFO",
+  "uuid" : null,
+  "code" : 400
+}
