@@ -6,14 +6,13 @@ import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.model.dto.kyc.IdentityDataRequest;
 import me.exrates.model.dto.kyc.KycCountryDto;
 import me.exrates.model.dto.kyc.KycLanguageDto;
-import me.exrates.model.dto.kyc.VerificationStep;
+import me.exrates.model.dto.kyc.KycProvider;
 import me.exrates.model.dto.kyc.responces.KycStatusResponseDto;
 import me.exrates.model.dto.kyc.responces.OnboardingResponseDto;
 import me.exrates.model.exceptions.KycException;
 import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.service.KYCService;
 import me.exrates.service.KYCSettingsService;
-import me.exrates.service.UserService;
 import me.exrates.service.exception.ShuftiProException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +37,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.List;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static me.exrates.service.impl.KYCServiceImpl.SIGNATURE;
 
@@ -50,15 +50,13 @@ public class NgKYCController {
 
     private final static String PUBLIC_KYC = "/api/public/v2/kyc";
     private final static String PRIVATE_KYC = "/api/private/v2/kyc/";
-    private final UserService userService;
+
     private final KYCService kycService;
     private final KYCSettingsService kycSettingsService;
 
     @Autowired
-    public NgKYCController(UserService userService,
-                           KYCService kycService,
+    public NgKYCController(KYCService kycService,
                            KYCSettingsService kycSettingsService) {
-        this.userService = userService;
         this.kycService = kycService;
         this.kycSettingsService = kycSettingsService;
     }
@@ -74,7 +72,7 @@ public class NgKYCController {
                 final String signature = request.getHeader(SIGNATURE);
                 log.info("Signature: {}", signature);
 
-                Pair<String, EventStatus> statusPair = kycService.checkResponseAndUpdateVerificationStep(signature, response);
+                Pair<String, EventStatus> statusPair = kycService.checkResponseAndUpdateVerificationStatus(signature, response);
                 log.debug("Verification status: {} [{}]", statusPair.getLeft(), statusPair.getRight());
                 return ResponseEntity.ok(statusPair.getRight());
             }
@@ -84,7 +82,7 @@ public class NgKYCController {
         return ResponseEntity.notFound().build();
     }
 
-    // https://exrates.me/api/public/v2/webhook/{referenceId}
+    // /api/public/v2/webhook/{referenceId}
     @ResponseStatus(HttpStatus.OK)
     @PostMapping(value = PUBLIC_KYC + "/webhook/{referenceId}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> callback(@PathVariable String referenceId,
@@ -94,38 +92,25 @@ public class NgKYCController {
         return ResponseEntity.ok().build();
     }
 
-    // /private/v2/shufti-pro/verification-url/step/{stepNumber}
-
     /**
-     * /info/private/v2/verification-url/{step}
+     * /api/private/v2/kyc/verification-url
      *
-     * @param step         - possible values (LEVEL_ONE, LEVEL_TWO)
      * @param languageCode - from submitted list
      * @param countryCode  - from submitted list
      * @return - verificationUrl to load in iframe (https://shuftipro.com/process/verification/g63K7XCZGdD6mRC5S7mQw5Lc112ioqLMqYGrDQvhzg3qezdUg4ZJ0VAGTLEWjkC8)
      */
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = PRIVATE_KYC + "/verification-url/{step}")
-    public ResponseEntity<String> getVerificationUrl(@PathVariable VerificationStep step,
-                                                     @RequestParam(value = "language_code", required = false) String languageCode,
+    @GetMapping(value = PRIVATE_KYC + "/verification-url")
+    public ResponseEntity<String> getVerificationUrl(@RequestParam(value = "language_code", required = false) String languageCode,
                                                      @RequestParam("country_code") String countryCode) {
         log.debug("Start getting verification url...");
-        final String verificationUrl = kycService.getVerificationUrl(step.getStep(), languageCode, countryCode);
+        final String verificationUrl = kycService.getVerificationUrl(languageCode, countryCode);
         log.debug("Verification url: {}", verificationUrl);
         return ResponseEntity.ok(verificationUrl);
     }
 
-    @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = PRIVATE_KYC + "/verification-status")
-    public ResponseEntity<EventStatus> getVerificationStatus() {
-        log.debug("Start getting status url...");
-        Pair<String, EventStatus> statusPair = kycService.getVerificationStatus();
-        log.debug("Verification status: {} [{}]", statusPair.getLeft(), statusPair.getRight());
-        return ResponseEntity.ok(statusPair.getRight());
-    }
-
     /**
-     * /info/info/private/v2/countries
+     * /api/private/v2/kyc/countries
      * <p>
      * {
      * countryName: Ukraine
@@ -137,9 +122,8 @@ public class NgKYCController {
         return ResponseEntity.ok(kycSettingsService.getCountriesDictionary());
     }
 
-
     /**
-     * /info/private/v2/languages
+     * /api/private/v2/kyc/languages
      * <p>
      * {
      * languageName: English
@@ -152,19 +136,22 @@ public class NgKYCController {
     }
 
     /**
-     * /info/private/v2/shufti-pro/current-step
-     * <p>
-     * returns (NOT_VERIFIED, LEVEL_ONE, LEVEL_TWO)
+     * /api/private/v2/kyc/status
+     *
+     * @param kycProvider - kyc provider (for example: SHUFTI_PRO, QUBERA), by default - SHUFTI_PRO
+     * @return - verification status
      */
-    @GetMapping(value = PRIVATE_KYC + "/current-step")
-    public ResponseEntity<VerificationStep> getCurrentVerificationStep() {
-        return ResponseEntity.ok(userService.getVerificationStep());
-    }
-
     @GetMapping(PRIVATE_KYC + "/status")
-    public ResponseModel<String> getStatusKyc() {
+    public ResponseModel<String> getStatusKyc(@RequestParam(value = "kyc_provider", required = false) String kycProvider) {
         String email = getPrincipalEmail();
-        return new ResponseModel<>(kycService.getKycStatus(email));
+
+        if (isNull(kycProvider) || KycProvider.of(kycProvider) == KycProvider.SHUFTI_PRO) {
+            return new ResponseModel<>(kycService.getShuftiProKycStatus(email));
+        } else if (KycProvider.of(kycProvider) == KycProvider.QUBERA) {
+            return new ResponseModel<>(kycService.getQuberaKycStatus(email));
+        } else {
+            return new ResponseModel<>();
+        }
     }
 
     @PostMapping(value = PRIVATE_KYC + "/start", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -194,6 +181,4 @@ public class NgKYCController {
     private String getPrincipalEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
-
-
 }

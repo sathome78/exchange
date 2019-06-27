@@ -89,6 +89,49 @@ $(function () {
         updateRefillTable();
     });
 
+    $('#refillTable').on('click', 'button[data-source=REFILL].move_to_pending_button', function (e) {
+        e.preventDefault();
+        var id = $(this).data("id");
+        $.ajax({
+            url: '/2a8fy7b07dxe44/refill/change-status',
+            type: 'POST',
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            data: {
+                "refillRequestId": id
+            },
+            success: function () {
+                updateRefillTable();
+            },
+            error: function (err) {
+                console.log(err);
+            }
+        });
+    });
+
+    $('#refillTable').on('click', 'button[data-source=REFILL].decline_button', function (e) {
+        e.preventDefault();
+        var id = $(this).data("id");
+        $.ajax({
+            url: '/2a8fy7b07dxe44/refill/decline',
+            type: 'POST',
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            data: {
+                "id": id,
+                "comment": "moved from created by fact status"
+            },
+            success: function () {
+                updateRefillTable();
+            },
+            error: function (err) {
+                console.log(err);
+            }
+        });
+    });
+
     $('#refillTable').on('click', 'button[data-source=REFILL].take_to_work_button', function (e) {
         e.preventDefault();
         var id = $(this).data("id");
@@ -404,13 +447,6 @@ function updateRefillTable() {
                 {
                     "data": "status",
                     "name": "REFILL_REQUEST.status_id",
-                    "render": function (data, type, row) {
-                        if (data) {
-                            var refillRequestId = row.id;
-                            return tableViewType === "CREATED_BY_FACT" ? '<button id="changeStatus' + refillRequestId + '" onclick="changeStatusToOnPending(' + refillRequestId + ')" ' +
-                                'class="action-button table-button-block__button btn" style="font-size: 1.1rem;background-color: #eff9ff">Change to \'ON_PENDING\'</button>' : row.status;
-                        }
-                    },
                     "className": "text-center"
                 },
                 {
@@ -431,23 +467,4 @@ function updateRefillTable() {
             "order": [[0, 'desc']]
         });
     }
-}
-
-function changeStatusToOnPending(refillRequestId) {
-    $.ajax({
-        url: '/2a8fy7b07dxe44/refill/change-status',
-        type: 'POST',
-        headers: {
-            'X-CSRF-Token': $("input[name='_csrf']").val()
-        },
-        data: {
-            "refillRequestId": refillRequestId
-        },
-        success: function () {
-            updateRefillTable();
-        },
-        error: function (err) {
-            console.log(err);
-        }
-    });
 }

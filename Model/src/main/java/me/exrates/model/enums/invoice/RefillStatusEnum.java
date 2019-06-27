@@ -36,6 +36,8 @@ public enum RefillStatusEnum implements InvoiceStatus {
       schemaMap.put(START_BCH_EXAMINE, ON_BCH_EXAM);
       schemaMap.put(ACCEPT_AUTO, ACCEPTED_AUTO);
       schemaMap.put(REQUEST_INNER_TRANSFER, ON_INNER_TRANSFERRING);
+      schemaMap.put(PUT_FOR_PENDING, ON_PENDING);
+      schemaMap.put(DECLINE, DECLINED_ADMIN);
     }
   },
   WAITING_CONFIRMATION_USER(3) {

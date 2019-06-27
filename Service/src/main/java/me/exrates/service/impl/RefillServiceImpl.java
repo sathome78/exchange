@@ -126,6 +126,7 @@ import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REVOKE;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.START_BCH_EXAMINE;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.TAKE_TO_WORK;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
+import static me.exrates.model.enums.invoice.RefillStatusEnum.CREATED_BY_FACT;
 import static me.exrates.model.enums.invoice.RefillStatusEnum.EXPIRED;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
@@ -980,11 +981,6 @@ public class RefillServiceImpl implements RefillService {
             refillRequest.setAdminHolderId(requesterAdminId);
             profileData.setTime1();
             /**/
-            Locale locale = new Locale(userService.getPreferedLang(refillRequest.getUserId()));
-            String title = messageSource.getMessage("refill.declined.title", new Integer[]{requestId}, locale);
-            if (StringUtils.isEmpty(comment)) {
-                comment = messageSource.getMessage("merchants.refillNotification.".concat(newStatus.name()), new Integer[]{requestId}, locale);
-            }
             String prefix = "admin (#"
                     .concat(refillRequest.getAdminHolderId() == null ? "null" : refillRequest.getAdminHolderId().toString())
                     .concat("): ");
@@ -993,9 +989,16 @@ public class RefillServiceImpl implements RefillService {
             if (!StringUtils.isEmpty(remark)) {
                 refillRequestDao.setRemarkById(requestId, remark);
             }
-            String userEmail = userService.getEmailById(refillRequest.getUserId());
-            userService.addUserComment(REFILL_DECLINE, comment, userEmail, false);
-            notificationService.notifyUser(refillRequest.getUserId(), NotificationEvent.IN_OUT, title, comment);
+            if (currentStatus != CREATED_BY_FACT) {
+                Locale locale = new Locale(userService.getPreferedLang(refillRequest.getUserId()));
+                String title = messageSource.getMessage("refill.declined.title", new Integer[]{requestId}, locale);
+                if (StringUtils.isEmpty(comment)) {
+                    comment = messageSource.getMessage("merchants.refillNotification.".concat(newStatus.name()), new Integer[]{requestId}, locale);
+                }
+                String userEmail = userService.getEmailById(refillRequest.getUserId());
+                userService.addUserComment(REFILL_DECLINE, comment, userEmail, false);
+                notificationService.notifyUser(refillRequest.getUserId(), NotificationEvent.IN_OUT, title, comment);
+            }
             profileData.setTime3();
         } finally {
             profileData.checkAndLog("slow decline RefillRequest: " + requestId + " profile: " + profileData);
