@@ -150,10 +150,10 @@ public class KYCServiceImpl implements KYCService {
         try {
             responseEntity = restTemplate.postForEntity(verificationUrl, requestEntity, String.class);
             if (responseEntity.getStatusCodeValue() != 200) {
-                throw new ShuftiProException("ShuftiPro KYC verification service is not available");
+                throw new ShuftiProException(String.format("ShuftiPro KYC verification service is not available (status code is %d)", responseEntity.getStatusCodeValue()));
             }
         } catch (Exception ex) {
-            throw new ShuftiProException("ShuftiPro KYC verification service is not available");
+            throw new ShuftiProException(String.format("ShuftiPro KYC verification service is not available: %s", ex.getMessage()));
         }
 
         final String signature = responseEntity.getHeaders().get(SIGNATURE).get(0);
@@ -258,10 +258,10 @@ public class KYCServiceImpl implements KYCService {
         try {
             responseEntity = restTemplate.postForEntity(statusUrl, requestEntity, String.class);
             if (responseEntity.getStatusCodeValue() != 200) {
-                throw new ShuftiProException("ShuftiPro KYC status service is not available");
+                throw new ShuftiProException(String.format("ShuftiPro KYC status service is not available (status code is %d)", responseEntity.getStatusCodeValue()));
             }
         } catch (Exception ex) {
-            throw new ShuftiProException("ShuftiPro KYC status service is not available");
+            throw new ShuftiProException(String.format("ShuftiPro KYC status service is not available: %s", ex.getMessage()));
         }
 
         final String signature = responseEntity.getHeaders().get(SIGNATURE).get(0);
