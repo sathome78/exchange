@@ -24,9 +24,11 @@ public class IeoDetailsCreateDto {
     @Size(min = 2, max = 14, message = "Name must be contain minimal 2 chars, maximum 14")
     @NotNull(message = "Name must not be null")
     private String currencyName;
+    @Size(min = 2, max = 45, message = "Currency description must be contain minimal 2 chars, maximum 45")
     @NotNull(message = "Currency description must not be null")
     private String currencyDescription;
     @NotNull(message = "Description must not be null")
+    @Size(min = 2, max = 45, message = "General description must be contain minimal 2 chars, maximum 45")
     private String description;
     /*  private String currencyToPairWith;*/
     @NotNull(message = "Maker email must not be null")
