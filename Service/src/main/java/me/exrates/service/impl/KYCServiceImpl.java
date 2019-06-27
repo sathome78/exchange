@@ -238,18 +238,19 @@ public class KYCServiceImpl implements KYCService {
 
     @Override
     public String getKycStatus(String email) {
-        String status = userService.getUserKycStatusByEmail(email);
-        if (status.equalsIgnoreCase("Pending")) {
-            String referenceUid = userService.getKycReferenceByEmail(email);
-            if (referenceUid == null) {
-                log.error("Reference uid is null, cannot get status, email {}", email);
-                throw new NgDashboardException("Reference uid is null", Constants.ErrorApi.QUBERA_KYC_ERROR_GET_STATUS);
-            }
-            KycResponseStatusDto response =
-                    kycHttpClient.getCurrentKycStatus(referenceUid);
-            status = response.getStatus();
-        }
-        return status;
+//        String status = userService.getUserKycStatusByEmail(email);
+//        if (status.equalsIgnoreCase("Pending")) {
+//            String referenceUid = userService.getKycReferenceByEmail(email);
+//            if (referenceUid == null) {
+//                log.error("Reference uid is null, cannot get status, email {}", email);
+//                throw new NgDashboardException("Reference uid is null", Constants.ErrorApi.QUBERA_KYC_ERROR_GET_STATUS);
+//            }
+//            KycResponseStatusDto response =
+//                    kycHttpClient.getCurrentKycStatus(referenceUid);
+//            status = response.getStatus();
+//        }
+//        return status;
+        return null;
     }
 
     private EventStatus getVerificationStatus(String reference) {
@@ -332,36 +333,37 @@ public class KYCServiceImpl implements KYCService {
 
     @Override
     public OnboardingResponseDto startKyCProcessing(IdentityDataRequest identityDataRequest, String email) {
-        User user = userService.findByEmail(email);
-        if (user.getKycStatus().equalsIgnoreCase("success")) {
-            throw new KycException("Already passed KYC");
-        }
-        Date dateOfBirth = DateUtils.getDateFromStringForKyc(identityDataRequest.getBirthYear(), identityDataRequest.getBirthMonth(),
-                identityDataRequest.getBirthDay());
-        //start create applicant
-        String uuid = UUID.randomUUID().toString();
-        KycCountryDto countryDto = kycSettingsDao.getCountryByCode(identityDataRequest.getCountry());
-        userService.updatePrivateDataAndKycReference(email, uuid, countryDto.getCountryCode(), identityDataRequest.getFirstNames()[0],
-                identityDataRequest.getLastName(), dateOfBirth);
-        PersonKycDto personKycDto = new PersonKycDto(Collections.singletonList(IdentityDataKyc.of(identityDataRequest)));
-        CreateApplicantDto createApplicantDto = new CreateApplicantDto(uuid, personKycDto);
-
-        ResponseCreateApplicantDto response = kycHttpClient.createApplicant(createApplicantDto);
-
-        if (!response.getState().equalsIgnoreCase("INITIAL")) {
-            throw new KycException("Error while start processing KYC, state " + response.getState()
-                    + " uid " + response.getUid() + " lastReportStatus " + response.getLastReportStatus());
-        }
-        String docId = RandomStringUtils.random(18, true, false);
-
-        String callBackUrl = String.format("%s/api/public/v2/kyc/webhook/%s", host, uuid);
-
-        RequestOnBoardingDto onBoardingDto = RequestOnBoardingDto.createOfParams(callBackUrl, email, uuid, docId);
-        userVerificationInfoDao.saveUserVerificationDoc(new UserVerificationInfo(user.getId(), DocTypeEnum.P, docId));
-        log.info("Sending to create applicant {}", onBoardingDto);
-        OnboardingResponseDto onBoarding = kycHttpClient.createOnBoarding(onBoardingDto);
-        userService.updateKycStatusByEmail(user.getEmail(), "Pending");
-        return onBoarding;
+//        User user = userService.findByEmail(email);
+////        if (user.getKycStatus().equalsIgnoreCase("success")) {
+////            throw new KycException("Already passed KYC");
+////        }
+////        Date dateOfBirth = DateUtils.getDateFromStringForKyc(identityDataRequest.getBirthYear(), identityDataRequest.getBirthMonth(),
+////                identityDataRequest.getBirthDay());
+////        //start create applicant
+////        String uuid = UUID.randomUUID().toString();
+////        KycCountryDto countryDto = kycSettingsDao.getCountryByCode(identityDataRequest.getCountry());
+////        userService.updatePrivateDataAndKycReference(email, uuid, countryDto.getCountryCode(), identityDataRequest.getFirstNames()[0],
+////                identityDataRequest.getLastName(), dateOfBirth);
+////        PersonKycDto personKycDto = new PersonKycDto(Collections.singletonList(IdentityDataKyc.of(identityDataRequest)));
+////        CreateApplicantDto createApplicantDto = new CreateApplicantDto(uuid, personKycDto);
+////
+////        ResponseCreateApplicantDto response = kycHttpClient.createApplicant(createApplicantDto);
+////
+////        if (!response.getState().equalsIgnoreCase("INITIAL")) {
+////            throw new KycException("Error while start processing KYC, state " + response.getState()
+////                    + " uid " + response.getUid() + " lastReportStatus " + response.getLastReportStatus());
+////        }
+////        String docId = RandomStringUtils.random(18, true, false);
+////
+////        String callBackUrl = String.format("%s/api/public/v2/kyc/webhook/%s", host, uuid);
+////
+////        RequestOnBoardingDto onBoardingDto = RequestOnBoardingDto.createOfParams(callBackUrl, email, uuid, docId);
+////        userVerificationInfoDao.saveUserVerificationDoc(new UserVerificationInfo(user.getId(), DocTypeEnum.P, docId));
+////        log.info("Sending to create applicant {}", onBoardingDto);
+////        OnboardingResponseDto onBoarding = kycHttpClient.createOnBoarding(onBoardingDto);
+////        userService.updateKycStatusByEmail(user.getEmail(), "Pending");
+////        return onBoarding;
+        return null;
     }
 
     @Override
