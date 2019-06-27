@@ -22,6 +22,7 @@ import me.exrates.model.dto.UsersInfoDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminIpLogsFilterData;
 import me.exrates.model.dto.ieo.IeoUserStatus;
+import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.AdminAuthority;
 import me.exrates.model.enums.NotificationMessageEventEnum;
@@ -420,11 +421,11 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public boolean updateKycStatusByEmail(String email, String result) {
-        final String sql = "UPDATE USER SET kyc_status = :value WHERE email = :email";
+    public boolean updateVerificationStatus(String email, String status) {
+        final String sql = "UPDATE USER SET kyc_status = :kyc_status WHERE email = :email";
 
         MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("value", result);
+        params.addValue("kyc_status", status);
         params.addValue("email", email);
 
         try {
@@ -1214,14 +1215,6 @@ public class UserDaoImpl implements UserDao {
         return masterTemplate.update(sql, namedParameters);
     }
 
-    @Transactional(readOnly = true)
-    @Override
-    public int getVerificationStep(String userEmail) {
-        String sql = "SELECT u.kyc_verification_step FROM USER u WHERE u.email =:email";
-
-        return masterTemplate.queryForObject(sql, Collections.singletonMap("email", userEmail), Integer.class);
-    }
-
     @Override
     public boolean userExistByEmail(String email) {
         return this.jdbcTemplate.queryForObject("SELECT CASE WHEN count(id) > 0 THEN TRUE ELSE FALSE END FROM USER WHERE email = ?", Boolean.class, email);
@@ -1259,11 +1252,12 @@ public class UserDaoImpl implements UserDao {
 
     @Transactional
     @Override
-    public int updateReferenceId(String referenceId, String userEmail) {
-        final String sql = "UPDATE USER SET kyc_reference = :kyc_reference WHERE email = :email";
+    public int updateReferenceIdAndStatus(String referenceId, EventStatus status, String userEmail) {
+        final String sql = "UPDATE USER SET kyc_reference = :kyc_reference, kyc_status = :kyc_status WHERE email = :email";
 
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("kyc_reference", referenceId);
+            put("kyc_status", status.name());
             put("email", userEmail);
         }};
         return masterTemplate.update(sql, params);
@@ -1286,14 +1280,6 @@ public class UserDaoImpl implements UserDao {
         String sql = "SELECT u.email FROM USER u WHERE u.kyc_reference =:kyc_reference";
 
         return masterTemplate.queryForObject(sql, Collections.singletonMap("kyc_reference", referenceId), String.class);
-    }
-
-    @Transactional
-    @Override
-    public int updateVerificationStep(String userEmail) {
-        final String sql = "UPDATE USER SET kyc_verification_step = kyc_verification_step + 1 WHERE email = :email";
-
-        return masterTemplate.update(sql, Collections.singletonMap("email", userEmail));
     }
 
     @Override
@@ -1430,8 +1416,13 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public String getKycStatusByEmail(String email) {
-        String sql = "SELECT u.kyc_status FROM USER u WHERE u.email =:email";
-        return masterTemplate.queryForObject(sql, Collections.singletonMap("email", email), String.class);
+        final String sql = "SELECT u.kyc_status FROM USER u WHERE u.email =:email";
+
+        try {
+            return masterTemplate.queryForObject(sql, Collections.singletonMap("email", email), String.class);
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     @Override
@@ -1470,8 +1461,13 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public String findKycReferenceByUserEmail(String email) {
-        String sql = "SELECT kyc_reference FROM USER WHERE email = :email";
-        return masterTemplate.queryForObject(sql, Collections.singletonMap("email", email), String.class);
+        final String sql = "SELECT u.kyc_reference FROM USER u WHERE u.email = :email";
+
+        try {
+            return masterTemplate.queryForObject(sql, Collections.singletonMap("email", email), String.class);
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     @Override

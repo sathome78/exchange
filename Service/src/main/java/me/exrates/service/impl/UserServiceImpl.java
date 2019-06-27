@@ -8,17 +8,39 @@ import com.google.common.cache.CacheBuilder;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.UserDao;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
-import me.exrates.model.*;
-import me.exrates.model.dto.*;
+import me.exrates.model.AdminAuthorityOption;
+import me.exrates.model.Comment;
+import me.exrates.model.Email;
+import me.exrates.model.PagingData;
+import me.exrates.model.TemporalToken;
+import me.exrates.model.User;
+import me.exrates.model.UserFile;
+import me.exrates.model.dto.CallbackURL;
+import me.exrates.model.dto.IpLogDto;
+import me.exrates.model.dto.NotificationsUserSetting;
+import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.dto.UserBalancesDto;
+import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
+import me.exrates.model.dto.UserIpDto;
+import me.exrates.model.dto.UserIpReportDto;
+import me.exrates.model.dto.UserSessionInfoDto;
+import me.exrates.model.dto.UsersInfoDto;
 import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminIpLogsFilterData;
-import me.exrates.model.dto.filterData.AdminStopOrderFilterData;
 import me.exrates.model.dto.ieo.IeoUserStatus;
-import me.exrates.model.dto.kyc.VerificationStep;
+import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.NotificationEvent;
+import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.model.enums.NotificationTypeEnum;
+import me.exrates.model.enums.PolicyEnum;
+import me.exrates.model.enums.TokenType;
+import me.exrates.model.enums.UserCommentTopicEnum;
+import me.exrates.model.enums.UserEventEnum;
+import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.UserStatus;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.service.NotificationService;
@@ -80,9 +102,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Objects.nonNull;
-import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
-import static org.apache.commons.lang.Validate.notNull;
 
 @Log4j2
 @Service
@@ -888,27 +908,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public int updateVerificationStep(String userEmail) {
-        return userDao.updateVerificationStep(userEmail);
-    }
-
-    @Override
-    public VerificationStep getVerificationStep() {
-        final int verificationStep = userDao.getVerificationStep(getUserEmailFromSecurityContext());
-
-        return VerificationStep.of(verificationStep);
-    }
-
-    @Override
-    public VerificationStep getVerificationStep(String userEmail) {
-        final int verificationStep = userDao.getVerificationStep(userEmail);
-
-        return VerificationStep.of(verificationStep);
-    }
-
-    @Override
-    public int updateReferenceId(String referenceId) {
-        return userDao.updateReferenceId(referenceId, getUserEmailFromSecurityContext());
+    public int updateReferenceIdAndStatus(String referenceId, EventStatus status) {
+        return userDao.updateReferenceIdAndStatus(referenceId, status, getUserEmailFromSecurityContext());
     }
 
     @Override
@@ -1043,13 +1044,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean updateKycStatusByEmail(String email, String status) {
-        return userDao.updateKycStatusByEmail(email, status);
+    public boolean updateVerificationStatus(String email, String status) {
+        return userDao.updateVerificationStatus(email, status);
     }
 
     @Override
     public boolean updateKycStatus(String status) {
-        return userDao.updateKycStatusByEmail(getUserEmailFromSecurityContext(), status);
+        return userDao.updateVerificationStatus(getUserEmailFromSecurityContext(), status);
     }
 
     @Override

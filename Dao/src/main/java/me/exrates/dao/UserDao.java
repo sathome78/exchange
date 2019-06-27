@@ -19,6 +19,7 @@ import me.exrates.model.dto.UsersInfoDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminIpLogsFilterData;
 import me.exrates.model.dto.ieo.IeoUserStatus;
+import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.PolicyEnum;
@@ -100,7 +101,7 @@ public interface UserDao {
 
     UserShortDto findShortByEmail(String email);
 
-    boolean updateKycStatusByEmail(String email, String result);
+    boolean updateVerificationStatus(String email, String result);
 
     User findByNickname(String nickname);
 
@@ -199,8 +200,6 @@ public interface UserDao {
 
     Integer updateGaTag(String gatag, String userName);
 
-    int getVerificationStep(String userEmail);
-
     boolean userExistByEmail(String email);
 
     String getAvatarPath(Integer userId);
@@ -209,13 +208,11 @@ public interface UserDao {
 
     boolean manageUserFavouriteCurrencyPair(int userId, int currencyPairId, boolean delete);
 
-    int updateReferenceId(String referenceId, String userEmail);
+    int updateReferenceIdAndStatus(String referenceId, EventStatus status, String userEmail);
 
     String getReferenceIdByUserEmail(String userEmail);
 
     String getEmailByReferenceId(String referenceId);
-
-    int updateVerificationStep(String userEmail);
 
     TemporaryPasswordDto getTemporaryPasswordById(Long id);
 

@@ -5,7 +5,6 @@ import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.model.dto.kyc.IdentityDataRequest;
 import me.exrates.model.dto.kyc.KycCountryDto;
 import me.exrates.model.dto.kyc.KycLanguageDto;
-import me.exrates.model.dto.kyc.VerificationStep;
 import me.exrates.model.dto.kyc.responces.DispatchInfo;
 import me.exrates.model.dto.kyc.responces.KycStatusResponseDto;
 import me.exrates.model.dto.kyc.responces.OnboardingResponseDto;
@@ -34,7 +33,6 @@ import java.util.Collections;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.anyObject;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
@@ -76,7 +74,7 @@ public class NgKYCControllerTest extends AngularApiCommonTest {
         byte[] bytes = "body".getBytes(Charset.defaultCharset());
         Pair<String, EventStatus> mockStatusPair = new ImmutablePair<>("Signature", EventStatus.ACCEPTED);
 
-        Mockito.when(kycService.checkResponseAndUpdateVerificationStep(anyString(), anyString())).thenReturn(mockStatusPair);
+        Mockito.when(kycService.checkResponseAndUpdateVerificationStatus(anyString(), anyString())).thenReturn(mockStatusPair);
 
         mockMvc.perform(MockMvcRequestBuilders.post(PUBLIC_KYC + "/callback")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -85,7 +83,7 @@ public class NgKYCControllerTest extends AngularApiCommonTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", is("ACCEPTED")));
 
-        verify(kycService, times(1)).checkResponseAndUpdateVerificationStep(anyString(), anyString());
+        verify(kycService, times(1)).checkResponseAndUpdateVerificationStatus(anyString(), anyString());
     }
 
     @Test
@@ -94,7 +92,7 @@ public class NgKYCControllerTest extends AngularApiCommonTest {
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(status().isNotFound());
 
-        verify(kycService, never()).checkResponseAndUpdateVerificationStep(anyString(), anyString());
+        verify(kycService, never()).checkResponseAndUpdateVerificationStatus(anyString(), anyString());
     }
 
     @Test
@@ -119,40 +117,26 @@ public class NgKYCControllerTest extends AngularApiCommonTest {
 
     @Test
     public void getVerificationUrl_isOk() throws Exception {
-        Mockito.when(kycService.getVerificationUrl(anyInt(), anyString(), anyString())).thenReturn("TEST_VERIFICATION_URL");
+        Mockito.when(kycService.getVerificationUrl(anyString(), anyString())).thenReturn("TEST_VERIFICATION_URL");
 
-        mockMvc.perform(MockMvcRequestBuilders.get(PRIVATE_KYC + "/verification-url/{step}", VerificationStep.LEVEL_ONE)
+        mockMvc.perform(MockMvcRequestBuilders.get(PRIVATE_KYC + "/verification-url")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .param("language_code", "EN")
                 .param("country_code", "USA"))
                 .andExpect(status().isOk());
 
-        verify(kycService, times(1)).getVerificationUrl(anyInt(), anyString(), anyString());
+        verify(kycService, times(1)).getVerificationUrl(anyString(), anyString());
     }
 
     @Test
     public void getVerificationUrl_no_required_parameters() throws Exception {
-        Mockito.when(kycService.getVerificationUrl(anyInt(), anyString(), anyString())).thenReturn("TEST_VERIFICATION_URL");
+        Mockito.when(kycService.getVerificationUrl(anyString(), anyString())).thenReturn("TEST_VERIFICATION_URL");
 
-        mockMvc.perform(MockMvcRequestBuilders.get(PRIVATE_KYC + "/verification-url/{step}", VerificationStep.LEVEL_ONE)
+        mockMvc.perform(MockMvcRequestBuilders.get(PRIVATE_KYC + "/verification-url")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(status().isBadRequest());
 
-        verify(kycService, never()).getVerificationUrl(anyInt(), anyString(), anyString());
-    }
-
-    @Test
-    public void getVerificationStatus_isOk() throws Exception {
-        Pair<String, EventStatus> mockStatusPair = new ImmutablePair<>("Signature", EventStatus.ACCEPTED);
-
-        Mockito.when(kycService.getVerificationStatus()).thenReturn(mockStatusPair);
-
-        mockMvc.perform(MockMvcRequestBuilders.get(PRIVATE_KYC + "/verification-status")
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", is("ACCEPTED")));
-
-        verify(kycService, times(1)).getVerificationStatus();
+        verify(kycService, never()).getVerificationUrl(anyString(), anyString());
     }
 
     @Test
@@ -184,19 +168,23 @@ public class NgKYCControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    public void getCurrentVerificationStep_isOk() throws Exception {
-        Mockito.when(userService.getVerificationStep()).thenReturn(VerificationStep.LEVEL_ONE);
+    public void getShuftiProStatusKyc1_isOk() throws Exception {
+        Mockito.when(kycService.getShuftiProKycStatus(anyString())).thenReturn("TEST_KYC_STATUS");
 
-        mockMvc.perform(MockMvcRequestBuilders.get(PRIVATE_KYC + "/current-step")
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andExpect(status().isOk());
+        mockMvc.perform(MockMvcRequestBuilders.get(PRIVATE_KYC + "/status")
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .param("kyc_provider", "SHUFTI_PRO"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data", is("TEST_KYC_STATUS")))
+                .andExpect(jsonPath("$.error", is(nullValue())));
 
-        verify(userService, times(1)).getVerificationStep();
+        verify(kycService, times(1)).getShuftiProKycStatus(anyString());
+        verify(kycService, never()).getQuberaKycStatus(anyString());
     }
 
     @Test
-    public void getStatusKyc_isOk() throws Exception {
-        Mockito.when(kycService.getKycStatus(anyString())).thenReturn("TEST_KYC_STATUS");
+    public void getShuftiProStatusKyc2_isOk() throws Exception {
+        Mockito.when(kycService.getShuftiProKycStatus(anyString())).thenReturn("TEST_KYC_STATUS");
 
         mockMvc.perform(MockMvcRequestBuilders.get(PRIVATE_KYC + "/status")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
@@ -204,7 +192,34 @@ public class NgKYCControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$.data", is("TEST_KYC_STATUS")))
                 .andExpect(jsonPath("$.error", is(nullValue())));
 
-        verify(kycService, times(1)).getKycStatus(anyString());
+        verify(kycService, times(1)).getShuftiProKycStatus(anyString());
+        verify(kycService, never()).getQuberaKycStatus(anyString());
+    }
+
+    @Test
+    public void getQuberaStatusKyc_isOk() throws Exception {
+        Mockito.when(kycService.getQuberaKycStatus(anyString())).thenReturn("TEST_KYC_STATUS");
+
+        mockMvc.perform(MockMvcRequestBuilders.get(PRIVATE_KYC + "/status")
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .param("kyc_provider", "QUBERA"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data", is("TEST_KYC_STATUS")))
+                .andExpect(jsonPath("$.error", is(nullValue())));
+
+        verify(kycService, never()).getShuftiProKycStatus(anyString());
+        verify(kycService, times(1)).getQuberaKycStatus(anyString());
+    }
+
+    @Test
+    public void getUndefinedProviderStatusKyc_isOk() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get(PRIVATE_KYC + "/status")
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .param("kyc_provider", "TEST_PROVIDER"))
+                .andExpect(status().isOk());
+
+        verify(kycService, never()).getShuftiProKycStatus(anyString());
+        verify(kycService, never()).getQuberaKycStatus(anyString());
     }
 
     @Test
