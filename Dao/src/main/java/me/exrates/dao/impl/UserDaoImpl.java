@@ -1541,15 +1541,6 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public String getUserPublicId(String userEmail) {
-        final String sql = "SELECT u.pub_id FROM USER u WHERE u.email = :user_email";
-
-        final Map<String, Object> params = Collections.singletonMap("user_email", userEmail);
-
-        return slaveTemplate.queryForObject(sql, params, String.class);
-    }
-
-    @Override
     public boolean updateCountryCode(String countryCode, String userEmail) {
         final String sql = "UPDATE USER u SET u.country = :code WHERE u.email = :email";
 

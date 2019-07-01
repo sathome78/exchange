@@ -255,7 +255,5 @@ public interface UserDao {
 
     boolean updateUserRole(int userId, UserRole userRole);
 
-    String getUserPublicId(String userEmail);
-
     boolean updateCountryCode(String countryCode, String userEmail);
 }
