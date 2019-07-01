@@ -908,7 +908,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public int updateReferenceIdAndStatus(String referenceId, EventStatus status) {
+    public boolean updateReferenceIdAndStatus(String referenceId, EventStatus status) {
         return userDao.updateReferenceIdAndStatus(referenceId, status, getUserEmailFromSecurityContext());
     }
 
@@ -1102,4 +1102,8 @@ public class UserServiceImpl implements UserService {
         return output;
     }
 
+    @Override
+    public boolean updateCountryCode(String countryCode) {
+        return userDao.updateCountryCode(countryCode, getUserEmailFromSecurityContext());
+    }
 }

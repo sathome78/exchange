@@ -240,7 +240,7 @@ public interface UserService {
 
     String getReferenceId();
 
-    int updateReferenceIdAndStatus(String referenceId, EventStatus status);
+    boolean updateReferenceIdAndStatus(String referenceId, EventStatus status);
 
     String getEmailByReferenceId(String referenceId);
 
@@ -284,4 +284,6 @@ public interface UserService {
     String getPubIdByEmail(String email);
 
     DataTable<List<IpLogDto>> getIpAdressesTable(AdminIpLogsFilterData adminOrderFilterData, DataTableParams dataTableParams);
+
+    boolean updateCountryCode(String countryCode);
 }
