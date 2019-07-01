@@ -240,7 +240,7 @@ public interface UserService {
 
     String getReferenceId();
 
-    boolean updateReferenceIdAndStatus(String referenceId, EventStatus status);
+    int updateReferenceIdAndStatus(String referenceId, EventStatus status);
 
     String getEmailByReferenceId(String referenceId);
 

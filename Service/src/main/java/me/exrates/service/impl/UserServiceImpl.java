@@ -908,7 +908,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean updateReferenceIdAndStatus(String referenceId, EventStatus status) {
+    public int updateReferenceIdAndStatus(String referenceId, EventStatus status) {
         return userDao.updateReferenceIdAndStatus(referenceId, status, getUserEmailFromSecurityContext());
     }
 

@@ -167,14 +167,10 @@ public class KYCServiceImpl implements KYCService {
             String errorMessage = nonNull(errorObject) ? errorObject.getString(MESSAGE) : StringUtils.EMPTY;
             throw new ShuftiProException(String.format("ShuftiPro KYC verification service: status: %s, error message: %s", eventStatus, errorMessage));
         }
-        boolean updated = userService.updateReferenceIdAndStatus(verificationObject.getString(REFERENCE), eventStatus);
-        if (!updated) {
-            log.debug("Reference id have not been updated in database");
-        }
-        updated = userService.updateCountryCode(countryCode);
-        if (!updated) {
-            log.debug("Country code have not been updated in database");
-        }
+        userService.updateReferenceIdAndStatus(verificationObject.getString(REFERENCE), eventStatus);
+
+        userService.updateCountryCode(countryCode);
+
         String verificationUrl = verificationObject.getString(VERIFICATION_URL).replace("\\", "");
         sendPersonalMessage(userEmail, verificationUrl);
         return verificationUrl;

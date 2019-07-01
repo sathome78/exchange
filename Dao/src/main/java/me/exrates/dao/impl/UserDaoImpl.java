@@ -1252,15 +1252,15 @@ public class UserDaoImpl implements UserDao {
 
     @Transactional
     @Override
-    public boolean updateReferenceIdAndStatus(String referenceId, EventStatus status, String userEmail) {
-        final String sql = "UPDATE USER u SET u.kyc_reference = :reference, u.kyc_status = :status WHERE u.email = :email";
+    public int updateReferenceIdAndStatus(String referenceId, EventStatus status, String userEmail) {
+        final String sql = "UPDATE USER SET kyc_reference = :kyc_reference, kyc_status = :kyc_status WHERE email = :email";
 
         Map<String, Object> params = new HashMap<String, Object>() {{
-            put("reference", referenceId);
-            put("status", status.name());
+            put("kyc_reference", referenceId);
+            put("kyc_status", status.name());
             put("email", userEmail);
         }};
-        return masterTemplate.update(sql, params) > 0;
+        return masterTemplate.update(sql, params);
     }
 
     @Transactional(readOnly = true)
