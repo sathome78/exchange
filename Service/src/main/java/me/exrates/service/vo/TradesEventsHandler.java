@@ -4,7 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
 import me.exrates.service.CurrencyService;
-import me.exrates.service.stomp.StompMessenger;
+import me.exrates.service.messaging.StompMessenger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 

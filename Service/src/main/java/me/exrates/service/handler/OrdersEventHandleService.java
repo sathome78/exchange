@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.ExOrder;
 import me.exrates.model.OrderWsDetailDto;
+import me.exrates.model.chartservicemodels.TradeDataDto;
 import me.exrates.model.dto.CallBackLogDto;
 import me.exrates.model.dto.ExOrderWrapperDTO;
 import me.exrates.model.dto.InputCreateOrderDto;
@@ -16,14 +17,14 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
-import me.exrates.service.cache.currencyPairsInfo.CpStatisticsHolder;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CancelOrderEvent;
 import me.exrates.service.events.CreateOrderEvent;
 import me.exrates.service.events.EventsForDetailed.DetailOrderEvent;
 import me.exrates.service.events.OrderEvent;
 import me.exrates.service.events.PartiallyAcceptedOrder;
-import me.exrates.service.stomp.StompMessenger;
+import me.exrates.service.messaging.RabbitMessnger;
+import me.exrates.service.messaging.StompMessenger;
 import me.exrates.service.vo.ChartRefreshHandler;
 import me.exrates.service.vo.CurrencyStatisticsHandler;
 import me.exrates.service.vo.MyTradesHandler;
@@ -47,13 +48,11 @@ import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Created by Maks on 28.08.2017.
@@ -84,6 +83,8 @@ public class OrdersEventHandleService {
     private DefaultSimpUserRegistry registry;
     @Autowired
     private CurrencyService currencyService;
+    @Autowired
+    private RabbitMessnger rabbitMessenger;
 
     private final Object handlerSync = new Object();
 
@@ -173,6 +174,7 @@ public class OrdersEventHandleService {
         ExOrder order = (ExOrder) event.getSource();
         handleAllTrades(order);
         handleMyTrades(order);
+        rabbitMessenger.sendTradeInfoToChartService(new TradeDataDto(order));
         ratesHolder.onRatesChange(order);
         currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
         onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());

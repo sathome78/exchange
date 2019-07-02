@@ -32,7 +32,7 @@ import me.exrates.service.NotificationService;
 import me.exrates.service.PageLayoutSettingsService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
-import me.exrates.service.stomp.StompMessenger;
+import me.exrates.service.messaging.StompMessenger;
 import me.exrates.service.util.RestApiUtilComponent;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;

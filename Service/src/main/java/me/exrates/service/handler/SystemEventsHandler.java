@@ -7,7 +7,7 @@ import me.exrates.model.dto.AlertDto;
 import me.exrates.service.UserService;
 import me.exrates.service.UsersAlertsService;
 import me.exrates.service.events.QRLoginEvent;
-import me.exrates.service.stomp.StompMessenger;
+import me.exrates.service.messaging.StompMessenger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.event.EventListener;

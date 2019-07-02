@@ -1,12 +1,10 @@
-package me.exrates.service.stomp;
+package me.exrates.service.messaging;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.SneakyThrows;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.IEODetails;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.UserNotificationMessage;
-import me.exrates.model.dto.WsMessageObject;
 import me.exrates.model.enums.OperationType;
 
 import java.util.Collection;

@@ -5,12 +5,11 @@ import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.OrderWsDetailDto;
 import me.exrates.model.SynchronizersObject;
-import me.exrates.service.stomp.StompMessenger;
+import me.exrates.service.messaging.StompMessenger;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 

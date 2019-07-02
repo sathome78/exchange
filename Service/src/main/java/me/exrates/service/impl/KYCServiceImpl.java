@@ -35,7 +35,7 @@ import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.ShuftiProException;
 import me.exrates.service.kyc.http.KycHttpClient;
-import me.exrates.service.stomp.StompMessenger;
+import me.exrates.service.messaging.StompMessenger;
 import me.exrates.service.util.DateUtils;
 import me.exrates.service.util.ShuftiProUtils;
 import org.apache.commons.lang.RandomStringUtils;

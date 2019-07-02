@@ -27,10 +27,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 
-@Log4j2(topic = "eos_log")
+/*@Log4j2(topic = "eos_log")
 @Service
 @Conditional(MonolitConditional.class)
-@PropertySource("classpath:/merchants/eos.properties")
+@PropertySource("classpath:/merchants/eos.properties")*/
 public class EosReceiveService {
 
     private EosApi client;
@@ -55,7 +55,7 @@ public class EosReceiveService {
 
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    @PostConstruct
+   /* @PostConstruct*/
     private void init() {
         BasicConfigurator.configure();
         client = EosApiFactory.create("http://127.0.0.1:8900",

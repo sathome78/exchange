@@ -7,11 +7,9 @@ import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.CandleDto;
 import me.exrates.service.OrderService;
-import me.exrates.service.events.ChartCacheUpdateEvent;
-import me.exrates.service.stomp.StompMessenger;
+import me.exrates.service.messaging.StompMessenger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 

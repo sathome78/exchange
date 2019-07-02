@@ -1,4 +1,4 @@
-package me.exrates.service.stomp;
+package me.exrates.service.messaging;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,16 +24,12 @@ import org.springframework.messaging.simp.user.SimpSubscription;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 
-import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import static java.util.Objects.isNull;
 

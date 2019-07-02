@@ -1,25 +1,5 @@
 package me.exrates.service.cache.currencyPairsInfo;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Synchronized;
-import lombok.extern.log4j.Log4j2;
-import me.exrates.model.CurrencyPair;
-import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
-import me.exrates.ngService.NgOrderService;
-import me.exrates.service.bitshares.memo.Preconditions;
-import me.exrates.service.cache.CurrencyPairsCache;
-import me.exrates.service.stomp.StompMessenger;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Component;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
-
-
 
 public class CpStatisticsHolderImpl  {
 
