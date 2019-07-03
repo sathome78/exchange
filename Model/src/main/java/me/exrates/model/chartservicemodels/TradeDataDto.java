@@ -1,7 +1,11 @@
 package me.exrates.model.chartservicemodels;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 import me.exrates.model.ExOrder;
+import me.exrates.model.serializer.LocalDateDeserializer;
+import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -14,6 +18,8 @@ public class TradeDataDto {
     private BigDecimal exrate;
     private BigDecimal amountBase;
     private BigDecimal amountConvert;
+    @JsonDeserialize(using = LocalDateDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime tradeDate;
 
     public TradeDataDto(ExOrder exOrder) {

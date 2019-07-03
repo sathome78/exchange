@@ -30,5 +30,4 @@ public class RabbitMessengerImpl  implements RabbitMessnger {
             log.error("error sending message to redis ", e);
         }
     }
-
 }
