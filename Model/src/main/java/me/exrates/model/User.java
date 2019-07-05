@@ -34,6 +34,8 @@ public class User implements Serializable {
 	private Date birthDay;
 	private String publicId;
 
+	private String user2fa;
+
 	public User() {
 	}
 
@@ -195,6 +197,14 @@ public class User implements Serializable {
 
 	public void setBirthDay(Date birthDay) {
 		this.birthDay = birthDay;
+	}
+
+	public String getUser2fa() {
+		return user2fa;
+	}
+
+	public void setUser2fa(String user2fa) {
+		this.user2fa = user2fa;
 	}
 
 	@Override

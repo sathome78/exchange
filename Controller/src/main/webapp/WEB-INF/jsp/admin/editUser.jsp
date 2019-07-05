@@ -260,6 +260,20 @@
                       </div>
                     </div>
 
+                    <div class="input-block-wrapper">
+                      <div class="col-md-3 input-block-wrapper__label-wrapper">
+                        <label for="user-2fa"
+                               class="input-block-wrapper__label"><loc:message
+                                code="user.2fa"/></label>
+                      </div>
+
+                      <div class="col-md-9 input-block-wrapper__input-wrapper">
+                        <form:input path="user2fa" readonly="true"
+                                    class="input-block-wrapper__input admin-form-input"
+                                    id="user-2fa"/>
+                      </div>
+                    </div>
+
                     <sec:authorize access="hasAuthority('${admin_editUser}')">
                       <div class="admin-submit-group">
                         <div>
