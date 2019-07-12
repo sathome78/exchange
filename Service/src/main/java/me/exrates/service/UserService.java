@@ -6,17 +6,22 @@ import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
 import me.exrates.model.dto.CallbackURL;
+import me.exrates.model.dto.IpLogDto;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.dto.UserIpReportDto;
 import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.UsersInfoDto;
+import me.exrates.model.dto.dataTable.DataTable;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.AdminIpLogsFilterData;
 import me.exrates.model.dto.ieo.IeoUserStatus;
-import me.exrates.model.dto.kyc.VerificationStep;
+import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserCommentTopicEnum;
+import me.exrates.model.enums.UserEventEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
@@ -64,14 +69,14 @@ public interface UserService {
 
     boolean userExistByEmail(String email);
 
-    String logIP(String email, String host);
-
     List<TemporalToken> getTokenByUserAndType(User user, TokenType tokenType);
 
     @Transactional(rollbackFor = Exception.class)
     boolean createUserRest(User user, Locale locale);
 
     int verifyUserEmail(String token);
+
+    void logIP(Integer userId, String ip, UserEventEnum eventEnum, String url);
 
     List<UserRole> getAllRoles();
 
@@ -235,11 +240,7 @@ public interface UserService {
 
     String getReferenceId();
 
-    int updateVerificationStep(String reference);
-
-    VerificationStep getVerificationStep();
-
-    int updateReferenceId(String referenceId);
+    int updateReferenceIdAndStatus(String referenceId, EventStatus status);
 
     String getEmailByReferenceId(String referenceId);
 
@@ -264,7 +265,9 @@ public interface UserService {
 
     User findByKycReferenceId(String referenceId);
 
-    boolean updateKycStatusByEmail(String email, String status);
+    boolean updateVerificationStatus(String email, String status);
+
+    boolean updateKycStatus(String status);
 
     String getKycReferenceByEmail(String email);
 
@@ -279,4 +282,8 @@ public interface UserService {
     String getEmailByPubId(String pubId);
 
     String getPubIdByEmail(String email);
+
+    DataTable<List<IpLogDto>> getIpAdressesTable(AdminIpLogsFilterData adminOrderFilterData, DataTableParams dataTableParams);
+
+    boolean updateCountryCode(String countryCode);
 }

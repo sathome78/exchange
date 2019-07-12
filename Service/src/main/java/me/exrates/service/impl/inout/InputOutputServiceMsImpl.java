@@ -28,6 +28,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.util.Locale;
 import java.util.Optional;
 
+import static me.exrates.service.impl.inout.RefillServiceMsImpl.API_MERCHANT_GET_MIN_CONFIRMATIONS_REFILL;
+
 @Log4j2
 @Service
 @Conditional(MicroserviceConditional.class)
@@ -63,6 +65,11 @@ public class InputOutputServiceMsImpl extends InputOutputServiceImpl {
                     });
 
         return Optional.ofNullable(response.getBody());
+    }
+
+    @Override
+    public Integer getMinConfirmationsRefillByMerchantId(int merchantId) {
+        return template.getForObject(properties.getUrl() + API_MERCHANT_GET_MIN_CONFIRMATIONS_REFILL + merchantId, Integer.class);
     }
 
     private void setUserRecipient(Locale locale, Payment payment) {

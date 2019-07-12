@@ -9,6 +9,7 @@ import com.amazonaws.services.secretsmanager.model.InternalServiceErrorException
 import com.amazonaws.services.secretsmanager.model.InvalidRequestException;
 import com.amazonaws.services.secretsmanager.model.ResourceNotFoundException;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.CommissionService;
@@ -16,12 +17,10 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
-import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.security.InvalidParameterException;
@@ -37,12 +36,9 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
  */
 @Service
 @Log4j2(topic = "algorithm_log")
-@PropertySource("classpath:/merchants/gapi_wallet.properties")
+@PropertySource("classpath:/env.properties")
+@Conditional(MonolitConditional.class)
 public class AlgorithmServiceImpl implements AlgorithmService {
-
-    private static final String DEFAULT_ENCODING = "UTF-8";
-    private static BASE64Encoder enc = new BASE64Encoder();
-    private static BASE64Decoder dec = new BASE64Decoder();
 
     private static final int decimalPlaces = 8;
     private static final BigDecimal HUNDRED = new BigDecimal(100L).setScale(decimalPlaces, ROUND_HALF_UP);
@@ -57,7 +53,7 @@ public class AlgorithmServiceImpl implements AlgorithmService {
     @Autowired
     private CurrencyService currencyService;
 
-    @Value("${gapi.secret.name}")
+    @Value("${env.name}")
     private String environment;
 
     @Autowired
@@ -156,31 +152,32 @@ public class AlgorithmServiceImpl implements AlgorithmService {
     }
 
     @Override
-    public String encodeByKey(String txt) {
-        String key = getSecret();
+    public String encodeByKey(String code, String txt) {
+        String key = getSecret(code);
         String text = xorMessage(txt, key);
         try {
-            return enc.encode(text.getBytes(DEFAULT_ENCODING));
-        } catch (UnsupportedEncodingException e) {
+            return base64Encode(text);
+        } catch (Exception e) {
             return null;
         }
     }
 
     @Override
-    public String decodeByKey(String text) {
+    public String decodeByKey(String code, String text) {
         String txt;
         String key;
         try {
-            txt = new String(dec.decodeBuffer(text), DEFAULT_ENCODING);
-        } catch (IOException e) {
+            txt = base64Decode(text);
+        } catch (Exception e) {
             return null;
         }
-        key = getSecret();
+        key = getSecret(code);
         return xorMessage(txt, key);
     }
 
     //    У инстанса должна быть iam policy, на чтение aws секретов!!!!!
-    private String getSecret() {
+    //  Подключение к AWS Серверу для получения ключа
+    private String getSecret(String code) {
         String region = "us-east-2";
 
         // Create a Secrets Manager client
@@ -224,8 +221,8 @@ public class AlgorithmServiceImpl implements AlgorithmService {
         else {
             secret = new String(Base64.getDecoder().decode(getSecretValueResult.getSecretBinary()).array());
         }
-
-        secret = secret.substring(secret.indexOf("gapi_encoding_hash\":") + 21);
+    // парсим строку, что бы получить Value по конкретному ключу
+        secret = secret.substring(secret.indexOf(code) + code.length());
         secret = secret.substring(0, secret.indexOf("\""));
         return secret;
 

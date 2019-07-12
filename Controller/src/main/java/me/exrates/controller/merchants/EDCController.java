@@ -46,8 +46,10 @@ public class EDCController {
                 return new ResponseEntity<>(BAD_REQUEST);
             }
         } catch (RefillRequestAlreadyAcceptedException e) {
+            LOG.info("EDC coin. Refill request already accepted exception: {}", e);
             return responseOK;
         } catch (Exception e) {
+            LOG.error("EDC coin. Error: {}", e);
             return new ResponseEntity<>(BAD_REQUEST);
         }
     }

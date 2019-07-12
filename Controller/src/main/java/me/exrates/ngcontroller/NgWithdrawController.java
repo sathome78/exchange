@@ -1,6 +1,7 @@
 package me.exrates.ngcontroller;
 
 import me.exrates.controller.annotation.CheckActiveUserStatus;
+import me.exrates.service.annotation.LogIp;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.CreditsOperation;
@@ -16,6 +17,7 @@ import me.exrates.model.dto.WithdrawRequestParamsDto;
 import me.exrates.model.dto.ngDto.WithdrawDataDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.UserEventEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.ngExceptions.NgDashboardException;
@@ -111,6 +113,7 @@ public class NgWithdrawController {
     }
 
     // POST: /api/private/v2/balances/withdraw/request/create
+    @LogIp(event = UserEventEnum.WITHDRAW)
     @CheckActiveUserStatus
     @PostMapping(value = "/request/create")
     @CheckUserAuthority(authority = UserOperationAuthority.OUTPUT)

@@ -26,6 +26,7 @@ import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.ngExceptions.NgDashboardException;
+import me.exrates.model.ngExceptions.NgOrderValidationException;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.util.BigDecimalToStringSerializer;
@@ -135,7 +136,7 @@ public class NgOrderServiceImpl implements NgOrderService {
 
         Map<String, Object> errorMap = orderValidationDto.getErrors();
         if (!errorMap.isEmpty()) {
-            throw new NgDashboardException(errorMap.toString());
+            throw new NgOrderValidationException(orderValidationDto);
         }
 
 //        BigDecimal totalWithComission = prepareNewOrder.getTotalWithComission();

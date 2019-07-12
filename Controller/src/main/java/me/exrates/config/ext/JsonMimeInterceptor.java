@@ -16,9 +16,11 @@ public class JsonMimeInterceptor implements ClientHttpRequestInterceptor {
     public ClientHttpResponse intercept(HttpRequest request, byte[] body,
                                         ClientHttpRequestExecution execution) throws IOException {
         HttpHeaders headers = request.getHeaders();
-        headers.remove("Content-Type");
-        headers.add("Content-Type", APPLICATION_JSON_UTF8_VALUE);
-        headers.add("Accept", APPLICATION_JSON_UTF8_VALUE);
+        headers.remove(HttpHeaders.CONTENT_TYPE);
+
+        headers.add(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON_UTF8_VALUE);
+        headers.add(HttpHeaders.ACCEPT, APPLICATION_JSON_UTF8_VALUE);
+
         return execution.execute(request, body);
     }
 }

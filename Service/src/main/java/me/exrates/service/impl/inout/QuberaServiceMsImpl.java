@@ -1,16 +1,22 @@
 package me.exrates.service.impl.inout;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.dto.AccountCreateDto;
 import me.exrates.model.dto.AccountQuberaResponseDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.model.dto.kyc.IdentityDataRequest;
+import me.exrates.model.dto.kyc.responces.KycStatusResponseDto;
+import me.exrates.model.dto.kyc.responces.OnboardingResponseDto;
 import me.exrates.model.dto.qubera.AccountInfoDto;
 import me.exrates.model.dto.qubera.ExternalPaymentDto;
 import me.exrates.model.dto.qubera.PaymentRequestDto;
+import me.exrates.model.dto.qubera.QuberaPaymentInfoDto;
 import me.exrates.model.dto.qubera.QuberaRequestDto;
 import me.exrates.model.dto.qubera.ResponsePaymentDto;
 import me.exrates.service.QuberaService;
@@ -25,6 +31,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Map;
 
+@Log4j2
 @Service
 @Conditional(MicroserviceConditional.class)
 @RequiredArgsConstructor
@@ -37,11 +44,16 @@ public class QuberaServiceMsImpl implements QuberaService {
     private final ObjectMapper mapper;
 
     @Override
-    @SneakyThrows
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_MERCHANTS_QUBERA_PROCESS_PAYMENT);
 
-        HttpEntity<String> entity = new HttpEntity<>(mapper.writeValueAsString(params));
+        HttpEntity<String> entity;
+        try {
+            entity = new HttpEntity<>(mapper.writeValueAsString(params));
+        } catch (JsonProcessingException e) {
+            log.error("error quebera processPayment", e);
+            throw new RuntimeException(e);
+        }
         template.exchange(
                 builder.toUriString(),
                 HttpMethod.POST,
@@ -50,11 +62,16 @@ public class QuberaServiceMsImpl implements QuberaService {
     }
 
     @Override
-    @SneakyThrows
     public boolean logResponse(QuberaRequestDto requestDto) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_MERCHANTS_QUBERA_LOG_RESPONSE);
 
-        HttpEntity<String> entity = new HttpEntity<>(mapper.writeValueAsString(requestDto));
+        HttpEntity<String> entity;
+        try {
+            entity = new HttpEntity<>(mapper.writeValueAsString(requestDto));
+        } catch (JsonProcessingException e) {
+            log.error("error quebera logResponse", e);
+            throw new RuntimeException(e);
+        }
         return template.exchange(
                 builder.toUriString(),
                 HttpMethod.POST,
@@ -63,7 +80,7 @@ public class QuberaServiceMsImpl implements QuberaService {
     }
 
     @Override
-    public AccountQuberaResponseDto createAccount(AccountCreateDto accountCreateDto) {
+    public AccountQuberaResponseDto createAccount(String email) {
         return null;
     }
 
@@ -88,13 +105,13 @@ public class QuberaServiceMsImpl implements QuberaService {
     }
 
     @Override
-    public String confirmPaymentToMaster(Integer paymentId) {
-        return null;
+    public boolean confirmPaymentToMaster(Integer paymentId) {
+        return true;
     }
 
     @Override
-    public String confirmPaymentFRomMaster(Integer paymentId) {
-        return null;
+    public boolean confirmPaymentFRomMaster(Integer paymentId) {
+        return true;
     }
 
     @Override
@@ -104,6 +121,31 @@ public class QuberaServiceMsImpl implements QuberaService {
 
     @Override
     public String confirmExternalPayment(Integer paymentId) {
+        return null;
+    }
+
+    @Override
+    public QuberaPaymentInfoDto getInfoForPayment(String email) {
+        return null;
+    }
+
+    @Override
+    public void sendNotification(QuberaRequestDto quberaRequestDto) {
+
+    }
+
+    @Override
+    public String getUserVerificationStatus(String email) {
+        return null;
+    }
+
+    @Override
+    public void processingCallBack(String referenceId, KycStatusResponseDto kycStatusResponseDto) {
+
+    }
+
+    @Override
+    public OnboardingResponseDto startVerificationProcessing(IdentityDataRequest identityDataRequest, String email) {
         return null;
     }
 

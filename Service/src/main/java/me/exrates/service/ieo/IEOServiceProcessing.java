@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -76,7 +77,7 @@ public class IEOServiceProcessing {
         for (IEODetails ieoDetail : ieos) {
             boolean filled = true;
             while (filled) {
-                List<IEOClaim> claims = ieoClaimRepository.findUnprocessedIeoClaimsByIeoId(ieoDetail.getId(), CHUNK);
+                List<IEOClaim> claims = ieoClaimRepository.findUnprocessedIeoClaimsByIeoId(ieoDetail.getId(), CHUNK, false);
                 if (claims.isEmpty()) {
                     filled = false;
                 }
@@ -110,7 +111,7 @@ public class IEOServiceProcessing {
                     ieoClaim.getAmount(), ieoDetails.getCurrencyName(), amountInBtcLocked);
             String resultIeoMessage = String.format("Not enough user BTC amount %s", amountInBtcLocked);
             failedClaim(ieoClaim, ieoDetails.getAvailableAmount(), principalEmail, notificationMessage,
-                    resultIeoMessage, text);
+                    resultIeoMessage, text, ieoDetails);
             return;
         }
 
@@ -121,7 +122,7 @@ public class IEOServiceProcessing {
                     ieoDetails.getCurrencyDescription(), ieoDetails.getCurrencyName(), ieoClaim.getAmount().toPlainString(),
                     ieoDetails.getCurrencyName());
             String resultIeoMessage = String.format("No tokens available in IEO %s", ieoDetails.getCurrencyName());
-            failedClaim(ieoClaim, availableAmount, principalEmail, notificationMessage, resultIeoMessage, text);
+            failedClaim(ieoClaim, availableAmount, principalEmail, notificationMessage, resultIeoMessage, text, ieoDetails);
             return;
         } else if (availableAmount.compareTo(ieoClaim.getAmount()) < 0) {
             String text = String.format("Token purchase successful! You purchased a maximal available sum: %s %s",
@@ -176,7 +177,7 @@ public class IEOServiceProcessing {
     }
 
     private void failedClaim(IEOClaim ieoClaim, BigDecimal availableAmount, String email,
-                             UserNotificationMessage notificationMessage, String resultIEOMessage, String text) {
+                             UserNotificationMessage notificationMessage, String resultIEOMessage, String text, IEODetails details) {
         notificationMessage.setNotificationType(UserNotificationType.ERROR);
         notificationMessage.setText(text);
         IEOResult ieoResult = IEOResult.builder()
@@ -188,8 +189,34 @@ public class IEOServiceProcessing {
                 .build();
         ieoClaimRepository.updateStatusIEOClaim(ieoClaim.getId(), ieoResult.getStatus());
         ieoResultRepository.save(ieoResult);
-        stompMessenger.sendPersonalMessageToUser(email, notificationMessage);
-        sendMailService.sendInfoMail(prepareEmail(email, notificationMessage));
+        if (!details.getTestIeo()) {
+            sendMailService.sendInfoMail(prepareEmail(email, notificationMessage));
+            try {
+                stompMessenger.sendPersonalMessageToUser(email, notificationMessage);
+            } catch (Exception e) {
+                /*ignore*/
+            }
+        }
+
+        try {
+            if (StringUtils.isNotEmpty(email)) {
+                stompMessenger.sendPersonalDetailsIeo(email, objectMapper.writeValueAsString(ImmutableList.of(details)));
+            }
+        } catch (Exception e) {
+            /*ignore*/
+        }
+        try {
+            stompMessenger.sendDetailsIeo(details.getId(), objectMapper.writeValueAsString(details));
+        } catch (Exception e) {
+            /*ignore*/
+        }
+
+        try {
+            stompMessenger.sendAllIeos(Collections.singletonList(details));
+        } catch (Exception e) {
+            /*ignore*/
+        }
+
     }
 
     private void refactorClaim(BigDecimal newAmount, IEOClaim ieoClaim) {
@@ -216,6 +243,12 @@ public class IEOServiceProcessing {
         }
         try {
             stompMessenger.sendDetailsIeo(ieoDetails.getId(), objectMapper.writeValueAsString(ieoDetails));
+        } catch (Exception e) {
+            /*ignore*/
+        }
+
+        try {
+            stompMessenger.sendAllIeos(Collections.singletonList(ieoDetails));
         } catch (Exception e) {
             /*ignore*/
         }
@@ -267,12 +300,22 @@ public class IEOServiceProcessing {
         ieoDetailsRepository.updateAvailableAmount(ieoDetails.getId(), availableAmount);
         if (availableAmount.compareTo(BigDecimal.ZERO) == 0) {
             ieoDetailsRepository.updateIeoDetailStatus(IEODetailsStatus.TERMINATED, ieoDetails.getId());
+            ieoDetails.setStatus(IEODetailsStatus.TERMINATED);
             ieoDetailsRepository.updateIeoSoldOutTime(ieoDetails.getId());
         }
+
         try {
             stompMessenger.sendDetailsIeo(ieoDetails.getId(), objectMapper.writeValueAsString(ieoDetails));
         } catch (Exception e) {
             /*ignore*/
         }
+
+        try {
+            stompMessenger.sendAllIeos(Collections.singletonList(ieoDetails));
+        } catch (Exception e) {
+            /*ignore*/
+        }
+
+
     }
 }

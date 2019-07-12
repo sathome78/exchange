@@ -8,6 +8,7 @@ import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.model.enums.UserEventEnum;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngExceptions.NgResponseException;
@@ -22,6 +23,7 @@ import me.exrates.security.service.SecureService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.UserService;
 import me.exrates.service.notifications.G2faService;
+import me.exrates.service.util.IpUtils;
 import me.exrates.service.util.RestApiUtilComponent;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -52,6 +54,7 @@ import javax.validation.Valid;
 import java.util.Locale;
 import java.util.Optional;
 
+import static me.exrates.service.util.RestUtil.getUrlFromRequest;
 import static org.apache.commons.lang.StringUtils.isEmpty;
 
 @RestController
@@ -101,6 +104,7 @@ public class NgUserController {
         this.restApiUtilComponent = restApiUtilComponent;
     }
 
+
     @PostMapping(value = "/authenticate")
 //    @CheckIp(value = IpTypesOfChecking.LOGIN)
     public ResponseEntity<AuthTokenDto> authenticate(@RequestBody @Valid UserAuthenticationDto authenticationDto,
@@ -112,7 +116,7 @@ public class NgUserController {
 
         User user = authenticateUser(authenticationDto, request);
 
-        String ipAddress = request.getHeader("X-Forwarded-For");
+        String ipAddress = IpUtils.getIpForDbLog(request);
         boolean shouldLoginWithGoogle = g2faService.isGoogleAuthenticatorEnable(user.getId());
         if (isEmpty(authenticationDto.getPin())) {
             if (!shouldLoginWithGoogle) {
@@ -141,6 +145,7 @@ public class NgUserController {
         }
         AuthTokenDto authTokenDto = createToken(authenticationDto, request, user);
 //        ipBlockingService.successfulProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
+        userService.logIP(user.getId(), ipAddress, UserEventEnum.LOGIN_SUCCESS, getUrlFromRequest(request));
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK); // 200
     }
 
@@ -163,12 +168,11 @@ public class NgUserController {
         }
 
         boolean registered = ngUserService.registerUser(userEmailDto, request);
-
+        String ipAddress = IpUtils.getIpForDbLog(request);
         if (registered) {
-            ipBlockingService.successfulProcessing(request.getHeader("X-Forwarded-For"), IpTypesOfChecking.REGISTER);
+            ipBlockingService.successfulProcessing(ipAddress, IpTypesOfChecking.REGISTER);
             return ResponseEntity.ok().build();
         }
-        String ipAddress = request.getHeader("X-Forwarded-For");
         if (ipAddress == null) ipAddress = request.getRemoteAddr();
         ipBlockingService.failureProcessing(ipAddress, IpTypesOfChecking.REGISTER);
         throw new NgResponseException(ErrorApiTitles.FAILED_TO_REGISTER_USER, "Registration failed from ip: " + ipAddress);
@@ -214,6 +218,11 @@ public class NgUserController {
     @GetMapping("/validateTempToken/{token}")
     public ResponseModel<Boolean> checkTempToken(@PathVariable("token") String token) {
         return new ResponseModel<>(ngUserService.validateTempToken(token));
+    }
+
+    @GetMapping("/publicId")
+    public ResponseModel<String> getUserPublicId() {
+        return new ResponseModel<>(ngUserService.getUserPublicId());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

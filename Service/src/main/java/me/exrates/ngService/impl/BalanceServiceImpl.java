@@ -14,6 +14,10 @@ import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.CurrencyType;
 import me.exrates.model.enums.TradeMarket;
 import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.invoice.InvoiceStatus;
+import me.exrates.model.enums.invoice.RefillStatusEnum;
+import me.exrates.model.enums.invoice.TransferStatusEnum;
+import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.ngModel.RefillPendingRequestDto;
 import me.exrates.model.ngModel.UserBalancesDto;
 import me.exrates.model.ngUtil.PagedResult;
@@ -182,7 +186,24 @@ public class BalanceServiceImpl implements BalanceService {
                             return dateTwo.compareTo(dateOne);
                         }))
                         .collect(Collectors.toList());
+        requests.forEach(p -> p.setButtons(inputOutputService.generateAndGetButtonsSet(convertFromString(p.getStatus(), p.getOperation()), null, true, Locale.ENGLISH)));
         return getSafeSubList(requests, offset, limit);
+    }
+
+    private InvoiceStatus convertFromString(String status, String operation) {
+        switch (operation) {
+            case "REFILL" : {
+                return RefillStatusEnum.convert(status);
+            }
+            case "WITHDRAW" : {
+                return WithdrawStatusEnum.convert(status);
+            }
+            case "TRANSFER" : {
+                return TransferStatusEnum.convert(status);
+            }
+            default:
+                return null;
+        }
     }
 
     private boolean containsCurrencyName(RefillPendingRequestDto dto, String currencyName) {
