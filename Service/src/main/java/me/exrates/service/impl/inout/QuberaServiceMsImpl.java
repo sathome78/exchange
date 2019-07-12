@@ -10,9 +10,13 @@ import me.exrates.model.dto.AccountCreateDto;
 import me.exrates.model.dto.AccountQuberaResponseDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.model.dto.kyc.IdentityDataRequest;
+import me.exrates.model.dto.kyc.responces.KycStatusResponseDto;
+import me.exrates.model.dto.kyc.responces.OnboardingResponseDto;
 import me.exrates.model.dto.qubera.AccountInfoDto;
 import me.exrates.model.dto.qubera.ExternalPaymentDto;
 import me.exrates.model.dto.qubera.PaymentRequestDto;
+import me.exrates.model.dto.qubera.QuberaPaymentInfoDto;
 import me.exrates.model.dto.qubera.QuberaRequestDto;
 import me.exrates.model.dto.qubera.ResponsePaymentDto;
 import me.exrates.service.QuberaService;
@@ -76,7 +80,7 @@ public class QuberaServiceMsImpl implements QuberaService {
     }
 
     @Override
-    public AccountQuberaResponseDto createAccount(AccountCreateDto accountCreateDto) {
+    public AccountQuberaResponseDto createAccount(String email) {
         return null;
     }
 
@@ -101,13 +105,13 @@ public class QuberaServiceMsImpl implements QuberaService {
     }
 
     @Override
-    public String confirmPaymentToMaster(Integer paymentId) {
-        return null;
+    public boolean confirmPaymentToMaster(Integer paymentId) {
+        return true;
     }
 
     @Override
-    public String confirmPaymentFRomMaster(Integer paymentId) {
-        return null;
+    public boolean confirmPaymentFRomMaster(Integer paymentId) {
+        return true;
     }
 
     @Override
@@ -117,6 +121,31 @@ public class QuberaServiceMsImpl implements QuberaService {
 
     @Override
     public String confirmExternalPayment(Integer paymentId) {
+        return null;
+    }
+
+    @Override
+    public QuberaPaymentInfoDto getInfoForPayment(String email) {
+        return null;
+    }
+
+    @Override
+    public void sendNotification(QuberaRequestDto quberaRequestDto) {
+
+    }
+
+    @Override
+    public String getUserVerificationStatus(String email) {
+        return null;
+    }
+
+    @Override
+    public void processingCallBack(String referenceId, KycStatusResponseDto kycStatusResponseDto) {
+
+    }
+
+    @Override
+    public OnboardingResponseDto startVerificationProcessing(IdentityDataRequest identityDataRequest, String email) {
         return null;
     }
 

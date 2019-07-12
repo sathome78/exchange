@@ -411,7 +411,7 @@ public class AdminController {
 
 
     @ResponseBody
-    @RequestMapping(value = "/2a8fy7b07dxe44/usersList", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/2a8fy7b07dxe44/usersList", produces = MediaType.APPLICATION_JSON_VALUE)
     public DataTable<List<User>> getAllUsers(@RequestParam Map<String, String> params) {
         List<UserRole> userRoles = userRoleService.getRealUserRoleByGroupRoleList(USERS);
         return userSecureService.getUsersByRolesPaginated(userRoles, params);

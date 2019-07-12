@@ -14,20 +14,16 @@
       -d '{
 	    "firstName":"firstName",
 	    "lastName":"lastName",
-	    "dateOfBirth":"30/07/1968",
-	    "zipCode":"92200",
-	    "street":"Neuilly sur seine",
-	    "country":"France",
-	    "phone":"33123456789"
+	    "address":"Flat 6, 28 street",
+	    "countryCode":"UK",
+	    "city":"London"
 }'
 
 @apiParam {String} firstName - first name
 @apiParam {String} lastName - last name
-@apiParam {String} dateOfBirth - date of birth
-@apiParam {String} zipCode - zip code
-@apiParam {String} street - street
-@apiParam {String} country - country
-@apiParam {String} phone - phone
+@apiParam {String} city - city
+@apiParam {String} address - Address line (without country name/code, postal code, city), example: Flat 6, 28 street
+@apiParam {String} countryCode - country code
 
 @apiSuccess {Object} data Data
 @apiSuccess {String} data.iban
@@ -126,7 +122,7 @@ HTTP/1.1 400 OK
 ###
 
 ###
-@api {get} /api/private/v2/merchants/qubera/payment/toMaster Create payment to master
+@api {post} api/private/v2/merchants/qubera/payment/create Create payment
 @apiName  Create payment to master
 @apiVersion 0.0.1
 @apiGroup Qubera
@@ -135,40 +131,27 @@ HTTP/1.1 400 OK
 
 @apiExample {curl} Example usage:
  curl -X POST \
-  http://localhost:8080/api/private/v2/merchants/qubera/payment/toMaster \
+  http://localhost:8080/api/private/v2/merchants/qubera/payment/createe \
   -H 'Content-Type: application/json' \
-  -H 'apiKey: e993670a-b7f7-4e0a-9742-68ff3b9ac09d' \
+  -H 'exrates-rest-token: $Token' \
   -d '{
-	    "amount":10.0,
-	    "currencyCode":"EUR"
+    "currency":3,
+    "merchant":376,
+    "sum":200.0,
+    "destination":"description",
+    "merchantImage":70,
+    "operationType":"INPUT"
 }'
 
-@apiParam {String} amount - for example: 10 or 10.0 or 10.00
-@apiParam {String} currencyCode - currency, min=3 chars, max=3 chars
-
-@apiSuccess {Object} data Data
-@apiSuccess {String} data.currencyFrom
-@apiSuccess {String} data.currencyTo
-@apiSuccess {Number} data.feeAmount
-@apiSuccess {String} data.feeCurrencyCode
-@apiSuccess {Number} data.paymentId
-@apiSuccess {Number} data.rate
-@apiSuccess {Number} data.transactionAmount
-@apiSuccess {String} data.transactionCurrencyCode
+@apiParam {String} sum - for example: 10 or 10.0 or 10.00
+@apiParam {Integer} currency - currency id
+@apiParam {Integer} merchant - merchant id
+@apiParam {Integer} merchantImage - merchant image id
+@apiParam {String} destination
+@apiParam {String} operationType - INPUT, OUTPUT
 
 @apiSuccessExample {json} Success-Response:
-      {
-        "data": {
-            "currencyFrom": "string",
-            "currencyTo": "string",
-            "feeAmount": 0,
-            "feeCurrencyCode": "string",
-            "paymentId": 0,
-            "rate": 0,
-            "transactionAmount": 0,
-            "transactionCurrencyCode": "string"
-            }
-      }
+HTTP/1.1 200 OK
 
 @apiErrorExample {json} Error-Response:
 HTTP/1.1 400 OK
@@ -183,8 +166,8 @@ HTTP/1.1 400 OK
 ###
 
 ###
-@api {get} /api/private/v2/merchants/qubera/payment/fromMaster Create payment from master
-@apiName  Create payment from master
+@api {post} /api/private/v2/balances/withdraw/request/create Create payment withdraw
+@apiName  Create payment withdraw
 @apiVersion 0.0.1
 @apiGroup Qubera
 @apiUse Exrates
@@ -192,84 +175,32 @@ HTTP/1.1 400 OK
 
 @apiExample {curl} Example usage:
  curl -X POST \
-  http://localhost:8080/api/private/v2/merchants/qubera/payment/fromMaster \
+  http://localhost:8080/api/private/v2/balances/withdraw/request/create \
   -H 'Content-Type: application/json' \
   -H 'apiKey: e993670a-b7f7-4e0a-9742-68ff3b9ac09d' \
   -d '{
-	    "amount":10.0,
-	    "currencyCode":"EUR"
+	"currency":3,
+	"merchant":376,
+	"destination":"fwefwegwegwegweg",
+	"merchantImage":1576,
+	"sum":"100",
+	"destinationTag":"",
+	"securityCode":"88914109"
 }'
 
-@apiParam {String} amount - for example: 10 or 10.0 or 10.00
-@apiParam {String} currencyCode - currency, min=3 chars, max=3 chars
+@apiParam {String} sum - for example: 10 or 10.0 or 10.00
+@apiParam {Integer} currency - currency id
+@apiParam {Integer} merchant - merchant id
+@apiParam {Integer} merchantImage - merchant image id
+@apiParam {String} destination
+@apiParam {String} destinationTag
+@apiParam {String} securityCode - code from 2FA or email
 
 @apiSuccess {Boolean} data Data
 
 @apiSuccessExample {json} Success-Response:
       {
         "data": true
-      }
-
-@apiErrorExample {json} Error-Response:
-HTTP/1.1 400 OK
-{
-    "url": "url",
-    "cause": "cause",
-    "detail": "detail",
-    "title": "title",
-    "uuid": "uuid",
-    "code": 1200
-}
-###
-
-###
-@api {put} /merchants/qubera/confirm/{paymentId}/toMaster Confirm payment to master
-@apiName  Confirm payment to master
-@apiVersion 0.0.1
-@apiGroup Qubera
-@apiUse Exrates
-
-@apiExample {curl} Example usage:
- curl -X PUT \
-  http://localhost:8080/api/private/v2/merchants/qubera/payment/234235436467/toMaster \
-  -H 'apiKey: e993670a-b7f7-4e0a-9742-68ff3b9ac09d'
-
-@apiSuccess {String} data Data
-
-@apiSuccessExample {json} Success-Response:
-      {
-        "data": "SUCCESS"
-      }
-
-@apiErrorExample {json} Error-Response:
-HTTP/1.1 400 OK
-{
-    "url": "url",
-    "cause": "cause",
-    "detail": "detail",
-    "title": "title",
-    "uuid": "uuid",
-    "code": 1200
-}
-###
-
-###
-@api {put} /merchants/qubera/confirm/{paymentId}/fromMaster Confirm payment from master
-@apiName  Confirm payment from master
-@apiVersion 0.0.1
-@apiGroup Qubera
-@apiUse Exrates
-
-@apiExample {curl} Example usage:
- curl -X PUT \
-  http://localhost:8080/api/private/v2/merchants/qubera/payment/234235436467/fromMaster \
-  -H 'apiKey: e993670a-b7f7-4e0a-9742-68ff3b9ac09d'
-
-@apiSuccess {String} data Data
-
-@apiSuccessExample {json} Success-Response:
-      {
-        "data": "SUCCESS"
       }
 
 @apiErrorExample {json} Error-Response:

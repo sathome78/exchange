@@ -346,6 +346,30 @@ public class RefillServiceImpl implements RefillService {
         return requestId;
     }
 
+    @SuppressWarnings("Duplicated")
+    @Transactional
+    public Integer createRefillRequestByFactWithOutAddress(RefillRequestAcceptDto requestAcceptDto, int userId) {
+        log.debug("Creating request by fact: " + requestAcceptDto);
+        String address = requestAcceptDto.getAddress();
+        Integer currencyId = requestAcceptDto.getCurrencyId();
+        Integer merchantId = requestAcceptDto.getMerchantId();
+        BigDecimal amount = requestAcceptDto.getAmount();
+        Integer commissionId = commissionService.findCommissionByTypeAndRole(INPUT, userService.getUserRoleFromDB(userId)).getId();
+        RefillStatusEnum beginStatus = (RefillStatusEnum) RefillStatusEnum.X_STATE.nextState(CREATE_BY_FACT);
+        RefillRequestCreateDto request = new RefillRequestCreateDto();
+        request.setUserId(userId);
+        request.setStatus(beginStatus);
+        request.setCurrencyId(currencyId);
+        request.setMerchantId(merchantId);
+        request.setAmount(amount);
+        request.setCommissionId(commissionId);
+        request.setAddress(address);
+        request.setNeedToCreateRefillRequestRecord(true);
+        Integer requestId = createRefillByFact(request).orElseThrow(() -> new RefillRequestCreationByFactException(requestAcceptDto.toString()));
+        request.setId(requestId);
+        return requestId;
+    }
+
     @Override
     public Integer createRefillRequestByFact(RefillRequestAcceptDto request, int userId, int commissionId, RefillStatusEnum statusEnum) {
         return refillRequestDao.autoCreate(request, userId, commissionId, statusEnum).orElse(0);
@@ -583,6 +607,26 @@ public class RefillServiceImpl implements RefillService {
     @Override
     public Integer createAndAutoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) {
         Integer requestId = createRefillRequestByFact(requestAcceptDto);
+        requestAcceptDto.setRequestId(requestId);
+
+        RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);
+        /**/
+        Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
+        String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
+        String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
+                new Integer[]{requestId},
+                locale);
+        String userEmail = userService.getEmailById(refillRequestFlatDto.getUserId());
+        userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
+        notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+
+        return requestId;
+    }
+
+    @Transactional
+    @Override
+    public Integer createAndAutoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto, int userId) {
+        Integer requestId = createRefillRequestByFactWithOutAddress(requestAcceptDto, userId);
         requestAcceptDto.setRequestId(requestId);
 
         RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);

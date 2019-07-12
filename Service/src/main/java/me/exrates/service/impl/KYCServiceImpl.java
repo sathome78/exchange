@@ -150,10 +150,10 @@ public class KYCServiceImpl implements KYCService {
         try {
             responseEntity = restTemplate.postForEntity(verificationUrl, requestEntity, String.class);
             if (responseEntity.getStatusCodeValue() != 200) {
-                throw new ShuftiProException("ShuftiPro KYC verification service is not available");
+                throw new ShuftiProException(String.format("ShuftiPro KYC verification service is not available (status code is %d)", responseEntity.getStatusCodeValue()));
             }
         } catch (Exception ex) {
-            throw new ShuftiProException("ShuftiPro KYC verification service is not available", ex);
+            throw new ShuftiProException(String.format("ShuftiPro KYC verification service is not available: %s", ex.getMessage()));
         }
 
         final String signature = responseEntity.getHeaders().get(SIGNATURE).get(0);
@@ -255,10 +255,10 @@ public class KYCServiceImpl implements KYCService {
         try {
             responseEntity = restTemplate.postForEntity(statusUrl, requestEntity, String.class);
             if (responseEntity.getStatusCodeValue() != 200) {
-                throw new ShuftiProException("ShuftiPro KYC status service is not available");
+                throw new ShuftiProException(String.format("ShuftiPro KYC status service is not available (status code is %d)", responseEntity.getStatusCodeValue()));
             }
         } catch (Exception ex) {
-            throw new ShuftiProException("ShuftiPro KYC status service is not available", ex);
+            throw new ShuftiProException(String.format("ShuftiPro KYC status service is not available: %s", ex.getMessage()));
         }
 
         final String signature = responseEntity.getHeaders().get(SIGNATURE).get(0);
@@ -322,36 +322,40 @@ public class KYCServiceImpl implements KYCService {
 
     @Override
     public OnboardingResponseDto startKyCProcessing(IdentityDataRequest identityDataRequest, String email) {
-        User user = userService.findByEmail(email);
-        if (user.getKycStatus().equalsIgnoreCase("success")) {
-            throw new KycException("Already passed KYC");
-        }
-        Date dateOfBirth = DateUtils.getDateFromStringForKyc(identityDataRequest.getBirthYear(), identityDataRequest.getBirthMonth(),
-                identityDataRequest.getBirthDay());
-        //start create applicant
-        String uuid = UUID.randomUUID().toString();
-        KycCountryDto countryDto = kycSettingsDao.getCountryByCode(identityDataRequest.getCountry());
-        userService.updatePrivateDataAndKycReference(email, uuid, countryDto.getCountryCode(), identityDataRequest.getFirstNames()[0],
-                identityDataRequest.getLastName(), dateOfBirth);
-        PersonKycDto personKycDto = new PersonKycDto(Collections.singletonList(IdentityDataKyc.of(identityDataRequest)));
-        CreateApplicantDto createApplicantDto = new CreateApplicantDto(uuid, personKycDto);
-
-        ResponseCreateApplicantDto response = kycHttpClient.createApplicant(createApplicantDto);
-
-        if (!response.getState().equalsIgnoreCase("INITIAL")) {
-            throw new KycException("Error while start processing KYC, state " + response.getState()
-                    + " uid " + response.getUid() + " lastReportStatus " + response.getLastReportStatus());
-        }
-        String docId = RandomStringUtils.random(18, true, false);
-
-        String callBackUrl = String.format("%s/api/public/v2/kyc/webhook/%s", host, uuid);
-
-        RequestOnBoardingDto onBoardingDto = RequestOnBoardingDto.createOfParams(callBackUrl, email, uuid, docId);
-        userVerificationInfoDao.saveUserVerificationDoc(new UserVerificationInfo(user.getId(), DocTypeEnum.P, docId));
-        log.info("Sending to create applicant {}", onBoardingDto);
-        OnboardingResponseDto onBoarding = kycHttpClient.createOnBoarding(onBoardingDto);
-        userService.updateVerificationStatus(user.getEmail(), "Pending");
-        return onBoarding;
+//        User user = userService.findByEmail(email);
+//        if (user.getKycStatus().equalsIgnoreCase("success")) {
+//            throw new KycException("Already passed KYC");
+//        }
+//        Date dateOfBirth = DateUtils.getDateFromStringForKyc(identityDataRequest.getBirthYear(), identityDataRequest.getBirthMonth(),
+//                identityDataRequest.getBirthDay());
+//        //start create applicant
+//        String uuid = UUID.randomUUID().toString();
+//        userService.updatePrivateDataAndKycReference(user.getEmail(),
+//                uuid,
+//                identityDataRequest.getCountryCode(),
+//                identityDataRequest.getFirstName(),
+//                identityDataRequest.getLastName(),
+//                dateOfBirth);
+//        PersonKycDto personKycDto = new PersonKycDto(Collections.singletonList(IdentityDataKyc.of(identityDataRequest)));
+//        CreateApplicantDto createApplicantDto = new CreateApplicantDto(uuid, personKycDto);
+//
+//        ResponseCreateApplicantDto response = kycHttpClient.createApplicant(createApplicantDto);
+//
+//        if (!response.getState().equalsIgnoreCase("INITIAL")) {
+//            throw new KycException("Error while start processing KYC, state " + response.getState()
+//                    + " uid " + response.getUid() + " lastReportStatus " + response.getLastReportStatus());
+//        }
+//        String docId = RandomStringUtils.random(18, true, false);
+//
+//        String callBackUrl = String.format("%s/api/public/v2/kyc/webhook/%s", host, uuid);
+//
+//        RequestOnBoardingDto onBoardingDto = RequestOnBoardingDto.createOfParams(callBackUrl, email, uuid, docId);
+//        userVerificationInfoDao.saveUserVerificationDoc(new UserVerificationInfo(user.getId(), DocTypeEnum.P, docId));
+//        log.info("Sending to create applicant {}", onBoardingDto);
+//        OnboardingResponseDto onBoarding = kycHttpClient.createOnBoarding(onBoardingDto);
+//        userService.updateVerificationStatus(user.getEmail(), "Pending");
+//        return onBoarding;
+        return null;
     }
 
     @Override
@@ -362,24 +366,10 @@ public class KYCServiceImpl implements KYCService {
 
     @Override
     public void processingCallBack(String referenceId, KycStatusResponseDto kycStatusResponseDto) {
-        User user = userService.findByKycReferenceId(referenceId);
-        updateUserVerificationInfo(user, kycStatusResponseDto);
-        sendPersonalMessage(kycStatusResponseDto, user);
-        sendStatusNotification(user.getEmail(), kycStatusResponseDto.getStatus());
-    }
-
-    private void sendPersonalMessage(KycStatusResponseDto kycStatusResponseDto, User user) {
-        UserNotificationMessage message = UserNotificationMessage.builder()
-                .notificationType(UserNotificationType.SUCCESS)
-                .sourceTypeEnum(WsSourceTypeEnum.KYC)
-                .text("Dear user, your current verification status is SUCCESS")
-                .build();
-        if (StringUtils.isNotEmpty(kycStatusResponseDto.getErrorMsg())) {
-            message.setNotificationType(UserNotificationType.WARNING);
-            String text = "Dear user, your verification seems to fail as " + kycStatusResponseDto.getErrorMsg();
-            message.setText(text);
-        }
-        stompMessenger.sendPersonalMessageToUser(user.getEmail(), message);
+//        User user = userService.findByKycReferenceId(referenceId);
+//        updateUserVerificationInfo(user, kycStatusResponseDto);
+//        sendPersonalMessage(kycStatusResponseDto, user);
+//        sendStatusNotification(user.getEmail(), kycStatusResponseDto.getStatus());
     }
 
     private void sendPersonalMessage(String userEmail, String verificationLink) {
