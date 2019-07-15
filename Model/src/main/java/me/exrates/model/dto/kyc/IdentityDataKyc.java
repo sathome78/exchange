@@ -21,7 +21,7 @@ public class IdentityDataKyc {
         identityDataKyc.setBirthMonth(identityDataRequest.getBirthMonth().toString());
         identityDataKyc.setBirthYear(identityDataRequest.getBirthYear().toString());
         identityDataKyc.setLastName(identityDataRequest.getLastName());
-        identityDataKyc.setFirstNames(identityDataRequest.getFirstNames());
+        identityDataKyc.setFirstNames(new String[]{identityDataRequest.getFirstName()});
         return identityDataKyc;
     }
 }

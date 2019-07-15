@@ -733,7 +733,7 @@
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
                 <SizeBasedTriggeringPolicy size="1000 MB"/>
             </Policies>
-            <DefaultRolloverStrategy max="1"/>
+            <DefaultRolloverStrategy max="20"/>
         </RollingFile>
         <RollingFile name="eos_log" fileName="${sys:catalina.home}/logs/crypto/eos.log"
                      filePattern="${sys:catalina.home}/logs/crypto/eos_log%d_%i.log" append="true">

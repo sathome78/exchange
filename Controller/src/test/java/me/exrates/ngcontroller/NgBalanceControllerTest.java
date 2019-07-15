@@ -742,7 +742,7 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
 
     private RefillPendingRequestDto getMockRefillPendingRequestDto() {
         return new RefillPendingRequestDto(777, "TEST_DATE", "TEST_CURRENCY", 100.0,
-                10.0, "TEST_SYSTEM", "TEST_STATUS", "TEST_OPERATION");
+                10.0, "TEST_SYSTEM", "TEST_STATUS", "TEST_OPERATION", null);
     }
 
     private MyWalletsDetailedDto getMockMyWalletsDetailedDto() {

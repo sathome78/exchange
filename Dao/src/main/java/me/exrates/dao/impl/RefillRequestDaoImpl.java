@@ -398,7 +398,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
                 "  date_creation, status_modification_date, merchant_transaction_id) " +
                 " VALUES " +
                 " (:amount, :status_id, :currency_id, :user_id, :commission_id, :merchant_id, " +
-                " NOW(), NOW())";
+                " NOW(), NOW(), :merchant_transaction_id)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("amount", request.getAmount())

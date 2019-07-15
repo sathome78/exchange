@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 @Log4j2(topic = "eos_log")
 @Service
 @Conditional(MonolitConditional.class)
-@PropertySource("classpath:/merchants/eos.properties")
+@PropertySource(value = {"classpath:/merchants/eos.properties", "classpath:/env.properties"})
 public class EosReceiveService {
 
     private EosApi client;
@@ -48,6 +48,9 @@ public class EosReceiveService {
     @Value("${eos.main.address}")
     private String mainAccount;
 
+    @Value("${env.name}")
+    private String environment;
+
     @Autowired
     private MerchantSpecParamsDao specParamsDao;
     @Autowired
@@ -57,11 +60,13 @@ public class EosReceiveService {
 
     @PostConstruct
     private void init() {
-        BasicConfigurator.configure();
-        client = EosApiFactory.create("http://127.0.0.1:8900",
-                "https://api.eosnewyork.io",
-                "https://api.eosnewyork.io");
-        scheduler.scheduleAtFixedRate(this::checkRefills, 5, 5, TimeUnit.MINUTES);
+        if (environment.equals("prd")) {
+            BasicConfigurator.configure();
+            client = EosApiFactory.create("http://127.0.0.1:8900",
+                    "https://api.eosnewyork.io",
+                    "https://api.eosnewyork.io");
+            scheduler.scheduleAtFixedRate(this::checkRefills, 5, 5, TimeUnit.MINUTES);
+        }
     }
 
 

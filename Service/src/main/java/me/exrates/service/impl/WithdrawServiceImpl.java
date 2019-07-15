@@ -491,6 +491,7 @@ public class WithdrawServiceImpl implements WithdrawService {
                 .currency(withdrawRequest.getCurrencyName())
                 .amount(finalAmount.toString())
                 .accountTo(withdrawRequest.getWallet())
+                .userId(withdrawRequest.getUserId())
                 .destinationTag(withdrawRequest.getDestinationTag())
                 .build();
         log.debug("Withdraw merchant operation summary: " + withdrawMerchantOperation);

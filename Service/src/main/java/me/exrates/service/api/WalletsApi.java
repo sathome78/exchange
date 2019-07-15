@@ -97,7 +97,11 @@ public class WalletsApi {
 
     @Scheduled(initialDelay = 0, fixedDelay = 30 * 60 * 1_000)
     public void updateCurrencyBalances() {
-        currencyService.updateCurrencyBalances(getBalancesFromApi());
+        try {
+            currencyService.updateCurrencyBalances(getBalancesFromApi());
+        } catch (Exception ex) {
+            log.error("--> In processing 'WalletsApi' occurred error", ex);
+        }
     }
 
     public Map<String, BalanceDto> getBalances() {

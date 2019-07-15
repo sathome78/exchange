@@ -10,15 +10,30 @@ import me.exrates.model.Policy;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.IpLogDto;
+import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.dto.UserBalancesDto;
+import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
+import me.exrates.model.dto.UserIpDto;
+import me.exrates.model.dto.UserIpReportDto;
+import me.exrates.model.dto.UserSessionInfoDto;
+import me.exrates.model.dto.UserShortDto;
+import me.exrates.model.dto.UsersInfoDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminIpLogsFilterData;
 import me.exrates.model.dto.ieo.IeoUserStatus;
+import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.AdminAuthority;
+import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.model.enums.PolicyEnum;
+import me.exrates.model.enums.TokenType;
+import me.exrates.model.enums.UserEventEnum;
+import me.exrates.model.enums.UserIpState;
+import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.UserStatus;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
-import me.exrates.model.util.BigDecimalProcessing;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -46,7 +61,17 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
@@ -97,7 +122,7 @@ public class UserDaoImpl implements UserDao {
             user.setNickname(resultSet.getString("nickname"));
             user.setEmail(resultSet.getString("email"));
             user.setPassword(resultSet.getString("password"));
-            user.setRegdate(resultSet.getDate("regdate"));
+            user.setRegdate(resultSet.getDate("regdate").toLocalDate());
             user.setPhone(resultSet.getString("phone"));
             user.setUserStatus(UserStatus.values()[resultSet.getInt("status") - 1]);
             user.setRole(UserRole.valueOf(resultSet.getString("role_name")));
@@ -119,7 +144,7 @@ public class UserDaoImpl implements UserDao {
             user.setNickname(resultSet.getString("nickname"));
             user.setEmail(resultSet.getString("email"));
             user.setPassword(resultSet.getString("password"));
-            user.setRegdate(resultSet.getDate("regdate"));
+            user.setRegdate(resultSet.getDate("regdate").toLocalDate());
             user.setPhone(resultSet.getString("phone"));
             user.setUserStatus(UserStatus.values()[resultSet.getInt("status") - 1]);
             user.setFinpassword(resultSet.getString("finpassword"));
@@ -396,11 +421,11 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public boolean updateKycStatusByEmail(String email, String result) {
-        final String sql = "UPDATE USER SET kyc_status = :value WHERE email = :email";
+    public boolean updateVerificationStatus(String email, String status) {
+        final String sql = "UPDATE USER SET kyc_status = :kyc_status WHERE email = :email";
 
         MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("value", result);
+        params.addValue("kyc_status", status);
         params.addValue("email", email);
 
         try {
@@ -1190,14 +1215,6 @@ public class UserDaoImpl implements UserDao {
         return masterTemplate.update(sql, namedParameters);
     }
 
-    @Transactional(readOnly = true)
-    @Override
-    public int getVerificationStep(String userEmail) {
-        String sql = "SELECT u.kyc_verification_step FROM USER u WHERE u.email =:email";
-
-        return masterTemplate.queryForObject(sql, Collections.singletonMap("email", userEmail), Integer.class);
-    }
-
     @Override
     public boolean userExistByEmail(String email) {
         return this.jdbcTemplate.queryForObject("SELECT CASE WHEN count(id) > 0 THEN TRUE ELSE FALSE END FROM USER WHERE email = ?", Boolean.class, email);
@@ -1235,11 +1252,12 @@ public class UserDaoImpl implements UserDao {
 
     @Transactional
     @Override
-    public int updateReferenceId(String referenceId, String userEmail) {
-        final String sql = "UPDATE USER SET kyc_reference = :kyc_reference WHERE email = :email";
+    public int updateReferenceIdAndStatus(String referenceId, EventStatus status, String userEmail) {
+        final String sql = "UPDATE USER SET kyc_reference = :kyc_reference, kyc_status = :kyc_status WHERE email = :email";
 
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("kyc_reference", referenceId);
+            put("kyc_status", status.name());
             put("email", userEmail);
         }};
         return masterTemplate.update(sql, params);
@@ -1262,14 +1280,6 @@ public class UserDaoImpl implements UserDao {
         String sql = "SELECT u.email FROM USER u WHERE u.kyc_reference =:kyc_reference";
 
         return masterTemplate.queryForObject(sql, Collections.singletonMap("kyc_reference", referenceId), String.class);
-    }
-
-    @Transactional
-    @Override
-    public int updateVerificationStep(String userEmail) {
-        final String sql = "UPDATE USER SET kyc_verification_step = kyc_verification_step + 1 WHERE email = :email";
-
-        return masterTemplate.update(sql, Collections.singletonMap("email", userEmail));
     }
 
     @Override
@@ -1406,8 +1416,13 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public String getKycStatusByEmail(String email) {
-        String sql = "SELECT u.kyc_status FROM USER u WHERE u.email =:email";
-        return masterTemplate.queryForObject(sql, Collections.singletonMap("email", email), String.class);
+        final String sql = "SELECT u.kyc_status FROM USER u WHERE u.email =:email";
+
+        try {
+            return masterTemplate.queryForObject(sql, Collections.singletonMap("email", email), String.class);
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     @Override
@@ -1446,8 +1461,13 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public String findKycReferenceByUserEmail(String email) {
-        String sql = "SELECT kyc_reference FROM USER WHERE email = :email";
-        return masterTemplate.queryForObject(sql, Collections.singletonMap("email", email), String.class);
+        final String sql = "SELECT u.kyc_reference FROM USER u WHERE u.email = :email";
+
+        try {
+            return masterTemplate.queryForObject(sql, Collections.singletonMap("email", email), String.class);
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     @Override
@@ -1520,4 +1540,23 @@ public class UserDaoImpl implements UserDao {
         return masterTemplate.update(sql, params) > 0;
     }
 
+    @Override
+    public String getUserPublicId(String userEmail) {
+        final String sql = "SELECT u.pub_id FROM USER u WHERE u.email = :user_email";
+
+        final Map<String, Object> params = Collections.singletonMap("user_email", userEmail);
+
+        return slaveTemplate.queryForObject(sql, params, String.class);
+    }
+
+    @Override
+    public boolean updateCountryCode(String countryCode, String userEmail) {
+        final String sql = "UPDATE USER u SET u.country = :code WHERE u.email = :email";
+
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("code", countryCode);
+            put("email", userEmail);
+        }};
+        return masterTemplate.update(sql, params) > 0;
+    }
 }

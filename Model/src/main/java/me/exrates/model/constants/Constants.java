@@ -19,5 +19,7 @@ public interface Constants {
         int QUBERA_ERROR_RESPONSE_CREATE_EXTERNAL_PAYMENT = 1210;
         int QUBERA_KYC_ERROR_GET_STATUS = 1211;
         int QUBERA_KYC_RESPONSE_ERROR_GET_STATUS = 1212;
+
+        int SHUFTI_PRO_KYC_ERROR_GET_STATUS = 1300;
     }
 }

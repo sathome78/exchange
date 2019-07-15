@@ -29,7 +29,7 @@ public interface AlgorithmService {
 
     BigDecimal toBigDecimal(String value);
 
-    String encodeByKey(String txt);
+    String encodeByKey(String code, String txt);
 
-    String decodeByKey(String text);
+    String decodeByKey(String code, String text);
 }

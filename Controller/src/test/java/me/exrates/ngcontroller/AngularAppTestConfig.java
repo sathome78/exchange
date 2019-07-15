@@ -28,6 +28,7 @@ import me.exrates.service.NotificationService;
 import me.exrates.service.OpenApiTokenService;
 import me.exrates.service.OrderService;
 import me.exrates.service.PageLayoutSettingsService;
+import me.exrates.service.QuberaService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.RefillService;
 import me.exrates.service.SendMailService;
@@ -331,6 +332,11 @@ public class AngularAppTestConfig {
     @Bean
     public NewsParser newsParser() {
         return Mockito.mock(NewsParser.class);
+    }
+
+    @Bean
+    public QuberaService quberaService() {
+        return Mockito.mock(QuberaService.class);
     }
 
     @Bean
