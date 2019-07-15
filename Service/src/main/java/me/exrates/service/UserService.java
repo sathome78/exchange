@@ -284,4 +284,6 @@ public interface UserService {
     String getPubIdByEmail(String email);
 
     DataTable<List<IpLogDto>> getIpAdressesTable(AdminIpLogsFilterData adminOrderFilterData, DataTableParams dataTableParams);
+
+    boolean updateCountryCode(String countryCode);
 }

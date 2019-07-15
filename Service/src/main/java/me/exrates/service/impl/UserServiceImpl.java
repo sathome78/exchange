@@ -1102,4 +1102,8 @@ public class UserServiceImpl implements UserService {
         return output;
     }
 
+    @Override
+    public boolean updateCountryCode(String countryCode) {
+        return userDao.updateCountryCode(countryCode, getUserEmailFromSecurityContext());
+    }
 }

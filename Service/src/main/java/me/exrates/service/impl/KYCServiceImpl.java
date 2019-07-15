@@ -167,10 +167,10 @@ public class KYCServiceImpl implements KYCService {
             String errorMessage = nonNull(errorObject) ? errorObject.getString(MESSAGE) : StringUtils.EMPTY;
             throw new ShuftiProException(String.format("ShuftiPro KYC verification service: status: %s, error message: %s", eventStatus, errorMessage));
         }
-        int affectedRowCount = userService.updateReferenceIdAndStatus(verificationObject.getString(REFERENCE), eventStatus);
-        if (affectedRowCount == 0) {
-            log.debug("Reference id have not been updated in database");
-        }
+        userService.updateReferenceIdAndStatus(verificationObject.getString(REFERENCE), eventStatus);
+
+        userService.updateCountryCode(countryCode);
+
         String verificationUrl = verificationObject.getString(VERIFICATION_URL).replace("\\", "");
         sendPersonalMessage(userEmail, verificationUrl);
         return verificationUrl;
@@ -191,9 +191,6 @@ public class KYCServiceImpl implements KYCService {
                         .supportedTypes(documentSupportedTypes)
                         .name(StringUtils.EMPTY)
                         .dob(StringUtils.EMPTY)
-                        .issueDate(StringUtils.EMPTY)
-                        .expiryDate(StringUtils.EMPTY)
-                        .documentNumber(StringUtils.EMPTY)
                         .build())
                 .phone(Phone.builder()
                         .text(smsText)

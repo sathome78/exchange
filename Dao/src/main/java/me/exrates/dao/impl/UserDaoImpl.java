@@ -1548,4 +1548,15 @@ public class UserDaoImpl implements UserDao {
 
         return slaveTemplate.queryForObject(sql, params, String.class);
     }
+
+    @Override
+    public boolean updateCountryCode(String countryCode, String userEmail) {
+        final String sql = "UPDATE USER u SET u.country = :code WHERE u.email = :email";
+
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("code", countryCode);
+            put("email", userEmail);
+        }};
+        return masterTemplate.update(sql, params) > 0;
+    }
 }
