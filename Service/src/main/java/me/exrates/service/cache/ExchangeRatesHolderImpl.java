@@ -3,6 +3,7 @@ package me.exrates.service.cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
@@ -424,12 +425,13 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     }
 
     private Map<String, BigDecimal> getFiatCacheFromAPI() {
-        return exchangeApi.getRatesByCurrencyType(FIAT).entrySet().stream()
-                .filter(entry -> !USD.equals(entry.getKey()))
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue
-                ));
+        return Maps.newHashMap();
+//        return exchangeApi.getRatesByCurrencyType(FIAT).entrySet().stream()
+//                .filter(entry -> !USD.equals(entry.getKey()))
+//                .collect(Collectors.toMap(
+//                        Map.Entry::getKey,
+//                        Map.Entry::getValue
+//                ));
     }
 
     private ExOrderStatisticsShortByPairsDto refreshItem(Integer currencyPairId) {
