@@ -7,27 +7,13 @@
 @apiUse ApiJSON
 
 @apiExample {curl} Example usage:
- curl -X POST \
-      http://localhost:8080/api/private/v2/merchants/qubera/account/create \
-      -H 'Content-Type: application/json' \
-      -H 'exrates-rest-token: $token' \
-      -d '{
-	    "firstName":"firstName",
-	    "lastName":"lastName",
-	    "dateOfBirth":"30/07/1968",
-	    "zipCode":"92200",
-	    "street":"Neuilly sur seine",
-	    "country":"France",
-	    "phone":"33123456789"
+curl -X POST \
+  http://localhost:8080/api/private/v2/merchants/qubera/account/create \
+  -H 'Content-Type: application/json' \
+  -H 'exrates-rest-token: $token' \
+  -d '{
+	"pin":"43851629"
 }'
-
-@apiParam {String} firstName - first name
-@apiParam {String} lastName - last name
-@apiParam {String} dateOfBirth - date of birth
-@apiParam {String} zipCode - zip code
-@apiParam {String} street - street
-@apiParam {String} country - country
-@apiParam {String} phone - phone
 
 @apiSuccess {Object} data Data
 @apiSuccess {String} data.iban
@@ -126,49 +112,31 @@ HTTP/1.1 400 OK
 ###
 
 ###
-@api {get} /api/private/v2/merchants/qubera/payment/toMaster Create payment to master
-@apiName  Create payment to master
+@api {get} api/private/v2/merchants/qubera/info Get info for payment
+@apiName  Get info for payment
 @apiVersion 0.0.1
 @apiGroup Qubera
 @apiUse Exrates
-@apiUse ApiJSON
 
 @apiExample {curl} Example usage:
- curl -X POST \
-  http://localhost:8080/api/private/v2/merchants/qubera/payment/toMaster \
-  -H 'Content-Type: application/json' \
-  -H 'apiKey: e993670a-b7f7-4e0a-9742-68ff3b9ac09d' \
-  -d '{
-	    "amount":10.0,
-	    "currencyCode":"EUR"
-}'
+ curl -X GET \
+      http://localhost:8080/api/private/v2/merchants/qubera/info \
 
-@apiParam {String} amount - for example: 10 or 10.0 or 10.00
-@apiParam {String} currencyCode - currency, min=3 chars, max=3 chars
-
-@apiSuccess {Object} data Data
-@apiSuccess {String} data.currencyFrom
-@apiSuccess {String} data.currencyTo
-@apiSuccess {Number} data.feeAmount
-@apiSuccess {String} data.feeCurrencyCode
-@apiSuccess {Number} data.paymentId
-@apiSuccess {Number} data.rate
-@apiSuccess {Number} data.transactionAmount
-@apiSuccess {String} data.transactionCurrencyCode
+      -H 'exrates-rest-token: $token' \
 
 @apiSuccessExample {json} Success-Response:
-      {
-        "data": {
-            "currencyFrom": "string",
-            "currencyTo": "string",
-            "feeAmount": 0,
-            "feeCurrencyCode": "string",
-            "paymentId": 0,
-            "rate": 0,
-            "transactionAmount": 0,
-            "transactionCurrencyCode": "string"
-            }
-      }
+{
+    "data": {
+        "iban": "LT551234500002717981",
+        "bic": "STUALT21XXX",
+        "swiftCode": "STUALT21",
+        "bankName": "SATCHELPAY UAB",
+        "country": "LITHUANIA (LT)",
+        "city": "VILNIUS",
+        "address": "LITHUANIA (LT)"
+    },
+    "error": null
+}
 
 @apiErrorExample {json} Error-Response:
 HTTP/1.1 400 OK
@@ -183,8 +151,38 @@ HTTP/1.1 400 OK
 ###
 
 ###
-@api {get} /api/private/v2/merchants/qubera/payment/fromMaster Create payment from master
-@apiName  Create payment from master
+@api {get} api/private/v2/merchants/qubera/verification_status Get verification status
+@apiName  Get verification status
+@apiVersion 0.0.1
+@apiGroup Qubera
+@apiUse Exrates
+
+@apiExample {curl} Example usage:
+curl -X GET \
+  http://localhost:8080/api/private/v2/merchants/qubera/verification_status \
+  -H 'exrates-rest-token: $token'
+
+@apiSuccessExample {json} Success-Response:
+{
+    "data": "SUCCESS",
+    "error": null
+}
+
+@apiErrorExample {json} Error-Response:
+HTTP/1.1 400 OK
+{
+    "url": "url",
+    "cause": "cause",
+    "detail": "detail",
+    "title": "title",
+    "uuid": "uuid",
+    "code": 1200
+}
+###
+
+###
+@api {post} api/private/v2/balances/refill/request/create Create payment
+@apiName  Create payment to master
 @apiVersion 0.0.1
 @apiGroup Qubera
 @apiUse Exrates
@@ -192,16 +190,72 @@ HTTP/1.1 400 OK
 
 @apiExample {curl} Example usage:
  curl -X POST \
-  http://localhost:8080/api/private/v2/merchants/qubera/payment/fromMaster \
+  http://localhost:8080/api/private/v2/balances/refill/request/create \
+  -H 'Content-Type: application/json' \
+  -H 'exrates-rest-token: $Token' \
+  -d '{
+    "currency":3,
+    "merchant":376,
+    "sum":200.0,
+    "destination":"description",
+    "merchantImage":70,
+    "operationType":"INPUT",
+    "pin": "3432432
+}'
+
+@apiParam {String} sum - for example: 10 or 10.0 or 10.00
+@apiParam {Integer} currency - currency id
+@apiParam {Integer} merchant - merchant id
+@apiParam {Integer} merchantImage - merchant image id
+@apiParam {String} destination
+@apiParam {String} operationType - INPUT, OUTPUT
+@apiParam {String} pin - pin code from transfer request
+
+@apiSuccessExample {json} Success-Response:
+HTTP/1.1 200 OK
+
+@apiErrorExample {json} Error-Response:
+HTTP/1.1 400 OK
+{
+    "url": "url",
+    "cause": "cause",
+    "detail": "detail",
+    "title": "title",
+    "uuid": "uuid",
+    "code": 1200
+}
+###
+
+###
+@api {post} /api/private/v2/balances/withdraw/request/create Create payment withdraw
+@apiName  Create payment withdraw
+@apiVersion 0.0.1
+@apiGroup Qubera
+@apiUse Exrates
+@apiUse ApiJSON
+
+@apiExample {curl} Example usage:
+ curl -X POST \
+  http://localhost:8080/api/private/v2/balances/withdraw/request/create \
   -H 'Content-Type: application/json' \
   -H 'apiKey: e993670a-b7f7-4e0a-9742-68ff3b9ac09d' \
   -d '{
-	    "amount":10.0,
-	    "currencyCode":"EUR"
+	"currency":3,
+	"merchant":376,
+	"destination":"fwefwegwegwegweg",
+	"merchantImage":1576,
+	"sum":"100",
+	"destinationTag":"",
+	"securityCode":"88914109"
 }'
 
-@apiParam {String} amount - for example: 10 or 10.0 or 10.00
-@apiParam {String} currencyCode - currency, min=3 chars, max=3 chars
+@apiParam {String} sum - for example: 10 or 10.0 or 10.00
+@apiParam {Integer} currency - currency id
+@apiParam {Integer} merchant - merchant id
+@apiParam {Integer} merchantImage - merchant image id
+@apiParam {String} destination
+@apiParam {String} destinationTag
+@apiParam {String} securityCode - code from 2FA or email
 
 @apiSuccess {Boolean} data Data
 
@@ -223,23 +277,20 @@ HTTP/1.1 400 OK
 ###
 
 ###
-@api {put} /merchants/qubera/confirm/{paymentId}/toMaster Confirm payment to master
-@apiName  Confirm payment to master
+@api {post} api/private/v2/merchants/qubera/request/pin Create pin code for create qubera account
+@apiName  Create pin code for create qubera account
 @apiVersion 0.0.1
 @apiGroup Qubera
 @apiUse Exrates
+@apiUse ApiJSON
 
 @apiExample {curl} Example usage:
- curl -X PUT \
-  http://localhost:8080/api/private/v2/merchants/qubera/payment/234235436467/toMaster \
-  -H 'apiKey: e993670a-b7f7-4e0a-9742-68ff3b9ac09d'
-
-@apiSuccess {String} data Data
+ curl -X POST \
+  http://localhost:8080/api/private/v2/merchants/qubera/request/pin \
+  -H 'Exrates-rest-token: $token' \
 
 @apiSuccessExample {json} Success-Response:
-      {
-        "data": "SUCCESS"
-      }
+HTTP/1.1 201 Created
 
 @apiErrorExample {json} Error-Response:
 HTTP/1.1 400 OK
@@ -254,23 +305,167 @@ HTTP/1.1 400 OK
 ###
 
 ###
-@api {put} /merchants/qubera/confirm/{paymentId}/fromMaster Confirm payment from master
-@apiName  Confirm payment from master
+@api {put} api/private/v2/merchants/qubera/payment/external/confirm Confirm external payment
+@apiName  Confirm external payment
 @apiVersion 0.0.1
 @apiGroup Qubera
 @apiUse Exrates
+@apiUse ApiJSON
 
 @apiExample {curl} Example usage:
  curl -X PUT \
-  http://localhost:8080/api/private/v2/merchants/qubera/payment/234235436467/fromMaster \
-  -H 'apiKey: e993670a-b7f7-4e0a-9742-68ff3b9ac09d'
-
-@apiSuccess {String} data Data
+  http://localhost:8080/api/private/v2/merchants/qubera/payment/external/confirm \
+   -H 'Content-Type: application/json' \
+   -H 'exrates-rest-token: $token' \
+   -d '{
+	    "pin":"324234234",
+	    "paymentId":376
+}'
 
 @apiSuccessExample {json} Success-Response:
-      {
-        "data": "SUCCESS"
+HTTP/1.1 200 OK
+  {
+  "data":true
+  }
+
+@apiErrorExample {json} Error-Response:
+HTTP/1.1 400 OK
+{
+    "url": "url",
+    "cause": "cause",
+    "detail": "detail",
+    "title": "title",
+    "uuid": "uuid",
+    "code": 1200
+}
+###
+
+###
+@api {post} /api/private/v2/merchants/qubera/payment/external Create external payment
+@apiName  Create external payment
+@apiVersion 0.0.1
+@apiGroup Qubera
+@apiUse Exrates
+@apiUse ApiJSON
+
+
+@apiDescription Payment for 2 types: sepa and swift. FirstName and lastName setup if companyName is null, and vice versa.
+@apiExample {curl} SEPA:
+curl -X POST \
+  http://localhost:8080/api/private/v2/merchants/qubera/payment/external \
+  -H 'Content-Type: application/json' \
+  -H 'exrates-rest-token: $token' \
+  -d '{
+	"amount":"200",
+	"currencyCode":"EUR",
+	"firstName":"Jonh",
+	"lastName":"Dou",
+	"companyName":"Roga&Koputa",
+	"iban":"wefewfwefwefwefwe",
+	"narrative":"description",
+	"type":"sepa"
+}'
+
+@apiExample {curl} SWIFT:
+  curl -X POST \
+  http://localhost:8080/api/private/v2/merchants/qubera/payment/external \
+  -H 'Content-Type: application/json' \
+  -H 'exrates-rest-token: $token' \
+  -d '{
+	"amount":"200",
+	"currencyCode":"EUR",
+	"firstName":"Jonh",
+	"lastName":"Dou",
+	"companyName":"Roga&Koputa",
+	"accountNumber":"wefewfwefwefwefwe",
+	"swift": "wefewfw",
+	"narrative":"description",
+	"type":"swift",
+	"address":"Flat 121, holodnogorskaya 6",
+	"city":"Kharkov",
+	"countryCode":"UA"
+}'
+
+@apiSuccessExample {json} Success-Response:
+HTTP/1.1 200 OK
+  {
+    "id": 10000177,
+    "paymentAmount": {
+      "amount": 10.00,
+      "currencyCode": "EUR"
+      },
+    "feeAmount": {
+      "amount": 105.00,
+      "currencyCode": "EUR"
+      },
+   "rate": {
+      "from": "EUR",
+       "to": "EUR",
+      "value": 1
       }
+   }
+
+@apiErrorExample {json} Error-Response:
+HTTP/1.1 400 OK
+{
+    "url": "url",
+    "cause": "cause",
+    "detail": "detail",
+    "title": "title",
+    "uuid": "uuid",
+    "code": 1200
+}
+###
+
+###
+@api {post} /api/private/v2/balances/withdraw/request/pin Create pin code for withdraw from bank account
+@apiName  Create pin code for withdraw from bank account
+@apiVersion 0.0.1
+@apiGroup Qubera
+@apiUse Exrates
+@apiUse ApiJSON
+
+@apiExample {curl} Example usage:
+ curl -X POST \
+  http://localhost:8080/api/private/v2/balances/withdraw/request/pin \
+  -H 'Exrates-rest-token: $token' \
+  -d '{
+	"amount": 200,
+	"currencyName":"EUR",
+
+@apiSuccessExample {json} Success-Response:
+HTTP/1.1 201 Created
+
+@apiErrorExample {json} Error-Response:
+HTTP/1.1 400 OK
+{
+    "url": "url",
+    "cause": "cause",
+    "detail": "detail",
+    "title": "title",
+    "uuid": "uuid",
+    "code": 1200
+}
+###
+
+###
+@api {post} /api/private/v2/balances/transfer/request/pin Create pin code for transfer from bank account to trading account
+@apiName  Create pin code for transfer from bank account to trading account
+@apiVersion 0.0.1
+@apiGroup Qubera
+@apiUse Exrates
+@apiUse ApiJSON
+
+@apiExample {curl} Example usage:
+ curl -X POST \
+  http://localhost:8080/api/private/v2/balances/transfer/request/pin \
+  -H 'Exrates-rest-token: $token' \
+  -d '{
+	"amount": 200,
+	"currencyName":"EUR",
+
+@apiSuccessExample {json} Success-Response:
+HTTP/1.1 201 Created
 
 @apiErrorExample {json} Error-Response:
 HTTP/1.1 400 OK

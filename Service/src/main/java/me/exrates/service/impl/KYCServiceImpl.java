@@ -85,7 +85,6 @@ public class KYCServiceImpl implements KYCService {
     private final String emailMessagePattern;
 
     private final List<String> documentSupportedTypes;
-    private final List<String> addressSupportedTypes;
 
     private final RestTemplate restTemplate;
 
@@ -110,7 +109,6 @@ public class KYCServiceImpl implements KYCService {
                           @Value("${shufti-pro.email.subject}") String emailSubject,
                           @Value("${shufti-pro.email.message-pattern}") String emailMessagePattern,
                           @Value("#{'${shufti-pro.document.supported-types}'.split(',')}") List<String> documentSupportedTypes,
-                          @Value("#{'${shufti-pro.address.supported-types}'.split(',')}") List<String> addressSupportedTypes,
                           @Value("${shufti-pro.username}") String username,
                           @Value("${shufti-pro.password}") String password,
                           UserService userService,
@@ -129,7 +127,6 @@ public class KYCServiceImpl implements KYCService {
         this.emailSubject = emailSubject;
         this.emailMessagePattern = emailMessagePattern;
         this.documentSupportedTypes = documentSupportedTypes;
-        this.addressSupportedTypes = addressSupportedTypes;
         this.secretKey = password;
         this.userService = userService;
         this.sendMailService = sendMailService;
@@ -142,10 +139,10 @@ public class KYCServiceImpl implements KYCService {
     }
 
     @Override
-    public String getVerificationUrl(int stepNumber, String languageCode, String countryCode) {
+    public String getVerificationUrl(String languageCode, String countryCode) {
         final String userEmail = userService.getUserEmailFromSecurityContext();
 
-        VerificationRequest verificationRequest = buildVerificationRequest(userEmail, languageCode, countryCode, stepNumber);
+        VerificationRequest verificationRequest = buildVerificationRequest(userEmail, languageCode, countryCode);
 
         HttpEntity<VerificationRequest> requestEntity = new HttpEntity<>(verificationRequest);
 
@@ -153,10 +150,10 @@ public class KYCServiceImpl implements KYCService {
         try {
             responseEntity = restTemplate.postForEntity(verificationUrl, requestEntity, String.class);
             if (responseEntity.getStatusCodeValue() != 200) {
-                throw new ShuftiProException("ShuftiPro KYC verification service is not available");
+                throw new ShuftiProException(String.format("ShuftiPro KYC verification service is not available (status code is %d)", responseEntity.getStatusCodeValue()));
             }
         } catch (Exception ex) {
-            throw new ShuftiProException("ShuftiPro KYC verification service is not available", ex);
+            throw new ShuftiProException(String.format("ShuftiPro KYC verification service is not available: %s", ex.getMessage()));
         }
 
         final String signature = responseEntity.getHeaders().get(SIGNATURE).get(0);
@@ -170,22 +167,34 @@ public class KYCServiceImpl implements KYCService {
             String errorMessage = nonNull(errorObject) ? errorObject.getString(MESSAGE) : StringUtils.EMPTY;
             throw new ShuftiProException(String.format("ShuftiPro KYC verification service: status: %s, error message: %s", eventStatus, errorMessage));
         }
-        int affectedRowCount = userService.updateReferenceId(verificationObject.getString(REFERENCE));
-        if (affectedRowCount == 0) {
-            log.debug("Reference id have not been updated in database");
-        }
+        userService.updateReferenceIdAndStatus(verificationObject.getString(REFERENCE), eventStatus);
+
+        userService.updateCountryCode(countryCode);
+
         String verificationUrl = verificationObject.getString(VERIFICATION_URL).replace("\\", "");
         sendPersonalMessage(userEmail, verificationUrl);
         return verificationUrl;
     }
 
-    private VerificationRequest buildVerificationRequest(String userEmail, String languageCode, String countryCode, int stepNumber) {
+    private VerificationRequest buildVerificationRequest(String userEmail, String languageCode, String countryCode) {
         VerificationRequest.Builder builder = VerificationRequest.builder()
                 .reference(RandomStringUtils.randomAlphanumeric(digitsNumber))
                 .callbackUrl(callbackUrl)
                 .email(userEmail)
                 .country(countryCode)
-                .verificationMode(verificationMode);
+                .verificationMode(verificationMode)
+                .face(Face.builder()
+                        .proof(StringUtils.EMPTY)
+                        .build())
+                .document(Document.builder()
+                        .proof(StringUtils.EMPTY)
+                        .supportedTypes(documentSupportedTypes)
+                        .name(StringUtils.EMPTY)
+                        .dob(StringUtils.EMPTY)
+                        .build())
+                .phone(Phone.builder()
+                        .text(smsText)
+                        .build());
 
         if (StringUtils.isNotEmpty(redirectUrl)) {
             builder.redirectUrl(redirectUrl);
@@ -194,60 +203,41 @@ public class KYCServiceImpl implements KYCService {
         if (nonNull(languageCode)) {
             builder.language(languageCode);
         }
-
-        if (stepNumber == 1) {
-            builder
-                    .face(Face.builder()
-                            .proof(StringUtils.EMPTY)
-                            .build())
-                    .document(Document.builder()
-                            .proof(StringUtils.EMPTY)
-                            .supportedTypes(documentSupportedTypes)
-                            .name(StringUtils.EMPTY)
-                            .dob(StringUtils.EMPTY)
-                            .issueDate(StringUtils.EMPTY)
-                            .expiryDate(StringUtils.EMPTY)
-                            .documentNumber(StringUtils.EMPTY)
-                            .build())
-                    .phone(Phone.builder()
-                            .text(smsText)
-                            .build());
-        } else if (stepNumber == 2) {
-            builder
-                    .address(Address.builder()
-                            .proof(StringUtils.EMPTY)
-                            .supportedTypes(addressSupportedTypes)
-                            .name(StringUtils.EMPTY)
-                            .fullAddress(StringUtils.EMPTY)
-                            .build());
-        } else {
-            throw new ShuftiProException(String.format("Unknown step number: %s", stepNumber));
-        }
         return builder.build();
     }
 
     @Override
-    public Pair<String, EventStatus> getVerificationStatus() {
-        final String reference = userService.getReferenceId();
+    public String getQuberaKycStatus(String email) {
+        String status = userService.getUserKycStatusByEmail(email);
 
-        final EventStatus status = getVerificationStatus(reference);
-        userService.updateKycStatus(status.name());
+        if (status.equalsIgnoreCase("Pending")) {
+            String referenceId = userService.getKycReferenceByEmail(email);
+            if (isNull(referenceId)) {
+                log.error("Reference id is null, cannot get status, email {}", email);
+                throw new NgDashboardException("Reference id is null", Constants.ErrorApi.QUBERA_KYC_ERROR_GET_STATUS);
+            }
+            KycResponseStatusDto response = kycHttpClient.getCurrentKycStatus(referenceId);
 
-        return Pair.of(reference, status);
+            status = response.getStatus();
+            userService.updateKycStatus(status);
+        }
+        return status;
     }
 
     @Override
-    public String getKycStatus(String email) {
+    public String getShuftiProKycStatus(String email) {
         String status = userService.getUserKycStatusByEmail(email);
-        if (status.equalsIgnoreCase("Pending")) {
-            String referenceUid = userService.getKycReferenceByEmail(email);
-            if (referenceUid == null) {
-                log.error("Reference uid is null, cannot get status, email {}", email);
-                throw new NgDashboardException("Reference uid is null", Constants.ErrorApi.QUBERA_KYC_ERROR_GET_STATUS);
+
+        if (status.equalsIgnoreCase(EventStatus.PENDING.name())) {
+            String referenceId = userService.getKycReferenceByEmail(email);
+            if (isNull(referenceId)) {
+                log.error("Reference id is null, cannot get status, email {}", email);
+                throw new NgDashboardException("Reference id is null", Constants.ErrorApi.SHUFTI_PRO_KYC_ERROR_GET_STATUS);
             }
-            KycResponseStatusDto response =
-                    kycHttpClient.getCurrentKycStatus(referenceUid);
-            status = response.getStatus();
+            EventStatus eventStatus = this.getVerificationStatus(referenceId);
+
+            status = eventStatus.name();
+            userService.updateKycStatus(status);
         }
         return status;
     }
@@ -265,10 +255,10 @@ public class KYCServiceImpl implements KYCService {
         try {
             responseEntity = restTemplate.postForEntity(statusUrl, requestEntity, String.class);
             if (responseEntity.getStatusCodeValue() != 200) {
-                throw new ShuftiProException("ShuftiPro KYC status service is not available");
+                throw new ShuftiProException(String.format("ShuftiPro KYC status service is not available (status code is %d)", responseEntity.getStatusCodeValue()));
             }
         } catch (Exception ex) {
-            throw new ShuftiProException("ShuftiPro KYC status service is not available", ex);
+            throw new ShuftiProException(String.format("ShuftiPro KYC status service is not available: %s", ex.getMessage()));
         }
 
         final String signature = responseEntity.getHeaders().get(SIGNATURE).get(0);
@@ -287,7 +277,7 @@ public class KYCServiceImpl implements KYCService {
     }
 
     @Override
-    public Pair<String, EventStatus> checkResponseAndUpdateVerificationStep(String signature, String response) {
+    public Pair<String, EventStatus> checkResponseAndUpdateVerificationStatus(String signature, String response) {
         //todo: temporary unavailable signature validation
 //        validateMerchantSignature(signature, response);
 
@@ -297,99 +287,89 @@ public class KYCServiceImpl implements KYCService {
 
         final String userEmail = userService.getEmailByReferenceId(reference);
 
-        int affectedRowCount = -1;
+        boolean updated;
         switch (eventStatus) {
             case ACCEPTED:
-                log.debug("Verification status: {}. Data have been accepted", eventStatus);
+                log.debug("Verification status: {}. Data have been ACCEPTED", eventStatus);
 
-                affectedRowCount = userService.updateVerificationStep(userEmail);
-
-                userService.updateKycStatusByEmail(userEmail, eventStatus.name());
+                updated = userService.updateVerificationStatus(userEmail, eventStatus.name());
+                if (!updated) {
+                    log.debug("Verification status have not been updated in database");
+                }
 
                 sendStatusNotification(userEmail, eventStatus.name());
                 log.debug("Notification have been send successfully");
-                break;
+
+                return Pair.of(reference, eventStatus);
             case CHANGED:
                 final EventStatus changedTo = getVerificationStatus(reference);
 
-                boolean isAccepted = EventStatus.ACCEPTED.equals(changedTo);
+                log.debug("Verification status changed to: {}. Data have been {}", changedTo, changedTo == EventStatus.ACCEPTED ? "ACCEPTED" : "DECLINED");
 
-                log.debug("Verification status changed to: {}. Data have been {}", eventStatus, isAccepted ? "accepted" : "declined");
-                if (isAccepted) {
-                    affectedRowCount = userService.updateVerificationStep(userEmail);
+                updated = userService.updateVerificationStatus(userEmail, changedTo.name());
+                if (!updated) {
+                    log.debug("Verification status have not been updated in database");
                 }
-                userService.updateKycStatusByEmail(userEmail, changedTo.name());
 
                 sendStatusNotification(userEmail, changedTo.name());
                 log.debug("Notification have been send successfully");
-                break;
+
+                return Pair.of(reference, changedTo);
+            default:
+                throw new ShuftiProException(String.format("Not supported event status %s", eventStatus.name()));
         }
-        if (affectedRowCount == 0) {
-            log.debug("Verification step have not been updated in database");
-        }
-        return Pair.of(reference, eventStatus);
     }
 
     @Override
     public OnboardingResponseDto startKyCProcessing(IdentityDataRequest identityDataRequest, String email) {
-        User user = userService.findByEmail(email);
-        if (user.getKycStatus().equalsIgnoreCase("success")) {
-            throw new KycException("Already passed KYC");
-        }
-        Date dateOfBirth = DateUtils.getDateFromStringForKyc(identityDataRequest.getBirthYear(), identityDataRequest.getBirthMonth(),
-                identityDataRequest.getBirthDay());
-        //start create applicant
-        String uuid = UUID.randomUUID().toString();
-        KycCountryDto countryDto = kycSettingsDao.getCountryByCode(identityDataRequest.getCountry());
-        userService.updatePrivateDataAndKycReference(email, uuid, countryDto.getCountryCode(), identityDataRequest.getFirstNames()[0],
-                identityDataRequest.getLastName(), dateOfBirth);
-        PersonKycDto personKycDto = new PersonKycDto(Collections.singletonList(IdentityDataKyc.of(identityDataRequest)));
-        CreateApplicantDto createApplicantDto = new CreateApplicantDto(uuid, personKycDto);
-
-        ResponseCreateApplicantDto response = kycHttpClient.createApplicant(createApplicantDto);
-
-        if (!response.getState().equalsIgnoreCase("INITIAL")) {
-            throw new KycException("Error while start processing KYC, state " + response.getState()
-                    + " uid " + response.getUid() + " lastReportStatus " + response.getLastReportStatus());
-        }
-        String docId = RandomStringUtils.random(18, true, false);
-
-        String callBackUrl = String.format("%s/api/public/v2/kyc/webhook/%s", host, uuid);
-
-        RequestOnBoardingDto onBoardingDto = RequestOnBoardingDto.createOfParams(callBackUrl, email, uuid, docId);
-        userVerificationInfoDao.saveUserVerificationDoc(new UserVerificationInfo(user.getId(), DocTypeEnum.P, docId));
-        log.info("Sending to create applicant {}", onBoardingDto);
-        OnboardingResponseDto onBoarding = kycHttpClient.createOnBoarding(onBoardingDto);
-        userService.updateKycStatusByEmail(user.getEmail(), "Pending");
-        return onBoarding;
+//        User user = userService.findByEmail(email);
+//        if (user.getKycStatus().equalsIgnoreCase("success")) {
+//            throw new KycException("Already passed KYC");
+//        }
+//        Date dateOfBirth = DateUtils.getDateFromStringForKyc(identityDataRequest.getBirthYear(), identityDataRequest.getBirthMonth(),
+//                identityDataRequest.getBirthDay());
+//        //start create applicant
+//        String uuid = UUID.randomUUID().toString();
+//        userService.updatePrivateDataAndKycReference(user.getEmail(),
+//                uuid,
+//                identityDataRequest.getCountryCode(),
+//                identityDataRequest.getFirstName(),
+//                identityDataRequest.getLastName(),
+//                dateOfBirth);
+//        PersonKycDto personKycDto = new PersonKycDto(Collections.singletonList(IdentityDataKyc.of(identityDataRequest)));
+//        CreateApplicantDto createApplicantDto = new CreateApplicantDto(uuid, personKycDto);
+//
+//        ResponseCreateApplicantDto response = kycHttpClient.createApplicant(createApplicantDto);
+//
+//        if (!response.getState().equalsIgnoreCase("INITIAL")) {
+//            throw new KycException("Error while start processing KYC, state " + response.getState()
+//                    + " uid " + response.getUid() + " lastReportStatus " + response.getLastReportStatus());
+//        }
+//        String docId = RandomStringUtils.random(18, true, false);
+//
+//        String callBackUrl = String.format("%s/api/public/v2/kyc/webhook/%s", host, uuid);
+//
+//        RequestOnBoardingDto onBoardingDto = RequestOnBoardingDto.createOfParams(callBackUrl, email, uuid, docId);
+//        userVerificationInfoDao.saveUserVerificationDoc(new UserVerificationInfo(user.getId(), DocTypeEnum.P, docId));
+//        log.info("Sending to create applicant {}", onBoardingDto);
+//        OnboardingResponseDto onBoarding = kycHttpClient.createOnBoarding(onBoardingDto);
+//        userService.updateVerificationStatus(user.getEmail(), "Pending");
+//        return onBoarding;
+        return null;
     }
 
     @Override
     public boolean updateUserVerificationInfo(User user, KycStatusResponseDto kycStatusResponseDto) {
-        return userService.updateKycStatusByEmail(user.getEmail(), kycStatusResponseDto.getStatus());
+        return userService.updateVerificationStatus(user.getEmail(), kycStatusResponseDto.getStatus());
 //        return kycDao.updateUserVerification(user.getId(), kycStatusResponseDto);
     }
 
     @Override
     public void processingCallBack(String referenceId, KycStatusResponseDto kycStatusResponseDto) {
-        User user = userService.findByKycReferenceId(referenceId);
-        updateUserVerificationInfo(user, kycStatusResponseDto);
-        sendPersonalMessage(kycStatusResponseDto, user);
-        sendStatusNotification(user.getEmail(), kycStatusResponseDto.getStatus());
-    }
-
-    private void sendPersonalMessage(KycStatusResponseDto kycStatusResponseDto, User user) {
-        UserNotificationMessage message = UserNotificationMessage.builder()
-                .notificationType(UserNotificationType.SUCCESS)
-                .sourceTypeEnum(WsSourceTypeEnum.KYC)
-                .text("Dear user, your current verification status is SUCCESS")
-                .build();
-        if (StringUtils.isNotEmpty(kycStatusResponseDto.getErrorMsg())) {
-            message.setNotificationType(UserNotificationType.WARNING);
-            String text = "Dear user, your verification seems to fail as " + kycStatusResponseDto.getErrorMsg();
-            message.setText(text);
-        }
-        stompMessenger.sendPersonalMessageToUser(user.getEmail(), message);
+//        User user = userService.findByKycReferenceId(referenceId);
+//        updateUserVerificationInfo(user, kycStatusResponseDto);
+//        sendPersonalMessage(kycStatusResponseDto, user);
+//        sendStatusNotification(user.getEmail(), kycStatusResponseDto.getStatus());
     }
 
     private void sendPersonalMessage(String userEmail, String verificationLink) {

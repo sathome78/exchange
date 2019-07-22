@@ -7,6 +7,8 @@ import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
 
 
 @Data
@@ -22,5 +24,6 @@ public class RefillPendingRequestDto {
     private String system;
     private String status;
     private String operation;
+    private List<Map<String, Object>> buttons;
 
 }

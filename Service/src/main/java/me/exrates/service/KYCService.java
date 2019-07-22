@@ -9,13 +9,13 @@ import org.apache.commons.lang3.tuple.Pair;
 
 public interface KYCService {
 
-    String getVerificationUrl(int stepNumber, String languageCode, String countryCode);
+    String getVerificationUrl(String languageCode, String countryCode);
 
-    Pair<String, EventStatus> getVerificationStatus();
+    String getQuberaKycStatus(String email);
 
-    String getKycStatus(String email);
+    String getShuftiProKycStatus(String email);
 
-    Pair<String, EventStatus> checkResponseAndUpdateVerificationStep(String response, String s);
+    Pair<String, EventStatus> checkResponseAndUpdateVerificationStatus(String response, String s);
 
     OnboardingResponseDto startKyCProcessing(IdentityDataRequest identityDataRequest, String email);
 

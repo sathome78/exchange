@@ -129,19 +129,26 @@
             <artifactId>guava</artifactId>
             <version>20.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.8.5</version>
+        </dependency>
 
         <dependency>
             <groupId>stellar</groupId>
             <artifactId>stellar-sdk</artifactId>
             <version>0.1.14</version>
-
             <exclusions>
                 <exclusion>
                     <groupId>com.google.common</groupId>
                     <artifactId>guava</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>com.google.code.gson</groupId>
+                    <artifactId>gson</artifactId>
+                </exclusion>
             </exclusions>
-
         </dependency>
         <dependency>
             <groupId>nem</groupId>
@@ -152,6 +159,12 @@
             <groupId>iota</groupId>
             <artifactId>jota</artifactId>
             <version>0.9.10</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.code.gson</groupId>
+                    <artifactId>gson</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>monero</groupId>
@@ -240,6 +253,11 @@
             <groupId>io.jafka</groupId>
             <artifactId>jeos</artifactId>
             <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.firestack</groupId>
+            <artifactId>laksaj</artifactId>
+            <version>0.4.6-RELEASE</version>
         </dependency>
     </dependencies>
 

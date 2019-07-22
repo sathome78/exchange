@@ -39,4 +39,6 @@ public interface SecureService {
 
     NotificationResultDto sendTransferPinCode(User user, String amount, String currencyName);
 
+    void sendPinCodeForCreateQuberaAccount(User user);
+
 }

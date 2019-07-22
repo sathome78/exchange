@@ -3,7 +3,6 @@ package me.exrates.security.service;
 import me.exrates.model.User;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.servlet.http.HttpServletRequest;
@@ -14,7 +13,6 @@ import java.util.Optional;
  */
 public interface AuthTokenService {
 
-    @Scheduled(fixedDelay = 12 * 60 * 60 * 1000, initialDelay = 60 * 1000)
     void deleteExpiredTokens();
 
     Optional<AuthTokenDto> retrieveToken(String username, String password);

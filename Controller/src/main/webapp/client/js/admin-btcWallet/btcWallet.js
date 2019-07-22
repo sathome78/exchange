@@ -389,6 +389,7 @@ function updateTxHistoryTablePagination() {
             "columns": [
                 {
                     "data": "time",
+                    "name": "time",
                     "render": function (data) {
                         return data.replace(' ', '<br/>');
                     },
@@ -396,6 +397,7 @@ function updateTxHistoryTablePagination() {
                 },
                 {
                     "data": "txId",
+                    "name": "txId",
                     "render": function (data) {
                         var inputValue = data ? data : '';
                         return '<input readonly value="' + inputValue + '" style="width: 130px" ' +
@@ -404,6 +406,7 @@ function updateTxHistoryTablePagination() {
                 },
                 {
                     "data": "category",
+                    "name": "category",
                     "render": function (data) {
                         var dataClass;
                         if (data === 'receive') {
@@ -418,6 +421,7 @@ function updateTxHistoryTablePagination() {
                 },
                 {
                     "data": "address",
+                    "name": "address",
                     "render": function (data) {
                         var inputValue = data ? data : '';
                         return '<input readonly value="' + inputValue + '" style="width: 130px" ' +
@@ -426,6 +430,7 @@ function updateTxHistoryTablePagination() {
                 },
                 {
                     "data": "blockhash",
+                    "name": "blockhash",
                     "render": function (data) {
                         var inputValue = data ? data : '';
                         return '<input readonly value="' + inputValue + '" style="width: 130px" ' +
@@ -433,13 +438,16 @@ function updateTxHistoryTablePagination() {
                     }
                 },
                 {
-                    "data": "amount"
+                    "data": "amount",
+                    "name": "amount"
                 },
                 {
-                    "data": "fee"
+                    "data": "fee",
+                    "name": "fee"
                 },
                 {
-                    "data": "confirmations"
+                    "data": "confirmations",
+                    "name": "confirmations"
                 },
                 {
                     "data": "",

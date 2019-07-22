@@ -85,6 +85,8 @@ public interface RefillService {
     @Transactional
     Integer createAndAutoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto);
 
+    Integer createAndAutoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto, int userId);
+
     void autoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException;
 
     void autoAcceptRefillEmptyRequest(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException;

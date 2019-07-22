@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 
 import javax.annotation.PreDestroy;
+import javax.mail.internet.InternetAddress;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -73,6 +74,10 @@ public class SendMailServiceImpl implements SendMailService {
 
     @Value("${front-host}")
     private String server;
+
+    @Value("${main.email.name}")
+    private String mainEmailName;
+
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void sendMail(Email email) {
@@ -155,7 +160,7 @@ public class SendMailServiceImpl implements SendMailService {
             mailSender.send(mimeMessage -> {
                 MimeMessageHelper message;
                 message = new MimeMessageHelper(mimeMessage, true, UTF8);
-                message.setFrom(email.getFrom());
+                message.setFrom(new InternetAddress(email.getFrom(), mainEmailName));
                 message.setTo(email.getTo());
                 message.setSubject(email.getSubject());
                 message.setText(prepareTemplate(email.getMessage()), true);

@@ -686,8 +686,10 @@ public class OrderServiceImplTest {
         when(currencyService.findLimitForRoleByCurrencyPairAndType(anyInt(), any(OperationType.class)))
                 .thenReturn(getMockCurrencyPairLimitDto());
 
+        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("10"));
+
         OrderValidationDto orderValidationDto = orderService
-                .validateOrder(getMockOrderCreateDto(BigDecimal.TEN), Boolean.FALSE, new User());
+                    .validateOrder(getMockOrderCreateDto(BigDecimal.TEN), Boolean.FALSE, new User());
 
         assertNotNull(orderValidationDto);
         assertEquals(4, orderValidationDto.getErrors().size());
@@ -716,6 +718,8 @@ public class OrderServiceImplTest {
                 anyInt(),
                 any(OperationType.class),
                 any(User.class))).thenReturn(getMockCurrencyPairLimitDto());
+
+        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
 
         OrderValidationDto orderValidationDto = orderService
                 .validateOrder(getMockOrderCreateDto(BigDecimal.ZERO), Boolean.TRUE, new User());
@@ -759,6 +763,8 @@ public class OrderServiceImplTest {
                 any(OperationType.class),
                 any(User.class))).thenReturn(getMockCurrencyPairLimitDto());
 
+        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
+
         OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto, Boolean.TRUE, new User());
 
         assertNotNull(orderValidationDto);
@@ -800,7 +806,7 @@ public class OrderServiceImplTest {
                 CurrencyPairType.ALL,
                 BigDecimal.ZERO,
                 BigDecimal.ONE);
-
+        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
         when(currencyService.findLimitForRoleByCurrencyPairAndTypeAndUser(
                 anyInt(),
                 any(OperationType.class),
@@ -855,6 +861,8 @@ public class OrderServiceImplTest {
                 any(OperationType.class),
                 any(User.class))).thenReturn(getMockCurrencyPairLimitDto());
 
+        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
+
         OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto, Boolean.TRUE, new User());
 
         assertNotNull(orderValidationDto);
@@ -904,6 +912,8 @@ public class OrderServiceImplTest {
                 any(OperationType.class),
                 any(User.class))).thenReturn(getMockCurrencyPairLimitDto());
 
+        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
+
         try {
             orderService.validateOrder(orderCreateDto, Boolean.TRUE, new User());
         } catch (RuntimeException e) {
@@ -923,6 +933,8 @@ public class OrderServiceImplTest {
                 CurrencyPairType.ALL,
                 BigDecimal.ZERO,
                 BigDecimal.valueOf(11));
+
+        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
 
         when(currencyService.findLimitForRoleByCurrencyPairAndTypeAndUser(
                 anyInt(),
@@ -971,6 +983,8 @@ public class OrderServiceImplTest {
                 BigDecimal.valueOf(11),
                 BigDecimal.valueOf(11));
 
+        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("11"));
+
         when(currencyService.findLimitForRoleByCurrencyPairAndTypeAndUser(
                 anyInt(),
                 any(OperationType.class),
@@ -1010,7 +1024,7 @@ public class OrderServiceImplTest {
     public void validateOrder_has_one_argument() {
         when(currencyService.findLimitForRoleByCurrencyPairAndType(anyInt(), any(OperationType.class)))
                 .thenReturn(getMockCurrencyPairLimitDto());
-
+        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
         OrderValidationDto orderValidationDto = orderService.validateOrder(getMockOrderCreateDto(BigDecimal.ZERO));
 
         assertNotNull(orderValidationDto);
@@ -1049,6 +1063,8 @@ public class OrderServiceImplTest {
         when(currencyService.findLimitForRoleByCurrencyPairAndType(
                 anyInt(),
                 any(OperationType.class))).thenReturn(getMockCurrencyPairLimitDto());
+
+        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
 
         OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto);
 
@@ -1093,6 +1109,8 @@ public class OrderServiceImplTest {
                 anyInt(),
                 any(OperationType.class))).thenReturn(getMockCurrencyPairLimitDto());
 
+        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
+
         OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto);
 
         assertNotNull(orderValidationDto);
@@ -1133,6 +1151,8 @@ public class OrderServiceImplTest {
                 CurrencyPairType.ALL,
                 BigDecimal.ZERO,
                 BigDecimal.valueOf(11));
+
+        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
 
         when(currencyService.findLimitForRoleByCurrencyPairAndType(
                 anyInt(),
@@ -1179,6 +1199,8 @@ public class OrderServiceImplTest {
                 BigDecimal.ZERO,
                 BigDecimal.valueOf(11));
 
+        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
+
         when(currencyService.findLimitForRoleByCurrencyPairAndType(anyInt(), any(OperationType.class)))
                 .thenReturn(getMockCurrencyPairLimitDto());
 
@@ -1204,6 +1226,7 @@ public class OrderServiceImplTest {
         when(currencyService.findLimitForRoleByCurrencyPairAndType(anyInt(), any(OperationType.class)))
                 .thenReturn(getMockCurrencyPairLimitDto());
 
+        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("11"));
         OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto);
 
         assertNotNull(orderValidationDto);
@@ -1943,7 +1966,7 @@ public class OrderServiceImplTest {
         dto.setOrderType(OperationType.BUY);
         dto.setAmount(BigDecimal.TEN);
         dto.setRate(BigDecimal.ONE);
-
+        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
         when(currencyService.findCurrencyPairById(anyInt())).thenReturn(new CurrencyPair("BTC/USD"));
         when(orderDao.getWalletAndCommission(
                 anyString(),
@@ -1978,7 +2001,7 @@ public class OrderServiceImplTest {
         CurrencyPairLimitDto mockCurrencyPairLimitDto = getMockCurrencyPairLimitDto();
         mockCurrencyPairLimitDto.setMinAmount(BigDecimal.ZERO);
         mockCurrencyPairLimitDto.setMinRate(BigDecimal.ZERO);
-
+        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("1"));
         when(currencyService.findCurrencyPairById(anyInt())).thenReturn(new CurrencyPair("BTC/USD"));
         when(orderDao.getWalletAndCommission(
                 anyString(),

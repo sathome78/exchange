@@ -30,7 +30,7 @@ import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminIpLogsFilterData;
 import me.exrates.model.dto.ieo.IeoUserStatus;
-import me.exrates.model.dto.kyc.VerificationStep;
+import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.NotificationMessageEventEnum;
@@ -909,27 +909,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public int updateVerificationStep(String userEmail) {
-        return userDao.updateVerificationStep(userEmail);
-    }
-
-    @Override
-    public VerificationStep getVerificationStep() {
-        final int verificationStep = userDao.getVerificationStep(getUserEmailFromSecurityContext());
-
-        return VerificationStep.of(verificationStep);
-    }
-
-    @Override
-    public VerificationStep getVerificationStep(String userEmail) {
-        final int verificationStep = userDao.getVerificationStep(userEmail);
-
-        return VerificationStep.of(verificationStep);
-    }
-
-    @Override
-    public int updateReferenceId(String referenceId) {
-        return userDao.updateReferenceId(referenceId, getUserEmailFromSecurityContext());
+    public int updateReferenceIdAndStatus(String referenceId, EventStatus status) {
+        return userDao.updateReferenceIdAndStatus(referenceId, status, getUserEmailFromSecurityContext());
     }
 
     @Override
@@ -1064,13 +1045,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean updateKycStatusByEmail(String email, String status) {
-        return userDao.updateKycStatusByEmail(email, status);
+    public boolean updateVerificationStatus(String email, String status) {
+        return userDao.updateVerificationStatus(email, status);
     }
 
     @Override
     public boolean updateKycStatus(String status) {
-        return userDao.updateKycStatusByEmail(getUserEmailFromSecurityContext(), status);
+        return userDao.updateVerificationStatus(getUserEmailFromSecurityContext(), status);
     }
 
     @Override
@@ -1122,4 +1103,8 @@ public class UserServiceImpl implements UserService {
         return output;
     }
 
+    @Override
+    public boolean updateCountryCode(String countryCode) {
+        return userDao.updateCountryCode(countryCode, getUserEmailFromSecurityContext());
+    }
 }

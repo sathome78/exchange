@@ -7,12 +7,25 @@ import me.exrates.model.Policy;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.IpLogDto;
+import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.dto.UserBalancesDto;
+import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
+import me.exrates.model.dto.UserIpDto;
+import me.exrates.model.dto.UserIpReportDto;
+import me.exrates.model.dto.UserSessionInfoDto;
+import me.exrates.model.dto.UserShortDto;
+import me.exrates.model.dto.UsersInfoDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminIpLogsFilterData;
 import me.exrates.model.dto.ieo.IeoUserStatus;
+import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.model.enums.PolicyEnum;
+import me.exrates.model.enums.TokenType;
+import me.exrates.model.enums.UserEventEnum;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 
@@ -88,7 +101,7 @@ public interface UserDao {
 
     UserShortDto findShortByEmail(String email);
 
-    boolean updateKycStatusByEmail(String email, String result);
+    boolean updateVerificationStatus(String email, String result);
 
     User findByNickname(String nickname);
 
@@ -187,8 +200,6 @@ public interface UserDao {
 
     Integer updateGaTag(String gatag, String userName);
 
-    int getVerificationStep(String userEmail);
-
     boolean userExistByEmail(String email);
 
     String getAvatarPath(Integer userId);
@@ -197,13 +208,11 @@ public interface UserDao {
 
     boolean manageUserFavouriteCurrencyPair(int userId, int currencyPairId, boolean delete);
 
-    int updateReferenceId(String referenceId, String userEmail);
+    int updateReferenceIdAndStatus(String referenceId, EventStatus status, String userEmail);
 
     String getReferenceIdByUserEmail(String userEmail);
 
     String getEmailByReferenceId(String referenceId);
-
-    int updateVerificationStep(String userEmail);
 
     TemporaryPasswordDto getTemporaryPasswordById(Long id);
 
@@ -245,4 +254,8 @@ public interface UserDao {
     IeoUserStatus findIeoUserStatusByEmail(String email);
 
     boolean updateUserRole(int userId, UserRole userRole);
+
+    String getUserPublicId(String userEmail);
+
+    boolean updateCountryCode(String countryCode, String userEmail);
 }
