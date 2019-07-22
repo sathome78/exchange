@@ -1,0 +1,1 @@
+DELETE FROM MERCHANT_IMAGE WHERE merchant_id = 9 AND currency_id = 7;

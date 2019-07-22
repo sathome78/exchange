@@ -1,0 +1,1 @@
+UPDATE CURRENCY_PAIR SET hidden=1 WHERE currency1_id=(SELECT id FROM CURRENCY WHERE name = 'BTCP') OR currency2_id=(SELECT id FROM CURRENCY WHERE name = 'BTCP');

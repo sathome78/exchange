@@ -1,0 +1,3 @@
+UPDATE CURRENCY_PAIR SET ticker_name = "BCX/BTC" WHERE name = "BCX/BTC";
+
+UPDATE CURRENCY_PAIR SET ticker_name = "LUNES/BTC" WHERE name = "LUNES/BTC";
