@@ -1,1 +1,0 @@
-ALTER TABLE `IEO_CLAIM` MODIFY status enum ('SUCCESS', 'FAILED', 'NONE', 'REVOKED') default 'NONE';

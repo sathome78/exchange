@@ -1,1 +1,0 @@
-UPDATE MERCHANT SET needVerification = 1 WHERE name in ('Qubera', 'Interkassa');
