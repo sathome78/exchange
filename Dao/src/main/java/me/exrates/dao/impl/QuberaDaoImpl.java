@@ -5,7 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.QuberaDao;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.QuberaUserData;
-import me.exrates.model.dto.qubera.QuberaRequestDto;
+import me.exrates.model.dto.qubera.QuberaLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -175,7 +175,7 @@ public class QuberaDaoImpl implements QuberaDao {
     }
 
     @Override
-    public boolean logResponse(QuberaRequestDto requestDto) {
+    public boolean logResponse(QuberaLog requestDto) {
         String sql = "INSERT INTO QUBERA_RESPONSE_LOG (paymentId , messageId, accountIBAN, accountNumber, processingTime,"
                 + " state, currency, paymentAmount, transferType, rejectionReason) "
                 + " VALUES (:paymentId, :messageId, :accountIBAN, :accountNumber,"
@@ -192,6 +192,31 @@ public class QuberaDaoImpl implements QuberaDao {
         params.addValue("paymentAmount", requestDto.getPaymentAmount());
         params.addValue("transferType", requestDto.getTransferType());
         params.addValue("rejectionReason", requestDto.getRejectionReason());
+        return masterJdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public boolean createExternalPaymentLog(QuberaLog requestDto) {
+        String sql = "INSERT INTO QUBERA_RESPONSE_LOG(paymentId, accountIBAN, accountNumber, currency, paymentAmount, " +
+                "transferType, state) VALUES (:paymentId, :accountIBAN, :accountNumber, :currency, :paymentAmount," +
+                ":transferType, :state)";
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("paymentId", requestDto.getPaymentId());
+        params.addValue("accountIBAN", requestDto.getAccountIBAN());
+        params.addValue("accountNumber", requestDto.getAccountNumber());
+        params.addValue("currency", requestDto.getCurrency());
+        params.addValue("paymentAmount", requestDto.getPaymentAmount());
+        params.addValue("transferType", requestDto.getTransferType());
+        params.addValue("state", requestDto.getState());
+        return masterJdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public boolean updateExternalPaymentLog(int paymentId, QuberaLog.ExternalPaymentState state) {
+        String sql = "UPDATE QUBERA_RESPONSE_LOG SET state = :state WEHRE paymentId = :payment_id";
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("state", state);
+        params.addValue("payment_id", paymentId);
         return masterJdbcTemplate.update(sql, params) > 0;
     }
 

@@ -26,12 +26,14 @@ import me.exrates.model.dto.kyc.request.RequestOnBoardingDto;
 import me.exrates.model.dto.kyc.responces.KycStatusResponseDto;
 import me.exrates.model.dto.kyc.responces.OnboardingResponseDto;
 import me.exrates.model.dto.qubera.AccountInfoDto;
-import me.exrates.model.dto.qubera.ExternalPaymentDto;
+import me.exrates.model.dto.qubera.ExternalPaymentShortDto;
 import me.exrates.model.dto.qubera.PaymentRequestDto;
+import me.exrates.model.dto.qubera.QuberaLog;
 import me.exrates.model.dto.qubera.QuberaPaymentInfoDto;
 import me.exrates.model.dto.qubera.QuberaPaymentToMasterDto;
-import me.exrates.model.dto.qubera.QuberaRequestDto;
+import me.exrates.model.dto.qubera.QuberaRequestPaymentShortDto;
 import me.exrates.model.dto.qubera.ResponsePaymentDto;
+import me.exrates.model.dto.qubera.responses.ExternalPaymentResponseDto;
 import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.exceptions.KycException;
@@ -83,6 +85,24 @@ public class QuberaServiceImpl implements QuberaService {
     int poolId;
     private @Value("${qubera.master.account}")
     String masterAccount;
+
+    private @Value("${qubera.bic}")
+    String bic;
+
+    private @Value("${qubera.bank_name}")
+    String bankName;
+
+    private @Value("${qubera.swift_code}")
+    String swiftCode;
+
+    private @Value("${qubera.country}")
+    String country;
+
+    private @Value("${qubera.city}")
+    String city;
+
+    private @Value("${qubera.country}")
+    String address;
 
     @Value("${server-host}")
     private String host;
@@ -185,7 +205,7 @@ public class QuberaServiceImpl implements QuberaService {
         ResponsePaymentDto responsePaymentDto = kycHttpClient.createPaymentInternal(paymentToMasterDto, false);
         logger.info("withdraw create payment internal success, amount - " + responsePaymentDto.getTransactionAmount().toPlainString()
                 + ", transaction " + responsePaymentDto.getTransactionCurrencyCode());
-        if (!kycHttpClient.confirmInternalPayment(responsePaymentDto.getPaymentId(), true)) {
+        if (!kycHttpClient.confirmInternalPayment(responsePaymentDto.getPaymentId(), false)) {
             logger.info("Fail confirm payment " + responsePaymentDto.getTransactionCurrencyCode());
             throw new MerchantException("Payment not confirmed");
         }
@@ -198,9 +218,8 @@ public class QuberaServiceImpl implements QuberaService {
     }
 
     @Override
-    public boolean logResponse(QuberaRequestDto requestDto) {
+    public boolean logResponse(QuberaLog requestDto) {
         return quberaDao.logResponse(requestDto);
-        //todo send email
     }
 
     @Override
@@ -251,9 +270,7 @@ public class QuberaServiceImpl implements QuberaService {
     public AccountInfoDto getInfoAccount(String email) {
         String account = quberaDao.getAccountByUserEmail(email);
         if (account == null) {
-            logger.error("Account not found " + email);
-            throw new NgDashboardException("Account not found " + email,
-                    Constants.ErrorApi.QUBERA_ACCOUNT_NOT_FOUND_ERROR);
+            return null;
         }
         return kycHttpClient.getBalanceAccount(account);
     }
@@ -306,32 +323,39 @@ public class QuberaServiceImpl implements QuberaService {
     }
 
     @Override
-    public ResponsePaymentDto createExternalPayment(ExternalPaymentDto externalPaymentDto, String email) {
-        String account = quberaDao.getAccountByUserEmail(email);
-        if (account == null) {
+    public ExternalPaymentResponseDto createExternalPayment(ExternalPaymentShortDto externalPaymentDto, String email) {
+        QuberaUserData userData = quberaDao.getUserDataByUserEmail(email);
+        if (userData == null || userData.getAccountNumber() == null) {
             logger.error("Account not found " + email);
             throw new NgDashboardException("Account not found " + email,
                     Constants.ErrorApi.QUBERA_ACCOUNT_NOT_FOUND_ERROR);
         }
-        AccountInfoDto balanceAccount = kycHttpClient.getBalanceAccount(account);
+        AccountInfoDto balanceAccount = kycHttpClient.getBalanceAccount(userData.getAccountNumber());
 
         if (balanceAccount.getAvailableBalance().getAmount()
-                .compareTo(externalPaymentDto.getTransferDetails().getAmount()) < 0) {
+                .compareTo(new BigDecimal(externalPaymentDto.getAmount())) < 0) {
             String messageError = "Not enough money for current payment " +
-                    externalPaymentDto.getTransferDetails().getAmount().toPlainString()
-                    + "available balance " +
+                    externalPaymentDto.getAmount()
+                    + " available balance " +
                     balanceAccount.getAvailableBalance().getAmount().toPlainString();
             logger.error(messageError);
             throw new NgDashboardException(messageError, Constants.ErrorApi.QUBERA_NOT_ENOUGH_MONEY_FOR_PAYMENT);
         }
 
-        externalPaymentDto.setSenderAccountNumber(account);
-        return kycHttpClient.createExternalPayment(externalPaymentDto);
-    }
+        QuberaRequestPaymentShortDto request = QuberaRequestPaymentShortDto.of(externalPaymentDto, userData.getAccountNumber());
 
-    @Override
-    public String confirmExternalPayment(Integer paymentId) {
-        return kycHttpClient.confirmExternalPayment(paymentId);
+        ExternalPaymentResponseDto externalPayment = kycHttpClient.createExternalPayment(request);
+        QuberaLog quberaLog = QuberaLog.builder()
+                .accountNumber(userData.getAccountNumber())
+                .accountIBAN(userData.getIban())
+                .paymentAmount(new BigDecimal(externalPaymentDto.getAmount()))
+                .currency(externalPaymentDto.getCurrencyCode())
+                .transferType("OUTPUT")
+                .state(QuberaLog.ExternalPaymentState.create.name())
+                .build();
+
+        quberaDao.createExternalPaymentLog(quberaLog);
+        return externalPayment;
     }
 
     @Override
@@ -340,17 +364,25 @@ public class QuberaServiceImpl implements QuberaService {
         if (userData == null) {
             return null;
         }
-        return new QuberaPaymentInfoDto(userData.getIban(), userData.getAccountNumber(), null);
+        return QuberaPaymentInfoDto.builder()
+                .bic(bic)
+                .bankName(bankName)
+                .swiftCode(swiftCode)
+                .address(address)
+                .country(country)
+                .city(city)
+                .iban(userData.getIban())
+                .build();
     }
 
     @Override
-    public void sendNotification(QuberaRequestDto quberaRequestDto) {
+    public void sendNotification(QuberaLog quberaRequestDto) {
         Integer userId = quberaDao.findUserIdByAccountNumber(quberaRequestDto.getAccountNumber());
         User user = userService.getUserById(userId);
         String msg;
         UserNotificationMessage message;
         if (quberaRequestDto.getState().equalsIgnoreCase("Rejected")) {
-            msg = "Your payment was rejected, reason " + quberaRequestDto.getRejectionReason();
+            msg = "Your payment was rejected, reason: " + quberaRequestDto.getRejectionReason();
             message = new UserNotificationMessage(WsSourceTypeEnum.FIAT, UserNotificationType.ERROR, msg);
         } else {
             msg = "Your payment was confirmed, amount " + quberaRequestDto.getPaymentAmount().toPlainString() + " " + quberaRequestDto.getCurrency();
@@ -446,7 +478,14 @@ public class QuberaServiceImpl implements QuberaService {
         userData.setBankVerificationStatus("Pending");
         quberaDao.updateUserData(userData);
         return onBoarding;
+    }
 
+    @Override
+    public boolean confirmExternalPayment(Integer paymentId) {
+        if (kycHttpClient.confirmExternalPayment(paymentId)) {
+            return true;
+        }
+        throw new NgDashboardException(ErrorApiTitles.QUBERA_PAYMENT_NOT_CONFIFM);
     }
 
     public void sendNotification(int userId, String paymentAmount) {

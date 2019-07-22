@@ -1,7 +1,7 @@
 package me.exrates.dao;
 
 import me.exrates.model.QuberaUserData;
-import me.exrates.model.dto.qubera.QuberaRequestDto;
+import me.exrates.model.dto.qubera.QuberaLog;
 
 import java.util.Map;
 
@@ -9,7 +9,11 @@ public interface QuberaDao {
 
     Integer findUserIdByAccountNumber(String accountNumber);
 
-    boolean logResponse(QuberaRequestDto requestDto);
+    boolean logResponse(QuberaLog requestDto);
+
+    boolean createExternalPaymentLog(QuberaLog requestDto);
+
+    boolean updateExternalPaymentLog(int paymentId, QuberaLog.ExternalPaymentState state);
 
     boolean saveUserDetails(QuberaUserData userData);
 

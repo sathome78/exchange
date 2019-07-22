@@ -735,8 +735,10 @@ public class CoreWalletServiceImpl implements CoreWalletService {
             //Fix for coin with specific 'listtransactions' method without first params
             payments = listTransactionsForSpecificBtcCoins(transactionsPerPage, page * transactionsPerPage);
         }
-        return ImmutableList.copyOf(payments.stream()
-                .map(this::setBtcTransactionHistoryDto).collect(Collectors.toList())).reverse();
+        List<BtcTransactionHistoryDto> resultList = payments.stream().map(this::setBtcTransactionHistoryDto).collect(Collectors.toList());
+        Collections.reverse(resultList);
+
+        return resultList;
     }
 
     @Override
@@ -748,8 +750,10 @@ public class CoreWalletServiceImpl implements CoreWalletService {
             //Fix for coin with specific 'listtransactions' method without first params
             payments = listTransactionsForSpecificBtcCoins(length, start);
         }
-        return ImmutableList.copyOf(payments.stream()
-                .map(this::setBtcTransactionHistoryDto).collect(Collectors.toList())).reverse();
+        List<BtcTransactionHistoryDto> resultList = payments.stream().map(this::setBtcTransactionHistoryDto).collect(Collectors.toList());
+        Collections.reverse(resultList);
+
+        return resultList;
     }
 
     private List<Payment> listTransactionsForSpecificBtcCoins(Integer account, Integer count) throws BitcoindException, CommunicationException {

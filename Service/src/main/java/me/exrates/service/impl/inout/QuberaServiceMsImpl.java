@@ -3,10 +3,8 @@ package me.exrates.service.impl.inout;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.condition.MicroserviceConditional;
-import me.exrates.model.dto.AccountCreateDto;
 import me.exrates.model.dto.AccountQuberaResponseDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
@@ -14,11 +12,12 @@ import me.exrates.model.dto.kyc.IdentityDataRequest;
 import me.exrates.model.dto.kyc.responces.KycStatusResponseDto;
 import me.exrates.model.dto.kyc.responces.OnboardingResponseDto;
 import me.exrates.model.dto.qubera.AccountInfoDto;
-import me.exrates.model.dto.qubera.ExternalPaymentDto;
+import me.exrates.model.dto.qubera.ExternalPaymentShortDto;
 import me.exrates.model.dto.qubera.PaymentRequestDto;
+import me.exrates.model.dto.qubera.QuberaLog;
 import me.exrates.model.dto.qubera.QuberaPaymentInfoDto;
-import me.exrates.model.dto.qubera.QuberaRequestDto;
 import me.exrates.model.dto.qubera.ResponsePaymentDto;
+import me.exrates.model.dto.qubera.responses.ExternalPaymentResponseDto;
 import me.exrates.service.QuberaService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.properties.InOutProperties;
@@ -62,7 +61,7 @@ public class QuberaServiceMsImpl implements QuberaService {
     }
 
     @Override
-    public boolean logResponse(QuberaRequestDto requestDto) {
+    public boolean logResponse(QuberaLog requestDto) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_MERCHANTS_QUBERA_LOG_RESPONSE);
 
         HttpEntity<String> entity;
@@ -115,12 +114,7 @@ public class QuberaServiceMsImpl implements QuberaService {
     }
 
     @Override
-    public ResponsePaymentDto createExternalPayment(ExternalPaymentDto externalPaymentDto, String email) {
-        return null;
-    }
-
-    @Override
-    public String confirmExternalPayment(Integer paymentId) {
+    public ExternalPaymentResponseDto createExternalPayment(ExternalPaymentShortDto externalPaymentDto, String email) {
         return null;
     }
 
@@ -130,7 +124,7 @@ public class QuberaServiceMsImpl implements QuberaService {
     }
 
     @Override
-    public void sendNotification(QuberaRequestDto quberaRequestDto) {
+    public void sendNotification(QuberaLog quberaRequestDto) {
 
     }
 
@@ -147,6 +141,11 @@ public class QuberaServiceMsImpl implements QuberaService {
     @Override
     public OnboardingResponseDto startVerificationProcessing(IdentityDataRequest identityDataRequest, String email) {
         return null;
+    }
+
+    @Override
+    public boolean confirmExternalPayment(Integer paymentId) {
+        return false;
     }
 
     @Override
