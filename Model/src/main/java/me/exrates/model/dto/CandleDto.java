@@ -3,6 +3,7 @@ package me.exrates.model.dto;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import me.exrates.model.serializer.LocalDateTimeDeserializer;
@@ -12,6 +13,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
+@Builder(builderClassName = "Builder")
 @NoArgsConstructor
 @AllArgsConstructor
 public class CandleDto {

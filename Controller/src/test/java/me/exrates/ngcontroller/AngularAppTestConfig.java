@@ -1,6 +1,7 @@
 package me.exrates.ngcontroller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import me.exrates.chart.CandleDataProcessingService;
 import me.exrates.dao.OrderDao;
 import me.exrates.dao.StopOrderDao;
 import me.exrates.dao.UserDao;
@@ -342,5 +343,10 @@ public class AngularAppTestConfig {
     @Bean
     public RestApiUtilComponent restApiUtils() {
         return Mockito.mock(RestApiUtilComponent.class);
+    }
+
+    @Bean
+    public CandleDataProcessingService candleDataProcessingService() {
+        return Mockito.mock(CandleDataProcessingService.class);
     }
 }

@@ -1,7 +1,9 @@
 package me.exrates.controller.openAPI;
 
 import me.exrates.controller.openAPI.config.WebAppTestConfig;
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.constants.ErrorApiTitles;
+import me.exrates.model.dto.CandleDto;
 import me.exrates.model.enums.IntervalType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.exceptions.OpenApiException;
@@ -22,6 +24,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
 
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
@@ -31,6 +34,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {WebAppTestConfig.class, OpenApiSecurityConfig.class})
@@ -274,6 +278,10 @@ public class OpenApiPublicOldControllerTest extends OpenApiCommonTest {
                 .queryParam("interval_value", intervalValue)
                 .build()
                 .expand(cpName);
+
+        when(currencyService.getCurrencyPairByName(anyString())).thenReturn(new CurrencyPair("BTC/USD"));
+        when(candleDataProcessingService.getData(anyString(), any(LocalDateTime.class), any(LocalDateTime.class), any(BackDealInterval.class)))
+                .thenReturn(Collections.singletonList(new CandleDto()));
 
         mockMvc.perform(MockMvcRequestBuilders.get(uriComponents.toUri().toString()))
                 .andExpect(MockMvcResultMatchers.status().isOk());

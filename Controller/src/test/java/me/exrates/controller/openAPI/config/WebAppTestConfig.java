@@ -1,5 +1,6 @@
 package me.exrates.controller.openAPI.config;
 
+import me.exrates.chart.CandleDataProcessingService;
 import me.exrates.dao.IeoDetailsRepository;
 import me.exrates.security.service.OpenApiAuthService;
 import me.exrates.service.CurrencyService;
@@ -67,6 +68,11 @@ public class WebAppTestConfig {
     @Bean
     public ExchangeApi exchangeApi() {
         return Mockito.mock(ExchangeApi.class);
+    }
+
+    @Bean
+    public CandleDataProcessingService candleDataProcessingService() {
+        return Mockito.mock(CandleDataProcessingService.class);
     }
 
     @Bean

@@ -45,12 +45,13 @@ public final class CandleDataConverter {
         });
 
         Map<String, Object> response = new HashMap<>();
-        response.put("t", t);
+        response.put("s", "ok");
         response.put("o", o);
+        response.put("c", c);
         response.put("h", h);
         response.put("l", l);
-        response.put("c", c);
         response.put("v", v);
+        response.put("t", t);
 
         return response;
     }
