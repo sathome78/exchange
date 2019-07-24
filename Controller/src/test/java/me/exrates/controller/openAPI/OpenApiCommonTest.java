@@ -3,6 +3,7 @@ package me.exrates.controller.openAPI;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
+import me.exrates.chart.CandleDataProcessingService;
 import me.exrates.model.HmacSignature;
 import me.exrates.security.filter.OpenApiAuthenticationFilter;
 import me.exrates.security.service.OpenApiAuthService;
@@ -16,7 +17,6 @@ import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -37,7 +37,6 @@ import static org.mockito.Mockito.when;
 
 public abstract class OpenApiCommonTest {
 
-
     @Autowired
     private WebApplicationContext webApplicationContext;
     @Autowired
@@ -54,6 +53,8 @@ public abstract class OpenApiCommonTest {
     WalletService walletService;
     @Autowired
     ExchangeApi exchangeApi;
+    @Autowired
+    CandleDataProcessingService candleDataProcessingService;
 
     MockMvc mockMvc;
 

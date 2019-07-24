@@ -21,13 +21,14 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
 import static me.exrates.service.util.OpenApiUtils.transformCurrencyPair;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -260,11 +261,15 @@ public class OpenApiPublicOldControllerTest extends OpenApiCommonTest {
     @Test
     public void getCandleChartData() throws Exception {
         String cpName = "btc_usd";
+        LocalDate datesFrom = LocalDate.now().minusDays(1);
+        LocalDate datesTo = LocalDate.now();
         IntervalType intervalType = IntervalType.HOUR;
         Integer intervalValue = 1;
 
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
                 .path("/openapi/v1/public/{currency_pair}/candle_chart")
+                .queryParam("from_date", datesFrom.toString())
+                .queryParam("to_date", datesTo.toString())
                 .queryParam("interval_type", intervalType)
                 .queryParam("interval_value", intervalValue)
                 .build()
@@ -274,6 +279,6 @@ public class OpenApiPublicOldControllerTest extends OpenApiCommonTest {
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
         verify(currencyService, times(1)).getCurrencyPairByName(transformCurrencyPair(cpName));
-        verify(orderService, times(1)).getDataForCandleChart(anyObject(), eq(new BackDealInterval(intervalValue, intervalType)));
+        verify(candleDataProcessingService, times(1)).getData(anyString(), any(LocalDateTime.class), any(LocalDateTime.class), any(BackDealInterval.class));
     }
 }

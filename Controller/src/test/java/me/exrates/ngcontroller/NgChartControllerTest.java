@@ -1,12 +1,10 @@
 package me.exrates.ngcontroller;
 
+import me.exrates.chart.CandleDataProcessingService;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.CandleDto;
-import me.exrates.model.enums.ChartTimeFramesEnum;
-import me.exrates.ngService.NgOrderService;
+import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.CurrencyService;
-import me.exrates.service.OrderService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -15,10 +13,8 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import java.util.Collections;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -40,9 +36,7 @@ public class NgChartControllerTest extends AngularApiCommonTest {
     @Mock
     private CurrencyService currencyService;
     @Mock
-    private NgOrderService ngOrderService;
-    @Mock
-    private OrderService orderService;
+    private CandleDataProcessingService candleDataProcessingService;
 
     @InjectMocks
     private NgChartController ngChartController;
@@ -59,49 +53,25 @@ public class NgChartControllerTest extends AngularApiCommonTest {
 
     @Test
     public void getCandleChartHistoryData_WhenOk() throws Exception {
-        String resolution = "30";
-        String rsolutionForChartTime = (resolution.equals("W") || resolution.equals("M")) ? "D" : resolution;
-        CurrencyPair currencyPair = new CurrencyPair();
-
-        List<CandleDto> result = orderService.getCachedDataForCandle(currencyPair,
-                ChartTimeFramesEnum.ofResolution(rsolutionForChartTime).getTimeFrame())
-                .stream()
-                .map(CandleDto::new)
-                .collect(Collectors.toList());
-
-        Map<String, Object> map = new HashMap<>();
-        map.put("symbol", "symbol");
-        map.put("from", 5);
-
-        when(currencyService.getCurrencyPairByName(anyString())).thenReturn(currencyPair);
-        when(orderService.getCachedDataForCandle(any(CurrencyPair.class), any(ChartTimeFrame.class))
-                .stream()
-                .map(CandleDto::new)
-                .collect(Collectors.toList())).thenReturn(result);
-        when(ngOrderService.filterDataPeriod(anyList(), anyLong(), anyLong(), anyString())).thenReturn(map);
+        when(currencyService.getCurrencyPairByName(anyString())).thenReturn(new CurrencyPair());
+        when(candleDataProcessingService.getData(anyString(), any(LocalDateTime.class), any(LocalDateTime.class), any(BackDealInterval.class))).thenReturn(Collections.singletonList(new CandleDto()));
 
         mockMvc.perform(get(BASE_URL + "/history")
                 .param("symbol", "btc")
-                .param("to", "2")
-                .param("from", "3")
-                .param("resolution", "30")
-                .param("countback", "countback"))
+                .param("to", "1563840000")
+                .param("from", "1563840100")
+                .param("resolution", "30"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.symbol", is("symbol")))
                 .andExpect(jsonPath("$.from", is(5)))
                 .andExpect(jsonPath("$.*", hasSize(2)));
 
         verify(currencyService, times(1)).getCurrencyPairByName(anyString());
-        verify(orderService, times(2)).getCachedDataForCandle(any(CurrencyPair.class), any(ChartTimeFrame.class));
-        verify(ngOrderService, times(1)).filterDataPeriod(anyList(), anyLong(), anyLong(), anyString());
+        verify(candleDataProcessingService, times(1)).getData(anyString(), any(LocalDateTime.class), any(LocalDateTime.class), any(BackDealInterval.class));
     }
 
     @Test
     public void getCandleChartHistoryData_WhenNotFound() throws Exception {
-        Map<String, Object> map = new HashMap<>();
-        map.put("symbol", "symbol");
-        map.put("from", 5);
-
         when(currencyService.getCurrencyPairByName(anyString())).thenReturn(null);
         when(ngOrderService.filterDataPeriod(anyList(), anyLong(), anyLong(), anyString())).thenReturn(map);
 
@@ -109,8 +79,7 @@ public class NgChartControllerTest extends AngularApiCommonTest {
                 .param("symbol", "freg")
                 .param("to", "2")
                 .param("from", "3")
-                .param("resolution", "deq")
-                .param("countback", "eqded"))
+                .param("resolution", "deq"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.s", is("error")))
                 .andExpect(jsonPath("$.errmsg", is("can not find currencyPair")))

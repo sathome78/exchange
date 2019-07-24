@@ -55,8 +55,7 @@
                     <table id="candle-table">
                         <thead>
                         <tr>
-                            <th><loc:message code="admin.candleTable.startPeriod"/> </th>
-                            <th><loc:message code="admin.candleTable.endPeriod"/></th>
+                            <th><loc:message code="admin.candleTable.startPeriod"/></th>
                             <th><loc:message code="dashboard.lowestPrice"/></th>
                             <th><loc:message code="dashboard.highestPrice"/></th>
                             <th><loc:message code="dashboard.priceStart"/></th>

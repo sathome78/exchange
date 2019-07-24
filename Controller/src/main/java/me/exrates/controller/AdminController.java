@@ -5,6 +5,7 @@ import com.google.common.base.Preconditions;
 import com.neemre.btcdcli4j.core.BitcoindException;
 import com.neemre.btcdcli4j.core.CommunicationException;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.chart.CandleDataProcessingService;
 import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.InvalidNumberParamException;
@@ -25,7 +26,7 @@ import me.exrates.model.dto.AdminOrderInfoDto;
 import me.exrates.model.dto.AlertDto;
 import me.exrates.model.dto.BotTradingSettingsShortDto;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
-import me.exrates.model.dto.CandleChartItemDto;
+import me.exrates.model.dto.CandleDto;
 import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.EditMerchantCommissionDto;
@@ -283,6 +284,8 @@ public class AdminController {
     private UsdxService usdxService;
     @Autowired
     private G2faService g2faService;
+    @Autowired
+    private CandleDataProcessingService candleDataProcessingService;
 
 
     @Autowired
@@ -1191,18 +1194,20 @@ public class AdminController {
 
     @RequestMapping(value = "/2a8fy7b07dxe44/getCandleTableData", method = RequestMethod.GET)
     @ResponseBody
-    public List<CandleChartItemDto> getCandleChartData(@RequestParam("currencyPair") Integer currencyPairId,
-                                                       @RequestParam("interval") String interval,
-                                                       @RequestParam("startTime") String startTimeString) {
-        CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
-        BackDealInterval backDealInterval = new BackDealInterval(interval);
-        LocalDateTime startTime = LocalDateTime.parse(startTimeString, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        return orderService.getDataForCandleChart(currencyPair, backDealInterval, startTime);
+    public List<CandleDto> getCandleChartData(@RequestParam("currencyPair") Integer currencyPairId,
+                                              @RequestParam("interval") String interval,
+                                              @RequestParam("startTime") String startTimeString) {
+        final CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
+        final BackDealInterval backDealInterval = new BackDealInterval(interval);
+        final LocalDateTime fromDate = LocalDateTime.parse(startTimeString, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        final LocalDateTime toDate = LocalDateTime.now();
+
+        return candleDataProcessingService.getData(currencyPair.getName(), fromDate, toDate, backDealInterval);
     }
 
     private BitcoinService getBitcoinServiceByMerchantName(String merchantName) {
         IMerchantService merchantService = serviceContext.getBitcoinServiceByMerchantName(merchantName);
-        if (merchantService == null || !(merchantService instanceof BitcoinService)) {
+        if (!(merchantService instanceof BitcoinService)) {
             throw new NoRequestedBeansFoundException("Merchant name: " + merchantName);
         }
         return (BitcoinService) merchantService;
