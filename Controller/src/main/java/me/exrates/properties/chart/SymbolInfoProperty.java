@@ -36,7 +36,7 @@ public final class SymbolInfoProperty {
                         .add("30")
                         .add("60")
                         .add("360")
-                        .add("1D")
+                        .add("D")
                         .build())
                 .add("force_session_rebuild", false)
                 .add("has_daily", true)

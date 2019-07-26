@@ -1,4 +1,4 @@
-package me.exrates.chart;
+package me.exrates.service.chart;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -10,15 +10,21 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Log4j2
 @NoArgsConstructor(access = AccessLevel.NONE)
 public final class CandleDataConverter {
 
     public static Map<String, Object> convert(List<CandleDto> data) {
+        data = data.stream()
+                .sorted(Comparator.comparing(CandleDto::getTime))
+                .collect(Collectors.toList());
+
         List<Long> t = new ArrayList<>();
         List<BigDecimal> o = new ArrayList<>();
         List<BigDecimal> c = new ArrayList<>();

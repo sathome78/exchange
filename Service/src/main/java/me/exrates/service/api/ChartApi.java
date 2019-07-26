@@ -1,45 +1,29 @@
 package me.exrates.service.api;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import me.exrates.model.dto.CandleDto;
-import me.exrates.model.enums.IntervalType;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.exception.ChartApiException;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import static java.util.Objects.nonNull;
 
 @PropertySource(value = {"classpath:/external-apis.properties"})
 @Slf4j
 @Component
 public class ChartApi {
-
-    private static final LocalDateTime DEFAULT_TO_DATE;
-
-    static {
-        DEFAULT_TO_DATE = LocalDateTime.now();
-    }
-
-    private static final LocalDateTime DEFAULT_FROM_DATE = DEFAULT_TO_DATE.minus(5 * 300, ChronoUnit.MINUTES);
-
-    public static final String DEFAULT_CURRENCY_PAIR = "BTC/USD";
-    public static final BackDealInterval DEFAULT_INTERVAL = new BackDealInterval(5, IntervalType.MINUTE);
 
     private final String url;
 
@@ -51,23 +35,15 @@ public class ChartApi {
         this.restTemplate = new RestTemplate();
     }
 
-    public List<CandleDto> getCandlesDataByRange(String currencyPair,
+    public List<CandleDto> getCandlesDataByRange(String pairName,
                                                  LocalDateTime from,
                                                  LocalDateTime to,
                                                  BackDealInterval interval) {
-        final CandleDataRequest request = CandleDataRequest.builder()
-                .currencyPair(currencyPair)
-                .from(from)
-                .to(to)
-                .intervalType(interval.getIntervalType())
-                .intervalValue(interval.getIntervalValue())
-                .build();
-        HttpEntity<CandleDataRequest> requestEntity = new HttpEntity<>(request);
+        final String queryParams = buildQueryParams(pairName, from, to, interval);
 
-        ResponseEntity<List<CandleDto>> responseEntity;
+        ResponseEntity<CandleDto[]> responseEntity;
         try {
-            responseEntity = restTemplate.exchange(url + "/range", HttpMethod.GET, requestEntity, new ParameterizedTypeReference<List<CandleDto>>() {
-            });
+            responseEntity = restTemplate.getForEntity(String.format("%s/range?%s", url, queryParams), CandleDto[].class);
             if (responseEntity.getStatusCodeValue() != 200) {
                 throw new ChartApiException("Chart server is not available");
             }
@@ -75,24 +51,15 @@ public class ChartApi {
             log.warn("Chart service did not return valid data: server not available");
             return Collections.emptyList();
         }
-        return responseEntity.getBody();
+        return Arrays.asList(responseEntity.getBody());
     }
 
-    public List<CandleDto> getDefaultCandlesDataByRange(String currencyPair) {
-        return this.getCandlesDataByRange(currencyPair, DEFAULT_FROM_DATE, DEFAULT_TO_DATE, DEFAULT_INTERVAL);
-    }
-
-    public CandleDto getLastCandleData(String currencyPair, BackDealInterval interval) {
-        final CandleDataRequest request = CandleDataRequest.builder()
-                .currencyPair(currencyPair)
-                .intervalType(interval.getIntervalType())
-                .intervalValue(interval.getIntervalValue())
-                .build();
-        HttpEntity<CandleDataRequest> requestEntity = new HttpEntity<>(request);
+    public CandleDto getLastCandleData(String pairName, BackDealInterval interval) {
+        final String queryParams = buildQueryParams(pairName, null, null, interval);
 
         ResponseEntity<CandleDto> responseEntity;
         try {
-            responseEntity = restTemplate.exchange(url + "/last", HttpMethod.GET, requestEntity, CandleDto.class);
+            responseEntity = restTemplate.getForEntity(String.format("%s/last?%s", url, queryParams), CandleDto.class);
             if (responseEntity.getStatusCodeValue() != 200) {
                 throw new ChartApiException("Chart server is not available");
             }
@@ -103,17 +70,31 @@ public class ChartApi {
         return responseEntity.getBody();
     }
 
-    @Builder(builderClassName = "Builder")
-    @AllArgsConstructor
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-    public static class CandleDataRequest {
+    public LocalDateTime getLastCandleTimeBeforeDate(String pairName,
+                                                     LocalDateTime date,
+                                                     BackDealInterval interval) {
+        final String queryParams = buildQueryParams(pairName, null, date, interval);
 
-        String currencyPair;
-        LocalDateTime from;
-        LocalDateTime to;
-        IntervalType intervalType;
-        int intervalValue;
+        ResponseEntity<LocalDateTime> responseEntity;
+        try {
+            responseEntity = restTemplate.getForEntity(String.format("%s/last-date?%s", url, queryParams), LocalDateTime.class);
+            if (responseEntity.getStatusCodeValue() != 200) {
+                throw new ChartApiException("Chart server is not available");
+            }
+        } catch (Exception ex) {
+            log.warn("Chart service did not return valid data: server not available");
+            return null;
+        }
+        return responseEntity.getBody();
+    }
+
+    private String buildQueryParams(String pairName, LocalDateTime from, LocalDateTime to, BackDealInterval interval) {
+        String pairParam = String.format("currencyPair=%s", pairName);
+        String fromParam = nonNull(from) ? String.format("from=%s", from.format(DateTimeFormatter.ISO_DATE_TIME)) : StringUtils.EMPTY;
+        String toParam = nonNull(to) ? String.format("to=%s", to.format(DateTimeFormatter.ISO_DATE_TIME)) : StringUtils.EMPTY;
+        String intervalValueParam = String.format("intervalValue=%s", interval.getIntervalValue().toString());
+        String intervalTypeParam = String.format("intervalType=%s", interval.getIntervalType().name());
+
+        return String.join("&", pairParam, fromParam, toParam, intervalValueParam, intervalTypeParam);
     }
 }

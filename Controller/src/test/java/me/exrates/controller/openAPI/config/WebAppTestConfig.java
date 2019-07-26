@@ -1,6 +1,5 @@
 package me.exrates.controller.openAPI.config;
 
-import me.exrates.chart.CandleDataProcessingService;
 import me.exrates.dao.IeoDetailsRepository;
 import me.exrates.security.service.OpenApiAuthService;
 import me.exrates.service.CurrencyService;
@@ -8,6 +7,7 @@ import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.api.ExchangeApi;
+import me.exrates.service.chart.CandleDataProcessingService;
 import me.exrates.service.openapi.OpenApiCommonService;
 import me.exrates.service.openapi.impl.OpenApiCommonServiceImpl;
 import me.exrates.service.userOperation.UserOperationService;

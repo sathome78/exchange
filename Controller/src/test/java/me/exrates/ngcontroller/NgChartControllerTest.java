@@ -1,11 +1,11 @@
 package me.exrates.ngcontroller;
 
-import me.exrates.chart.CandleDataProcessingService;
 import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.CandleDto;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.chart.CandleDataProcessingService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;

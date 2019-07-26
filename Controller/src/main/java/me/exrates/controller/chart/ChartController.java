@@ -1,16 +1,15 @@
 package me.exrates.controller.chart;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.chart.CandleDataConverter;
-import me.exrates.chart.CandleDataProcessingService;
 import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.dto.CandleDto;
-import me.exrates.model.enums.ChartResolution;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.properties.chart.ChartProperty;
 import me.exrates.properties.chart.SymbolInfoProperty;
 import me.exrates.security.annotation.OnlineMethod;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.chart.CandleDataConverter;
+import me.exrates.service.chart.CandleDataProcessingService;
 import me.exrates.service.util.CollectionUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,6 +24,8 @@ import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static java.util.Objects.nonNull;
 
 @Log4j2
 @RestController
@@ -65,8 +66,13 @@ public class ChartController {
         List<CandleDto> result = processingService.getData(symbol, fromDate, toDate, interval);
 
         if (CollectionUtil.isEmpty(result)) {
+            LocalDateTime nextTime = processingService.getLastCandleTimeBeforeDate(symbol, fromDate, interval);
+
             response.put("s", "no_data");
-            response.put("nextTime", toDate.minusMinutes(ChartResolution.getMinutes(resolution)));
+
+            if (nonNull(nextTime)) {
+                response.put("nextTime", nextTime);
+            }
 
             return new ResponseEntity(response, HttpStatus.NOT_FOUND);
         }

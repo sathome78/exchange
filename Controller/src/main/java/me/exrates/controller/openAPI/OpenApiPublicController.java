@@ -1,6 +1,5 @@
 package me.exrates.controller.openAPI;
 
-import me.exrates.chart.CandleDataProcessingService;
 import me.exrates.controller.model.BaseResponse;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.constants.ErrorApiTitles;
@@ -18,6 +17,7 @@ import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.api.ExchangeApi;
+import me.exrates.service.chart.CandleDataProcessingService;
 import me.exrates.service.util.CollectionUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
