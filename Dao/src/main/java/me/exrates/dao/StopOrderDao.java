@@ -29,11 +29,11 @@ public interface StopOrderDao {
 
     OrderCreateDto getOrderById(Integer orderId, boolean forUpdate);
 
-    List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status, OperationType operationType, String scope, Integer offset, Integer limit, Locale locale);
+    List<OrderWideListDto> getMyOrdersWithState(Integer id, CurrencyPair currencyPair, OrderStatus status,
+                                                OperationType operationType, Integer offset, Integer limit, Locale locale);
 
-    List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
-                                                OperationType operationType,
-                                                String scope, Integer offset, Integer limit, Locale locale);
+    List<OrderWideListDto> getMyOrdersWithState(Integer id, CurrencyPair currencyPair, List<OrderStatus> statuses,
+                                                OperationType operationType, Integer offset, Integer limit, Locale locale);
 
     PagingData<List<OrderBasicInfoDto>> searchOrders(AdminStopOrderFilterData adminOrderFilterData, DataTableParams dataTableParams, Locale locale);
 
@@ -44,4 +44,6 @@ public interface StopOrderDao {
     List<Integer> getAllOpenedStopOrdersByUserId(Integer userId);
 
     List<Integer> getOpenedStopOrdersByCurrencyPair(Integer userId, String currencyPair);
+
+    int getUnfilteredOrdersCount(int id, CurrencyPair currencyPair, List<OrderStatus> statuses, OperationType operationType, int offset, int limit);
 }

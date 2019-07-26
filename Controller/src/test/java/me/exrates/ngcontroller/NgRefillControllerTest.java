@@ -273,6 +273,7 @@ public class NgRefillControllerTest extends AngularApiCommonTest {
         verify(messageSource, times(1)).getMessage(anyString(), anyObject(), anyObject());
     }
 
+    @Ignore
     @Test
     public void createRefillRequest_forceGenerateNewAddress_equals_true_and_address_is_present() throws Exception {
         Map<String, Object> response = new HashMap<>();
@@ -302,6 +303,7 @@ public class NgRefillControllerTest extends AngularApiCommonTest {
         verify(refillService, times(1)).createRefillRequest(anyObject());
     }
 
+    @Ignore
     @Test
     public void createRefillRequest_exception() throws Exception {
         Map<String, Object> response = new HashMap<>();

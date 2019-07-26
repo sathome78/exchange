@@ -3,6 +3,7 @@ package me.exrates.dao.impl;
 import me.exrates.dao.CommissionDao;
 import me.exrates.dao.exception.notfound.CommissionsNotFoundException;
 import me.exrates.model.Commission;
+import me.exrates.model.dto.ComissionCountDto;
 import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.dto.EditMerchantCommissionDto;
 import me.exrates.model.enums.OperationType;
@@ -15,11 +16,14 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import static me.exrates.model.enums.OrderStatus.CLOSED;
 
 @Repository
 public class CommissionDaoImpl implements CommissionDao {
@@ -234,5 +238,34 @@ public class CommissionDaoImpl implements CommissionDao {
         final HashMap<String, Integer> params = new HashMap<>();
         params.put("id", commissionId);
         return jdbcTemplate.queryForObject(sql, params, commissionRowMapper);
+    }
+
+    @Override
+    public List<ComissionCountDto> countComissinsByPeriod(LocalDateTime from, LocalDateTime to) {
+        final String sql = "SELECT C.name, " +
+                "       SUM(IF(TX.source_type='WITHDRAW', TX.commission_amount, 0)) as withdraw, " +
+                "       SUM(IF(TX.source_type='REFILL', TX.commission_amount, 0)) as refill, " +
+                "       SUM(IF(TX.source_type='USER_TRANSFER', TX.commission_amount, 0)) as transfer, " +
+                "       SUM(IF(TX.source_type='ORDER', TX.commission_amount, 0)) as trade, " +
+                "       SUM(IF(TX.source_type='REFERRAL', TX.amount, 0)) as referral " +
+                "FROM TRANSACTION TX " +
+                "JOIN CURRENCY C ON C.id = TX.currency_id " +
+                "WHERE TX.datetime between :start_date and :end_date " +
+                "GROUP BY TX.currency_id";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("start_date", from);
+        params.put("end_date", to);
+        return jdbcTemplate.query(sql, params, (resultSet, i) -> {
+            ComissionCountDto dto = new ComissionCountDto();
+            dto.setWithdrawComission(resultSet.getBigDecimal("withdraw"));
+            dto.setTradeComission(resultSet.getBigDecimal("trade"));
+            dto.setTransferComission(resultSet.getBigDecimal("transfer"));
+            dto.setRefillComission(resultSet.getBigDecimal("refill"));
+            dto.setReferralPayments(resultSet.getBigDecimal("referral"));
+            dto.setName(resultSet.getString("name"));
+            dto.countTotal();
+            return dto;
+        });
     }
 }

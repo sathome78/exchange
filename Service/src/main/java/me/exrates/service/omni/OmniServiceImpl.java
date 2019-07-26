@@ -49,9 +49,9 @@ public class OmniServiceImpl implements OmniService {
     private final ObjectMapper objectMapper;
     private Merchant merchant;
     private Currency currency;
-    private static final String CURRENCY_NAME = "USDT";
-    private static final String MERCHANT_NAME = "USDT";
-    private static final String USDT_TOKEN_NAME = "USDT";
+    private static final String CURRENCY_NAME = "USDT-old";
+    private static final String MERCHANT_NAME = "USDT-old";
+    private static final String USDT_TOKEN_NAME = "USDT-old";
     private static final Integer USDT_PROPERTY_ID = 31;
     private Object createRequestSync = new Object();
 

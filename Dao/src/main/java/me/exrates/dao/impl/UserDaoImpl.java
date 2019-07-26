@@ -122,7 +122,7 @@ public class UserDaoImpl implements UserDao {
             user.setNickname(resultSet.getString("nickname"));
             user.setEmail(resultSet.getString("email"));
             user.setPassword(resultSet.getString("password"));
-            user.setRegdate(resultSet.getDate("regdate"));
+            user.setRegdate(resultSet.getDate("regdate").toLocalDate());
             user.setPhone(resultSet.getString("phone"));
             user.setUserStatus(UserStatus.values()[resultSet.getInt("status") - 1]);
             user.setRole(UserRole.valueOf(resultSet.getString("role_name")));
@@ -144,7 +144,7 @@ public class UserDaoImpl implements UserDao {
             user.setNickname(resultSet.getString("nickname"));
             user.setEmail(resultSet.getString("email"));
             user.setPassword(resultSet.getString("password"));
-            user.setRegdate(resultSet.getDate("regdate"));
+            user.setRegdate(resultSet.getDate("regdate").toLocalDate());
             user.setPhone(resultSet.getString("phone"));
             user.setUserStatus(UserStatus.values()[resultSet.getInt("status") - 1]);
             user.setFinpassword(resultSet.getString("finpassword"));

@@ -11,7 +11,8 @@ public enum NotificationMessageEventEnum {
     WITHDRAW(2, "message.pincode.forWithdraw", "message.subj.withdraw.pin", false, true),
     TRANSFER(3, "message.pincode.forTransfer", "message.subj.transfer.pin", false, true),
     CHANGE_2FA_SETTING(4, "message.pincode.for2faChange", "message.subj.2fachange.pin", false, false),
-    API_TOKEN_SETTING(1, "message.pincode.forTokenChange", "message.subj.token.pin", false, false);
+    API_TOKEN_SETTING(1, "message.pincode.forTokenChange", "message.subj.token.pin", false, false),
+    QUBERA_ACCOUNT(1, "message.qubera.account", "message.subj.qubera.account", false, false);
 
     private int code;
 

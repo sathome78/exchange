@@ -6,14 +6,19 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.serializer.LocalDateTimeDeserializer;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by OLEG on 24.03.2017.
  */
+@Log4j2
 @Getter @Setter
 @ToString
 @NoArgsConstructor
@@ -41,4 +46,17 @@ public class BtcTransactionHistoryDto {
     public BtcTransactionHistoryDto(String txId) {
         this.txId = txId;
     }
+
+    public Object getAttributeValueByName(String attributeName) {
+        Field fieldOfTransaction = null;
+        try {
+            fieldOfTransaction =  this.getClass().getDeclaredField(attributeName);
+            fieldOfTransaction.setAccessible(true);
+            return fieldOfTransaction.get(this);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            log.error(e);
+        }
+        return null;
+    }
+
 }

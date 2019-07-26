@@ -99,15 +99,15 @@ public interface OrderDao {
     CommissionsDto getAllCommissions(UserRole userRole);
 
     List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, OrderStatus status,
-                                                OperationType operationType,
-                                                String scope, Integer offset, Integer limit, Locale locale);
+                                                OperationType operationType, String scope, Integer offset,
+                                                Integer limit, Locale locale);
 
     int getUnfilteredOrdersCount(int id, CurrencyPair currencyPair, List<OrderStatus> statuses, OperationType operationType,
-                                 String scope, int offset, int limit, Locale locale);
+                                 String scope, int offset, int limit);
 
     List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, List<OrderStatus> statuses,
-                                                OperationType operationType,
-                                                String scope, Integer offset, Integer limit, Locale locale);
+                                                OperationType operationType, String scope, Integer offset,
+                                                Integer limit, Locale locale);
 
     List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, String currencyName,
                                                 OrderStatus orderStatus, String scope, Integer limit, Integer offset,

@@ -309,7 +309,7 @@ public class IEOServiceImpl implements IEOService {
         email.setTo(user.getEmail());
         email.setMessage("Revert IEO");
         email.setSubject(String.format("Revert ieo for %s finish successful!", ieoEntity.getCurrencyName()));
-        sendMailService.sendInfoMail(email);
+        sendMailService.sendMail(email);
     }
 
     @Override
@@ -406,7 +406,7 @@ public class IEOServiceImpl implements IEOService {
             email.setMessage("Success finish IEO");
             email.setSubject(String.format("The IEO procedure for a currency %s has ended successfully, congratulations!",
                     ieoDetails.getCurrencyName()));
-            sendMailService.sendInfoMail(email);
+            sendMailService.sendMail(email);
         }
 
         return result;
@@ -513,7 +513,7 @@ public class IEOServiceImpl implements IEOService {
         emailError.setSubject("IEO claim save error");
         emailError.setMessage(message);
         emailError.setTo(email);
-        sendMailService.sendInfoMail(emailError);
+        sendMailService.sendMail(emailError);
     }
 
     private void populateTestIeo(IEODetails ieoDetail) {

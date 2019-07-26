@@ -13,15 +13,13 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.stellar.sdk.*;
-import org.stellar.sdk.requests.TransactionsRequestBuilder;
 import org.stellar.sdk.responses.AccountResponse;
 import org.stellar.sdk.responses.SubmitTransactionResponse;
 import org.stellar.sdk.responses.TransactionResponse;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,16 +36,20 @@ public class StellarTransactionServiceImpl implements StellarTransactionService 
     private static final BigDecimal XLM_MIN_BALANCE = new BigDecimal(21);
     private @Value("${stellar.mode}") String MODE;
     private @Value("${stellar.horizon.url}")String SEVER_URL;
+    private Server server;
+
+    @PostConstruct
+    public void init() {
+        server = new Server(SEVER_URL);
+    }
 
     @Override
-    public TransactionResponse getTxByURI(String serverURI, URI txUri) throws IOException, URISyntaxException {
-        TransactionsRequestBuilder transactionsRequestBuilder = new TransactionsRequestBuilder(new URI(serverURI));
-        return transactionsRequestBuilder.transaction(txUri);
+    public TransactionResponse getTxByHash(String txId) throws IOException {
+        return server.transactions().transaction(txId);
     }
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto, String serverUrl, String accountSecret)  {
-        setNetworkMode(null);
         Server server = new Server(serverUrl);
         KeyPair source = KeyPair.fromSecretSeed(accountSecret);
         KeyPair destination = KeyPair.fromAccountId(withdrawMerchantOperationDto.getAccountTo());
@@ -56,14 +58,14 @@ public class StellarTransactionServiceImpl implements StellarTransactionService 
     // the transaction fee when the transaction fails.
     // It will throw HttpResponseException if account does not exist or there was another error.
         try {
-            server.accounts().account(destination);
+            server.accounts().account(destination.getAccountId());
         } catch (IOException e) {
             throw new InvalidAccountException("Destination XLM account not found");
         }
     // If there was no error, load up-to-date information on your account.
         AccountResponse sourceAccount = null;
         try {
-            sourceAccount = server.accounts().account(source);
+            sourceAccount = server.accounts().account(source.getAccountId());
             String balance = Arrays.stream(sourceAccount.getBalances())
                     .filter(p -> p.getAsset().equals(new AssetTypeNative())).findFirst().get().getBalance();
             if (new BigDecimal(balance).compareTo(XLM_MIN_BALANCE) <= 0 ) {
@@ -73,8 +75,8 @@ public class StellarTransactionServiceImpl implements StellarTransactionService 
            throw new RuntimeException("System account not found");
         }
     // Start building the transaction.
-        Transaction transaction = new Transaction.Builder(sourceAccount)
-                .addOperation(new PaymentOperation.Builder(destination,
+        Transaction transaction = new Transaction.Builder(sourceAccount, getNetworkMode())
+                .addOperation(new PaymentOperation.Builder(destination.getAccountId(),
                         new AssetTypeNative(), withdrawMerchantOperationDto.getAmount()).build())
                 // A memo allows you to add your own metadata to a transaction. It's
                 // optional and does not affect how Stellar treats the transaction.
@@ -105,32 +107,15 @@ public class StellarTransactionServiceImpl implements StellarTransactionService 
     }
 
 
-    /*@Override
-    public String normalizeAmountToString(String amount) {
-        return normalizeAmountToString(new BigDecimal(amount));
-    }
-*/
-    /*@Override
-    public BigDecimal normalizeAmountToDecimal(String amount) {
-        return new BigDecimal(amount)
-                .divide(new BigDecimal(XLM_AMOUNT_MULTIPLIER))
-                .setScale(XLM_DECIMALS, RoundingMode.HALF_DOWN);
-    }*/
-
-    private void setNetworkMode(Network network) {
+    private Network getNetworkMode() {
         switch (StellarNetworkModeEnum.valueOf(MODE)) {
-            case TEST : {
-                Network.useTestNetwork();
-                break;
-            }
             case PUBLIC : {
-                Network.usePublicNetwork();
-                break;
+                return Network.PUBLIC;
             }
+            case TEST :
             default: {
-                Network.use(network);
+                return Network.TESTNET;
             }
-
         }
     }
 }

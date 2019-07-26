@@ -129,6 +129,7 @@
                     <ul>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/editCurrencyLimits'/>"><loc:message code="admin.currencyLimits.title"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/commissions'/>"><loc:message code="admin.commissions"/></a></li>
+                        <li><a href="<c:url value='/2a8fy7b07dxe44/comission_count'/>"><loc:message code="admin.commissionsCount"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/merchantAccess'/>"><loc:message code="admin.merchantAccess"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/notificatorsSettings'/>"><loc:message code="admin.notificatorsMessagesSettings"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/referral'/>"><loc:message code="admin.referral"/></a></li>

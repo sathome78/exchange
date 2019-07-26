@@ -174,6 +174,16 @@ public class ServiceTestConfig {
         return Mockito.mock(JavaMailSender.class);
     }
 
+    @Bean("SesMailSender")
+    public JavaMailSender sesMailSender() {
+        return Mockito.mock(JavaMailSender.class);
+    }
+
+    @Bean("SendGridMailSender")
+    public JavaMailSender sendGridMailSender() {
+        return Mockito.mock(JavaMailSender.class);
+    }
+
     @Bean
     public NotificationDao notificationDao() {
         return Mockito.mock(NotificationDao.class);

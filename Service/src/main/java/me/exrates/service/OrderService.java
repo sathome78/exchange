@@ -386,11 +386,11 @@ public interface OrderService {
     List<OrderReportInfoDto> getOrdersForReport(AdminOrderFilterData adminOrderFilterData);
 
     List<OrderWideListDto> getUsersOrdersWithStateForAdmin(int id, CurrencyPair currencyPair, OrderStatus status,
-                                                           OperationType operationType,
-                                                           Integer offset, Integer limit, Locale locale);
+                                                           OperationType operationType, Integer offset, Integer limit,
+                                                           Locale locale);
 
     int getUsersOrdersWithStateForAdminCount(int id, CurrencyPair currencyPair, OrderStatus orderStatus,
-                                             OperationType operationType, int offset, int limit, Locale locale);
+                                             OperationType operationType, int offset, int limit);
 
     List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
                                                 OperationType operationType, String scope,
@@ -456,8 +456,6 @@ public interface OrderService {
                                          @Null Integer limit,
                                          @Null Integer offset);
 
-
-    @Transactional(readOnly = true)
     Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, String currencyName,
                                                                   OrderStatus orderStatus, String scope, Integer limit,
                                                                   Integer offset, Boolean hideCanceled, String sortByCreated,

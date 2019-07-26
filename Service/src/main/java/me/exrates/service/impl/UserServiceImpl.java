@@ -450,15 +450,9 @@ public class UserServiceImpl implements UserService {
                         "'>" + messageSource.getMessage("admin.ref", null, locale) + "</a>"
         );
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
-
         email.setTo(user.getEmail());
-        if (tokenType.equals(TokenType.REGISTRATION)
-                || tokenType.equals(TokenType.CHANGE_PASSWORD)
-                || tokenType.equals(TokenType.CHANGE_FIN_PASSWORD)) {
-            sendMailService.sendMailMandrill(email);
-        } else {
-            sendMailService.sendMail(email);
-        }
+        sendMailService.sendMail(email);
+
     }
 
     @Override
@@ -467,7 +461,7 @@ public class UserServiceImpl implements UserService {
         email.setTo(user.getEmail());
         email.setMessage(messageSource.getMessage(emailText, new Object[]{user.getIp()}, locale));
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
-        sendMailService.sendInfoMail(email);
+        sendMailService.sendMail(email);
     }
 
     public boolean createTemporalToken(TemporalToken token) {

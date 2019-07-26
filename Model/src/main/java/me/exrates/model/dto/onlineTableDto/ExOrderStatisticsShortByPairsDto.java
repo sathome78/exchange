@@ -77,6 +77,10 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
         this.lastUpdateCache = statistic.lastUpdateCache;
     }
 
+    public ExOrderStatisticsShortByPairsDto(String lastOrderRate) {
+        this.lastOrderRate = lastOrderRate;
+    }
+
     @Override
     public int hashCode() {
         int result = currencyPairName != null ? currencyPairName.hashCode() : 0;

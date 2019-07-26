@@ -13,6 +13,7 @@ import me.exrates.model.exceptions.KycException;
 import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.service.KYCService;
 import me.exrates.service.KYCSettingsService;
+import me.exrates.service.QuberaService;
 import me.exrates.service.exception.ShuftiProException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,12 +54,15 @@ public class NgKYCController {
 
     private final KYCService kycService;
     private final KYCSettingsService kycSettingsService;
+    private final QuberaService quberaService;
 
     @Autowired
     public NgKYCController(KYCService kycService,
-                           KYCSettingsService kycSettingsService) {
+                           KYCSettingsService kycSettingsService,
+                           QuberaService quberaService) {
         this.kycService = kycService;
         this.kycSettingsService = kycSettingsService;
+        this.quberaService = quberaService;
     }
 
     @ResponseStatus(HttpStatus.OK)
@@ -88,7 +92,7 @@ public class NgKYCController {
     public ResponseEntity<Void> callback(@PathVariable String referenceId,
                                          @RequestBody KycStatusResponseDto kycStatusResponseDto) {
         log.info("CALLBACK_KYC ref {}, {}", referenceId, kycStatusResponseDto);
-        kycService.processingCallBack(referenceId, kycStatusResponseDto);
+        quberaService.processingCallBack(referenceId, kycStatusResponseDto);
         return ResponseEntity.ok().build();
     }
 
@@ -157,7 +161,7 @@ public class NgKYCController {
     @PostMapping(value = PRIVATE_KYC + "/start", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseModel<OnboardingResponseDto> startKycProcessing(@RequestBody @Valid IdentityDataRequest identityDataRequest) {
         String email = getPrincipalEmail();
-        return new ResponseModel<>(kycService.startKyCProcessing(identityDataRequest, email));
+        return new ResponseModel<>(quberaService.startVerificationProcessing(identityDataRequest, email));
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
