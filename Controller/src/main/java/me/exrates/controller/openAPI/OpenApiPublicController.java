@@ -119,11 +119,10 @@ public class OpenApiPublicController {
         List<CandleDto> dataForCandleChart = candleDataProcessingService.getData(
                 currencyPair.getName(),
                 fromDate.atTime(LocalTime.MIN),
-                toDate.atTime(LocalTime.MAX),
+                toDate.minusDays(1).atTime(LocalTime.MAX),
                 interval);
 
-        return ResponseEntity.ok(
-                BaseResponse.success(dataForCandleChart));
+        return ResponseEntity.ok(BaseResponse.success(dataForCandleChart));
     }
 
     private void validateCurrencyPair(String currencyPairName) {

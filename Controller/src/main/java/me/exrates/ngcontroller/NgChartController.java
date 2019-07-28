@@ -76,15 +76,6 @@ public class NgChartController {
         return ResponseEntity.ok(CandleDataConverter.convert(result));
     }
 
-//    @GetMapping("/timescale_marks")
-//    public ResponseEntity getCandleTimeScaleMarks(@QueryParam("symbol") String symbol,
-//                                                  @QueryParam("to") Long to,
-//                                                  @QueryParam("from") Long from,
-//                                                  @QueryParam("resolution") String resolution) {
-//        //todo: rewrite (piece of shit)
-//        return ResponseEntity.notFound().build();
-//    }
-
     @GetMapping("/config")
     public ResponseEntity<String> getChartConfig() {
         return ResponseEntity.ok(ChartProperty.get());

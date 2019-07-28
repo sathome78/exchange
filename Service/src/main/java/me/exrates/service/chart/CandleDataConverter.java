@@ -6,9 +6,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.CandleDto;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -31,15 +29,6 @@ public final class CandleDataConverter {
         List<BigDecimal> h = new ArrayList<>();
         List<BigDecimal> l = new ArrayList<>();
         List<BigDecimal> v = new ArrayList<>();
-
-        LocalDateTime first = data.get(0).getTime().truncatedTo(ChronoUnit.DAYS);
-
-        t.add(first.toEpochSecond(ZoneOffset.UTC));
-        o.add(BigDecimal.ZERO);
-        h.add(BigDecimal.ZERO);
-        l.add(BigDecimal.ZERO);
-        c.add(BigDecimal.ZERO);
-        v.add(BigDecimal.ZERO);
 
         data.forEach(candle -> {
             t.add(candle.getTime().toEpochSecond(ZoneOffset.UTC));
