@@ -16,7 +16,7 @@ public final class SymbolInfoProperty {
                 .add("base_name", Json.createArrayBuilder()
                         .add(symbol)
                         .build())
-                .add("description", String.join(":", EXRATES, symbol))
+                .add("description", symbol)
                 .add("full_name", symbol)
                 .add("has_seconds", false)
                 .add("has_intraday", true)
