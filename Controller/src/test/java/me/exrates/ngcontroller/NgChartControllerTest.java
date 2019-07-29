@@ -73,12 +73,12 @@ public class NgChartControllerTest extends AngularApiCommonTest {
                 .param("resolution", "30"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.s", is("ok")))
-                .andExpect(jsonPath("$.o.*", hasSize(2)))
-                .andExpect(jsonPath("$.c.*", hasSize(2)))
-                .andExpect(jsonPath("$.h.*", hasSize(2)))
-                .andExpect(jsonPath("$.l.*", hasSize(2)))
-                .andExpect(jsonPath("$.v.*", hasSize(2)))
-                .andExpect(jsonPath("$.t.*", hasSize(2)))
+                .andExpect(jsonPath("$.o.*", hasSize(1)))
+                .andExpect(jsonPath("$.c.*", hasSize(1)))
+                .andExpect(jsonPath("$.h.*", hasSize(1)))
+                .andExpect(jsonPath("$.l.*", hasSize(1)))
+                .andExpect(jsonPath("$.v.*", hasSize(1)))
+                .andExpect(jsonPath("$.t.*", hasSize(1)))
                 .andExpect(jsonPath("$.*", hasSize(7)));
 
         verify(currencyService, times(1)).getCurrencyPairByName(anyString());
@@ -86,10 +86,12 @@ public class NgChartControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    public void getCandleChartHistoryData_WhenNotFound() throws Exception {
+    public void getCandleChartHistoryData_WhenNotFoundAndExistPreviousCandle() throws Exception {
         when(currencyService.getCurrencyPairByName(anyString())).thenReturn(new CurrencyPair());
         when(candleDataProcessingService.getData(anyString(), any(LocalDateTime.class), any(LocalDateTime.class), any(BackDealInterval.class)))
                 .thenReturn(Collections.emptyList());
+        when(candleDataProcessingService.getLastCandleTimeBeforeDate(anyString(), any(LocalDateTime.class), any(BackDealInterval.class)))
+                .thenReturn(LocalDateTime.now());
 
         mockMvc.perform(get(BASE_URL + "/history")
                 .param("symbol", "btc")
@@ -103,6 +105,29 @@ public class NgChartControllerTest extends AngularApiCommonTest {
 
         verify(currencyService, times(1)).getCurrencyPairByName(anyString());
         verify(candleDataProcessingService, times(1)).getData(anyString(), any(LocalDateTime.class), any(LocalDateTime.class), any(BackDealInterval.class));
+        verify(candleDataProcessingService, times(1)).getLastCandleTimeBeforeDate(anyString(), any(LocalDateTime.class), any(BackDealInterval.class));
+    }
+
+    @Test
+    public void getCandleChartHistoryData_WhenNotFoundAndNotExistPreviousCandle() throws Exception {
+        when(currencyService.getCurrencyPairByName(anyString())).thenReturn(new CurrencyPair());
+        when(candleDataProcessingService.getData(anyString(), any(LocalDateTime.class), any(LocalDateTime.class), any(BackDealInterval.class)))
+                .thenReturn(Collections.emptyList());
+        when(candleDataProcessingService.getLastCandleTimeBeforeDate(anyString(), any(LocalDateTime.class), any(BackDealInterval.class)))
+                .thenReturn(null);
+
+        mockMvc.perform(get(BASE_URL + "/history")
+                .param("symbol", "btc")
+                .param("to", "1563840000")
+                .param("from", "1563835000")
+                .param("resolution", "30"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.s", is("no_data")))
+                .andExpect(jsonPath("$.*", hasSize(1)));
+
+        verify(currencyService, times(1)).getCurrencyPairByName(anyString());
+        verify(candleDataProcessingService, times(1)).getData(anyString(), any(LocalDateTime.class), any(LocalDateTime.class), any(BackDealInterval.class));
+        verify(candleDataProcessingService, times(1)).getLastCandleTimeBeforeDate(anyString(), any(LocalDateTime.class), any(BackDealInterval.class));
     }
 
     @Test
@@ -124,23 +149,12 @@ public class NgChartControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    public void getCandleTimeScaleMarks_WhenOk() throws Exception {
-        mockMvc.perform(get(BASE_URL + "/timescale_marks")
-                .param("symbol", "symbol")
-                .param("to", "2")
-                .param("from", "3")
-                .param("resolution", "W"))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
     public void getChartConfig() throws Exception {
         mockMvc.perform(get(BASE_URL + "/config"))
                 .andExpect(jsonPath("$.*", hasSize(8)))
                 .andExpect(jsonPath("$.supports_search", is(true)))
                 .andExpect(jsonPath("$.supports_group_request", is(false)))
                 .andExpect(jsonPath("$.supports_marks", is(false)))
-                .andExpect(jsonPath("$.supports_timescale_marks", is(true)))
                 .andExpect(jsonPath("$.supports_time", is(true)))
                 .andExpect(jsonPath("$.exchanges", hasSize(2)))
                 .andExpect(jsonPath("$.exchanges[0].value", is("")))
@@ -154,7 +168,7 @@ public class NgChartControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$.symbols_types[0].value", is("")))
                 .andExpect(jsonPath("$.supported_resolutions", hasSize(6)))
                 .andExpect(jsonPath("$.supported_resolutions.[0]", is("5")))
-                .andExpect(jsonPath("$.supported_resolutions.[5]", is("1D")))
+                .andExpect(jsonPath("$.supported_resolutions.[5]", is("D")))
                 .andExpect(status().isOk());
     }
 
