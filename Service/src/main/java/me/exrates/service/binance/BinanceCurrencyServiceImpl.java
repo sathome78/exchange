@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.condition.MonolitConditional;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
@@ -26,22 +27,22 @@ public class BinanceCurrencyServiceImpl implements BinanceCurrencyService {
     private RestTemplate restTemplate;
 
     @Autowired
-    public BinanceCurrencyServiceImpl (){
-        CloseableHttpClient httpClient = HttpClients.custom()
-                .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
-                .build();
-        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-        requestFactory.setHttpClient(httpClient);
-        restTemplate = new RestTemplate(requestFactory);
+    public BinanceCurrencyServiceImpl(){
+//        CloseableHttpClient httpClient = HttpClients.custom()
+//                .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
+//                .build();
+//        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+//        requestFactory.setHttpClient(httpClient);
+        restTemplate = new RestTemplate();
     }
 
-    public String getAddressInfo(String address){
+    public int getAddressInfo(int num){
         UriComponents builder = UriComponentsBuilder
-                .fromHttpUrl("https://dex.binance.org/api/v1/account/{address}")
+                .fromHttpUrl("http://172.31.30.170:27147/block?height={num}")
                 .build();
-        ResponseEntity<String> responseEntity = null;
+        ResponseEntity<Response> responseEntity = null;
         try {
-            responseEntity = restTemplate.getForEntity(builder.toUriString(), String.class, address);
+            responseEntity = restTemplate.getForEntity(builder.toUriString(), Response.class, num);
             if (responseEntity.getStatusCodeValue() != 200) {
                 log.error("Error : {}", responseEntity.getStatusCodeValue());
             }
@@ -49,7 +50,44 @@ public class BinanceCurrencyServiceImpl implements BinanceCurrencyService {
             log.error("Error : {}", ex.getMessage());
         }
 
-        return responseEntity.getBody();
+        return responseEntity.getBody().result.block_meta.header.num_txs;
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+    @Data
+    private static class Response {
+
+        @JsonProperty("result")
+        Result result;
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+    private static class Result {
+
+        @JsonProperty("block_meta")
+        BlockMeta block_meta;
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+    private static class BlockMeta {
+
+        @JsonProperty("header")
+        Header header;
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+    private static class Header {
+
+        @JsonProperty("num_txs")
+        int num_txs;
     }
 
     public String checkTransaction(String hash){
@@ -71,6 +109,12 @@ public class BinanceCurrencyServiceImpl implements BinanceCurrencyService {
 
     public static void main(String[] args) {
         BinanceCurrencyServiceImpl binanceCurrencyService = new BinanceCurrencyServiceImpl();
-        System.out.println(binanceCurrencyService.checkTransaction("EFC93BEA474BB22DC028D5D4338F67B6AE06D2912E47209C475796395B405DA8"));
+        int numb = 580500;
+        while (++numb <= 800000){
+            if (binanceCurrencyService.getAddressInfo(numb) > 0){
+                System.out.println(numb + " : " + binanceCurrencyService.getAddressInfo(numb));
+            }
+        }
+//        System.out.println(binanceCurrencyService.checkTransaction("CA4394B114376FF06AEA55866DFF5CD058F591AD3A18E28B34DF502E66AE796B"));
     }
 }

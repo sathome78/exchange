@@ -8,7 +8,6 @@ import java.util.Map;
 
 public class BinanceServiceImpl implements BinanceService {
 
-
     public static void main(String[] args) {
 
     }
