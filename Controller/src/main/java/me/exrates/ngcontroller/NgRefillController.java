@@ -276,7 +276,7 @@ public class NgRefillController {
         RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
 
         try {
-            if (merchantService.findById(request.getMerchantId()).getName().equalsIgnoreCase("Qubera")) {
+            if (merchantService.findById(request.getMerchantId()).getName().equalsIgnoreCase("FUG")) {
                 if (requestParamsDto.getPin() == null) {
                     throw new IncorrectPinException("Incorrect pin: " + requestParamsDto.getPin());
                 }

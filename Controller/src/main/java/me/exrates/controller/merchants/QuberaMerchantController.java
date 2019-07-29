@@ -25,6 +25,7 @@ import me.exrates.service.notifications.G2faService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -49,6 +50,7 @@ public class QuberaMerchantController {
 
     private static final Logger logger = LogManager.getLogger(QuberaMerchantController.class);
     private final static String API_PRIVATE_V2 = "/api/private/v2";
+    private final static String API_PUBLIC_V2 = "/api/public/v2";
     private final QuberaService quberaService;
     private final InputOutputService inputOutputService;
     private final UserService userService;
@@ -114,6 +116,22 @@ public class QuberaMerchantController {
     public ResponseModel<QuberaPaymentInfoDto> getInfoForPayment() {
         String email = getPrincipalEmail();
         return new ResponseModel<>(quberaService.getInfoForPayment(email));
+    }
+
+    @GetMapping(value = API_PRIVATE_V2 + "/merchants/qubera/download")
+    public ResponseEntity getInfoForPaymentPdf() {
+        String email = getPrincipalEmail();
+        byte[] contents = quberaService.getPdfFileForPayment(email);
+        if (contents == null) {
+            logger.error(String.format("getInfoForPaymentPdf email %s, content is null", email));
+            throw new NgDashboardException(ErrorApiTitles.QUBERA_PDF_ERROR_GENERATING);
+        }
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        String filename = "payment_info.pdf";
+        headers.setContentDispositionFormData(filename, filename);
+        headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+        return new ResponseEntity<>(contents, headers, HttpStatus.OK);
     }
 
     @GetMapping(value = API_PRIVATE_V2 + "/merchants/qubera/account/check/{currency}")

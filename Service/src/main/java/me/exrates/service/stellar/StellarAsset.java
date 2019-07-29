@@ -23,6 +23,6 @@ public class StellarAsset {
         this.assetName = assetName;
         this.emmitentAccount = emmitentAccount;
         issuer = KeyPair.fromAccountId(emmitentAccount);
-        asset = Asset.createNonNativeAsset(assetName, issuer);
+        asset = Asset.createNonNativeAsset(assetName, issuer.getAccountId());
     }
 }

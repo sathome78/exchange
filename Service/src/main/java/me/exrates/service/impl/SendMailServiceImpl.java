@@ -6,16 +6,14 @@ import me.exrates.model.enums.EmailSenderType;
 import me.exrates.model.mail.ListingRequest;
 import me.exrates.service.SendMailService;
 import me.exrates.service.util.MessageFormatterUtil;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -26,7 +24,6 @@ import javax.annotation.PreDestroy;
 import javax.mail.internet.InternetAddress;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -52,6 +49,15 @@ public class SendMailServiceImpl implements SendMailService {
     @Autowired
     @Qualifier("InfoMailSender")
     private JavaMailSender infoMailSender;
+
+    @Autowired
+    @Qualifier("SesMailSender")
+    private JavaMailSender sesMailSender;
+
+    @Autowired
+    @Qualifier("SendGridMailSender")
+    private JavaMailSender sendGridMailSender;
+
     @Value("${mail_info.allowedOnly}")
     private Boolean allowedOnly;
     @Value("${mail_info.allowedEmails}")
@@ -61,7 +67,7 @@ public class SendMailServiceImpl implements SendMailService {
     @Value("${support.email}")
     private String supportEmail;
     @Value("${mandrill.email}")
-    private String mandrillEmail;
+    private String noReplyExrateMe;
     @Value("${info.email}")
     private String infoEmail;
     @Value("${listing.email}")
@@ -81,22 +87,19 @@ public class SendMailServiceImpl implements SendMailService {
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void sendMail(Email email) {
+        email.setFrom(noReplyExrateMe);
         SUPPORT_MAIL_EXECUTORS.execute(() -> {
             try {
-                sendMail(email.toBuilder()
-                                .from(supportEmail)
-                                .build(),
-                        supportMailSender);
+                sendMail(email, sendGridMailSender);
             } catch (Exception ex) {
                 log.error(ex);
-                sendMail(email.toBuilder()
-                                .from(infoEmail)
-                                .build(),
-                        infoMailSender);
+                sendMail(email, sesMailSender);
             }
         });
     }
 
+    /*Use sendMail*/
+    @Deprecated
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void sendMailMandrill(Email email) {
         SUPPORT_MAIL_EXECUTORS.execute(() -> {
@@ -120,7 +123,7 @@ public class SendMailServiceImpl implements SendMailService {
             }
             case mandrill: {
                 sendMail(email.toBuilder()
-                                .from(mandrillEmail)
+                                .from(noReplyExrateMe)
                                 .build(),
                         mandrillMailSender);
                 break;
@@ -128,6 +131,9 @@ public class SendMailServiceImpl implements SendMailService {
         }
     }
 
+
+    /*Use sendMail*/
+    @Deprecated
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Override
     public void sendInfoMail(Email email) {
@@ -156,23 +162,20 @@ public class SendMailServiceImpl implements SendMailService {
     private void sendMail(Email email, JavaMailSender mailSender) {
         StopWatch stopWatch = StopWatch.createStarted();
         log.debug("try to send email {} to {}, time {}", email.getSubject(), email.getTo());
-        try {
-            mailSender.send(mimeMessage -> {
-                MimeMessageHelper message;
-                message = new MimeMessageHelper(mimeMessage, true, UTF8);
-                message.setFrom(new InternetAddress(email.getFrom(), mainEmailName));
-                message.setTo(email.getTo());
-                message.setSubject(email.getSubject());
-                message.setText(prepareTemplate(email.getMessage()), true);
-                if (email.getAttachments() != null) {
-                    for (Email.Attachment attachment : email.getAttachments())
-                        message.addAttachment(attachment.getName(), attachment.getResource(), attachment.getContentType());
-                }
-            });
-            log.info("Email sent: {}, duration {} seconds", email, stopWatch.getTime(TimeUnit.SECONDS));
-        } catch (Exception ex) {
-            log.error("Could not send email {}. Reason: {}", email, ex.getMessage());
-        }
+        mailSender.send(mimeMessage -> {
+            MimeMessageHelper message;
+            message = new MimeMessageHelper(mimeMessage, true, UTF8);
+            message.setFrom(new InternetAddress(email.getFrom(), mainEmailName));
+            message.setTo(email.getTo());
+            message.setSubject(email.getSubject());
+            message.setText(prepareTemplate(email.getMessage()), true);
+            if (email.getAttachments() != null) {
+                for (Email.Attachment attachment : email.getAttachments())
+                    message.addAttachment(attachment.getName(), attachment.getResource(), attachment.getContentType());
+            }
+        });
+        log.info("Email sent: {}, duration {} seconds, sender {}", email, stopWatch.getTime(TimeUnit.SECONDS),
+                ((JavaMailSenderImpl) mailSender).getHost());
     }
 
     @Override
@@ -191,7 +194,7 @@ public class SendMailServiceImpl implements SendMailService {
         final String telegram = request.getTelegram();
         final String text = request.getText();
 
-        sendInfoMail(Email.builder()
+        sendMail(Email.builder()
                 .to(listingEmail)
                 .subject(listingSubject)
                 .message(MessageFormatterUtil.format(name, email, telegram, text))

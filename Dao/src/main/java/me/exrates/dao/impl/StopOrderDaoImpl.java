@@ -31,13 +31,18 @@ import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
+
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 /**
  * Created by maks on 20.04.2017.
@@ -49,6 +54,9 @@ public class StopOrderDaoImpl implements StopOrderDao {
     @Autowired
     @Qualifier(value = "masterTemplate")
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    @Autowired
+    @Qualifier(value = "slaveTemplate")
+    private NamedParameterJdbcTemplate slaveNamedParameterJdbcTemplate;
 
     private RowMapper<StopOrder> getStopOrdersRowMapper() {
         return (resultSet, i) -> {
@@ -187,77 +195,92 @@ public class StopOrderDaoImpl implements StopOrderDao {
     }
 
     @Override
-    public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
-                                                       OperationType operationType,
-                                                       String scope, Integer offset, Integer limit, Locale locale) {
-        return getMyOrdersWithState(email, currencyPair, Collections.singletonList(status), operationType, scope, offset, limit, locale);
+    public List<OrderWideListDto> getMyOrdersWithState(Integer id, CurrencyPair currencyPair, OrderStatus status,
+                                                       OperationType operationType, Integer offset, Integer limit, Locale locale) {
+        return getMyOrdersWithState(id, currencyPair, Collections.singletonList(status), operationType, offset, limit, locale);
     }
 
     @Override
-    public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
-                                                       OperationType operationType,
-                                                       String scope, Integer offset, Integer limit, Locale locale) {
-        String userFilterClause;
-        String userJoinClause;
-        if (scope == null || scope.isEmpty()) {
-            userFilterClause = " AND CREATOR.email = :email ";
-            userJoinClause = "  JOIN USER AS CREATOR ON CREATOR.id=STOP_ORDERS.user_id ";
-        } else {
-            switch (scope) {
-                default:
-                    userFilterClause = " AND CREATOR.email = :email ";
-                    userJoinClause = "  JOIN USER AS CREATOR ON CREATOR.id=STOP_ORDERS.user_id ";
-                    break;
-            }
+    public List<OrderWideListDto> getMyOrdersWithState(Integer id, CurrencyPair currencyPair, List<OrderStatus> statuses,
+                                                       OperationType operationType, Integer offset, Integer limit, Locale locale) {
+        String currencyPairClause = isNull(currencyPair)
+                ? StringUtils.EMPTY
+                : " AND so.currency_pair_id = :currency_pair_id ";
+
+        List<Integer> statusIds = statuses.stream()
+                .map(OrderStatus::getStatus)
+                .collect(Collectors.toList());
+
+        String orderClause = " ORDER BY so.date_creation DESC ";
+        if (statusIds.size() > 1) {
+            orderClause = " ORDER BY so.status_modification_date DESC ";
         }
 
-        List<Integer> statusIds = statuses.stream().map(OrderStatus::getStatus).collect(Collectors.toList());
-        String orderClause = "  ORDER BY  date_creation DESC";
-        String sql = "SELECT STOP_ORDERS.*, CURRENCY_PAIR.name AS currency_pair_name" +
-                "  FROM STOP_ORDERS " +
-                userJoinClause +
-                "  JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = STOP_ORDERS.currency_pair_id) " +
-                "  WHERE (status_id IN (:status_ids))" +
-                userFilterClause +
-                (currencyPair == null ? "" : " AND STOP_ORDERS.currency_pair_id=" + currencyPair.getId()) +
+        String limitClause = limit == -1
+                ? StringUtils.EMPTY
+                : String.format(" LIMIT %s OFFSET %s ", String.valueOf(limit), String.valueOf(offset));
+
+        String sql = "SELECT so.id," +
+                " so.user_id," +
+                " so.operation_type_id," +
+                " so.stop_rate," +
+                " so.limit_rate," +
+                " so.amount_base," +
+                " so.amount_convert," +
+                " so.commission_id," +
+                " so.commission_fixed_amount," +
+                " so.date_creation," +
+                " so.status_id," +
+                " so.date_modification," +
+                " so.currency_pair_id," +
+                " cp.name AS currency_pair_name " +
+                "FROM STOP_ORDERS so " +
+                "JOIN CURRENCY_PAIR cp ON cp.id = so.currency_pair_id " +
+                "WHERE so.status_id IN (:status_ids) " +
+                "AND so.operation_type_id IN (:operation_type_ids) " +
+                "AND so.user_id = :user_id " +
+                currencyPairClause +
                 orderClause +
-                (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);
-        Map<String, Object> namedParameters = new HashMap<>();
-        namedParameters.put("email", email);
-        namedParameters.put("status_ids", statusIds);
-        if (operationType != null) {
-            namedParameters.put("operation_type_id", operationType.getType());
-            sql = sql.concat(" AND (operation_type_id = :operation_type_id) ");
+                limitClause;
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("user_id", id);
+        params.put("status_ids", statusIds);
+        if (nonNull(operationType)) {
+            params.put("operation_type_ids", operationType.getType());
+        } else {
+            params.put("operation_type_ids", Arrays.asList(3, 4));
         }
-        return namedParameterJdbcTemplate.query(sql, namedParameters, new RowMapper<OrderWideListDto>() {
-            @Override
-            public OrderWideListDto mapRow(ResultSet rs, int rowNum) throws SQLException {
-                OrderWideListDto orderWideListDto = new OrderWideListDto();
-                orderWideListDto.setId(rs.getInt("id"));
-                orderWideListDto.setUserId(rs.getInt("user_id"));
-                orderWideListDto.setOperationTypeEnum(OperationType.convert(rs.getInt("operation_type_id")));
-                orderWideListDto.setOperationType(orderWideListDto.getOperationTypeEnum().name());
-                orderWideListDto.setStopRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("stop_rate"), locale, 2));
-                orderWideListDto.setExExchangeRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("limit_rate"), locale, 2));
-                orderWideListDto.setAmountBase(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_base"), locale, 2));
-                orderWideListDto.setAmountConvert(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_convert"), locale, 2));
-                orderWideListDto.setComissionId(rs.getInt("commission_id"));
-                orderWideListDto.setCommissionFixedAmount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("commission_fixed_amount"), locale, 2));
-                BigDecimal amountWithCommission = rs.getBigDecimal("amount_convert");
-                if (orderWideListDto.getOperationTypeEnum() == OperationType.SELL) {
-                    amountWithCommission = BigDecimalProcessing.doAction(amountWithCommission, rs.getBigDecimal("commission_fixed_amount"), ActionType.SUBTRACT);
-                } else if (orderWideListDto.getOperationTypeEnum() == OperationType.BUY) {
-                    amountWithCommission = BigDecimalProcessing.doAction(amountWithCommission, rs.getBigDecimal("commission_fixed_amount"), ActionType.ADD);
-                }
-                orderWideListDto.setAmountWithCommission(BigDecimalProcessing.formatLocale(amountWithCommission, locale, 2));
-                orderWideListDto.setDateCreation(rs.getTimestamp("date_creation") == null ? null : rs.getTimestamp("date_creation").toLocalDateTime());
-                orderWideListDto.setStatus(OrderStatus.convert(rs.getInt("status_id")));
-                orderWideListDto.setDateStatusModification(rs.getTimestamp("date_modification") == null ? null : rs.getTimestamp("date_modification").toLocalDateTime());
-                orderWideListDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
-                orderWideListDto.setCurrencyPairName(rs.getString("currency_pair_name"));
-                orderWideListDto.setOrderBaseType(OrderBaseType.STOP_LIMIT);
-                return orderWideListDto;
+        if (nonNull(currencyPair)) {
+            params.put("currency_pair_id", currencyPair.getId());
+        }
+
+        return slaveNamedParameterJdbcTemplate.query(sql, params, (rs, rowNum) -> {
+            OrderWideListDto orderWideListDto = new OrderWideListDto();
+            orderWideListDto.setId(rs.getInt("id"));
+            orderWideListDto.setUserId(rs.getInt("user_id"));
+            orderWideListDto.setOperationTypeEnum(OperationType.convert(rs.getInt("operation_type_id")));
+            orderWideListDto.setOperationType(orderWideListDto.getOperationTypeEnum().name());
+            orderWideListDto.setStopRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("stop_rate"), locale, 2));
+            orderWideListDto.setExExchangeRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("limit_rate"), locale, 2));
+            orderWideListDto.setAmountBase(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_base"), locale, 2));
+            orderWideListDto.setAmountConvert(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_convert"), locale, 2));
+            orderWideListDto.setComissionId(rs.getInt("commission_id"));
+            orderWideListDto.setCommissionFixedAmount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("commission_fixed_amount"), locale, 2));
+            BigDecimal amountWithCommission = rs.getBigDecimal("amount_convert");
+            if (orderWideListDto.getOperationTypeEnum() == OperationType.SELL) {
+                amountWithCommission = BigDecimalProcessing.doAction(amountWithCommission, rs.getBigDecimal("commission_fixed_amount"), ActionType.SUBTRACT);
+            } else if (orderWideListDto.getOperationTypeEnum() == OperationType.BUY) {
+                amountWithCommission = BigDecimalProcessing.doAction(amountWithCommission, rs.getBigDecimal("commission_fixed_amount"), ActionType.ADD);
             }
+            orderWideListDto.setAmountWithCommission(BigDecimalProcessing.formatLocale(amountWithCommission, locale, 2));
+            orderWideListDto.setDateCreation(isNull(rs.getTimestamp("date_creation")) ? null : rs.getTimestamp("date_creation").toLocalDateTime());
+            orderWideListDto.setStatus(OrderStatus.convert(rs.getInt("status_id")));
+            orderWideListDto.setDateStatusModification(isNull(rs.getTimestamp("date_modification")) ? null : rs.getTimestamp("date_modification").toLocalDateTime());
+            orderWideListDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
+            orderWideListDto.setCurrencyPairName(rs.getString("currency_pair_name"));
+            orderWideListDto.setOrderBaseType(OrderBaseType.STOP_LIMIT);
+            return orderWideListDto;
         });
     }
 
@@ -426,5 +449,48 @@ public class StopOrderDaoImpl implements StopOrderDao {
         params.put("status_id", OrderStatus.OPENED.getStatus());
 
         return namedParameterJdbcTemplate.queryForList(sql, params, Integer.class);
+    }
+
+    @Override
+    public int getUnfilteredOrdersCount(int id, CurrencyPair currencyPair, List<OrderStatus> statuses, OperationType operationType, int offset, int limit) {
+        String userFilterClause = " AND so.user_id = :user_id ";
+
+        String currencyPairClause = isNull(currencyPair)
+                ? StringUtils.EMPTY
+                : String.format(" AND so.currency_pair_id = %s ", String.valueOf(currencyPair.getId()));
+
+        List<Integer> statusIds = statuses
+                .stream()
+                .map(OrderStatus::getStatus)
+                .collect(Collectors.toList());
+
+        String orderClause = " ORDER BY so.date_creation DESC ";
+        if (statusIds.size() > 1) {
+            orderClause = " ORDER BY so.status_modification_date DESC ";
+        }
+
+        String limitClause = limit == -1
+                ? StringUtils.EMPTY
+                : String.format(" LIMIT %s OFFSET %s ", String.valueOf(limit), String.valueOf(offset));
+
+        String sql = "SELECT COUNT(so.id) " +
+                "FROM STOP_ORDERS so " +
+                "WHERE so.status_id IN (:status_ids) " +
+                "AND so.operation_type_id IN (:operation_type_ids) " +
+                currencyPairClause +
+                userFilterClause +
+                orderClause +
+                limitClause;
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("user_id", id);
+        params.put("status_ids", statusIds);
+        if (Objects.nonNull(operationType)) {
+            params.put("operation_type_ids", operationType.getType());
+        } else {
+            params.put("operation_type_ids", Arrays.asList(3, 4));
+        }
+
+        return slaveNamedParameterJdbcTemplate.queryForObject(sql, params, Integer.class);
     }
 }

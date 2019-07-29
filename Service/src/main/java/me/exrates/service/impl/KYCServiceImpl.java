@@ -389,7 +389,7 @@ public class KYCServiceImpl implements KYCService {
                 .message(String.format(emailMessagePattern, eventStatus))
                 .build();
 
-        sendMailService.sendMailMandrill(email);
+        sendMailService.sendMail(email);
 
         UserNotificationType type;
         String msg = String.format(emailMessagePattern, eventStatus);

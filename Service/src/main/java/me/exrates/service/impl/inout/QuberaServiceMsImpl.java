@@ -149,6 +149,11 @@ public class QuberaServiceMsImpl implements QuberaService {
     }
 
     @Override
+    public byte[] getPdfFileForPayment(String email) {
+        return new byte[0];
+    }
+
+    @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
         return null;
     }

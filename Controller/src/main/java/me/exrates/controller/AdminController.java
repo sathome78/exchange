@@ -138,6 +138,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -541,6 +542,8 @@ public class AdminController {
     private DataTable<List<OrderWideListDto>> getOrderWideListDtos(String tableType, CurrencyPair currencyPair, int id, Locale locale, Map<String, String> params) {
         OrderStatus orderStatus = null;
         OperationType operationType = null;
+        boolean isStopOrder = false;
+
         switch (tableType) {
             case "ordersBuyClosed":
                 orderStatus = OrderStatus.CLOSED;
@@ -568,21 +571,28 @@ public class AdminController {
                 break;
             case "stopOrdersCancelled":
                 orderStatus = OrderStatus.CANCELLED;
+                isStopOrder = true;
                 break;
             case "stopOrdersClosed":
                 orderStatus = OrderStatus.CLOSED;
+                isStopOrder = true;
                 break;
             case "stopOrdersOpened":
                 orderStatus = OrderStatus.OPENED;
+                isStopOrder = true;
                 break;
         }
         DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
 
-        final int notFilteredAmount = orderService.getUsersOrdersWithStateForAdminCount(id, currencyPair, orderStatus, operationType, 0, -1, locale);
+        final int notFilteredAmount = isStopOrder
+                ? stopOrderService.getUsersStopOrdersWithStateForAdminCount(id, currencyPair, orderStatus, operationType, 0, -1)
+                : orderService.getUsersOrdersWithStateForAdminCount(id, currencyPair, orderStatus, operationType, 0, -1);
 
         List<OrderWideListDto> filteredOrders = Collections.emptyList();
         if (notFilteredAmount > 0) {
-            filteredOrders = orderService.getUsersOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, dataTableParams.getStart(), dataTableParams.getLength(), locale);
+            filteredOrders = isStopOrder
+                    ? stopOrderService.getUsersStopOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, dataTableParams.getStart(), dataTableParams.getLength(), locale)
+                    : orderService.getUsersOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, dataTableParams.getStart(), dataTableParams.getLength(), locale);
         }
         DataTable<List<OrderWideListDto>> result = new DataTable<>();
         result.setRecordsFiltered(notFilteredAmount);
@@ -613,7 +623,7 @@ public class AdminController {
         }
 
         model.addObject("user", user);
-        model.addObject("user2fa", g2faService.isGoogleAuthenticatorEnable(user.getId()));
+        model.addObject("userGoogle2fa", g2faService.isGoogleAuthenticatorEnable(user.getId()));
         model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
         model.addObject("currencies", currencyService.findAllCurrenciesWithHidden());
         model.addObject("currencyPairs", currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL));
@@ -1887,11 +1897,17 @@ public class AdminController {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
-    public static void main(String[] args) {
-        System.out.println(WithdrawStatusEnum.getEndStatesSet()
-                .stream()
-                .map(InvoiceStatus::getCode)
-                .collect(Collectors.toList()));
+    @RequestMapping(value = "/2a8fy7b07dxe44/comission_count", method = GET)
+    public String comissionCount() {
+        return "admin/comissionCount";
+    }
+
+
+    @ResponseBody
+    @RequestMapping(value = "/2a8fy7b07dxe44/comission_count/get", method = GET)
+    public List<ComissionCountDto> getCountedComissions(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd_HH-mm-ss") LocalDateTime from,
+                                                        @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd_HH-mm-ss") LocalDateTime to) {
+        return commissionService.getComissionsCount(from, to);
     }
 
 }

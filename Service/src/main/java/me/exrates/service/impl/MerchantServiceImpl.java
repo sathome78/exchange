@@ -176,7 +176,7 @@ public class MerchantServiceImpl implements MerchantService {
       notificationService.createLocalizedNotification(email, NotificationEvent.IN_OUT,
           "merchants.depositNotification.header", depositNotification,
           new Object[]{sumWithCurrency, toWallet});*/
-            sendMailService.sendInfoMail(mail);
+            sendMailService.sendMail(mail);
         } catch (MailException e) {
             LOG.error(e);
         }

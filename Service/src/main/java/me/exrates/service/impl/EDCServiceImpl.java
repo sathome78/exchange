@@ -28,15 +28,22 @@ import me.exrates.service.exception.RefillRequestFakePaymentReceivedException;
 import me.exrates.service.exception.RefillRequestMerchantException;
 import me.exrates.service.util.WithdrawUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -184,29 +191,29 @@ public class EDCServiceImpl implements EDCService {
     }
 
     private String getAddress() {
-        final OkHttpClient client = new OkHttpClient();
-        client.setReadTimeout(60, TimeUnit.SECONDS);
-        final FormEncodingBuilder formBuilder = new FormEncodingBuilder();
-        formBuilder.add("account", main_account);
-        formBuilder.add("hook", hook);
-        final Request request = new Request.Builder()
-                .url(urlCreateNewAccount + token)
-                .post(formBuilder.build())
-                .build();
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36");
+
+        JSONObject request = new JSONObject();
+        request.put("account", main_account);
+        request.put("hook", hook);
+
+        HttpEntity<String> entity = new HttpEntity<>(request.toString(), headers);
+
         final String returnResponse;
         try {
-            returnResponse = client
-                    .newCall(request)
-                    .execute()
-                    .body()
-                    .string();
+            returnResponse = restTemplate.exchange(urlCreateNewAccount + token, HttpMethod.POST, entity, String.class).getBody();
+
             JsonParser parser = new JsonParser();
             JsonObject object = parser.parse(returnResponse).getAsJsonObject();
             return object.get("address").getAsString();
 
         } catch (Exception e) {
             log.error("EDC coin. Error in generate new address for refill: {}", e);
-            throw new MerchantInternalException("Unfortunately, the operation is not available at the moment, please try again later!" + e);
+            throw new MerchantInternalException("Unfortunately, the operation is not available at the moment, please try again later!");
         }
     }
 

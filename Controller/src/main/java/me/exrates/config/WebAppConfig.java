@@ -1,6 +1,7 @@
 package me.exrates.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
@@ -213,6 +214,28 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     String mailInfoUser;
     @Value("${mail_info.password}")
     String mailInfoPassword;
+
+    @Value("${mail_ses.host}")
+    String mailSesHost;
+    @Value("${mail_ses.port}")
+    String mailSesPort;
+    @Value("${mail_ses.protocol}")
+    String mailSesProtocol;
+    @Value("${mail_ses.user}")
+    String mailSesUser;
+    @Value("${mail_ses.password}")
+    String mailSesPassword;
+
+    @Value("${mail_ses.host}")
+    String mailSendGridHost;
+    @Value("${mail_ses.port}")
+    String mailSendGridPort;
+    @Value("${mail_ses.protocol}")
+    String mailSendGridProtocol;
+    @Value("${mail_ses.user}")
+    String mailSendGridUser;
+    @Value("${mail_ses.password}")
+    String mailSendGridPassword;
 
     @Value("${angular.allowed.origins}")
     private String[] angularAllowedOrigins;
@@ -501,6 +524,36 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         javaMailProps.put("mail.smtp.starttls.enable", true);
         javaMailProps.put("mail.smtp.ssl.trust", mailSupportHost);
         mailSenderImpl.setJavaMailProperties(javaMailProps);
+        return mailSenderImpl;
+    }
+
+    @Bean(name = "SesMailSender")
+    public JavaMailSenderImpl sesMailSenderImpl() {
+        final JavaMailSenderImpl mailSenderImpl = new JavaMailSenderImpl();
+        mailSenderImpl.setHost(mailSesHost);
+        mailSenderImpl.setPort(Integer.parseInt(mailSesPort));
+        mailSenderImpl.setProtocol(mailSesProtocol);
+        mailSenderImpl.setUsername(mailSesUser);
+        mailSenderImpl.setPassword(mailSesPassword);
+        final Properties javaMailProps = mailSenderImpl.getJavaMailProperties();
+        javaMailProps.put("mail.smtp.auth", true);
+        javaMailProps.put("mail.smtp.starttls.enable", true);
+        javaMailProps.put("mail.smtp.ssl.trust", mailSesHost);
+        return mailSenderImpl;
+    }
+
+    @Bean(name = "SendGridMailSender")
+    public JavaMailSenderImpl javaSendGridMailSenderImpl() {
+        final JavaMailSenderImpl mailSenderImpl = new JavaMailSenderImpl();
+        mailSenderImpl.setHost(mailSendGridHost);
+        mailSenderImpl.setPort(Integer.parseInt(mailSendGridPort));
+        mailSenderImpl.setProtocol(mailSendGridProtocol);
+        mailSenderImpl.setUsername(mailSendGridUser);
+        mailSenderImpl.setPassword(mailSendGridPassword);
+        final Properties javaMailProps = new Properties();
+        javaMailProps.put("mail.smtp.auth", true);
+        javaMailProps.put("mail.smtp.starttls.enable", false);
+        javaMailProps.put("mail.smtp.ssl.trust", mailSendGridHost);
         return mailSenderImpl;
     }
 
@@ -2065,6 +2118,21 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x07f74c8480ccfee0d4f803e9bdde8383748b40de");
         return new EthTokenServiceImpl(tokensList, "EMBR", "EMBR", true, ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "usdtServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService usdtServiceImpl() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xdac17f958d2ee523a2206206994597c13d831ec7");
+        return new EthTokenServiceImpl(tokensList, "USDT", "USDT", true, ExConvert.Unit.MWEI);
+    }
+
+    @Bean(name = "asgServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService asgServiceImpl() {
+        List<String> tokensList = ImmutableList.of("0x7a3d3c4f30c46f51b814bee23d970a7c9b757a32");
+        return new EthTokenServiceImpl(tokensList, "ASG", "ASG", true, ExConvert.Unit.ETHER);
     }
 
     //    Qtum tokens:

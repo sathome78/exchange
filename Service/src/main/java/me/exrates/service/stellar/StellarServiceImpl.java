@@ -109,14 +109,6 @@ public class StellarServiceImpl implements StellarService {
     @Override
     public void onTransactionReceive(TransactionResponse payment, String amount, String currencyName, String merchant) {
         log.debug("income transaction {} ", payment.getMemo() + " " + amount);
-        if (checkTransactionForDuplicate(payment)) {
-            try {
-                throw new DuplicatedMerchantTransactionIdOrAttemptToRewriteException(payment.getHash());
-            } catch (DuplicatedMerchantTransactionIdOrAttemptToRewriteException e) {
-                log.warn("xlm transaction {} allready accepted", payment.getHash());
-                return;
-            }
-        }
         Map<String, String> paramsMap = new HashMap<>();
         paramsMap.put("hash", payment.getHash());
         String memo = defineAndGetMemo(payment.getMemo());
@@ -143,7 +135,7 @@ public class StellarServiceImpl implements StellarService {
             Long memoL = ((MemoId) memo).getId();
             parsedMemo = memoL.toString();
         }
-        return parsedMemo == null ? null : parsedMemo.replaceAll(" ", "").replaceAll("\\,", "");
+        return parsedMemo == null ? null : parsedMemo.replaceAll(" ", "").replaceAll(",", "");
     }
 
     @Transactional
@@ -160,9 +152,9 @@ public class StellarServiceImpl implements StellarService {
         }};
     }
 
-    private boolean checkTransactionForDuplicate(TransactionResponse payment) {
-        return StringUtils.isEmpty(payment.getHash()) || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchant.getId(), currency.getId(),
-                payment.getHash()).isPresent();
+    private boolean checkTransactionForDuplicate(String hash, int merchantId, int currencyId) {
+        return StringUtils.isEmpty(hash) || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchantId, currencyId,
+                hash).isPresent();
     }
 
     private String generateUniqDestinationTag(int userId) {
@@ -183,7 +175,14 @@ public class StellarServiceImpl implements StellarService {
         Currency currency = currencyService.findByName(params.get("currency"));
         Merchant merchant = merchantService.findByName(params.get("merchant"));
         BigDecimal amount = new BigDecimal(params.get("amount"));
-
+        if (checkTransactionForDuplicate(hash, currency.getId(), merchant.getId())) {
+            try {
+                throw new DuplicatedMerchantTransactionIdOrAttemptToRewriteException(hash);
+            } catch (DuplicatedMerchantTransactionIdOrAttemptToRewriteException e) {
+                log.warn("xlm transaction {} allready accepted", hash);
+                return;
+            }
+        }
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
                 .merchantId(merchant.getId())
@@ -193,9 +192,7 @@ public class StellarServiceImpl implements StellarService {
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
         log.debug("RefillRequestNotFountException: " + params);
-        Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
-        requestAcceptDto.setRequestId(requestId);
-        refillService.autoAcceptRefillRequest(requestAcceptDto);
+        Integer requestId = refillService.createAndAutoAcceptRefillRequest(requestAcceptDto);
         final String gaTag = refillService.getUserGAByRequestId(requestId);
         log.debug("Process of sending data to Google Analytics...");
         gtagService.sendGtagEvents(amount.toString(), currency.getName(), gaTag);

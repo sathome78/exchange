@@ -936,10 +936,7 @@ public class OrderServiceImpl implements OrderService {
                 add(new OrderWideListDto(false));
             }};
         }
-        return orders
-                .stream()
-                .peek(order -> order.setCurrencyPairName(currencyService.findCurrencyPairById(order.getCurrencyPairId()).getName()))
-                .collect(toList());
+        return orders;
     }
 
     @Override
@@ -1730,30 +1727,25 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getOrdersForReport(adminOrderFilterData);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<OrderWideListDto> getUsersOrdersWithStateForAdmin(int id, CurrencyPair currencyPair, OrderStatus status,
-                                                                  OperationType operationType, Integer offset, Integer limit, Locale locale) {
-        List<OrderWideListDto> orders = orderDao.getMyOrdersWithState(id, currencyPair, status, operationType, SCOPE, offset, limit, locale);
-        return orders
-                .stream()
-                .peek(order -> order.setCurrencyPairName(currencyService.findCurrencyPairById(order.getCurrencyPairId()).getName()))
-                .collect(toList());
+                                                                  OperationType operationType, Integer offset, Integer limit,
+                                                                  Locale locale) {
+        return orderDao.getMyOrdersWithState(id, currencyPair, status, operationType, SCOPE, offset, limit, locale);
     }
 
+    @Transactional(readOnly = true)
     @Override
-    public int getUsersOrdersWithStateForAdminCount(int id, CurrencyPair currencyPair, OrderStatus orderStatus, OperationType operationType, int offset, int limit, Locale locale) {
-        return orderDao.getUnfilteredOrdersCount(id, currencyPair, Collections.singletonList(orderStatus), operationType, SCOPE, offset, limit, locale);
+    public int getUsersOrdersWithStateForAdminCount(int id, CurrencyPair currencyPair, OrderStatus orderStatus, OperationType operationType, int offset, int limit) {
+        return orderDao.getUnfilteredOrdersCount(id, currencyPair, Collections.singletonList(orderStatus), operationType, SCOPE, offset, limit);
     }
 
     @Override
     public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
                                                        OperationType operationType, String scope,
                                                        Integer offset, Integer limit, Locale locale) {
-        List<OrderWideListDto> orders = orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, scope, offset, limit, locale);
-        return orders
-                .stream()
-                .peek(order -> order.setCurrencyPairName(currencyService.findCurrencyPairById(order.getCurrencyPairId()).getName()))
-                .collect(toList());
+        return orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, scope, offset, limit, locale);
     }
 
     @Override
@@ -2298,6 +2290,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<OrderWideListDto> getOrdersForExcel(Integer userId, CurrencyPair currencyPair, String currencyName,
                                                     OrderStatus orderStatus, String scope, Integer limit,
                                                     Integer offset, Boolean hideCanceled, String sortByCreated,
@@ -2366,6 +2359,7 @@ public class OrderServiceImpl implements OrderService {
         int index = 1;
         for (OrderWideListDto order : orders) {
             Row row = sheet.createRow(index++);
+
             if (orderStatus == OrderStatus.OPENED) {
                 row.createCell(0, CellType.STRING).setCellValue(getValue(order.getId()));
                 row.createCell(1, CellType.STRING).setCellValue(getValue(order.getDateCreation()));
@@ -2377,7 +2371,9 @@ public class OrderServiceImpl implements OrderService {
                 row.createCell(7, CellType.STRING).setCellValue(getValue(order.getCommissionValue()));
                 row.createCell(8, CellType.STRING).setCellValue(getValue(order.getAmountWithCommission()));
             } else {
-                row.createCell(0, CellType.STRING).setCellValue(getValue(Objects.nonNull(order.getDateStatusModification()) ? order.getDateStatusModification() : order.getDateModification()));
+                row.createCell(0, CellType.STRING).setCellValue(getValue(Objects.nonNull(order.getDateStatusModification())
+                        ? order.getDateStatusModification()
+                        : order.getDateModification()));
                 row.createCell(1, CellType.STRING).setCellValue(getValue(order.getCurrencyPairName()));
                 row.createCell(2, CellType.STRING).setCellValue(getValue(order.getOrderBaseType()));
                 row.createCell(3, CellType.STRING).setCellValue(getValue(order.getOperationType()));
