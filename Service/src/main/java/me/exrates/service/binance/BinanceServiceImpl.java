@@ -8,6 +8,8 @@ import java.util.Map;
 
 public class BinanceServiceImpl implements BinanceService {
 
+    private static final int CONFIRMATIONS = 4;
+
     public static void main(String[] args) {
 
     }
@@ -30,5 +32,22 @@ public class BinanceServiceImpl implements BinanceService {
     @Override
     public boolean isValidDestinationAddress(String address) {
         return false;
+    }
+
+    private void checkRefills(){
+        long lastblock = getLastBaseBlock();
+        long blockchainHeight = getBlockchainHeigh();
+
+        while (lastblock < blockchainHeight - CONFIRMATIONS){
+
+        }
+    }
+
+    private long getLastBaseBlock() {
+        return 0;
+    }
+
+    private long getBlockchainHeigh() {
+        return 0;
     }
 }
