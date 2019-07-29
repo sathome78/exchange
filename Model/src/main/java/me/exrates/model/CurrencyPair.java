@@ -28,6 +28,7 @@ public class CurrencyPair implements Serializable {
     private CurrencyPairType pairType;
     private boolean hidden;
     private boolean permittedLink;
+    private Boolean isTopMarket;
 
     public CurrencyPair(Currency currency1, Currency currency2) {
         this.currency1 = currency1;
