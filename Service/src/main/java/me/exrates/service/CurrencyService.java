@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -167,4 +168,6 @@ public interface CurrencyService {
     List<BalanceDto> getCurrencyBalances();
 
     boolean updateCurrencyPair(CurrencyPair currencyPair);
+
+    Map<Integer, CurrencyPair> getAllCurrencyPairCached();
 }

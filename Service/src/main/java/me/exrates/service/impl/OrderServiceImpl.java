@@ -137,6 +137,7 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
@@ -199,9 +200,6 @@ import static me.exrates.service.util.CollectionUtil.isEmpty;
 @PropertySource("classpath:/orders.properties")
 public class OrderServiceImpl implements OrderService {
 
-    //    @Value("#{BigDecimal.valueOf('${orders.max-exrate-deviation-percent}')}")
-    public BigDecimal exrateDeviationPercent = BigDecimal.valueOf(20);
-
     public static final String BUY = "BUY";
     public static final String SELL = "SELL";
     public static final String SCOPE = "ALL";
@@ -211,18 +209,17 @@ public class OrderServiceImpl implements OrderService {
     private static final DateTimeFormatter FORMATTER_FOR_NAME = DateTimeFormatter.ofPattern("dd_MM_yyyy_HH_mm");
     private static final int ORDERS_QUERY_DEFAULT_LIMIT = 20;
     private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
-
     private static final Logger txLogger = LogManager.getLogger("ordersTxLogger");
-
     private final List<BackDealInterval> intervals = Arrays.stream(ChartPeriodsEnum.values())
             .map(ChartPeriodsEnum::getBackDealInterval)
             .collect(Collectors.toList());
-
     private final List<ChartTimeFrame> timeFrames = Arrays.stream(ChartTimeFramesEnum.values())
             .map(ChartTimeFramesEnum::getTimeFrame)
             .collect(Collectors.toList());
     private final Object autoAcceptLock = new Object();
     private final Object restOrderCreationLock = new Object();
+    //    @Value("#{BigDecimal.valueOf('${orders.max-exrate-deviation-percent}')}")
+    public BigDecimal exrateDeviationPercent = BigDecimal.valueOf(20);
     @Autowired
     NotificationService notificationService;
     @Autowired
@@ -231,6 +228,10 @@ public class OrderServiceImpl implements OrderService {
     TransactionDescription transactionDescription;
     @Autowired
     StopOrderService stopOrderService;
+
+    @Value("${default.market.value.threshold}")
+    private String defaultMarketValueThreshold = "1000";
+
     private List<CoinmarketApiDto> coinmarketCachedData = new CopyOnWriteArrayList<>();
     private ScheduledExecutorService coinmarketScheduler = Executors.newSingleThreadScheduledExecutor();
     @Autowired
@@ -271,7 +272,6 @@ public class OrderServiceImpl implements OrderService {
             coinmarketCachedData = new CopyOnWriteArrayList<>(newData);
         }, 0, 15, TimeUnit.MINUTES);
     }
-
 
     @Override
     public List<BackDealInterval> getIntervals() {
@@ -395,7 +395,17 @@ public class OrderServiceImpl implements OrderService {
             e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
             e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
             e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(e.getPercentChange(), locale, 2));
+            e.setTopMarket(setTopMarketToCurrencyPair(e));
         });
+    }
+
+    private boolean setTopMarketToCurrencyPair(ExOrderStatisticsShortByPairsDto e) {
+        CurrencyPair currencyPair = currencyService.getAllCurrencyPairCached().get(e.getCurrencyPairId());
+        if (currencyPair.getTopMarketVolume() != null) {
+            return currencyPair.getTopMarketVolume().compareTo(new BigDecimal(e.getVolume())) < 0;
+        } else {
+            return new BigDecimal(defaultMarketValueThreshold).compareTo(new BigDecimal(e.getVolume())) < 0;
+        }
     }
 
     @Override

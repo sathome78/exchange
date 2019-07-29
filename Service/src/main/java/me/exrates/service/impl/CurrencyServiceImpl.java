@@ -40,15 +40,18 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
@@ -111,6 +114,14 @@ public class CurrencyServiceImpl implements CurrencyService {
     private static final int CRYPTO_PRECISION = 8;
     private static final int DEFAULT_PRECISION = 2;
     private static final int EDC_OUTPUT_PRECISION = 3;
+
+    private static Map<Integer, CurrencyPair> allPairs = new HashMap<>();
+
+    @PostConstruct
+    public void fillCurrencyPairs() {
+        allPairs = findAllCurrencyPair()
+                .stream().collect(Collectors.toMap(CurrencyPair::getId, Function.identity()));
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -580,5 +591,10 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Override
     public boolean updateCurrencyPair(CurrencyPair currencyPair) {
         return currencyDao.updateCurrencyPair(currencyPair);
+    }
+
+    @Override
+    public Map<Integer, CurrencyPair> getAllCurrencyPairCached() {
+        return allPairs;
     }
 }
