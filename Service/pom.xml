@@ -63,7 +63,7 @@
             <artifactId>binance-dex-api-client</artifactId>
             <version>1.0.0</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/src/main/resources/binance-sdk.jar</systemPath>
+            <systemPath>${project.basedir}/src/main/resources/binance-dex-api-client-1.0.3.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.apache.axis</groupId>
