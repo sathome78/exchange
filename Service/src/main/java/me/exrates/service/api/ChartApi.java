@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.support.BasicAuthorizationInterceptor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -30,9 +31,12 @@ public class ChartApi {
     private final RestTemplate restTemplate;
 
     @Autowired
-    public ChartApi(@Value("${api.chart.url}") String url) {
+    public ChartApi(@Value("${api.chart.url}") String url,
+                    @Value("${api.chart.username}") String username,
+                    @Value("${api.chart.password}") String password) {
         this.url = url;
         this.restTemplate = new RestTemplate();
+        this.restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(username, password));
     }
 
     public List<CandleDto> getCandlesDataByRange(String pairName,
