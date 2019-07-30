@@ -14,6 +14,7 @@ import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
+import me.exrates.service.RabbitMqService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.events.AcceptOrderEvent;
@@ -77,6 +78,8 @@ public class OrdersEventHandleService {
     private ObjectMapper objectMapper;
     @Autowired
     private CurrencyService currencyService;
+    @Autowired
+    private RabbitMqService rabbitMqService;
 
     private final Object handlerSync = new Object();
 
@@ -159,6 +162,7 @@ public class OrdersEventHandleService {
         ExOrder order = (ExOrder) event.getSource();
         handleAllTrades(order);
         handleMyTrades(order);
+        rabbitMqService.sendTradeInfo(order);
         ratesHolder.onRatesChange(order);
         currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
         onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
