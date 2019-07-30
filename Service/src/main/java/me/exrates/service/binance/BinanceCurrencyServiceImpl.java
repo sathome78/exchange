@@ -1,5 +1,6 @@
 package me.exrates.service.binance;
 
+import com.binance.dex.api.client.impl.BinanceDexApiNodeClientImpl;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -21,15 +22,17 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class BinanceCurrencyServiceImpl implements BinanceCurrencyService {
 
     private RestTemplate restTemplate;
+    BinanceDexApiNodeClientImpl binanceDexApiNodeClient;
 
     @Autowired
     public BinanceCurrencyServiceImpl(){
         restTemplate = new RestTemplate();
+        binanceDexApiNodeClient = new BinanceDexApiNodeClientImpl("http://172.31.30.170","BNB");
     }
 
     public static void main(String[] args) {
         BinanceCurrencyServiceImpl binanceCurrencyService = new BinanceCurrencyServiceImpl();
-
+//        System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getBlockTransactions(2357319l));
 //                System.out.println(binanceCurrencyService.getBlockInfo(2357613));
                 System.out.println(binanceCurrencyService.getTransactions(""));
                 //        System.out.println(binanceCurrencyService.checkTransaction("CA4394B114376FF06AEA55866DFF5CD058F591AD3A18E28B34DF502E66AE796B"));
