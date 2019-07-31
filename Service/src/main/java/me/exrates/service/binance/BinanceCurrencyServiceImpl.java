@@ -28,6 +28,7 @@ public class BinanceCurrencyServiceImpl implements BinanceCurrencyService {
     public BinanceCurrencyServiceImpl(){
         restTemplate = new RestTemplate();
         binanceDexApiNodeClient = new BinanceDexApiNodeClientImpl("http://172.31.30.170","BNB");
+        //
     }
 
     public static void main(String[] args) {
