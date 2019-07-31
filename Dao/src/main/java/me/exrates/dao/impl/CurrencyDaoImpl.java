@@ -7,6 +7,7 @@ import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.MarketVolume;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyReportInfoDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
@@ -723,13 +724,15 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
     @Override
     public List<CurrencyPair> findAllCurrencyPair() {
-        String sql = "SELECT id, name, hidden, permitted_link FROM CURRENCY_PAIR";
+        String sql = "SELECT id, name, hidden, permitted_link, top_market_volume FROM CURRENCY_PAIR";
         return masterJdbcTemplate.query(sql, (rs, i) -> {
             CurrencyPair result = new CurrencyPair();
             result.setId(rs.getInt("id"));
             result.setName(rs.getString("name"));
             result.setHidden(rs.getBoolean("hidden"));
             result.setPermittedLink(rs.getBoolean("permitted_link"));
+            result.setTopMarketVolume(rs.getObject("top_market_volume") == null ? null :
+                    rs.getBigDecimal("top_market_volume"));
             return result;
         });
     }
@@ -1051,6 +1054,42 @@ public class CurrencyDaoImpl implements CurrencyDao {
         params.put("permitted_link", currencyPair.isPermittedLink());
         params.put("type", currencyPair.getPairType().name());
 
+        return masterJdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public boolean updateCurrencyPairVolume(Integer currencyPairId, BigDecimal volume) {
+        String sql = "UPDATE CURRENCY_PAIR SET top_market_volume = ";
+        if (volume == null) {
+            sql += "NULL ";
+        } else {
+            sql += ":volume";
+        }
+
+        sql += " WHERE id = :id";
+        Map<String, Object> params = new HashMap<>();
+        params.put("id", currencyPairId);
+        if (volume != null) {
+            params.put("volume", volume);
+        }
+        return masterJdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public List<MarketVolume> getAllMarketVolumes() {
+        String sql = "SELECT * FROM CURRENCY_PAIR_MARKET_VOLUMES";
+        return masterJdbcTemplate.query(sql, (rs, row) -> MarketVolume.builder()
+                .name(rs.getString("name"))
+                .marketVolume(rs.getBigDecimal("market_volume"))
+                .build());
+    }
+
+    @Override
+    public boolean updateDefaultMarketVolume(String name, BigDecimal marketVolume) {
+        String sql = "UPDATE CURRENCY_PAIR_MARKET_VOLUMES SET market_volume = :volume WHERE name = :name";
+        Map<String, Object> params = new HashMap<>();
+        params.put("volume", marketVolume);
+        params.put("name", name);
         return masterJdbcTemplate.update(sql, params) > 0;
     }
 }

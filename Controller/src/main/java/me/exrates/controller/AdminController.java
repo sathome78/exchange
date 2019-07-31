@@ -17,6 +17,7 @@ import me.exrates.model.Comment;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.MarketVolume;
 import me.exrates.model.Merchant;
 import me.exrates.model.RefillRequestAddressShortDto;
 import me.exrates.model.User;
@@ -83,8 +84,6 @@ import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.model.enums.WsSourceTypeEnum;
-import me.exrates.model.enums.invoice.InvoiceStatus;
-import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.form.AuthorityOptionsForm;
 import me.exrates.model.form.UserOperationAuthorityOptionsForm;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -222,7 +221,22 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 public class AdminController {
 
     private static final Logger LOG = LogManager.getLogger(AdminController.class);
-
+    public static String adminAnyAuthority;
+    public static String nonAdminAnyAuthority;
+    public static String traderAuthority;
+    public static String botAuthority;
+    @Autowired
+    UserRoleService userRoleService;
+    @Autowired
+    UserTransferService userTransferService;
+    @Autowired
+    WithdrawService withdrawService;
+    @Autowired
+    StopOrderService stopOrderService;
+    @Autowired
+    RefillService refillService;
+    @Autowired
+    BotService botService;
     @Autowired
     private MessageSource messageSource;
     @Autowired
@@ -258,18 +272,6 @@ public class AdminController {
     @Autowired
     private CommissionService commissionService;
     @Autowired
-    UserRoleService userRoleService;
-    @Autowired
-    UserTransferService userTransferService;
-    @Autowired
-    WithdrawService withdrawService;
-    @Autowired
-    StopOrderService stopOrderService;
-    @Autowired
-    RefillService refillService;
-    @Autowired
-    BotService botService;
-    @Autowired
     private MerchantServiceContext serviceContext;
     @Autowired
     private NotificatorsService notificatorsService;
@@ -285,8 +287,6 @@ public class AdminController {
     private UsdxService usdxService;
     @Autowired
     private G2faService g2faService;
-
-
     @Autowired
     @Qualifier("ExratesSessionRegistry")
     private SessionRegistry sessionRegistry;
@@ -294,12 +294,6 @@ public class AdminController {
     private BigDecimalConverter converter;
     @Autowired
     private StompMessenger stompMessenger;
-
-    public static String adminAnyAuthority;
-    public static String nonAdminAnyAuthority;
-    public static String traderAuthority;
-    public static String botAuthority;
-
 
     @PostConstruct
     private void init() {
@@ -1151,6 +1145,38 @@ public class AdminController {
     @GetMapping(value = "/2a8fy7b07dxe44/merchantAccess/getCurrencyPairs")
     public List<CurrencyPair> getCurrencyPairs() {
         return currencyService.findAllCurrencyPair();
+    }
+
+    @ResponseBody
+    @GetMapping(value = "/2a8fy7b07dxe44/merchantAccess/getMarketVolumes")
+    public List<MarketVolume> getMarketVolumes() {
+        return currencyService.getAllMarketVolumes();
+    }
+
+    @ResponseBody
+    @PostMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPairs/post")
+    public ResponseEntity<Void> updateMarketVolumeForCurrencyPair(@RequestParam(value = "id") Integer pairId,
+                                                                  @RequestParam(value = "volume", required = false) String volume) {
+        BigDecimal volumeTopMarket = null;
+        if (StringUtils.isNoneEmpty(volume) && StringUtils.isNumeric(volume)) {
+            volumeTopMarket = new BigDecimal(volume);
+        }
+        HttpStatus status =
+                currencyService.updateMarketVolumeCurrecencyPair(pairId, volumeTopMarket) ? HttpStatus.OK : HttpStatus.BAD_REQUEST;
+        return new ResponseEntity<>(status);
+    }
+
+    @ResponseBody
+    @PostMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPairs/market/post")
+    public ResponseEntity<Void> updateMarketVolume(@RequestParam(value = "name") String name,
+                                                                  @RequestParam(value = "volume") String volume) {
+        if (StringUtils.isEmpty(volume) && !StringUtils.isNumeric(volume)) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        BigDecimal marketVolume = new BigDecimal(volume);
+        HttpStatus status =
+                currencyService.updateDefaultMarketVolume(name, marketVolume) ? HttpStatus.OK : HttpStatus.BAD_REQUEST;
+        return new ResponseEntity<>(status);
     }
 
     @ResponseBody

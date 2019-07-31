@@ -12,6 +12,7 @@ import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
+import me.exrates.model.MarketVolume;
 import me.exrates.model.OrderWsDetailDto;
 import me.exrates.model.PagingData;
 import me.exrates.model.Transaction;
@@ -137,7 +138,6 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
@@ -228,9 +228,6 @@ public class OrderServiceImpl implements OrderService {
     TransactionDescription transactionDescription;
     @Autowired
     StopOrderService stopOrderService;
-
-    @Value("${default.market.value.threshold}")
-    private String defaultMarketValueThreshold = "1000";
 
     private List<CoinmarketApiDto> coinmarketCachedData = new CopyOnWriteArrayList<>();
     private ScheduledExecutorService coinmarketScheduler = Executors.newSingleThreadScheduledExecutor();
@@ -404,8 +401,18 @@ public class OrderServiceImpl implements OrderService {
         if (currencyPair.getTopMarketVolume() != null) {
             return currencyPair.getTopMarketVolume().compareTo(new BigDecimal(e.getVolume())) < 0;
         } else {
-            return new BigDecimal(defaultMarketValueThreshold).compareTo(new BigDecimal(e.getVolume())) < 0;
+            return new BigDecimal(getDefauktVolumeMarket(currencyPair.getMarket())).compareTo(new BigDecimal(e.getVolume())) < 0;
         }
+    }
+
+    private String getDefauktVolumeMarket(String market) {
+        BigDecimal volume = currencyService.getAllMarketVolumes()
+                .stream()
+                .filter(o -> o.getName().equalsIgnoreCase(market))
+                .map(MarketVolume::getMarketVolume)
+                .findFirst()
+                .orElse(BigDecimal.ZERO);
+        return volume.toPlainString();
     }
 
     @Override

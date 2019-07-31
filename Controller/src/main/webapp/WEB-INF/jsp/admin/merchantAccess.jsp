@@ -40,6 +40,9 @@
                 <button class="adminForm-toggler blue-box">
                     <loc:message code="title.hide.currency.visibility"/>
                 </button>
+                <button class="adminForm-toggler blue-box">
+                    <loc:message code="title.table.market.volume"/>
+                </button>
             </div>
 
             <div class="tab-content">
@@ -105,6 +108,8 @@
                                 <th><loc:message code="admin.currency.pair.id"/> </th>
                                 <th><loc:message code="title.hide.currency.pair"/> </th>
                                 <th><loc:message code="title.visibility"/></th>
+                                <th><loc:message code="title.top_market_volume"/></th>
+                                <th><loc:message code="title.action"/></th>
                             </tr>
                             </thead>
                             <tbody>
@@ -140,6 +145,23 @@
                                 <th><loc:message code="admin.currencyLimits.description"/> </th>
                                 <th><loc:message code="withdrawal.currency"/> </th>
                                 <th><loc:message code="title.visibility"/></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="panel6" class="tab-pane">
+                    <div class="col-sm-8 col-sm-offset-2">
+
+                        <table id="currency-pair-market-volumes">
+                            <thead>
+                            <tr>
+                                <th><loc:message code="admin.market.name"/> </th>
+                                <th><loc:message code="admin.market.volume"/> </th>
+                                <th><loc:message code="admin.market.action"/> </th>
                             </tr>
                             </thead>
                             <tbody>

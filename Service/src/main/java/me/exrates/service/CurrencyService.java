@@ -3,6 +3,7 @@ package me.exrates.service;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.MarketVolume;
 import me.exrates.model.User;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyReportInfoDto;
@@ -170,4 +171,10 @@ public interface CurrencyService {
     boolean updateCurrencyPair(CurrencyPair currencyPair);
 
     Map<Integer, CurrencyPair> getAllCurrencyPairCached();
+
+    boolean updateMarketVolumeCurrecencyPair(Integer currencyPairId, BigDecimal volume);
+
+    List<MarketVolume> getAllMarketVolumes();
+
+    boolean updateDefaultMarketVolume(String name, BigDecimal volume);
 }
