@@ -27,20 +27,29 @@ public class BinanceCurrencyServiceImpl implements BinanceCurrencyService {
     @Autowired
     public BinanceCurrencyServiceImpl(){
         restTemplate = new RestTemplate();
-        binanceDexApiNodeClient = new BinanceDexApiNodeClientImpl("http://172.31.30.170","BNB");
+        binanceDexApiNodeClient = new BinanceDexApiNodeClientImpl("http://172.31.30.170:27147","BNB");
     }
 
     public static void main(String[] args) {
         BinanceCurrencyServiceImpl binanceCurrencyService = new BinanceCurrencyServiceImpl();
-//        System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getBlockTransactions(2357319l));
-//                System.out.println(binanceCurrencyService.getBlockInfo(2357613));
-                System.out.println(binanceCurrencyService.getTransactions(""));
-                //        System.out.println(binanceCurrencyService.checkTransaction("CA4394B114376FF06AEA55866DFF5CD058F591AD3A18E28B34DF502E66AE796B"));
-    }
+        long value = 5153538L;
+        System.out.println("..........................");
+//        while(true){
+//            value++;
+//            if (binanceCurrencyService.binanceDexApiNodeClient.getBlockMetaByHeight(value).getHeader().getNumTxs()>0) {
+//                System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getBlockMetaByHeight(value).getHeader().getHeight());
+//                System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getBlockMetaByHeight(value).getHeader().getNumTxs());
+//                break;
+//            }
+//        }
+        binanceCurrencyService.binanceDexApiNodeClient.getBlockTransactions( 5153537L).forEach(transaction -> System.out.println(transaction.getHash()));
+        System.out.println("..........................");
+//        System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getBlockTransactions( 1780695L).size());
+       }
 
     public String getTransactions(String hash){
         UriComponents builder = UriComponentsBuilder
-                .fromHttpUrl("http://172.31.30.170:27147/tx_search?query=\"tx.height=2357614\"&prove=true")
+                .fromHttpUrl("http://172.31.30.170:27147/tx_search?query=\"tx.height=4556289\"&prove=true")
                 .build();
         ResponseEntity<String> responseEntity = null;
         try {
