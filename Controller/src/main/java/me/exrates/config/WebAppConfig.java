@@ -23,6 +23,8 @@ import me.exrates.service.BitcoinService;
 import me.exrates.service.MoneroService;
 import me.exrates.service.NamedParameterJdbcTemplateWrapper;
 import me.exrates.service.achain.AchainContract;
+import me.exrates.service.binance.BinanceService;
+import me.exrates.service.binance.BinanceServiceImpl;
 import me.exrates.service.ethereum.EthTokenService;
 import me.exrates.service.ethereum.EthTokenServiceImpl;
 import me.exrates.service.ethereum.EthereumCommonService;
@@ -771,16 +773,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "OMG", true, ExConvert.Unit.ETHER);
     }
 
-    @Bean(name = "bnbServiceImpl")
-    @Conditional(MonolitConditional.class)
-    public EthTokenService BnbService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0xb8c77482e45f1f44de1745f52c74426c631bdd52");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "BinanceCoin",
-                "BNB", true, ExConvert.Unit.ETHER);
-    }
+//    @Bean(name = "bnbServiceImpl")
+//    @Conditional(MonolitConditional.class)
+//    public EthTokenService BnbService() {
+//        List<String> tokensList = new ArrayList<>();
+//        tokensList.add("0xb8c77482e45f1f44de1745f52c74426c631bdd52");
+//        return new EthTokenServiceImpl(
+//                tokensList,
+//                "BinanceCoin",
+//                "BNB", true, ExConvert.Unit.ETHER);
+//    }
 
     @Bean(name = "atlServiceImpl")
     @Conditional(MonolitConditional.class)
@@ -2133,6 +2135,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public EthTokenService asgServiceImpl() {
         List<String> tokensList = ImmutableList.of("0x7a3d3c4f30c46f51b814bee23d970a7c9b757a32");
         return new EthTokenServiceImpl(tokensList, "ASG", "ASG", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "bnbServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public BinanceService binanceService(){
+        return new BinanceServiceImpl("BinanceCoin", "BNB", 40);
     }
 
     //    Qtum tokens:

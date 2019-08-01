@@ -6,7 +6,6 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
-import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.MerchantSpecParamDto;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
@@ -20,9 +19,7 @@ import me.exrates.service.util.WithdrawUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
@@ -35,14 +32,14 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Log4j2
-@Service
-@Conditional(MonolitConditional.class)
 @PropertySource("classpath:/merchants/binance.properties")
 public class BinanceServiceImpl implements BinanceService {
 
-    private static final int CONFIRMATIONS = 40;
     private static final String LAST_BLOCK_PARAM = "LastScannedBlock";
-    private static final String MERCHANT_NAME = "BNB";
+
+    private String currencyName;
+    private String merchantName;
+    private int confirmations;
 
     private Merchant merchant;
     private Currency currency;
@@ -68,10 +65,16 @@ public class BinanceServiceImpl implements BinanceService {
     @Autowired
     private BinanceCurrencyService binanceCurrencyService;
 
+    public BinanceServiceImpl(String merchantName, String currencyName, int confirmations){
+        this.merchantName = merchantName;
+        this.currencyName = currencyName;
+        this.confirmations = confirmations;
+    }
+
     @PostConstruct
     public void init() {
-        currency = currencyService.findByName(MERCHANT_NAME);
-        merchant = merchantService.findByName(MERCHANT_NAME);
+        currency = currencyService.findByName(currencyName);
+        merchant = merchantService.findByName(merchantName);
         scheduler.scheduleAtFixedRate(this::checkRefills, 5, 20, TimeUnit.MINUTES);
     }
 
@@ -130,22 +133,23 @@ public class BinanceServiceImpl implements BinanceService {
         long lastblock = getLastBaseBlock();
         long blockchainHeight = getBlockchainHeigh();
 
-        while (lastblock < blockchainHeight - CONFIRMATIONS){
+        while (lastblock < blockchainHeight - confirmations){
             List<Transaction> transactions = binanceCurrencyService.getBlockTransactions(++lastblock);
             transactions.forEach(transaction -> {
                 if (transaction.getTxType() == TxType.TRANSFER &&
                         binanceCurrencyService.getReceiverAddress(transaction).equalsIgnoreCase(mainAddress) &&
-                        binanceCurrencyService.getToken(transaction).equalsIgnoreCase(MERCHANT_NAME)){
+                        binanceCurrencyService.getToken(transaction).equalsIgnoreCase(merchantName)){
 
                     Map<String, String> map = new HashMap<>();
                     map.put("address",binanceCurrencyService.getMemo(transaction));
                     map.put("hash",binanceCurrencyService.getHash(transaction));
+                    //TODO Как получать Amount в правильном формате
                     map.put("amount",binanceCurrencyService.getAmount(transaction));
 
                     try {
                         processPayment(map);
                     } catch (RefillRequestAppropriateNotFoundException e) {
-                        e.printStackTrace();
+                        log.error(e);
                     }
                 }
             });
@@ -158,7 +162,7 @@ public class BinanceServiceImpl implements BinanceService {
     }
 
     private long getLastBaseBlock() {
-        MerchantSpecParamDto specParamsDto = specParamsDao.getByMerchantNameAndParamName(MERCHANT_NAME, LAST_BLOCK_PARAM);
+        MerchantSpecParamDto specParamsDto = specParamsDao.getByMerchantNameAndParamName(merchantName, LAST_BLOCK_PARAM);
         return specParamsDto == null ? 0 : Long.valueOf(specParamsDto.getParamValue());
     }
 
@@ -167,6 +171,6 @@ public class BinanceServiceImpl implements BinanceService {
     }
 
     private void saveLastBlock(long blockNum) {
-        specParamsDao.updateParam(MERCHANT_NAME, LAST_BLOCK_PARAM, String.valueOf(blockNum));
+        specParamsDao.updateParam(merchantName, LAST_BLOCK_PARAM, String.valueOf(blockNum));
     }
 }
