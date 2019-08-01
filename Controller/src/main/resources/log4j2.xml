@@ -763,7 +763,6 @@
         </Logger>
         <logger name="org.quartz" level="ERROR" additivity="false">
             <AppenderRef ref="Logs"/>
-            <AppenderRef ref="Console"/>
         </logger>
         <logger name="bitcoin_core" level="INFO" additivity="false">
             <AppenderRef ref="bitcoin_core_log"/>
@@ -776,7 +775,6 @@
         </logger>
         <logger name="org.springframework" level="ERROR" additivity="false">
             <AppenderRef ref="Logs"/>
-            <AppenderRef ref="Console"/>
         </logger>
         <logger name="org.springframework.security" level="ERROR" additivity="false">
             <AppenderRef ref="Logs"/>
@@ -1056,16 +1054,9 @@
             <AppenderRef ref="inout"/>
         </logger>
 
-        <logger name="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor" level="ERROR" additivity="false">
-            <AppenderRef ref="Console"/>
-        </logger>
-        <logger name="org.springframework.context.support.PostProcessorRegistrationDelegate" level="ERROR" additivity="false">
-            <AppenderRef ref="Console"/>
-        </logger>
-
-        <Root level="INFO">
+        <logger name="me.exrates" level="INFO" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Logs"/>
-        </Root>
+        </logger>
     </Loggers>
 </Configuration>

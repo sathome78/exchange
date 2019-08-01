@@ -112,15 +112,21 @@ public class NgDashboardController {
     @PostMapping("/order")
     @CheckUserAuthority(authority = UserOperationAuthority.TRADING)
     public ResponseEntity createOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
-        OrderCreateDto prepareNewOrder = ngOrderService.prepareOrder(inputOrder);
-
+        OrderBaseType baseType = OrderBaseType.valueOf(inputOrder.getBaseType());
         String result;
-        switch (prepareNewOrder.getOrderBaseType()) {
+        switch (baseType) {
+            case MARKET: {
+                OrderCreateDto newOrder = orderService.prepareMarketOrder(inputOrder);
+                result = orderService.createMarketOrder(newOrder);
+                break;
+            }
             case STOP_LIMIT: {
+                OrderCreateDto prepareNewOrder = ngOrderService.prepareOrder(inputOrder);
                 result = stopOrderService.create(prepareNewOrder, OrderActionEnum.CREATE, null);
                 break;
             }
             default: {
+                OrderCreateDto prepareNewOrder = ngOrderService.prepareOrder(inputOrder);
                 result = orderService.createOrder(prepareNewOrder, OrderActionEnum.CREATE, null);
             }
         }

@@ -41,6 +41,8 @@ public interface WalletDao {
 
     int getWalletId(int userId, int currencyId);
 
+    BigDecimal getActiveBalanceAndBlockByWalletId(Integer walletId);
+
     int createNewWallet(Wallet wallet);
 
     int getUserIdFromWallet(int walletId);
