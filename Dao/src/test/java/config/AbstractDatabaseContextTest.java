@@ -40,7 +40,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -107,7 +106,7 @@ public abstract class AbstractDatabaseContextTest {
     public static void afterClass() {
         schemas.values().forEach(config -> {
             try {
-                String dbServerUrl = config.getUrl().replace(config.getRootSchemeName() + "?",  "?");
+                String dbServerUrl = config.getUrl().replace(config.getRootSchemeName() + "?", "?");
                 Connection connection = DriverManager.getConnection(dbServerUrl, config.getUser(), config.getPassword());
                 Statement statement = connection.createStatement();
                 statement.execute(String.format("DROP DATABASE IF EXISTS %s;", config.getSchemaName()));

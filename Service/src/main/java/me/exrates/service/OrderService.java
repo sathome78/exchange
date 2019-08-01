@@ -13,6 +13,7 @@ import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
+import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.dto.OrderBasicInfoDto;
 import me.exrates.model.dto.OrderBookWrapperDto;
 import me.exrates.model.dto.OrderCommissionsDto;
@@ -116,7 +117,16 @@ public interface OrderService {
     OrderCreationResultDto prepareAndCreateOrderRest(String currencyPairName, OperationType orderType,
                                                      BigDecimal amount, BigDecimal exrate, String userEmail);
 
+
+    @Transactional
+    String createMarketOrder(OrderCreateDto orderCreateDto);
+
+    OrderCreateDto prepareMarketOrder(InputCreateOrderDto inputOrder);
+
     Optional<String> autoAccept(OrderCreateDto orderCreateDto, Locale locale);
+
+    @Transactional(rollbackFor = Exception.class)
+    Optional<OrderCreationResultDto> autoAcceptMarketOrders(OrderCreateDto orderCreateDto, Locale locale);
 
     Optional<OrderCreationResultDto> autoAcceptOrders(OrderCreateDto orderCreateDto, Locale locale);
 
@@ -175,24 +185,10 @@ public interface OrderService {
      */
     void acceptOrdersList(int userAcceptorId, List<Integer> ordersList, Locale locale, List<ExOrder> eventsList, boolean partialAccept);
 
-    /**
-     * Accepts the order
-     * and generates set of transactions for creator-user and acceptor-user
-     * and modifies wallets for users and company
-     * If there were errors while accept, errors will be thrown:
-     * - NotEnoughUserWalletMoneyException
-     * - TransactionPersistException
-     * - OrderAcceptionException
-     *
-     * @param acceptorEmail is email of acceptor-user
-     * @param orderId       is ID of order that must be accepted
-     * @param locale        is current locale. Used to generate messages
-     */
-    /*void acceptOrder(int userId, int orderId, Locale locale);*/
-
     void acceptOrderByAdmin(String acceptorEmail, Integer orderId, Locale locale);
 
     void acceptManyOrdersByAdmin(String acceptorEmail, List<Integer> orderIds, Locale locale);
+
 
     @Transactional
     boolean cancelOrder(Integer orderId);

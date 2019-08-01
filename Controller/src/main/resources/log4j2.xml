@@ -776,14 +776,14 @@
         <logger name="org.springframework" level="ERROR" additivity="false">
             <AppenderRef ref="Logs"/>
         </logger>
-        <logger name="org.springframework.security" level="INFO" additivity="false">
+        <logger name="org.springframework.security" level="ERROR" additivity="false">
             <AppenderRef ref="Logs"/>
         </logger>
         <logger name="org.springframework.jdbc.core.JdbcTemplate" level="ERROR" additivity="false">
-            <appender-ref ref="Console" />
+            <appender-ref ref="Console"/>
         </logger>
         <logger name="org.springframework.jdbc.core.StatementCreatorUtils" level="ERROR" additivity="false">
-            <appender-ref ref="Console" />
+            <appender-ref ref="Console"/>
         </logger>
         <Logger name="me.exrates.controller.OnlineRestController" level="INFO" additivity="false">
             <AppenderRef ref="OnlineServices"/>
@@ -1053,11 +1053,10 @@
         <logger name="inout" level="ALL" additivity="false">
             <AppenderRef ref="inout"/>
         </logger>
-        <logger name="org.springframework" level="INFO" additivity="false">
-        </logger>
-        <Root level="INFO">
+
+        <logger name="me.exrates" level="INFO" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Logs"/>
-        </Root>
+        </logger>
     </Loggers>
 </Configuration>
