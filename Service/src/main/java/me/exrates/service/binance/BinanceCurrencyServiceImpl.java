@@ -1,5 +1,6 @@
 package me.exrates.service.binance;
 
+import com.binance.dex.api.client.domain.broadcast.Transaction;
 import com.binance.dex.api.client.impl.BinanceDexApiNodeClientImpl;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -15,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.util.List;
 
 @Log4j2
 @Service
@@ -32,7 +35,7 @@ public class BinanceCurrencyServiceImpl implements BinanceCurrencyService {
 
     public static void main(String[] args) {
         BinanceCurrencyServiceImpl binanceCurrencyService = new BinanceCurrencyServiceImpl();
-        long value = 5153538L;
+        long value = 6760515L;
         System.out.println("..........................");
 //        while(true){
 //            value++;
@@ -42,9 +45,11 @@ public class BinanceCurrencyServiceImpl implements BinanceCurrencyService {
 //                break;
 //            }
 //        }
-        binanceCurrencyService.binanceDexApiNodeClient.getBlockTransactions( 5153537L).forEach(transaction -> System.out.println(transaction.getHash()));
+//        System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getBlockMetaByHeight(5153537L).getHeader().getHeight());
+//        binanceCurrencyService.binanceDexApiNodeClient.getBlockTransactions( 5153537L).forEach(transaction -> System.out.println(transaction.getHash()));
+//        System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getTransaction("ADB8928498FAC144D0EB6275320A93997760A34DED974A5DA6F35242C7F64E26").getRealTx());
         System.out.println("..........................");
-//        System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getBlockTransactions( 1780695L).size());
+        System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getBlockTransactions( 1780695L).size());
        }
 
     public String getTransactions(String hash){
@@ -64,21 +69,15 @@ public class BinanceCurrencyServiceImpl implements BinanceCurrencyService {
         return responseEntity.getBody();
     }
 
-    public String getBlockInfo(int num){
-        UriComponents builder = UriComponentsBuilder
-                .fromHttpUrl("http://172.31.30.170:27147/block?height={num}")
-                .build();
-        ResponseEntity<String> responseEntity = null;
-        try {
-            responseEntity = restTemplate.getForEntity(builder.toUriString(), String.class, num);
-            if (responseEntity.getStatusCodeValue() != 200) {
-                log.error("Error : {}", responseEntity.getStatusCodeValue());
-            }
-        } catch (Exception ex) {
-            log.error("Error : {}", ex.getMessage());
-        }
+    @Override
+    public List<Transaction> getBlockTransactions(long num){
+        return binanceDexApiNodeClient.getBlockTransactions(num);
+    }
 
-        return responseEntity.getBody();
+    @Override
+    public Transaction getTransaction(String hash){
+        binanceDexApiNodeClient.getTransaction("ADB8928498FAC144D0EB6275320A93997760A34DED974A5DA6F35242C7F64E26");
+        return null;
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
