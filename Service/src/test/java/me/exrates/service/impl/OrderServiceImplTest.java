@@ -442,6 +442,8 @@ public class OrderServiceImplTest {
     public void getOrdersStatisticByPairsEx_ICO_CURRENCIES_STATISTIC() {
         when(exchangeRatesHolder.getAllRates())
                 .thenReturn(Collections.singletonList(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.ICO)));
+        when(currencyService.getAllCurrencyPairCached()).thenReturn(Collections.singletonMap(1, getMockCurrencyPair(CurrencyPairType.MAIN)));
+
 
         List<ExOrderStatisticsShortByPairsDto> ordersStatisticByPairsEx = orderService
                 .getOrdersStatisticByPairsEx(RefreshObjectsEnum.ICO_CURRENCIES_STATISTIC);
@@ -471,6 +473,8 @@ public class OrderServiceImplTest {
     public void getOrdersStatisticByPairsEx_MAIN_CURRENCIES_STATISTIC() {
         when(exchangeRatesHolder.getAllRates())
                 .thenReturn(Collections.singletonList(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.MAIN)));
+        when(currencyService.getAllCurrencyPairCached()).thenReturn(Collections.singletonMap(1, getMockCurrencyPair(CurrencyPairType.MAIN)));
+
 
         List<ExOrderStatisticsShortByPairsDto> ordersStatisticByPairsEx = orderService
                 .getOrdersStatisticByPairsEx(RefreshObjectsEnum.MAIN_CURRENCIES_STATISTIC);
@@ -500,6 +504,8 @@ public class OrderServiceImplTest {
     public void getOrdersStatisticByPairsEx_default() {
         when(exchangeRatesHolder.getAllRates())
                 .thenReturn(Collections.singletonList(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.ALL)));
+        when(currencyService.getAllCurrencyPairCached()).thenReturn(Collections.singletonMap(1, getMockCurrencyPair(CurrencyPairType.MAIN)));
+
 
         List<ExOrderStatisticsShortByPairsDto> ordersStatisticByPairsEx = orderService
                 .getOrdersStatisticByPairsEx(RefreshObjectsEnum.ALL_TRADES);
@@ -5358,7 +5364,7 @@ public class OrderServiceImplTest {
         when(exchangeRatesHolder.getAllRates())
                 .thenReturn(Collections.singletonList(getExOrderStatisticsShortByPairsDto(CurrencyPairType.ICO)));
         when(objectMapper.writeValueAsString(any(OrdersListWrapper.class))).thenReturn(wrapper);
-
+        when(currencyService.getAllCurrencyPairCached()).thenReturn(Collections.singletonMap(1, getMockCurrencyPair(CurrencyPairType.MAIN)));
         String allCurrenciesStatForRefreshForAllPairs = orderService
                 .getAllCurrenciesStatForRefresh(RefreshObjectsEnum.ICO_CURRENCIES_STATISTIC);
 
@@ -5373,6 +5379,8 @@ public class OrderServiceImplTest {
     public void getAllCurrenciesStatForRefresh_exception() throws Exception {
         when(exchangeRatesHolder.getAllRates())
                 .thenReturn(Collections.singletonList(getExOrderStatisticsShortByPairsDto(CurrencyPairType.ICO)));
+        when(currencyService.getAllCurrencyPairCached()).thenReturn(Collections.singletonMap(1, getMockCurrencyPair(CurrencyPairType.MAIN)));
+
         doThrow(JsonProcessingException.class).when(objectMapper).writeValueAsString(any(OrdersListWrapper.class));
 
         String allCurrenciesStatForRefreshForAllPairs = orderService
@@ -5392,6 +5400,7 @@ public class OrderServiceImplTest {
         String expected = new JSONArray() {{
             put(new ObjectMapper().writeValueAsString(ordersListWrapper));
         }}.toString();
+        when(currencyService.getAllCurrencyPairCached()).thenReturn(Collections.singletonMap(1, getMockCurrencyPair(CurrencyPairType.MAIN)));
 
         when(exchangeRatesHolder.getAllRates())
                 .thenReturn(Collections.singletonList(getExOrderStatisticsShortByPairsDto(CurrencyPairType.ICO)));
@@ -5410,6 +5419,8 @@ public class OrderServiceImplTest {
     public void getAllCurrenciesStatForRefreshForAllPairs_exception() throws Exception {
         when(exchangeRatesHolder.getAllRates())
                 .thenReturn(Collections.singletonList(getExOrderStatisticsShortByPairsDto(CurrencyPairType.ICO)));
+        when(currencyService.getAllCurrencyPairCached()).thenReturn(Collections.singletonMap(1, getMockCurrencyPair(CurrencyPairType.MAIN)));
+
         doThrow(JsonProcessingException.class).when(objectMapper).writeValueAsString(any(OrdersListWrapper.class));
 
         String allCurrenciesStatForRefreshForAllPairs = orderService.getAllCurrenciesStatForRefreshForAllPairs();
@@ -6806,6 +6817,7 @@ public class OrderServiceImplTest {
         dto.setLastOrderRate24hr("0.000000000");
         dto.setHidden(Boolean.FALSE);
         dto.setLastUpdateCache("2019-04-03 14:52:14");
+        dto.setTopMarket(true);
 
         return dto;
     }
