@@ -12,4 +12,10 @@ public interface BinanceCurrencyService {
 
     String getToken(Transaction transaction);
 
+    String getHash(Transaction transaction);
+
+    String getAmount(Transaction transaction);
+
+    String getMemo(Transaction transaction);
+
 }

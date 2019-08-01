@@ -1,22 +1,12 @@
 package me.exrates.service.binance;
 
 import com.binance.dex.api.client.domain.broadcast.Transaction;
-import com.binance.dex.api.client.domain.broadcast.TxType;
 import com.binance.dex.api.client.impl.BinanceDexApiNodeClientImpl;
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.condition.MonolitConditional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
 
@@ -27,13 +17,12 @@ public class BinanceCurrencyServiceImpl implements BinanceCurrencyService {
 
     private static final String RECEIVER_ADDRESS_CODE = "outputs=[InputOutput[address=";
     private static final String TOKEN_CODE = "coins=[Token[denom=";
+    private static final String AMOUNT_CODE = "amount=";
 
-    private RestTemplate restTemplate;
     BinanceDexApiNodeClientImpl binanceDexApiNodeClient;
 
     @Autowired
     public BinanceCurrencyServiceImpl(){
-        restTemplate = new RestTemplate();
         binanceDexApiNodeClient = new BinanceDexApiNodeClientImpl("http://172.31.30.170:27147","BNB");
     }
 
@@ -78,5 +67,23 @@ public class BinanceCurrencyServiceImpl implements BinanceCurrencyService {
         transferInfo = transferInfo.substring(transferInfo.indexOf(TOKEN_CODE) + TOKEN_CODE.length());
         transferInfo = transferInfo.substring(0, transferInfo.indexOf(","));
         return transferInfo;
+    }
+
+    @Override
+    public String getHash(Transaction transaction){
+        return transaction.getHash();
+    }
+
+    @Override
+    public String getAmount(Transaction transaction){
+        String transferInfo = transaction.getRealTx().toString();
+        transferInfo = transferInfo.substring(transferInfo.indexOf(AMOUNT_CODE) + AMOUNT_CODE.length());
+        transferInfo = transferInfo.substring(0, transferInfo.indexOf("]"));
+        return transferInfo;
+    }
+
+    @Override
+    public String getMemo(Transaction transaction){
+        return transaction.getMemo();
     }
 }
