@@ -25,6 +25,9 @@ import java.util.List;
 @Conditional(MonolitConditional.class)
 public class BinanceCurrencyServiceImpl implements BinanceCurrencyService {
 
+    private static final String RECEIVER_ADDRESS_CODE = "outputs=[InputOutput[address=";
+    private static final String TOKEN_CODE = "coins=[Token[denom=";
+
     private RestTemplate restTemplate;
     BinanceDexApiNodeClientImpl binanceDexApiNodeClient;
 
@@ -46,9 +49,9 @@ public class BinanceCurrencyServiceImpl implements BinanceCurrencyService {
 //                break;
 //            }
 //        }
-
+        Transaction transaction = binanceCurrencyService.binanceDexApiNodeClient.getTransaction("DBA8BD55160F809FABF75D2E6164C55BF18059C5EF0B22F675D21717EEC26EC8");
         System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getTransaction("DBA8BD55160F809FABF75D2E6164C55BF18059C5EF0B22F675D21717EEC26EC8").getRealTx().toString());
-        System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getTransaction("DBA8BD55160F809FABF75D2E6164C55BF18059C5EF0B22F675D21717EEC26EC8").getResultData());
+        System.out.println("-="+binanceCurrencyService.getToken(transaction)+"=-");
         System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getTransaction("269EE2C587335F8FFD84A8C411A0C4C17E98398A40076F8DD1D6D70060F8657A").getRealTx());
         System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getTransaction("269EE2C587335F8FFD84A8C411A0C4C17E98398A40076F8DD1D6D70060F8657A").getTxType());
 //        System.out.println(binanceCurrencyService.getBlockTransactions( 6760625L).size());
@@ -64,12 +67,16 @@ public class BinanceCurrencyServiceImpl implements BinanceCurrencyService {
     @Override
     public String getReceiverAddress(Transaction transaction){
         String transferInfo = transaction.getRealTx().toString();
-        return null;
+        transferInfo = transferInfo.substring(transferInfo.indexOf(RECEIVER_ADDRESS_CODE) + RECEIVER_ADDRESS_CODE.length());
+        transferInfo = transferInfo.substring(0, transferInfo.indexOf(","));
+        return transferInfo;
     }
 
     @Override
-    public String getTocken(Transaction transaction){
-
-        return null;
+    public String getToken(Transaction transaction){
+        String transferInfo = transaction.getRealTx().toString();
+        transferInfo = transferInfo.substring(transferInfo.indexOf(TOKEN_CODE) + TOKEN_CODE.length());
+        transferInfo = transferInfo.substring(0, transferInfo.indexOf(","));
+        return transferInfo;
     }
 }

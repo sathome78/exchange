@@ -10,6 +10,6 @@ public interface BinanceCurrencyService {
 
     String getReceiverAddress(Transaction transaction);
 
-    String getTocken(Transaction transaction);
+    String getToken(Transaction transaction);
 
 }

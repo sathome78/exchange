@@ -26,6 +26,8 @@ public class BinanceServiceImpl implements BinanceService {
 
     private static final String MERCHANT_NAME = "BNB";
 
+    private String mainAddress;
+
     @Autowired
     private MerchantSpecParamsDao specParamsDao;
 
@@ -62,7 +64,9 @@ public class BinanceServiceImpl implements BinanceService {
         while (lastblock < blockchainHeight - CONFIRMATIONS){
             List<Transaction> transactions = binanceCurrencyService.getBlockTransactions(++lastblock);
             transactions.forEach(transaction -> {
-                if (transaction.getTxType() == TxType.TRANSFER){
+                if (transaction.getTxType() == TxType.TRANSFER &&
+                        binanceCurrencyService.getReceiverAddress(transaction).equalsIgnoreCase(mainAddress) &&
+                        binanceCurrencyService.getToken(transaction).equalsIgnoreCase(MERCHANT_NAME)){
 
 //                transaction.getTxType().
                 }
