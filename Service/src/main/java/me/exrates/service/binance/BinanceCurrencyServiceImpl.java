@@ -1,6 +1,7 @@
 package me.exrates.service.binance;
 
 import com.binance.dex.api.client.domain.broadcast.Transaction;
+import com.binance.dex.api.client.domain.broadcast.TxType;
 import com.binance.dex.api.client.impl.BinanceDexApiNodeClientImpl;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -45,29 +46,15 @@ public class BinanceCurrencyServiceImpl implements BinanceCurrencyService {
 //                break;
 //            }
 //        }
-//        System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getBlockMetaByHeight(5153537L).getHeader().getHeight());
-//        binanceCurrencyService.binanceDexApiNodeClient.getBlockTransactions( 5153537L).forEach(transaction -> System.out.println(transaction.getHash()));
-//        System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getTransaction("ADB8928498FAC144D0EB6275320A93997760A34DED974A5DA6F35242C7F64E26").getRealTx());
+
+        System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getTransaction("DBA8BD55160F809FABF75D2E6164C55BF18059C5EF0B22F675D21717EEC26EC8").getRealTx().toString());
+        System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getTransaction("DBA8BD55160F809FABF75D2E6164C55BF18059C5EF0B22F675D21717EEC26EC8").getResultData());
+        System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getTransaction("269EE2C587335F8FFD84A8C411A0C4C17E98398A40076F8DD1D6D70060F8657A").getRealTx());
+        System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getTransaction("269EE2C587335F8FFD84A8C411A0C4C17E98398A40076F8DD1D6D70060F8657A").getTxType());
+//        System.out.println(binanceCurrencyService.getBlockTransactions( 6760625L).size());
         System.out.println("..........................");
-        System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getBlockTransactions( 1780695L).size());
        }
 
-    public String getTransactions(String hash){
-        UriComponents builder = UriComponentsBuilder
-                .fromHttpUrl("http://172.31.30.170:27147/tx_search?query=\"tx.height=4556289\"&prove=true")
-                .build();
-        ResponseEntity<String> responseEntity = null;
-        try {
-            responseEntity = restTemplate.getForEntity(builder.toUriString(), String.class, hash);
-            if (responseEntity.getStatusCodeValue() != 200) {
-                log.error("Error : {}", responseEntity.getStatusCodeValue());
-            }
-        } catch (Exception ex) {
-            log.error("Error : {}", ex.getMessage());
-        }
-
-        return responseEntity.getBody();
-    }
 
     @Override
     public List<Transaction> getBlockTransactions(long num){
@@ -75,64 +62,14 @@ public class BinanceCurrencyServiceImpl implements BinanceCurrencyService {
     }
 
     @Override
-    public Transaction getTransaction(String hash){
-        binanceDexApiNodeClient.getTransaction("ADB8928498FAC144D0EB6275320A93997760A34DED974A5DA6F35242C7F64E26");
+    public String getReceiverAddress(Transaction transaction){
+        String transferInfo = transaction.getRealTx().toString();
         return null;
     }
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-    @Data
-    private static class Response {
+    @Override
+    public String getTocken(Transaction transaction){
 
-        @JsonProperty("result")
-        Result result;
+        return null;
     }
-
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-    private static class Result {
-
-        @JsonProperty("block_meta")
-        BlockMeta block_meta;
-    }
-
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-    private static class BlockMeta {
-
-        @JsonProperty("header")
-        Header header;
-    }
-
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-    private static class Header {
-
-        @JsonProperty("num_txs")
-        int num_txs;
-    }
-
-    public String checkTransaction(String hash){
-        UriComponents builder = UriComponentsBuilder
-                .fromHttpUrl("https://dex.binance.org/api/v1/tx/{hash}?format=json")
-                .build();
-        ResponseEntity<String> responseEntity = null;
-        try {
-            responseEntity = restTemplate.getForEntity(builder.toUriString(), String.class, hash);
-            if (responseEntity.getStatusCodeValue() != 200) {
-                log.error("Error : {}", responseEntity.getStatusCodeValue());
-            }
-        } catch (Exception ex) {
-            log.error("Error : {}", ex.getMessage());
-        }
-
-        return responseEntity.getBody();
-    }
-
-
 }

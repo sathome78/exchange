@@ -1,6 +1,7 @@
 package me.exrates.service.binance;
 
 import com.binance.dex.api.client.domain.broadcast.Transaction;
+import com.binance.dex.api.client.domain.broadcast.TxType;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.condition.MonolitConditional;
@@ -31,6 +32,7 @@ public class BinanceServiceImpl implements BinanceService {
     @Autowired
     private BinanceCurrencyService binanceCurrencyService;
 
+
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
         return null;
@@ -38,7 +40,6 @@ public class BinanceServiceImpl implements BinanceService {
 
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-
     }
 
     @Override
@@ -51,13 +52,21 @@ public class BinanceServiceImpl implements BinanceService {
         return false;
     }
 
+
+
+
     private void checkRefills(){
         long lastblock = getLastBaseBlock();
         long blockchainHeight = getBlockchainHeigh();
 
         while (lastblock < blockchainHeight - CONFIRMATIONS){
             List<Transaction> transactions = binanceCurrencyService.getBlockTransactions(++lastblock);
+            transactions.forEach(transaction -> {
+                if (transaction.getTxType() == TxType.TRANSFER){
 
+//                transaction.getTxType().
+                }
+            });
 
 
 
@@ -67,6 +76,10 @@ public class BinanceServiceImpl implements BinanceService {
             }
         }
     }
+
+
+
+
 
     private long getLastBaseBlock() {
         MerchantSpecParamDto specParamsDto = specParamsDao.getByMerchantNameAndParamName(MERCHANT_NAME, LAST_BLOCK_PARAM);

@@ -8,6 +8,8 @@ public interface BinanceCurrencyService {
 
     List<Transaction> getBlockTransactions(long num);
 
-    Transaction getTransaction(String hash);
+    String getReceiverAddress(Transaction transaction);
+
+    String getTocken(Transaction transaction);
 
 }
