@@ -24,6 +24,7 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +40,7 @@ public class BinanceServiceImpl implements BinanceService {
 
     private String currencyName;
     private String merchantName;
+    private List<String> tokenList;
     private int confirmations;
 
     private Merchant merchant;
@@ -65,7 +67,7 @@ public class BinanceServiceImpl implements BinanceService {
     @Autowired
     private BinanceCurrencyService binanceCurrencyService;
 
-    public BinanceServiceImpl(String merchantName, String currencyName, int confirmations){
+    public BinanceServiceImpl(List<String> tokenList, String merchantName, String currencyName, int confirmations){
         this.merchantName = merchantName;
         this.currencyName = currencyName;
         this.confirmations = confirmations;
@@ -138,7 +140,7 @@ public class BinanceServiceImpl implements BinanceService {
             transactions.forEach(transaction -> {
                 if (transaction.getTxType() == TxType.TRANSFER &&
                         binanceCurrencyService.getReceiverAddress(transaction).equalsIgnoreCase(mainAddress) &&
-                        binanceCurrencyService.getToken(transaction).equalsIgnoreCase(merchantName)){
+                        tokenList.contains(binanceCurrencyService.getToken(transaction))){
 
                     Map<String, String> map = new HashMap<>();
                     map.put("address",binanceCurrencyService.getMemo(transaction));
@@ -172,5 +174,55 @@ public class BinanceServiceImpl implements BinanceService {
 
     private void saveLastBlock(long blockNum) {
         specParamsDao.updateParam(merchantName, LAST_BLOCK_PARAM, String.valueOf(blockNum));
+    }
+
+
+
+
+
+
+    public static void main(String[] args) {
+
+        List<Runnable> jobs = new ArrayList<>(2);
+        jobs.add(new BnbServiceImpl());
+        jobs.add(new ArnServiceImpl());
+
+            jobs.forEach(Runnable::run);
+    }
+}
+
+interface BnbService extends Runnable {
+
+    void sayHello();
+}
+
+class BnbServiceImpl implements BnbService {
+
+    @Override
+    public void sayHello() {
+        System.out.println(this.getClass().getSimpleName());
+    }
+
+    @Override
+    public void run() {
+        sayHello();
+    }
+}
+
+interface ArnService extends Runnable {
+
+    void sayHello();
+}
+
+class ArnServiceImpl implements ArnService {
+
+    @Override
+    public void sayHello() {
+        System.out.println(this.getClass().getSimpleName());
+    }
+
+    @Override
+    public void run() {
+        sayHello();
     }
 }

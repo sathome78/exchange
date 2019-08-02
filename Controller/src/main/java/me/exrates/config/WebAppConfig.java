@@ -112,6 +112,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
@@ -2140,7 +2141,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "bnbServiceImpl")
     @Conditional(MonolitConditional.class)
     public BinanceService binanceService(){
-        return new BinanceServiceImpl("BinanceCoin", "BNB", 40);
+        return new BinanceServiceImpl(ImmutableList.of("BNB"), "BinanceCoin", "BNB", 40);
     }
 
     //    Qtum tokens:
