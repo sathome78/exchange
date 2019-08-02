@@ -84,7 +84,6 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.ngExceptions.MarketOrderAcceptionException;
 import me.exrates.model.ngExceptions.NgOrderValidationException;
-import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
@@ -2734,29 +2733,24 @@ public class OrderServiceImpl implements OrderService {
         headerRow.createCell(0).setCellValue("Status");
         headerRow.createCell(1).setCellValue("Date");
         headerRow.createCell(2).setCellValue("Currency");
-        headerRow.createCell(3).setCellValue("Amount");
-        headerRow.createCell(4).setCellValue("Type");
-        headerRow.createCell(5).setCellValue("Address");
+        headerRow.createCell(3).setCellValue("Commission");
+        headerRow.createCell(4).setCellValue("Amount");
+        headerRow.createCell(5).setCellValue("Type");
+        headerRow.createCell(6).setCellValue("Address");
 
         int index = 1;
-        if (transactions.isEmpty()) {
-            Row row = sheet.createRow(index);
-            row.createCell(0, CellType.STRING).setCellValue(StringUtils.EMPTY);
-            row.createCell(1, CellType.STRING).setCellValue(StringUtils.EMPTY);
-            row.createCell(2, CellType.STRING).setCellValue(StringUtils.EMPTY);
-            row.createCell(3, CellType.STRING).setCellValue(StringUtils.EMPTY);
-            row.createCell(4, CellType.STRING).setCellValue(StringUtils.EMPTY);
-            row.createCell(5, CellType.STRING).setCellValue(StringUtils.EMPTY);
-        } else {
-            for (MyInputOutputHistoryDto dto : transactions) {
-                Row row = sheet.createRow(index++);
-                row.createCell(0, CellType.STRING).setCellValue(getValue(dto.getStatus()));
-                row.createCell(1, CellType.STRING).setCellValue(getValue(dto.getDatetime()));
-                row.createCell(2, CellType.STRING).setCellValue(getValue(dto.getCurrencyName()));
-                row.createCell(3, CellType.STRING).setCellValue(getValue(dto.getAmount()));
-                row.createCell(4, CellType.STRING).setCellValue(getValue(dto.getSourceType()));
-                row.createCell(5, CellType.STRING).setCellValue(getValue(dto.getTransactionHash()));
-            }
+        for (MyInputOutputHistoryDto transaction : transactions) {
+            Row row = sheet.createRow(index++);
+
+            row.createCell(0, CellType.STRING).setCellValue(getValue(nonNull(transaction.getStatus())
+                    ? transaction.getStatus().getBaseStatus()
+                    : null));
+            row.createCell(1, CellType.STRING).setCellValue(getValue(transaction.getDatetime()));
+            row.createCell(2, CellType.STRING).setCellValue(getValue(transaction.getCurrencyName()));
+            row.createCell(3, CellType.STRING).setCellValue(getValue(transaction.getCommissionAmount()));
+            row.createCell(4, CellType.STRING).setCellValue(getValue(transaction.getAmount()));
+            row.createCell(5, CellType.STRING).setCellValue(getValue(transaction.getSourceType()));
+            row.createCell(6, CellType.STRING).setCellValue(getValue(transaction.getTransactionHash()));
         }
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
