@@ -1041,8 +1041,14 @@ public class OrderServiceImpl implements OrderService {
                 if (Objects.nonNull(orderForPartialAccept)) {
                     orderCreationResultDto.setPartiallyAcceptedOrderFullAmount(orderForPartialAccept.getAmountBase());
                     orderCreationResultDto.setPartiallyAcceptedId(orderForPartialAccept.getId());
-                    BigDecimal partialAcceptResult = acceptPartially(orderCreateDto, orderForPartialAccept, processedAmount, locale, acceptEventsList, orderCreationResultDto, OrderBaseType.MARKET);
+                    BigDecimal partialAcceptResult = acceptPartially(orderCreateDto, orderForPartialAccept, processedAmount,
+                            locale, acceptEventsList, orderCreationResultDto, OrderBaseType.MARKET, false);
                     orderCreationResultDto.setPartiallyAcceptedAmount(partialAcceptResult);
+                }
+                if (orderCreateDto.getOperationType() == OperationType.SELL) {
+                    acceptableOrders.add(0, orderForPartialAccept);
+                } else {
+                    acceptEventsList.add(orderForPartialAccept);
                 }
 
                 if (!acceptEventsList.isEmpty()) {
@@ -1126,6 +1132,12 @@ public class OrderServiceImpl implements OrderService {
 
     private BigDecimal acceptPartially(OrderCreateDto newOrder, ExOrder orderForPartialAccept, BigDecimal cumulativeSum, Locale locale, List<ExOrder> acceptEventsList,
                                        OrderCreationResultDto orderCreationResultDto, OrderBaseType counterType) {
+        return acceptPartially(newOrder, orderForPartialAccept, cumulativeSum, locale, acceptEventsList, orderCreationResultDto,
+                counterType, true);
+    }
+
+    private BigDecimal acceptPartially(OrderCreateDto newOrder, ExOrder orderForPartialAccept, BigDecimal cumulativeSum, Locale locale, List<ExOrder> acceptEventsList,
+                                       OrderCreationResultDto orderCreationResultDto, OrderBaseType counterType, boolean sendEvent) {
         logTransaction("acceptPartially", "begin", orderForPartialAccept.getCurrencyPairId(), orderForPartialAccept.getId(), null);
         deleteOrderForPartialAccept(orderForPartialAccept.getId(), acceptEventsList);
 
@@ -1150,7 +1162,9 @@ public class OrderServiceImpl implements OrderService {
             cancelOrder(exOrder, Locale.ENGLISH);
         }
         logTransaction("acceptPartially", "end", orderForPartialAccept.getCurrencyPairId(), acceptedId, null);
-        eventPublisher.publishEvent(partiallyAcceptedOrder(orderForPartialAccept, amountForPartialAccept));
+        if (sendEvent) {
+            eventPublisher.publishEvent(partiallyAcceptedOrder(orderForPartialAccept, amountForPartialAccept));
+        }
 
    /* TODO temporary disable
     notificationService.createLocalizedNotification(orderForPartialAccept.getUserId(), NotificationEvent.ORDER,

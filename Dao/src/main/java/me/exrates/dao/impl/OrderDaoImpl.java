@@ -768,7 +768,7 @@ public class OrderDaoImpl implements OrderDao {
             orderAcceptedHistoryDto.setAcceptionTime(rs.getTimestamp("date_acception"));
             orderAcceptedHistoryDto.setRate(rs.getString("exrate"));
             orderAcceptedHistoryDto.setAmountBase(rs.getString("amount_base"));
-            orderAcceptedHistoryDto.setOperationType(OperationType.convert(rs.getInt("operation_type_id")));
+            orderAcceptedHistoryDto.setOperationType(OperationType.getOpposite(OperationType.convert(rs.getInt("operation_type_id"))));
             return orderAcceptedHistoryDto;
         });
     }
