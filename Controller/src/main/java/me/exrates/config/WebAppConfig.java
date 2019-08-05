@@ -776,17 +776,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "OMG", true, ExConvert.Unit.ETHER);
     }
 
-//    @Bean(name = "bnbServiceImpl")
-//    @Conditional(MonolitConditional.class)
-//    public EthTokenService BnbService() {
-//        List<String> tokensList = new ArrayList<>();
-//        tokensList.add("0xb8c77482e45f1f44de1745f52c74426c631bdd52");
-//        return new EthTokenServiceImpl(
-//                tokensList,
-//                "BinanceCoin",
-//                "BNB", true, ExConvert.Unit.ETHER);
-//    }
-
     @Bean(name = "atlServiceImpl")
     @Conditional(MonolitConditional.class)
     public EthTokenService ATLANTService() {
@@ -1176,16 +1165,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "MTC", true, ExConvert.Unit.ETHER);
     }
 
-    @Bean(name = "arnServiceImpl")
-    @Conditional(MonolitConditional.class)
-    public EthTokenService arnService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0xba5f11b16b155792cf3b2e6880e8706859a8aeb6");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "ARN",
-                "ARN", true, ExConvert.Unit.AIWEI);
-    }
+
 
     @Bean(name = "hstServiceImpl")
     @Conditional(MonolitConditional.class)
@@ -2150,6 +2130,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Conditional(MonolitConditional.class)
     public BinTokenService bnbService() {
         return new BinTokenServiceImpl("BinanceCoin", "BNB");
+    }
+
+    @Bean(name = "arnServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public BinTokenService arnService() {
+        return new BinTokenServiceImpl("ARN","ARN");
     }
 
     //    Qtum tokens:

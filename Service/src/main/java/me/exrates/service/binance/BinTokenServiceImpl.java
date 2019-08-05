@@ -49,7 +49,6 @@ public class BinTokenServiceImpl implements BinTokenService {
         merchant = merchantService.findByName(merchantName);
     }
 
-    //TODO check method...
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
         String destinationTag = CryptoUtils.generateDestinationTag(request.getUserId(),

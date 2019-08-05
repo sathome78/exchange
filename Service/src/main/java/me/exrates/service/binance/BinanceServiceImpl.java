@@ -9,7 +9,6 @@ import me.exrates.model.dto.MerchantSpecParamDto;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
@@ -39,6 +38,7 @@ public class BinanceServiceImpl implements BinanceService {
     private int confirmations;
     private static Map<String, BinTokenServiceImpl> tokenMap = new HashMap<String, BinTokenServiceImpl>(){{
         put("BNB", new BinTokenServiceImpl("BinanceCoin","BNB"));
+        put("ARN", new BinTokenServiceImpl("ARN","ARN"));
     }};
 
     private Merchant merchant;
@@ -158,7 +158,7 @@ public class BinanceServiceImpl implements BinanceService {
     }
 
     private long getBlockchainHeigh() {
-        return 0;
+        return binanceCurrencyService.getBlockchainHeigh();
     }
 
     private void saveLastBlock(long blockNum) {
