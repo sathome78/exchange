@@ -6,6 +6,7 @@ import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.MarketVolume;
 import me.exrates.model.User;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyReportInfoDto;
@@ -40,24 +41,27 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.util.Objects.isNull;
-import static me.exrates.service.util.CollectionUtil.isEmpty;
 import static me.exrates.configurations.CacheConfiguration.CURRENCY_BY_NAME_CACHE;
 import static me.exrates.configurations.CacheConfiguration.CURRENCY_PAIRS_LIST_BY_TYPE_CACHE;
 import static me.exrates.configurations.CacheConfiguration.CURRENCY_PAIR_BY_ID_CACHE;
 import static me.exrates.configurations.CacheConfiguration.CURRENCY_PAIR_BY_NAME_CACHE;
+import static me.exrates.service.util.CollectionUtil.isEmpty;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -65,37 +69,6 @@ import static me.exrates.configurations.CacheConfiguration.CURRENCY_PAIR_BY_NAME
 @Log4j2
 @Service
 public class CurrencyServiceImpl implements CurrencyService {
-
-    @Autowired
-    private CurrencyDao currencyDao;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    UserRoleService userRoleService;
-
-    @Autowired
-    private ExchangeApi exchangeApi;
-
-    @Autowired
-    private BigDecimalConverter converter;
-
-    @Autowired
-    @Qualifier(CURRENCY_BY_NAME_CACHE)
-    private Cache currencyByNameCache;
-
-    @Autowired
-    @Qualifier(CURRENCY_PAIR_BY_NAME_CACHE)
-    private Cache currencyPairByNameCache;
-
-    @Autowired
-    @Qualifier(CURRENCY_PAIR_BY_ID_CACHE)
-    private Cache currencyPairByIdCache;
-
-    @Autowired
-    @Qualifier(CURRENCY_PAIRS_LIST_BY_TYPE_CACHE)
-    private Cache currencyPairsListByTypeCache;
 
     private static final Set<String> CRYPTO = new HashSet<String>() {
         {
@@ -111,6 +84,40 @@ public class CurrencyServiceImpl implements CurrencyService {
     private static final int CRYPTO_PRECISION = 8;
     private static final int DEFAULT_PRECISION = 2;
     private static final int EDC_OUTPUT_PRECISION = 3;
+
+    private static Map<Integer, CurrencyPair> allPairs = new HashMap<>();
+    private static Map<String, BigDecimal> defaultMarketVolumes = new HashMap<>();
+    @Autowired
+    UserRoleService userRoleService;
+    @Autowired
+    private CurrencyDao currencyDao;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private ExchangeApi exchangeApi;
+    @Autowired
+    private BigDecimalConverter converter;
+    @Autowired
+    @Qualifier(CURRENCY_BY_NAME_CACHE)
+    private Cache currencyByNameCache;
+    @Autowired
+    @Qualifier(CURRENCY_PAIR_BY_NAME_CACHE)
+    private Cache currencyPairByNameCache;
+    @Autowired
+    @Qualifier(CURRENCY_PAIR_BY_ID_CACHE)
+    private Cache currencyPairByIdCache;
+    @Autowired
+    @Qualifier(CURRENCY_PAIRS_LIST_BY_TYPE_CACHE)
+    private Cache currencyPairsListByTypeCache;
+
+    @PostConstruct
+    public void fillCurrencyPairs() {
+        allPairs = findAllCurrencyPair()
+                .stream().collect(Collectors.toMap(CurrencyPair::getId, Function.identity()));
+
+        defaultMarketVolumes = getAllMarketVolumes().stream()
+                .collect(Collectors.toMap(MarketVolume::getName, MarketVolume::getMarketVolume));
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -580,5 +587,34 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Override
     public boolean updateCurrencyPair(CurrencyPair currencyPair) {
         return currencyDao.updateCurrencyPair(currencyPair);
+    }
+
+    @Override
+    public Map<Integer, CurrencyPair> getAllCurrencyPairCached() {
+        return allPairs;
+    }
+
+    @Override
+    public boolean updateMarketVolumeCurrecencyPair(Integer currencyPairId, BigDecimal volume) {
+        CurrencyPair currencyPair = allPairs.get(currencyPairId);
+        currencyPair.setTopMarketVolume(volume);
+        return currencyDao.updateCurrencyPairVolume(currencyPairId, volume);
+    }
+
+    @Override
+    public List<MarketVolume> getAllMarketVolumes() {
+        if (defaultMarketVolumes != null) {
+            return defaultMarketVolumes.entrySet().stream()
+                    .map(o -> new MarketVolume(o.getKey(), o.getValue()))
+                    .collect(Collectors.toList());
+        }
+        return currencyDao.getAllMarketVolumes();
+    }
+
+    @Override
+    public boolean updateDefaultMarketVolume(String name, BigDecimal volume) {
+        defaultMarketVolumes.remove(name);
+        defaultMarketVolumes.put(name, volume);
+        return currencyDao.updateDefaultMarketVolume(name, volume);
     }
 }

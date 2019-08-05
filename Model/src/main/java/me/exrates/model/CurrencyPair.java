@@ -10,6 +10,7 @@ import me.exrates.model.enums.CurrencyPairType;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 @Component
 @Getter
@@ -28,6 +29,8 @@ public class CurrencyPair implements Serializable {
     private CurrencyPairType pairType;
     private boolean hidden;
     private boolean permittedLink;
+    private Boolean isTopMarket;
+    private BigDecimal topMarketVolume;
 
     public CurrencyPair(Currency currency1, Currency currency2) {
         this.currency1 = currency1;

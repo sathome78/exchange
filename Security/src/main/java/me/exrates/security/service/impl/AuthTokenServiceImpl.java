@@ -333,7 +333,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
                     .parseClaimsJws(token)
                     .getBody();
 
-            claims.forEach((key, value) -> log.info(key + " :: " + value + " :: " + value.getClass()));
+            claims.forEach((key, value) -> log.debug(key + " :: " + value + " :: " + value.getClass()));
         } catch (Exception ex) {
             throw new TokenException("Token corrupted", ErrorCode.INVALID_AUTHENTICATION_TOKEN);
         }

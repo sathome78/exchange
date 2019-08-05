@@ -185,4 +185,6 @@ public interface WalletService {
     boolean performIeoRollbackTransfer(IEOClaim ieoClaim);
 
     boolean moveBalanceFromIeoReservedToActive(int userId, String currencyName);
+
+    BigDecimal getActiveBalanceAndBlockByWalletId(Integer walletId);
 }

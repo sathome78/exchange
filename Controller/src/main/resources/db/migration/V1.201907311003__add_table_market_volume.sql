@@ -1,0 +1,13 @@
+CREATE TABLE IF NOT EXISTS CURRENCY_PAIR_MARKET_VOLUMES
+(
+  id          INT(11) PRIMARY KEY         NOT NULL AUTO_INCREMENT,
+  name        VARCHAR(255)                NOT NULL,
+  market_volume       DOUBLE (40,9)                NOT NULL
+)
+  ENGINE = INNODB;
+
+INSERT IGNORE INTO CURRENCY_PAIR_MARKET_VOLUMES(name, market_volume) VALUES
+('BTC', 5),
+('ETH', 200),
+('USD', 50000),
+('USDT', 50000);

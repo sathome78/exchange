@@ -5,14 +5,12 @@ import com.google.common.collect.ImmutableList;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.SSMGetter;
 import me.exrates.aspect.LoggingAspect;
 import me.exrates.config.ext.JsonMimeInterceptor;
 import me.exrates.controller.filter.LoggingFilter;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.controller.interceptor.MDCInterceptor;
 import me.exrates.controller.interceptor.SecurityInterceptor;
-import me.exrates.controller.interceptor.TokenInterceptor;
 import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.converter.CurrencyPairConverter;
@@ -23,6 +21,8 @@ import me.exrates.service.BitcoinService;
 import me.exrates.service.MoneroService;
 import me.exrates.service.NamedParameterJdbcTemplateWrapper;
 import me.exrates.service.achain.AchainContract;
+import me.exrates.service.binance.BinTokenService;
+import me.exrates.service.binance.BinTokenServiceImpl;
 import me.exrates.service.binance.BinanceService;
 import me.exrates.service.binance.BinanceServiceImpl;
 import me.exrates.service.ethereum.EthTokenService;
@@ -39,7 +39,6 @@ import me.exrates.service.job.QuartzJobFactory;
 import me.exrates.service.nem.XemMosaicService;
 import me.exrates.service.nem.XemMosaicServiceImpl;
 import me.exrates.service.properties.InOutProperties;
-import me.exrates.service.properties.SsmProperties;
 import me.exrates.service.qtum.QtumTokenService;
 import me.exrates.service.qtum.QtumTokenServiceImpl;
 import me.exrates.service.stellar.StellarAsset;
@@ -284,10 +283,8 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     private String dbSlaveForReportsClassname;
 
     private final InOutProperties inOutProperties;
-    private final String inoutTokenValue;
 
-    public WebAppConfig(SSMGetter ssmGetter, SsmProperties ssmProperties, InOutProperties inOutProperties) {
-        this.inoutTokenValue = ssmGetter.lookup(ssmProperties.getInoutTokenPath());
+    public WebAppConfig(InOutProperties inOutProperties) {
         this.inOutProperties = inOutProperties;
     }
 
@@ -495,13 +492,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         registry.addInterceptor(new SecurityInterceptor());
         registry.addInterceptor(new MDCInterceptor());
     }
-
-    private void addTokenInterceptor(InterceptorRegistry registry) {
-
-        log.info("Password from ssm with path = " + inoutTokenValue + " is " + inoutTokenValue.charAt(0) + "***" + inoutTokenValue.charAt(inoutTokenValue.length() - 1));
-        registry.addInterceptor(new TokenInterceptor(inoutTokenValue)).addPathPatterns("/inout/**");
-    }
-
 
     @Override
     public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
@@ -773,17 +763,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "OmiseGo",
                 "OMG", true, ExConvert.Unit.ETHER);
     }
-
-//    @Bean(name = "bnbServiceImpl")
-//    @Conditional(MonolitConditional.class)
-//    public EthTokenService BnbService() {
-//        List<String> tokensList = new ArrayList<>();
-//        tokensList.add("0xb8c77482e45f1f44de1745f52c74426c631bdd52");
-//        return new EthTokenServiceImpl(
-//                tokensList,
-//                "BinanceCoin",
-//                "BNB", true, ExConvert.Unit.ETHER);
-//    }
 
     @Bean(name = "atlServiceImpl")
     @Conditional(MonolitConditional.class)
@@ -1174,16 +1153,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "MTC", true, ExConvert.Unit.ETHER);
     }
 
-    @Bean(name = "arnServiceImpl")
-    @Conditional(MonolitConditional.class)
-    public EthTokenService arnService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0xba5f11b16b155792cf3b2e6880e8706859a8aeb6");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "ARN",
-                "ARN", true, ExConvert.Unit.AIWEI);
-    }
+
 
     @Bean(name = "hstServiceImpl")
     @Conditional(MonolitConditional.class)
@@ -2138,10 +2108,22 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(tokensList, "ASG", "ASG", true, ExConvert.Unit.ETHER);
     }
 
-    @Bean(name = "bnbServiceImpl")
+    @Bean(name = "binanceServiceImpl")
     @Conditional(MonolitConditional.class)
     public BinanceService binanceService(){
-        return new BinanceServiceImpl(ImmutableList.of("BNB"), "BinanceCoin", "BNB", 40);
+        return new BinanceServiceImpl("BinanceBlockchain", 40);
+    }
+
+    @Bean(name = "bnbServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public BinTokenService bnbService() {
+        return new BinTokenServiceImpl("BinanceCoin", "BNB");
+    }
+
+    @Bean(name = "arnServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public BinTokenService arnService() {
+        return new BinTokenServiceImpl("ARN","ARN");
     }
 
     //    Qtum tokens:

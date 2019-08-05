@@ -38,9 +38,9 @@ public class BinanceCurrencyServiceImpl implements BinanceCurrencyService {
 //                break;
 //            }
 //        }
-        Transaction transaction = binanceCurrencyService.binanceDexApiNodeClient.getTransaction("DBA8BD55160F809FABF75D2E6164C55BF18059C5EF0B22F675D21717EEC26EC8");
+        System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getNodeInfo().getSyncInfo().getLatestBlockHeight());
         System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getTransaction("DBA8BD55160F809FABF75D2E6164C55BF18059C5EF0B22F675D21717EEC26EC8").getRealTx().toString());
-        System.out.println("-="+binanceCurrencyService.getToken(transaction)+"=-");
+        System.out.println("-="+ binanceCurrencyService.binanceDexApiNodeClient.getBlockMetaByHeight(6760515L)+"=-");
 //        System.out.println(binanceCurrencyService.getBlockTransactions( 6760625L).size());
         System.out.println("..........................");
        }
@@ -83,5 +83,10 @@ public class BinanceCurrencyServiceImpl implements BinanceCurrencyService {
     @Override
     public String getMemo(Transaction transaction){
         return transaction.getMemo();
+    }
+
+    @Override
+    public long getBlockchainHeigh() {
+        return binanceDexApiNodeClient.getNodeInfo().getSyncInfo().getLatestBlockHeight();
     }
 }

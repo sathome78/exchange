@@ -18,4 +18,5 @@ public interface BinanceCurrencyService {
 
     String getMemo(Transaction transaction);
 
+    long getBlockchainHeigh();
 }
