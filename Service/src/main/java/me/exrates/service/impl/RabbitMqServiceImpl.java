@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
+import me.exrates.model.enums.OrderStatus;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.RabbitMqService;
 import me.exrates.service.chart.TradeDataDto;
@@ -14,6 +15,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
+
+import static java.util.Objects.isNull;
 
 @PropertySource(value = {"classpath:/rabbit.properties"})
 @Log4j2
@@ -59,6 +64,9 @@ public class RabbitMqServiceImpl implements RabbitMqService {
 
     @Override
     public void sendTradeInfo(ExOrder order) {
+        if (!Objects.equals(order.getStatus(), OrderStatus.CLOSED) || isNull(order.getDateAcception())) {
+            return;
+        }
         CurrencyPair currencyPair = currencyService.findCurrencyPairById(order.getCurrencyPairId());
 
         final TradeDataDto tradeDataDto = new TradeDataDto(order);
