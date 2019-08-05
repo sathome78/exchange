@@ -23,6 +23,8 @@ import me.exrates.service.BitcoinService;
 import me.exrates.service.MoneroService;
 import me.exrates.service.NamedParameterJdbcTemplateWrapper;
 import me.exrates.service.achain.AchainContract;
+import me.exrates.service.binance.BinTokenService;
+import me.exrates.service.binance.BinTokenServiceImpl;
 import me.exrates.service.binance.BinanceService;
 import me.exrates.service.binance.BinanceServiceImpl;
 import me.exrates.service.ethereum.EthTokenService;
@@ -2138,10 +2140,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(tokensList, "ASG", "ASG", true, ExConvert.Unit.ETHER);
     }
 
-    @Bean(name = "bnbServiceImpl")
+    @Bean(name = "binanceServiceImpl")
     @Conditional(MonolitConditional.class)
     public BinanceService binanceService(){
-        return new BinanceServiceImpl(ImmutableList.of("BNB"), "BinanceCoin", "BNB", 40);
+        return new BinanceServiceImpl("BinanceBlockchain", 40);
+    }
+
+    @Bean(name = "bnbServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public BinTokenService bnbService() {
+        return new BinTokenServiceImpl("BinanceCoin", "BNB");
     }
 
     //    Qtum tokens:

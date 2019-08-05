@@ -40,7 +40,7 @@ public class BinanceCurrencyServiceImpl implements BinanceCurrencyService {
 //        }
         Transaction transaction = binanceCurrencyService.binanceDexApiNodeClient.getTransaction("DBA8BD55160F809FABF75D2E6164C55BF18059C5EF0B22F675D21717EEC26EC8");
         System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getTransaction("DBA8BD55160F809FABF75D2E6164C55BF18059C5EF0B22F675D21717EEC26EC8").getRealTx().toString());
-        System.out.println("-="+binanceCurrencyService.getToken(transaction)+"=-");
+        System.out.println("-="+ binanceCurrencyService.binanceDexApiNodeClient.getBlockMetaByHeight(6760515L)+"=-");
 //        System.out.println(binanceCurrencyService.getBlockTransactions( 6760625L).size());
         System.out.println("..........................");
        }
