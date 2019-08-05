@@ -16,6 +16,7 @@ public class OrderAcceptedHistoryDto extends OnlineTableDto {
   private Timestamp acceptionTime;
   private String rate;
   private String amountBase;
+  private String counterOrderType;
   private OperationType operationType;
 
   public OrderAcceptedHistoryDto() {

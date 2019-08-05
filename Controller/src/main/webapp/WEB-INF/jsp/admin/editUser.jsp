@@ -285,7 +285,8 @@
                                             </div>
 
                                             <div class="col-md-4 input-block-wrapper__input-wrapper">
-                                                <input type="checkbox" name="user2fa" class="input-block-wrapper__input admin-form-input"
+                                                <input type="checkbox" name="user2fa"
+                                                       class="input-block-wrapper__input admin-form-input"
                                                        readonly disabled
                                                        <c:if test="${!userGoogle2fa}">checked</c:if>
                                                 />
@@ -298,7 +299,8 @@
                                             </div>
 
                                             <div class="col-md-4 input-block-wrapper__input-wrapper">
-                                                <input type="checkbox" name="user2fa" class="input-block-wrapper__input admin-form-input"
+                                                <input type="checkbox" name="user2fa"
+                                                       class="input-block-wrapper__input admin-form-input"
                                                        readonly disabled
                                                        <c:if test="${userGoogle2fa}">checked</c:if>
                                                 />
@@ -381,24 +383,22 @@
                                     </div>
 
                                 </div>
-                                <%--MERCHANT--%>
+                                <%--CURRENCY--%>
                                 <div class="input-block-wrapper">
                                     <div class="col-md-3 input-block-wrapper__label-wrapper">
                                         <label class="input-block-wrapper__label">
-                                            <loc:message code="withdrawal.merchant"/>
+                                            <loc:message code="withdrawal.currency"/>
                                         </label>
                                     </div>
                                     <div class="col-md-9 input-block-wrapper__input-wrapper">
                                         <ul class="checkbox-grid">
-                                            <c:forEach items="${merchants}" var="merchant">
-                                                <li><input type="checkbox" name="merchants"
-                                                           value="${merchant.id}"><span>${merchant.name}</span>
+                                            <c:forEach items="${currencies}" var="currency">
+                                                <li><input type="checkbox" name="currencyIds"
+                                                           value="${currency.id}"><span>${currency.name}</span>
                                                 </li>
                                             </c:forEach>
                                         </ul>
-
                                     </div>
-
                                 </div>
 
                                 <%--AMOUNT--%>

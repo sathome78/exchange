@@ -107,6 +107,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static me.exrates.model.enums.ActionType.ADD;
 import static me.exrates.model.enums.ActionType.SUBTRACT;
 import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_ACCEPTED;
@@ -806,14 +807,27 @@ public class RefillServiceImpl implements RefillService {
             /**/
             Integer userWalletId = walletService.getWalletId(refillRequest.getUserId(), refillRequest.getCurrencyId());
             /**/
-            BigDecimal commission = refillRequest.getCommissionId() > 0
-                    ? commissionService.calculateCommissionForRefillAmount(factAmount, refillRequest.getCommissionId())
-                    : BigDecimal.ZERO;
             Merchant merchant = merchantDao.findById(refillRequest.getMerchantId());
-            if (merchant.getProcessType().equals(MerchantProcessType.CRYPTO)) {
-                commission = commission.add(commissionService.calculateMerchantCommissionForRefillAmount(factAmount, refillRequest.getMerchantId(), refillRequest.getCurrencyId()));
+
+            //calculate merchant commission
+            BigDecimal merchantCommission = BigDecimal.ZERO;
+            if (merchant.getProcessType().equals(MerchantProcessType.CRYPTO) || merchant.getProcessType().equals(MerchantProcessType.MERCHANT)) {
+                merchantCommission = commissionService.calculateMerchantCommissionForRefillAmount(
+                        factAmount,
+                        refillRequest.getMerchantId(),
+                        refillRequest.getCurrencyId());
             }
-            BigDecimal amountToEnroll = BigDecimalProcessing.doAction(factAmount, commission, SUBTRACT);
+
+            //calculate exchange commission
+            BigDecimal exchangeCommission = BigDecimal.ZERO;
+            if (refillRequest.getCommissionId() > 0) {
+                exchangeCommission = commissionService.calculateCommissionForRefillAmount(
+                        factAmount.subtract(merchantCommission),
+                        refillRequest.getCommissionId());
+            }
+
+            final BigDecimal commission = BigDecimalProcessing.doAction(merchantCommission, exchangeCommission, ADD);
+            final BigDecimal amountToEnroll = BigDecimalProcessing.doAction(factAmount, commission, SUBTRACT);
             /**/
             WalletOperationData walletOperationData = new WalletOperationData();
             walletOperationData.setOperationType(INPUT);
@@ -856,7 +870,6 @@ public class RefillServiceImpl implements RefillService {
         remark = currentRemark.concat(adminPhrase);
         return remark;
     }
-
 
     @Override
     @Transactional(readOnly = true)

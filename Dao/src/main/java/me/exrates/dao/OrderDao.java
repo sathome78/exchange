@@ -163,11 +163,6 @@ public interface OrderDao {
                                       String scope, Boolean hideCanceled, LocalDateTime dateTimeFrom,
                                       LocalDateTime dateTimeTo);
 
-    List<OrderWideListDto> getAllOrders(Integer userId, OrderStatus status, CurrencyPair currencyPair, Locale locale,
-                                        String scope, LocalDate dateFrom, LocalDate dateTo, boolean hideCanceled);
-
-    List<StatisticForMarket> getOrderStatisticForNewMarkets();
-
     Optional<BigDecimal> getLastOrderPriceByCurrencyPair(int currencyPairId);
 
     List<OrderListDto> findAllByOrderTypeAndCurrencyId(Integer currencyId, OrderType... orderType);
@@ -177,4 +172,6 @@ public interface OrderDao {
     ExOrderStatisticsShortByPairsDto getBeforeLastRateForCache(Integer currencyPairId);
 
     List<ExOrderStatisticsShortByPairsDto> getAllDataForCache(Integer currencyPairId);
+
+    List<ExOrder> findAllMarketOrderCandidates(Integer currencyId, OperationType operationType);
 }
