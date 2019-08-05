@@ -5,14 +5,12 @@ import com.google.common.collect.ImmutableList;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.SSMGetter;
 import me.exrates.aspect.LoggingAspect;
 import me.exrates.config.ext.JsonMimeInterceptor;
 import me.exrates.controller.filter.LoggingFilter;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.controller.interceptor.MDCInterceptor;
 import me.exrates.controller.interceptor.SecurityInterceptor;
-import me.exrates.controller.interceptor.TokenInterceptor;
 import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.converter.CurrencyPairConverter;
@@ -37,7 +35,6 @@ import me.exrates.service.job.QuartzJobFactory;
 import me.exrates.service.nem.XemMosaicService;
 import me.exrates.service.nem.XemMosaicServiceImpl;
 import me.exrates.service.properties.InOutProperties;
-import me.exrates.service.properties.SsmProperties;
 import me.exrates.service.qtum.QtumTokenService;
 import me.exrates.service.qtum.QtumTokenServiceImpl;
 import me.exrates.service.stellar.StellarAsset;
@@ -281,10 +278,8 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     private String dbSlaveForReportsClassname;
 
     private final InOutProperties inOutProperties;
-    private final String inoutTokenValue;
 
-    public WebAppConfig(SSMGetter ssmGetter, SsmProperties ssmProperties, InOutProperties inOutProperties) {
-        this.inoutTokenValue = ssmGetter.lookup(ssmProperties.getInoutTokenPath());
+    public WebAppConfig(InOutProperties inOutProperties) {
         this.inOutProperties = inOutProperties;
     }
 
@@ -492,13 +487,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         registry.addInterceptor(new SecurityInterceptor());
         registry.addInterceptor(new MDCInterceptor());
     }
-
-    private void addTokenInterceptor(InterceptorRegistry registry) {
-
-        log.info("Password from ssm with path = " + inoutTokenValue + " is " + inoutTokenValue.charAt(0) + "***" + inoutTokenValue.charAt(inoutTokenValue.length() - 1));
-        registry.addInterceptor(new TokenInterceptor(inoutTokenValue)).addPathPatterns("/inout/**");
-    }
-
 
     @Override
     public void configureAsyncSupport(AsyncSupportConfigurer configurer) {

@@ -12,6 +12,7 @@ import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
+import me.exrates.model.MarketVolume;
 import me.exrates.model.OrderWsDetailDto;
 import me.exrates.model.PagingData;
 import me.exrates.model.Transaction;
@@ -201,9 +202,6 @@ import static me.exrates.service.util.CollectionUtil.isEmpty;
 @PropertySource("classpath:/orders.properties")
 public class OrderServiceImpl implements OrderService {
 
-    //    @Value("#{BigDecimal.valueOf('${orders.max-exrate-deviation-percent}')}")
-    public BigDecimal exrateDeviationPercent = BigDecimal.valueOf(20);
-
     public static final String BUY = "BUY";
     public static final String SELL = "SELL";
     public static final String SCOPE = "ALL";
@@ -213,18 +211,17 @@ public class OrderServiceImpl implements OrderService {
     private static final DateTimeFormatter FORMATTER_FOR_NAME = DateTimeFormatter.ofPattern("dd_MM_yyyy_HH_mm");
     private static final int ORDERS_QUERY_DEFAULT_LIMIT = 20;
     private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
-
     private static final Logger txLogger = LogManager.getLogger("ordersTxLogger");
-
     private final List<BackDealInterval> intervals = Arrays.stream(ChartPeriodsEnum.values())
             .map(ChartPeriodsEnum::getBackDealInterval)
             .collect(Collectors.toList());
-
     private final List<ChartTimeFrame> timeFrames = Arrays.stream(ChartTimeFramesEnum.values())
             .map(ChartTimeFramesEnum::getTimeFrame)
             .collect(Collectors.toList());
     private final Object autoAcceptLock = new Object();
     private final Object restOrderCreationLock = new Object();
+    //    @Value("#{BigDecimal.valueOf('${orders.max-exrate-deviation-percent}')}")
+    public BigDecimal exrateDeviationPercent = BigDecimal.valueOf(20);
     @Autowired
     NotificationService notificationService;
     @Autowired
@@ -233,6 +230,7 @@ public class OrderServiceImpl implements OrderService {
     TransactionDescription transactionDescription;
     @Autowired
     StopOrderService stopOrderService;
+
     private List<CoinmarketApiDto> coinmarketCachedData = new CopyOnWriteArrayList<>();
     private ScheduledExecutorService coinmarketScheduler = Executors.newSingleThreadScheduledExecutor();
     @Autowired
@@ -350,7 +348,27 @@ public class OrderServiceImpl implements OrderService {
             e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
             e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
             e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(e.getPercentChange(), locale, 2));
+            e.setTopMarket(setTopMarketToCurrencyPair(e));
         });
+    }
+
+    private boolean setTopMarketToCurrencyPair(ExOrderStatisticsShortByPairsDto e) {
+        CurrencyPair currencyPair = currencyService.getAllCurrencyPairCached().get(e.getCurrencyPairId());
+        if (currencyPair.getTopMarketVolume() != null) {
+            return new BigDecimal(e.getVolume()).compareTo(currencyPair.getTopMarketVolume()) > 0;
+        } else {
+            return (new BigDecimal(e.getVolume())).compareTo(new BigDecimal(getDefauktVolumeMarket(currencyPair.getMarket()))) > 0;
+        }
+    }
+
+    private String getDefauktVolumeMarket(String market) {
+        BigDecimal volume = currencyService.getAllMarketVolumes()
+                .stream()
+                .filter(o -> o.getName().equalsIgnoreCase(market))
+                .map(MarketVolume::getMarketVolume)
+                .findFirst()
+                .orElse(BigDecimal.ZERO);
+        return volume.toPlainString();
     }
 
     @Override
@@ -970,8 +988,14 @@ public class OrderServiceImpl implements OrderService {
                 if (Objects.nonNull(orderForPartialAccept)) {
                     orderCreationResultDto.setPartiallyAcceptedOrderFullAmount(orderForPartialAccept.getAmountBase());
                     orderCreationResultDto.setPartiallyAcceptedId(orderForPartialAccept.getId());
-                    BigDecimal partialAcceptResult = acceptPartially(orderCreateDto, orderForPartialAccept, processedAmount, locale, acceptEventsList, orderCreationResultDto, OrderBaseType.MARKET);
+                    BigDecimal partialAcceptResult = acceptPartially(orderCreateDto, orderForPartialAccept, processedAmount,
+                            locale, acceptEventsList, orderCreationResultDto, OrderBaseType.MARKET, false);
                     orderCreationResultDto.setPartiallyAcceptedAmount(partialAcceptResult);
+                }
+                if (orderCreateDto.getOperationType() == OperationType.SELL) {
+                    acceptableOrders.add(0, orderForPartialAccept);
+                } else {
+                    acceptEventsList.add(orderForPartialAccept);
                 }
 
                 if (!acceptEventsList.isEmpty()) {
@@ -1055,6 +1079,12 @@ public class OrderServiceImpl implements OrderService {
 
     private BigDecimal acceptPartially(OrderCreateDto newOrder, ExOrder orderForPartialAccept, BigDecimal cumulativeSum, Locale locale, List<ExOrder> acceptEventsList,
                                        OrderCreationResultDto orderCreationResultDto, OrderBaseType counterType) {
+        return acceptPartially(newOrder, orderForPartialAccept, cumulativeSum, locale, acceptEventsList, orderCreationResultDto,
+                counterType, true);
+    }
+
+    private BigDecimal acceptPartially(OrderCreateDto newOrder, ExOrder orderForPartialAccept, BigDecimal cumulativeSum, Locale locale, List<ExOrder> acceptEventsList,
+                                       OrderCreationResultDto orderCreationResultDto, OrderBaseType counterType, boolean sendEvent) {
         logTransaction("acceptPartially", "begin", orderForPartialAccept.getCurrencyPairId(), orderForPartialAccept.getId(), null);
         deleteOrderForPartialAccept(orderForPartialAccept.getId(), acceptEventsList);
 
@@ -1079,7 +1109,9 @@ public class OrderServiceImpl implements OrderService {
             cancelOrder(exOrder, Locale.ENGLISH);
         }
         logTransaction("acceptPartially", "end", orderForPartialAccept.getCurrencyPairId(), acceptedId, null);
-        eventPublisher.publishEvent(partiallyAcceptedOrder(orderForPartialAccept, amountForPartialAccept));
+        if (sendEvent) {
+            eventPublisher.publishEvent(partiallyAcceptedOrder(orderForPartialAccept, amountForPartialAccept));
+        }
 
    /* TODO temporary disable
     notificationService.createLocalizedNotification(orderForPartialAccept.getUserId(), NotificationEvent.ORDER,

@@ -13,7 +13,7 @@ $(document).ready(function () {
             "url": "/2a8fy7b07dxe44/merchantAccess/data",
             "dataSrc": "",
             traditional: true,
-            data: {processTypes:["CRYPTO, MERCHANT, INVOICE"]}
+            data: {processTypes: ["CRYPTO, MERCHANT, INVOICE"]}
         },
         "bFilter": true,
         "paging": false,
@@ -78,7 +78,7 @@ $(document).ready(function () {
             "url": "/2a8fy7b07dxe44/merchantAccess/data",
             "dataSrc": "",
             traditional: true,
-            data: {processTypes:["TRANSFER"]}
+            data: {processTypes: ["TRANSFER"]}
         },
         "bFilter": true,
         "paging": false,
@@ -109,7 +109,7 @@ $(document).ready(function () {
 
     var $currencyVisibilityTable = $('#currency-visibility-options-table');
     currencyVisibilityTable = $($currencyVisibilityTable).DataTable({
-        "ajax": { "url": "/2a8fy7b07dxe44/merchantAccess/getCurrency", "dataSrc": ""},
+        "ajax": {"url": "/2a8fy7b07dxe44/merchantAccess/getCurrency", "dataSrc": ""},
         "paging": false,
         "columns": [
             {
@@ -137,7 +137,7 @@ $(document).ready(function () {
 
     var $currencyPairsVisibilityTable = $('#currency-pairs-visibility-options-table');
     currencyPairsVisibilityTable = $($currencyPairsVisibilityTable).DataTable({
-        "ajax": { "url": "/2a8fy7b07dxe44/merchantAccess/getCurrencyPairs", "dataSrc": ""},
+        "ajax": {"url": "/2a8fy7b07dxe44/merchantAccess/getCurrencyPairs", "dataSrc": ""},
         "paging": false,
         "columns": [
             {
@@ -153,10 +153,62 @@ $(document).ready(function () {
                     return '<span>'.concat(data ? '<i class="fa fa-lock red" aria-hidden="true"></i>' : '<i class="fa fa-unlock" aria-hidden="true"></i>')
                         .concat('</span>');
                 }
+            },
+            {
+                "data": "topMarketVolume",
+                "name": "topMarketVolume",
+                "render": function (data, type, row) {
+                    if (type === 'display') {
+                        var tag = data == null ? '' : data;
+                        return '<input class="form-control copyable topMarketVolume" value="' + tag + '">';
+                    }
+                    return data;
+                }
+            },
+            {
+                "name": "WITHDRAW_REQUEST.admin_holder_id",
+                "render": function (data, type, row) {
+
+                    return '<button data-id="' + row.id + '" class="action-button btn confirm_admin_button">Update</button>&nbsp;';
+                },
+                "className": "text-center"
             }
         ],
         "createdRow": function (row, data, index) {
             $(row).attr("data-currencypairid", data.id);
+        }
+    });
+
+    var $currencyPairsMarketVolumes = $('#currency-pair-market-volumes');
+    currencyPairsMarketVolumes = $($currencyPairsMarketVolumes).DataTable({
+        "ajax": {"url": "/2a8fy7b07dxe44/merchantAccess/getMarketVolumes", "dataSrc": ""},
+        "paging": false,
+        "columns": [
+            {
+                "data": "name"
+            },
+            {
+                "data": "marketVolume",
+                "name": "marketVolume",
+                "render": function (data, type, row) {
+                    if (type === 'display') {
+                        var tag = data == null ? '' : data;
+                        return '<input class="form-control copyable marketVolume" value="' + tag + '">';
+                    }
+                    return data;
+                }
+            },
+            {
+                "name": "WITHDRAW_REQUEST.admin_holder_id",
+                "render": function (data, type, row) {
+
+                    return '<button data-name="' + row.name + '" class="action-button btn confirm_admin_button">Update</button>&nbsp;';
+                },
+                "className": "text-center"
+            }
+        ],
+        "createdRow": function (row, data, index) {
+            $(row).attr("data-currencypairid", data.name);
         }
     });
 
@@ -183,6 +235,38 @@ $(document).ready(function () {
         "createdRow": function (row, data, index) {
             $(row).attr("data-currencypairid", data.id);
         }
+    });
+
+    $($currencyPairsMarketVolumes).on('click', 'button[data-name]', function (e) {
+        e.preventDefault();
+        var marketVolume = $(this).closest("tr").find(".marketVolume").val();
+        var name = $(this).data("name");
+        $.ajax({
+            url: '/2a8fy7b07dxe44/merchantAccess/currencyPairs/market/post?name=' + name + '&volume=' + marketVolume,
+            async: false,
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val(),
+            },
+            type: 'POST',
+            complete: function () {
+            }
+        });
+    });
+
+    $($currencyPairsVisibilityTable).on('click', 'button[data-id]', function (e) {
+        e.preventDefault();
+        var topMarketVolume = $(this).closest("tr").find(".topMarketVolume").val();
+        var id = $(this).data("id");
+        $.ajax({
+            url: '/2a8fy7b07dxe44/merchantAccess/currencyPairs/post?id=' + id + '&volume=' + topMarketVolume,
+            async: false,
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val(),
+            },
+            type: 'POST',
+            complete: function () {
+            }
+        });
     });
 
     $merchantAccessTable.find('tbody').on('click', 'i', function () {
@@ -388,7 +472,7 @@ function changeVisibilityForCurrency(currencyId, $element) {
         url: '/2a8fy7b07dxe44/merchantAccess/currency/visibility/update',
         type: 'POST',
         data: {
-            "currencyId":currencyId
+            "currencyId": currencyId
         },
         success: function () {
             $($element).toggleClass('fa-lock red');
@@ -405,7 +489,7 @@ function changeVisibilityForCurrencyPair(currencyPairId, $element) {
         url: '/2a8fy7b07dxe44/merchantAccess/currencyPair/visibility/update',
         type: 'POST',
         data: {
-            "currencyPairId":currencyPairId
+            "currencyPairId": currencyPairId
         },
         success: function () {
             $($element).toggleClass('fa-lock red');
@@ -422,7 +506,7 @@ function changeAccessToDirectLinkForCurrencyPair(currencyPairId, $element) {
         url: '/2a8fy7b07dxe44/merchantAccess/currencyPair/directLink/update',
         type: 'POST',
         data: {
-            "currencyPairId":currencyPairId
+            "currencyPairId": currencyPairId
         },
         success: function () {
             $($element).toggleClass('fa-lock red');
@@ -456,4 +540,22 @@ function setBlockForAll(operationType, blockStatus) {
     }
 
 
+}
+
+function getButton(id, sourceType, merchant, buttonDataList, tableIdFor) {
+    var buttonsSet = '';
+    buttonDataList.forEach(function (e) {
+        if (e.tableIdListOnly.indexOf(tableIdFor) > -1
+        ) {
+            buttonsSet = buttonsSet +
+                '<button data-id = ' + id +
+                '        data-source = ' + sourceType +
+                '        data-merchant= ' + merchant +
+                '        style="font-size: 1.1rem;" ' +
+                '        class="action-button table-button-block__button btn ' + e.buttonId + '">' +
+                e.buttonTitle +
+                '</button>&nbsp;';
+        }
+    });
+    return buttonsSet;
 }
