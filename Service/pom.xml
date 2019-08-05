@@ -65,13 +65,6 @@
             <systemPath>${project.basedir}/src/main/resources/advcash-sdk.jar</systemPath>
         </dependency>
         <dependency>
-            <groupId>com.binance.dex.api</groupId>
-            <artifactId>binance-dex-api-client</artifactId>
-            <version>1.0.0</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/src/main/resources/binance-dex-api-client-1.0.3.jar</systemPath>
-        </dependency>
-        <dependency>
             <groupId>org.apache.axis</groupId>
             <artifactId>axis</artifactId>
             <version>1.4</version>
