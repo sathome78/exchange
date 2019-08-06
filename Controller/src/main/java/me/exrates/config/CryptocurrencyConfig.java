@@ -368,12 +368,12 @@ public class CryptocurrencyConfig {
 	}
 
 	// LISK-like cryptos
-    @Bean(name = "liskServiceImpl")
-    public LiskService liskService() {
-        LiskRestClient restClient = liskRestClient();
-        return new LiskServiceImpl(restClient, new LiskSpecialMethodServiceImpl(restClient),
-                "Lisk", "LSK", "merchants/lisk.properties");
-    }
+//    @Bean(name = "liskServiceImpl")
+//    public LiskService liskService() {
+//        LiskRestClient restClient = liskRestClient();
+//        return new LiskServiceImpl(restClient, new LiskSpecialMethodServiceImpl(restClient),
+//                "Lisk", "LSK", "merchants/lisk.properties");
+//    }
 
     @Bean(name = "btwServiceImpl")
     public LiskService btwService() {
@@ -381,17 +381,17 @@ public class CryptocurrencyConfig {
         return new LiskServiceImpl(restClient, new LiskSpecialMethodServiceImpl(restClient), "BitcoinWhite", "BTW", "merchants/bitcoin_white.properties");
     }
 
-    @Bean(name = "riseServiceImpl")
-    public LiskService riseService() {
-        LiskRestClient restClient = liskRestClient();
-        return new LiskServiceImpl(restClient, new LiskSpecialMethodServiceImpl(restClient),
-                "RiseVision", "RISE", "merchants/rise_vision.properties");
-    }
+//    @Bean(name = "riseServiceImpl")
+//    public LiskService riseService() {
+//        LiskRestClient restClient = liskRestClient();
+//        return new LiskServiceImpl(restClient, new LiskSpecialMethodServiceImpl(restClient),
+//                "RiseVision", "RISE", "merchants/rise_vision.properties");
+//    }
 
-    @Bean(name = "arkServiceImpl")
-    public LiskService arkService() {
-        return new LiskServiceImpl(liskRestClient(), arkSendTxService(), "Ark", "ARK", "merchants/ark.properties");
-    }
+//    @Bean(name = "arkServiceImpl")
+//    public LiskService arkService() {
+//        return new LiskServiceImpl(liskRestClient(), arkSendTxService(), "Ark", "ARK", "merchants/ark.properties");
+//    }
 
     @Bean
     @Scope("prototype")
