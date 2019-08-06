@@ -41,6 +41,7 @@ public class LiskRestClientImpl implements LiskRestClient {
 
     private String baseUrl;
     private String microserviceUrl;
+    private String prefix;
     private int maxTransactionQueryLimit;
     private JsonNodeType countNodeType;
 
@@ -68,6 +69,7 @@ public class LiskRestClientImpl implements LiskRestClient {
 
             this.microserviceUrl = String.join(":", microserviceHost, microservicePort);
             this.baseUrl = String.join(":", host, mainPort);
+            this.prefix = props.getProperty("lisk.tx.sort.prefix");
             this.maxTransactionQueryLimit = Integer.parseInt(props.getProperty("lisk.tx.queryLimit"));
             this.countNodeType = JsonNodeType.valueOf(props.getProperty("lisk.tx.count.nodeType"));
 
@@ -120,7 +122,12 @@ public class LiskRestClientImpl implements LiskRestClient {
             put("recipientId", recipientAddress);
             put("limit", String.valueOf(maxTransactionQueryLimit));
             put("offset", String.valueOf(offset));
-            put("sort", "timestamp:asc");
+
+            if ("t_".equalsIgnoreCase(prefix)) {
+                put("sort", prefix + "timestamp:asc");
+            } else {
+                put("sort", "timestamp:asc");
+            }
         }};
         URI targetURI = getURIWithParams(absoluteURI(getTransactionsEndpoint), params);
 
@@ -183,5 +190,10 @@ public class LiskRestClientImpl implements LiskRestClient {
         return String.join("", baseUrl, relativeURI);
     }
 
+    public static void main(String[] args) {
+        RestTemplate restTemplate = new RestTemplate();
+        System.out.println(restTemplate.getForObject("http://178.32.79.109/api/transactions?offset=0&limit=100&recipientId=3599059367956772302&sort=t_timestamp:asc"
+                , String.class));
+    }
 
 }
