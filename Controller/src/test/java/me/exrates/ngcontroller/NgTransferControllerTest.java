@@ -121,7 +121,7 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
             NgResponseException responseException = (NgResponseException) ((NestedServletException) e).getRootCause();
             assertEquals("FAILED_ACCEPT_TRANSFER", responseException.getTitle());
 
-            String expected = "Limits exceeded for user testemail@gmail.com";
+            String expected = "message.limits_exceed";
             assertEquals(expected, e.getCause().getMessage());
         }
 
