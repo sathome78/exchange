@@ -11,15 +11,26 @@ import me.exrates.model.dto.merchants.lisk.LiskTransaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
-import static me.exrates.service.lisk.LiskRestUtils.*;
+import static me.exrates.service.lisk.LiskRestUtils.extractListFromResponseAdditional;
+import static me.exrates.service.lisk.LiskRestUtils.extractObjectFromResponse;
+import static me.exrates.service.lisk.LiskRestUtils.extractObjectFromResponseAdditional;
+import static me.exrates.service.lisk.LiskRestUtils.extractTargetNodeFromLiskResponseAdditional;
+import static me.exrates.service.lisk.LiskRestUtils.getURIWithParams;
 
 @Log4j2(topic = "lisk_log")
 @Conditional(MonolitConditional.class)
@@ -29,21 +40,19 @@ public class LiskRestClientImpl implements LiskRestClient {
     private RestTemplate restTemplate;
 
     private String baseUrl;
-    private String openAccountUrl;
-    private String sendTxUrl;
-    private String sortingPrefix;
+    private String microserviceUrl;
     private int maxTransactionQueryLimit;
     private JsonNodeType countNodeType;
-
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
     private final String newAccountEndpoint = "/api/accounts/open";
     private final String getAccountByAddressEndpoint = "/api/accounts";
     private final String getTransactionsEndpoint = "/api/transactions";
-    private final String getTransactionByIdEndpoint = "/api/transactions/get";
+    private final String getTransactionByIdEndpoint = "/api/transactions";
+    private final String getSignedTransactionWithData = "/api/transfer";
     private final String sendTransactionEndpoint = "/api/transactions";
-    private final String getFeeEndpoint = "/api/blocks/getFee";
+    private final String getFeeEndpoint = "/api/node/constants";
 
 
 
@@ -54,13 +63,11 @@ public class LiskRestClientImpl implements LiskRestClient {
             props.load(getClass().getClassLoader().getResourceAsStream(propertySource));
             String host = props.getProperty("lisk.node.host");
             String mainPort = props.getProperty("lisk.node.port");
-            String openAccountPort = props.getProperty("lisk.port.getAccount");
-            String sendTxPort = props.getProperty("lisk.port.sendTx");
+            String microserviceHost = props.getProperty("lisk.microservice.host");
+            String microservicePort = props.getProperty("lisk.microservice.port");
 
+            this.microserviceUrl = String.join(":", microserviceHost, microservicePort);
             this.baseUrl = String.join(":", host, mainPort);
-            this.openAccountUrl = String.join(":", host, openAccountPort);
-            this.sendTxUrl = String.join(":", host, sendTxPort);
-            this.sortingPrefix = props.getProperty("lisk.tx.sort.prefix");
             this.maxTransactionQueryLimit = Integer.parseInt(props.getProperty("lisk.tx.queryLimit"));
             this.countNodeType = JsonNodeType.valueOf(props.getProperty("lisk.tx.count.nodeType"));
 
@@ -71,22 +78,26 @@ public class LiskRestClientImpl implements LiskRestClient {
 
     @Override
     public LiskTransaction getTransactionById(String txId) {
-            String response = restTemplate.getForObject(getURIWithParams(absoluteURI(getTransactionByIdEndpoint), Collections.singletonMap("id", txId)),
+        String response = restTemplate.getForObject(getURIWithParams(absoluteURI(getTransactionByIdEndpoint), Collections.singletonMap("id", txId)),
                     String.class);
 
-            return extractObjectFromResponse(objectMapper, response, "transaction", LiskTransaction.class);
+        log.info("*** Lisk *** getTransactionById: "+response);
+
+        return extractListFromResponseAdditional(objectMapper, response, "data", LiskTransaction.class).get(0);
     }
 
     @Override
     public List<LiskTransaction> getTransactionsByRecipient(String recipientAddress) {
             Map<String, String> params = new HashMap<String, String>() {{
                put("recipientId", recipientAddress);
-               put("orderBy", sortingPrefix + "timestamp:asc");
+               put("sort", "timestamp:asc");
             }};
             String response = restTemplate.getForObject(getURIWithParams(absoluteURI(getTransactionsEndpoint), params),
                     String.class);
 
-            return extractListFromResponse(objectMapper, response, "transactions", LiskTransaction.class);
+            log.info("*** Lisk *** getTransactionsByRecipient: "+response);
+
+            return extractListFromResponseAdditional(objectMapper, response, "data", LiskTransaction.class);
     }
 
     @Override
@@ -97,8 +108,8 @@ public class LiskRestClientImpl implements LiskRestClient {
         int count;
         do {
             String response = sendGetTransactionsRequest(recipientAddress, newOffset);
-            count = Integer.parseInt(extractTargetNodeFromLiskResponse(objectMapper, response, "count", countNodeType).asText());
-            result.addAll(extractListFromResponse(objectMapper, response, "transactions", LiskTransaction.class));
+            count = Integer.parseInt(extractTargetNodeFromLiskResponseAdditional(objectMapper, response, "count", countNodeType).asText());
+            result.addAll(extractListFromResponseAdditional(objectMapper, response, "data", LiskTransaction.class));
             newOffset += result.size();
         } while (newOffset < count);
         return result;
@@ -109,30 +120,49 @@ public class LiskRestClientImpl implements LiskRestClient {
             put("recipientId", recipientAddress);
             put("limit", String.valueOf(maxTransactionQueryLimit));
             put("offset", String.valueOf(offset));
-            put("orderBy", sortingPrefix + "timestamp:asc");
+            put("sort", "timestamp:asc");
         }};
         URI targetURI = getURIWithParams(absoluteURI(getTransactionsEndpoint), params);
+
+        log.info("*** Lisk *** getTransactionsByRecipient: "+targetURI);
+
         return restTemplate.getForObject(targetURI, String.class);
     }
 
     @Override
     public Long getFee() {
         String response = restTemplate.getForObject(absoluteURI(getFeeEndpoint), String.class);
-        return extractTargetNodeFromLiskResponse(objectMapper, response, "fee", JsonNodeType.NUMBER).longValue();
+        return Long.parseLong(extractTargetNodeFromLiskResponseAdditional(objectMapper, response, "send", JsonNodeType.STRING).textValue());
     }
 
 
     @Override
     public String sendTransaction(LiskSendTxDto dto) {
-            ResponseEntity<String> response = restTemplate.exchange(sendTxUrl.concat(sendTransactionEndpoint), HttpMethod.PUT, new HttpEntity<>(dto), String.class);
-            return extractTargetNodeFromLiskResponse(objectMapper, response.getBody(), "transactionId", JsonNodeType.STRING).textValue();
+
+        //Get signed transaction with data
+        String responseFromMicroservice = restTemplate.postForObject(microserviceUrl.concat(getSignedTransactionWithData), dto, String.class);
+
+//        log.info("*** Lisk *** Signed transactions (/api/transfer) from microservice: "+responseFromMicroservice);
+
+        HttpHeaders headers = new HttpHeaders();
+
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<String> entity = new HttpEntity<>(responseFromMicroservice, headers);
+
+        //Post signed transaction with data into network
+        String postSignedTrans = restTemplate.postForObject(absoluteURI(sendTransactionEndpoint), entity, String.class);
+
+//        log.info("*** Lisk *** Posted signed transactions: "+postSignedTrans);
+
+        return extractTargetNodeFromLiskResponseAdditional(objectMapper, responseFromMicroservice, "id", JsonNodeType.STRING).textValue();
     }
 
     @Override
     public LiskAccount createAccount(String secret) {
         LiskOpenAccountDto dto = new LiskOpenAccountDto();
         dto.setSecret(secret);
-        ResponseEntity<String> response = restTemplate.exchange(openAccountUrl.concat(newAccountEndpoint), HttpMethod.POST, new HttpEntity<>(dto), String.class);
+        ResponseEntity<String> response = restTemplate.exchange(microserviceUrl.concat(newAccountEndpoint), HttpMethod.POST, new HttpEntity<>(dto), String.class);
         return extractObjectFromResponse(objectMapper, response.getBody(), "account", LiskAccount.class);
     }
 
@@ -140,7 +170,10 @@ public class LiskRestClientImpl implements LiskRestClient {
     public LiskAccount getAccountByAddress(String address) {
         String response = restTemplate.getForObject(getURIWithParams(absoluteURI(getAccountByAddressEndpoint), Collections.singletonMap("address", address)),
                 String.class);
-        return extractObjectFromResponse(objectMapper, response, "account", LiskAccount.class);
+
+        log.info("*** Lisk *** getTransactionsByRecipient: "+response);
+
+        return extractObjectFromResponseAdditional(objectMapper, response, "data", LiskAccount.class);
     }
 
 

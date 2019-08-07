@@ -107,6 +107,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static me.exrates.model.enums.ActionType.ADD;
 import static me.exrates.model.enums.ActionType.SUBTRACT;
 import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_ACCEPTED;
@@ -343,6 +344,30 @@ public class RefillServiceImpl implements RefillService {
         } catch (MailException e) {
             log.error(e);
         }
+        return requestId;
+    }
+
+    @SuppressWarnings("Duplicated")
+    @Transactional
+    public Integer createRefillRequestByFactWithOutAddress(RefillRequestAcceptDto requestAcceptDto, int userId) {
+        log.debug("Creating request by fact: " + requestAcceptDto);
+        String address = requestAcceptDto.getAddress();
+        Integer currencyId = requestAcceptDto.getCurrencyId();
+        Integer merchantId = requestAcceptDto.getMerchantId();
+        BigDecimal amount = requestAcceptDto.getAmount();
+        Integer commissionId = commissionService.findCommissionByTypeAndRole(INPUT, userService.getUserRoleFromDB(userId)).getId();
+        RefillStatusEnum beginStatus = (RefillStatusEnum) RefillStatusEnum.X_STATE.nextState(CREATE_BY_FACT);
+        RefillRequestCreateDto request = new RefillRequestCreateDto();
+        request.setUserId(userId);
+        request.setStatus(beginStatus);
+        request.setCurrencyId(currencyId);
+        request.setMerchantId(merchantId);
+        request.setAmount(amount);
+        request.setCommissionId(commissionId);
+        request.setAddress(address);
+        request.setNeedToCreateRefillRequestRecord(true);
+        Integer requestId = createRefillByFact(request).orElseThrow(() -> new RefillRequestCreationByFactException(requestAcceptDto.toString()));
+        request.setId(requestId);
         return requestId;
     }
 
@@ -599,6 +624,26 @@ public class RefillServiceImpl implements RefillService {
         return requestId;
     }
 
+    @Transactional
+    @Override
+    public Integer createAndAutoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto, int userId) {
+        Integer requestId = createRefillRequestByFactWithOutAddress(requestAcceptDto, userId);
+        requestAcceptDto.setRequestId(requestId);
+
+        RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);
+        /**/
+        Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
+        String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
+        String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
+                new Integer[]{requestId},
+                locale);
+        String userEmail = userService.getEmailById(refillRequestFlatDto.getUserId());
+        userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
+        notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+
+        return requestId;
+    }
+
     @Override
     @Transactional
     public void autoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {
@@ -762,14 +807,27 @@ public class RefillServiceImpl implements RefillService {
             /**/
             Integer userWalletId = walletService.getWalletId(refillRequest.getUserId(), refillRequest.getCurrencyId());
             /**/
-            BigDecimal commission = refillRequest.getCommissionId() > 0
-                    ? commissionService.calculateCommissionForRefillAmount(factAmount, refillRequest.getCommissionId())
-                    : BigDecimal.ZERO;
             Merchant merchant = merchantDao.findById(refillRequest.getMerchantId());
-            if (merchant.getProcessType().equals(MerchantProcessType.CRYPTO)) {
-                commission = commission.add(commissionService.calculateMerchantCommissionForRefillAmount(factAmount, refillRequest.getMerchantId(), refillRequest.getCurrencyId()));
+
+            //calculate merchant commission
+            BigDecimal merchantCommission = BigDecimal.ZERO;
+            if (merchant.getProcessType().equals(MerchantProcessType.CRYPTO) || merchant.getProcessType().equals(MerchantProcessType.MERCHANT)) {
+                merchantCommission = commissionService.calculateMerchantCommissionForRefillAmount(
+                        factAmount,
+                        refillRequest.getMerchantId(),
+                        refillRequest.getCurrencyId());
             }
-            BigDecimal amountToEnroll = BigDecimalProcessing.doAction(factAmount, commission, SUBTRACT);
+
+            //calculate exchange commission
+            BigDecimal exchangeCommission = BigDecimal.ZERO;
+            if (refillRequest.getCommissionId() > 0) {
+                exchangeCommission = commissionService.calculateCommissionForRefillAmount(
+                        factAmount.subtract(merchantCommission),
+                        refillRequest.getCommissionId());
+            }
+
+            final BigDecimal commission = BigDecimalProcessing.doAction(merchantCommission, exchangeCommission, ADD);
+            final BigDecimal amountToEnroll = BigDecimalProcessing.doAction(factAmount, commission, SUBTRACT);
             /**/
             WalletOperationData walletOperationData = new WalletOperationData();
             walletOperationData.setOperationType(INPUT);
@@ -812,7 +870,6 @@ public class RefillServiceImpl implements RefillService {
         remark = currentRemark.concat(adminPhrase);
         return remark;
     }
-
 
     @Override
     @Transactional(readOnly = true)

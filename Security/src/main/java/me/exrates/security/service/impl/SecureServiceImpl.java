@@ -194,6 +194,7 @@ public class SecureServiceImpl implements SecureService {
         return sendMessage(user.getEmail(), messageText, subject, setting);
     }
 
+    @SuppressWarnings("Duplicates")
     @Override
     public NotificationResultDto sendTransferPinCode(User user, String amount, String currencyName) {
         NotificationsUserSetting setting = getTransferSettings(user);
@@ -202,6 +203,16 @@ public class SecureServiceImpl implements SecureService {
         String messageText = messageSource.getMessage(setting.getNotificationMessageEventEnum().getMessageCode(),
                 new String[]{pin, amount + " " + currencyName}, Locale.ENGLISH);
         return sendMessage(user.getEmail(), messageText, subject, setting);
+    }
+
+    @Override
+    public void sendPinCodeForCreateQuberaAccount(User user) {
+        NotificationsUserSetting setting = getCreateQuberAccountSettings(user);
+        String subject = messageSource.getMessage(setting.getNotificationMessageEventEnum().getSbjCode(), null, Locale.ENGLISH);
+        String pin = userService.updatePinForUserForEvent(user.getEmail(), setting.getNotificationMessageEventEnum());
+        String messageText = messageSource.getMessage(setting.getNotificationMessageEventEnum().getMessageCode(),
+                new String[]{pin}, Locale.ENGLISH);
+        sendMessage(user.getEmail(), messageText, subject, setting);
     }
 
     @Override
@@ -246,6 +257,15 @@ public class SecureServiceImpl implements SecureService {
         return NotificationsUserSetting
                 .builder()
                 .notificationMessageEventEnum(NotificationMessageEventEnum.TRANSFER)
+                .notificatorId(NotificationMessageEventEnum.LOGIN.getCode())
+                .userId(user.getId())
+                .build();
+    }
+
+    private NotificationsUserSetting getCreateQuberAccountSettings(User user) {
+        return NotificationsUserSetting
+                .builder()
+                .notificationMessageEventEnum(NotificationMessageEventEnum.QUBERA_ACCOUNT)
                 .notificatorId(NotificationMessageEventEnum.LOGIN.getCode())
                 .userId(user.getId())
                 .build();

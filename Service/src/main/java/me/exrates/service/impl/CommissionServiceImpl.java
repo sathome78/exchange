@@ -1,17 +1,14 @@
 package me.exrates.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import me.exrates.dao.CommissionDao;
 import me.exrates.model.Commission;
 import me.exrates.model.Merchant;
 import me.exrates.model.condition.MonolitConditional;
+import me.exrates.model.dto.ComissionCountDto;
 import me.exrates.model.dto.CommissionDataDto;
 import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.dto.EditMerchantCommissionDto;
-import me.exrates.model.dto.NormalizeAmountDto;
-import me.exrates.model.dto.merchants.omni.OmniBalanceDto;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
@@ -23,23 +20,16 @@ import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.dao.exception.notfound.CommissionsNotFoundException;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
-import me.exrates.service.properties.InOutProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Conditional;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -283,6 +273,11 @@ public class CommissionServiceImpl implements CommissionService {
     public BigDecimal calculateMerchantCommissionForRefillAmount(BigDecimal amount, int merchantId, int currencyId) {
         BigDecimal merchantCommissionPercent = getCommissionMerchant(merchantId, currencyId, INPUT);
         return BigDecimalProcessing.doAction(amount, merchantCommissionPercent, MULTIPLY_PERCENT);
+    }
+
+    @Override
+    public List<ComissionCountDto> getComissionsCount(LocalDateTime from, LocalDateTime to) {
+        return commissionDao.countComissinsByPeriod(from, to);
     }
 
 }

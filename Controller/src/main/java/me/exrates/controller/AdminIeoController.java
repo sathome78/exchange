@@ -62,6 +62,15 @@ public class AdminIeoController {
             log.error(messageError + " {}", dto.getEndDate());
             throw new RuntimeException(messageError);
         }
+
+        if (dto.getAvailableBalance().compareTo(dto.getAmount()) > 0) {
+            String messageError = String.format("Error: Available amount %s more than amount %s",
+                    dto.getAvailableBalance().toPlainString(),
+                    dto.getAmount().toPlainString());
+            log.error(messageError);
+            throw new RuntimeException(messageError);
+        }
+
         ieoService.createIeo(dto);
         return new ResponseEntity(null, HttpStatus.CREATED);
     }

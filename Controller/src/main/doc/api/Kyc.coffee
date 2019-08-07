@@ -2,7 +2,7 @@
 @api {get} /api/private/v2/kyc/status Get status KYC
 @apiName Get status KYC
 @apiVersion 0.0.1
-@apiGroup KYC
+@apiGroup KYC-Bank verification
 @apiUse Exrates
 
 @apiExample {curl} Example usage:
@@ -22,7 +22,7 @@ curl -X GET \
 @api {post} /api/private/v2/kyc/start Start KYC Processing
 @apiName  Start KYC Processing
 @apiVersion 0.0.1
-@apiGroup KYC
+@apiGroup KYC-Bank verification
 @apiUse Exrates
 @apiUse ApiJSON
 
@@ -35,12 +35,11 @@ curl -X POST \
           "birthDay": "12",
           "birthMonth": "5",
           "birthYear": "1987",
-          "firstNames": [
-            "Ivan"
-          ],
-          "lastName": "Ivanov",
-          "docType":"P",
-          "country: "UA"
+          "firstName":"Stanislav",
+          "lastName": "Horobzieiv",
+          "countryCode":"UA",
+          "city":"Kharkov",
+          "address":"Flat 12, 6 holodnogorskaya"
 }'
 
 @apiSuccess {Object} data Data
@@ -81,7 +80,7 @@ HTTP/1.1 400 OK
 @api {get} api/private/v2/kyc/countries Get all countries
 @apiName Get all countries
 @apiVersion 0.0.1
-@apiGroup KYC
+@apiGroup KYC-Bank verification
 @apiUse Exrates
 
 @apiExample {curl} Example usage:

@@ -745,6 +745,7 @@ CREATE TABLE `EXORDERS` (
   `status_modification_date` timestamp NULL DEFAULT NULL,
   `order_source_id` int(11) DEFAULT NULL,
   `counter_order_id` int(11) DEFAULT NULL,
+  `counter_order_type` enum ('LIMIT', 'ICO', 'MARKET') DEFAULT 'LIMIT',
   `base_type` enum('LIMIT','ICO') NOT NULL DEFAULT 'LIMIT',
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),

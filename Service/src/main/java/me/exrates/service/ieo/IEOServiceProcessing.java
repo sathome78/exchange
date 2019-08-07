@@ -171,7 +171,7 @@ public class IEOServiceProcessing {
         ieoDetails.setReadyToIeo(true);
         Email email = prepareEmail(principalEmail, notificationMessage);
         if (!ieoDetails.getTestIeo()) {
-            sendMailService.sendInfoMail(email);
+            sendMailService.sendMail(email);
         }
         sendNotifications(principalEmail, ieoDetails, notificationMessage);
     }
@@ -190,7 +190,7 @@ public class IEOServiceProcessing {
         ieoClaimRepository.updateStatusIEOClaim(ieoClaim.getId(), ieoResult.getStatus());
         ieoResultRepository.save(ieoResult);
         if (!details.getTestIeo()) {
-            sendMailService.sendInfoMail(prepareEmail(email, notificationMessage));
+            sendMailService.sendMail(prepareEmail(email, notificationMessage));
             try {
                 stompMessenger.sendPersonalMessageToUser(email, notificationMessage);
             } catch (Exception e) {

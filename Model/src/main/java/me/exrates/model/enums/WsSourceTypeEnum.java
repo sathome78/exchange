@@ -6,5 +6,6 @@ public enum WsSourceTypeEnum {
 
     SUBSCRIBE,
     IEO,
-    KYC;
+    KYC,
+    FIAT;
 }

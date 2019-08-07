@@ -66,7 +66,11 @@ public class ExchangeApi {
 
     @Scheduled(initialDelay = 0, fixedDelay = 30 * 60 * 1_000)
     public void updateExchangeCurrencyRates() {
-        currencyService.updateCurrencyExchangeRates(getRatesFromApi());
+        try {
+            currencyService.updateCurrencyExchangeRates(getRatesFromApi());
+        } catch (Exception ex) {
+            log.error("--> In processing 'ExchangeApi' occurred error", ex);
+        }
     }
 
     public Map<String, RateDto> getRates() {

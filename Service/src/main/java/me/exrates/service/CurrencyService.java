@@ -3,6 +3,7 @@ package me.exrates.service;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.MarketVolume;
 import me.exrates.model.User;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyReportInfoDto;
@@ -24,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -167,4 +169,12 @@ public interface CurrencyService {
     List<BalanceDto> getCurrencyBalances();
 
     boolean updateCurrencyPair(CurrencyPair currencyPair);
+
+    Map<Integer, CurrencyPair> getAllCurrencyPairCached();
+
+    boolean updateMarketVolumeCurrecencyPair(Integer currencyPairId, BigDecimal volume);
+
+    List<MarketVolume> getAllMarketVolumes();
+
+    boolean updateDefaultMarketVolume(String name, BigDecimal volume);
 }

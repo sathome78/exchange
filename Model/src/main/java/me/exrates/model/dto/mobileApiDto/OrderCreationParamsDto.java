@@ -28,6 +28,12 @@ public class OrderCreationParamsDto {
         this.rate = rate;
     }
 
+    public OrderCreationParamsDto(@NotNull Integer currencyPairId, @NotNull OperationType orderType, @NotNull BigDecimal amount) {
+        this.currencyPairId = currencyPairId;
+        this.orderType = orderType;
+        this.amount = amount;
+    }
+
     public Integer getCurrencyPairId() {
         return currencyPairId;
     }

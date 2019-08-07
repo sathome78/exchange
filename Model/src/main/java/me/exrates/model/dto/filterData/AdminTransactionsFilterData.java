@@ -25,7 +25,7 @@ import static me.exrates.model.dto.filterData.FilterDataItem.IN_FORMAT;
 public class AdminTransactionsFilterData extends TableFilterData {
   private Integer status;
   private List<TransactionType> types;
-  private List<Integer> merchants;
+  private List<Integer> currencyIds;
   private String startDate;
   private String endDate;
   private BigDecimal amountFrom;
@@ -46,7 +46,7 @@ public class AdminTransactionsFilterData extends TableFilterData {
             new FilterDataItem("date_to", "TRANSACTION.datetime <=", endDate, DATE_FORMAT),
             /*new FilterDataItem("operation_types", "TRANSACTION.operation_type_id IN", operationTypes, IN_FORMAT),
             new FilterDataItem("source_types", "TRANSACTION.source_type IN", sourceTypes, IN_FORMAT),*/
-            new FilterDataItem("merchants", "TRANSACTION.merchant_id IN", merchants, IN_FORMAT),
+            new FilterDataItem("currencies", "TRANSACTION.currency_id IN", currencyIds, IN_FORMAT),
             new FilterDataItem("amount_from", "TRANSACTION.amount >=", amountFrom),
             new FilterDataItem("amount_to", "TRANSACTION.amount <=", amountTo),
             new FilterDataItem("commission_amount_from", "TRANSACTION.commission_amount >=", commissionAmountFrom),

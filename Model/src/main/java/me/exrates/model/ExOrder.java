@@ -37,6 +37,7 @@ public class ExOrder implements Serializable {
     private Integer sourceId;
     private BigDecimal stop;
     private OrderBaseType orderBaseType = OrderBaseType.LIMIT;
+    private OrderBaseType counterOrderBaseType = OrderBaseType.LIMIT;
     private BigDecimal partiallyAcceptedAmount;
     @JsonIgnore
     private Long tradeId;

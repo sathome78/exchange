@@ -20,7 +20,6 @@ import me.exrates.model.dto.ieo.IeoDetailsCreateDto;
 import me.exrates.model.dto.ieo.IeoDetailsUpdateDto;
 import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.model.dto.kyc.KycCountryDto;
-import me.exrates.model.dto.kyc.VerificationStep;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.IEODetailsStatus;
 import me.exrates.model.enums.PolicyEnum;
@@ -214,10 +213,8 @@ public class IEOServiceImpl implements IEOService {
         User user = userService.findByEmail(email);
 
         String statusKyc = userService.getUserKycStatusByEmail(email);
-        VerificationStep verificationStep = userService.getVerificationStep(email);
 
-        boolean kycCheck = statusKyc.equalsIgnoreCase("SUCCESS")
-                || (statusKyc.equalsIgnoreCase(EventStatus.ACCEPTED.name()) && verificationStep.equals(VerificationStep.LEVEL_TWO));
+        boolean kycCheck = statusKyc.equalsIgnoreCase("SUCCESS") || statusKyc.equalsIgnoreCase(EventStatus.ACCEPTED.name());
 
         boolean checkCountry = false;
         KycCountryDto countryDto = null;
@@ -312,7 +309,7 @@ public class IEOServiceImpl implements IEOService {
         email.setTo(user.getEmail());
         email.setMessage("Revert IEO");
         email.setSubject(String.format("Revert ieo for %s finish successful!", ieoEntity.getCurrencyName()));
-        sendMailService.sendInfoMail(email);
+        sendMailService.sendMail(email);
     }
 
     @Override
@@ -409,7 +406,7 @@ public class IEOServiceImpl implements IEOService {
             email.setMessage("Success finish IEO");
             email.setSubject(String.format("The IEO procedure for a currency %s has ended successfully, congratulations!",
                     ieoDetails.getCurrencyName()));
-            sendMailService.sendInfoMail(email);
+            sendMailService.sendMail(email);
         }
 
         return result;
@@ -516,7 +513,7 @@ public class IEOServiceImpl implements IEOService {
         emailError.setSubject("IEO claim save error");
         emailError.setMessage(message);
         emailError.setTo(email);
-        sendMailService.sendInfoMail(emailError);
+        sendMailService.sendMail(emailError);
     }
 
     private void populateTestIeo(IEODetails ieoDetail) {
