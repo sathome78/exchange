@@ -24,6 +24,7 @@ import me.exrates.service.IEOService;
 import me.exrates.service.NewsParser;
 import me.exrates.service.OrderService;
 import me.exrates.service.QuberaService;
+import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.exception.IllegalChatMessageException;
