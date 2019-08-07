@@ -2,6 +2,7 @@ package me.exrates.security.service;
 
 import me.exrates.model.User;
 import me.exrates.model.UserEmailDto;
+import me.exrates.model.dto.ErrorReportDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.ngModel.PasswordCreateDto;
 
@@ -23,6 +24,8 @@ public interface NgUserService {
     void sendEmailEnable2Fa(String userEmail);
 
     void resendEmailForFinishRegistration(User user);
+
+    void sendErrorReportEmail(ErrorReportDto dto);
 
     String getUserPublicId();
 }

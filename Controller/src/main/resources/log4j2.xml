@@ -14,7 +14,7 @@
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
         <RollingFile name="Logs" fileName="${sys:catalina.home}/logs/general/log.log"
-            filePattern="${sys:catalina.home}/logs/general/log_%d_%i.log" append="true">
+                     filePattern="${sys:catalina.home}/logs/general/log_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
@@ -1054,7 +1054,7 @@
             <AppenderRef ref="inout"/>
         </logger>
 
-        <logger name="me.exrates" level="INFO" additivity="false">
+        <logger name="me.exrates" level="ERROR" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Logs"/>
         </logger>
