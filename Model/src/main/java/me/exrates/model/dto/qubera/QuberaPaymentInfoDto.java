@@ -19,4 +19,5 @@ public class QuberaPaymentInfoDto {
     private String country;
     private String city;
     private String address;
+    private String url;
 }

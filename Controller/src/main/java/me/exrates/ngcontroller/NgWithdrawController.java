@@ -174,7 +174,8 @@ public class NgWithdrawController {
             OperationType operationType = OUTPUT;
 
             Currency currency = currencyService.findByName(currencyName);
-            Wallet wallet = walletService.findByUserAndCurrency(userService.findByEmail(email), currency);
+            User user = userService.findByEmail(email);
+            Wallet wallet = walletService.findByUserAndCurrency(user, currency);
             UserRole userRole = userService.getUserRoleFromSecurityContext();
 
             BigDecimal minWithdrawSum = currencyService.retrieveMinLimitForRoleAndCurrency(userRole, operationType, currency.getId());
@@ -186,7 +187,7 @@ public class NgWithdrawController {
 
             //check additional field and fill it
             for (MerchantCurrency merchantCurrency : merchantCurrencyData) {
-                withdrawService.setAdditionalData(merchantCurrency);
+                withdrawService.setAdditionalData(merchantCurrency, user);
 
             }
 
