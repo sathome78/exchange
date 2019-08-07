@@ -184,7 +184,7 @@ public class LiskServiceImpl implements LiskService {
         String address = ParamMapUtils.getIfNotNull(params, "address");
         String txId = ParamMapUtils.getIfNotNull(params, "txId");
         LiskTransaction transaction = getTransactionById(txId);
-        long txFee = liskRestClient.getFee();
+        long txFee = 0L;//liskRestClient.getFee();
         BigDecimal scaledAmount = LiskTransaction.scaleAmount(transaction.getAmount() - txFee);
 
         if (!refillRequestIdResult.isPresent()) {
@@ -254,8 +254,8 @@ public class LiskServiceImpl implements LiskService {
                 requestAcceptDto.setRequestId(requestId);
 
                 RefillRequestFlatDto flatDto = refillService.getFlatById(requestId);
-                sendTransaction(algorithmService.decodeByKey(CODE_FROM_AWS, flatDto.getBrainPrivKey()),
-                        dto.getAmount(), mainAddress);
+                sendTransaction(flatDto.getBrainPrivKey(),
+                        dto.getAmount(), mainAddress);//algorithmService.decodeByKey(CODE_FROM_AWS, flatDto.getBrainPrivKey())
 
                 refillService.autoAcceptRefillRequest(requestAcceptDto);
 
