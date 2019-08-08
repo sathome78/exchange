@@ -104,7 +104,7 @@ public class LiskServiceImpl implements LiskService {
     @PostConstruct
     private void init() {
         liskRestClient.initClient(propertySource);
-        scheduler.scheduleAtFixedRate(this::processTransactionsForKnownAddresses, 3L, 3L, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::processTransactionsForKnownAddresses, 1L, 1L, TimeUnit.MINUTES);
     }
 
     @Override
@@ -157,6 +157,8 @@ public class LiskServiceImpl implements LiskService {
                             put("currencyId", String.valueOf(currency.getId()));
                             put("address", transaction.getRecipientId());
                             put("txId", transaction.getId());
+                            put("amount", transaction.getAmount().toString());
+                            put("fee", transaction.getFee().toString());
                         }};
                         refillRequestResult.ifPresent(request -> params.put("requestId", String.valueOf(request.getId())));
 
@@ -183,9 +185,11 @@ public class LiskServiceImpl implements LiskService {
         Integer merchantId = Integer.parseInt(ParamMapUtils.getIfNotNull(params, "merchantId"));
         String address = ParamMapUtils.getIfNotNull(params, "address");
         String txId = ParamMapUtils.getIfNotNull(params, "txId");
+        String amount = ParamMapUtils.getIfNotNull(params, "amount");
+        String fee = ParamMapUtils.getIfNotNull(params, "fee");
         LiskTransaction transaction = getTransactionById(txId);
         long txFee = 0L;//liskRestClient.getFee();
-        BigDecimal scaledAmount = LiskTransaction.scaleAmount(transaction.getAmount() - txFee);
+        BigDecimal scaledAmount = LiskTransaction.scaleAmount(Long.valueOf(amount) - Long.valueOf(fee));
 
         if (!refillRequestIdResult.isPresent()) {
             Integer requestId = refillService.createRefillRequestByFact(RefillRequestAcceptDto.builder()
