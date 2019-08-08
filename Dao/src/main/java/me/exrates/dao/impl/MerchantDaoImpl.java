@@ -1,6 +1,6 @@
 package me.exrates.dao.impl;
 
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantDao;
 import me.exrates.model.Merchant;
 import me.exrates.model.MerchantCurrency;
@@ -46,7 +46,7 @@ import java.util.Optional;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
-@Log4j
+@Log4j2
 @Repository
 public class MerchantDaoImpl implements MerchantDao {
 

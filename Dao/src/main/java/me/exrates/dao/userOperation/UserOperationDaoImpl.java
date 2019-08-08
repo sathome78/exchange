@@ -1,6 +1,6 @@
 package me.exrates.dao.userOperation;
 
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.userOperation.UserOperationAuthorityOption;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
  * @author Vlad Dziubak
  * Date: 01.08.2018
  */
-@Log4j
+@Log4j2
 @Repository
 public class UserOperationDaoImpl implements UserOperationDao {
 

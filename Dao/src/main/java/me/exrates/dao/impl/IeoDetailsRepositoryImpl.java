@@ -1,6 +1,6 @@
 package me.exrates.dao.impl;
 
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.IeoDetailsRepository;
 import me.exrates.model.IEODetails;
 import me.exrates.model.enums.IEODetailsStatus;
@@ -19,7 +19,7 @@ import java.util.Collection;
 import java.util.HashMap;
 
 @Repository
-@Log4j
+@Log4j2
 public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;

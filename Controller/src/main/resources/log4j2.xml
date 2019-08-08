@@ -1053,10 +1053,9 @@
         <logger name="inout" level="ALL" additivity="false">
             <AppenderRef ref="inout"/>
         </logger>
-
-        <logger name="me.exrates" level="INFO" additivity="false">
+        <Root level="INFO">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Logs"/>
-        </logger>
+        </Root>
     </Loggers>
 </Configuration>
