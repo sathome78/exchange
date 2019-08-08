@@ -382,7 +382,7 @@ public class QuberaServiceImpl implements QuberaService {
                 .country(country)
                 .city(city)
                 .iban(userData.getIban())
-                .url(String.format("%s/merchants/qubera/download", host))
+                .url(String.format("%s/api/private/v2/merchants/qubera/download", host))
                 .build();
     }
 
