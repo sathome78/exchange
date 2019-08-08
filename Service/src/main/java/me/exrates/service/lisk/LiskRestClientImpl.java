@@ -15,6 +15,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -109,8 +110,11 @@ public class LiskRestClientImpl implements LiskRestClient {
         int newOffset = offset;
         int count;
         do {
+            //получает транзу
             String response = sendGetTransactionsRequest(recipientAddress, newOffset);
+            //сего транзакций
             count = Integer.parseInt(extractTargetNodeFromLiskResponseAdditional(objectMapper, response, "count", countNodeType).asText());
+            // добавляет транзу в коллекцию в формате LiskTransaction
             result.addAll(extractListFromResponseAdditional(objectMapper, response, "transactions", LiskTransaction.class));
             newOffset += result.size();
         } while (newOffset < count);
@@ -147,22 +151,35 @@ public class LiskRestClientImpl implements LiskRestClient {
     public String sendTransaction(LiskSendTxDto dto) {
 
         //Get signed transaction with data
-        String responseFromMicroservice = restTemplate.postForObject(microserviceUrl.concat(getSignedTransactionWithData), dto, String.class);
+//        String responseFromMicroservice = restTemplate.postForObject(microserviceUrl.concat(getSignedTransactionWithData), dto, String.class);
 
 //        log.info("*** Lisk *** Signed transactions (/api/transfer) from microservice: "+responseFromMicroservice);
 
-        HttpHeaders headers = new HttpHeaders();
-
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        HttpEntity<String> entity = new HttpEntity<>(responseFromMicroservice, headers);
+//        HttpHeaders headers = new HttpHeaders();
+//
+//        headers.setContentType(MediaType.APPLICATION_JSON);
+//
+//        HttpEntity<String> entity = new HttpEntity<>(responseFromMicroservice, headers);
 
         //Post signed transaction with data into network
-        String postSignedTrans = restTemplate.postForObject(absoluteURI(sendTransactionEndpoint), entity, String.class);
+        try {
+            restTemplate.postForObject(absoluteURI(sendTransactionEndpoint), dto, String.class);
+        } catch(Exception e){
+            System.out.println("..................................");
+        }
+
+        restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("amount", dto.getAmount().toString());
+        headers.set("recipientId", dto.getRecipientId());
+        headers.set("passphrase", dto.getPassphrase());
+        HttpEntity entity = new HttpEntity(headers);
+        restTemplate.exchange(absoluteURI(sendTransactionEndpoint), HttpMethod.PUT, entity, String.class);
 
 //        log.info("*** Lisk *** Posted signed transactions: "+postSignedTrans);
 
-        return extractTargetNodeFromLiskResponseAdditional(objectMapper, responseFromMicroservice, "id", JsonNodeType.STRING).textValue();
+        return "";
     }
 
     @Override

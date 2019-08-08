@@ -128,7 +128,7 @@ public class LiskServiceImpl implements LiskService {
             throw new LiskCreateAddressException(e);
         }
     }
-
+    LiskTransaction transaction;
     @Override
     public void processTransactionsForKnownAddresses() {
         log.info("Start checking {} transactions", currencyName);
@@ -163,6 +163,7 @@ public class LiskServiceImpl implements LiskService {
                         refillRequestResult.ifPresent(request -> params.put("requestId", String.valueOf(request.getId())));
 
                         try {
+                            this.transaction = transaction;
                             processPayment(params);
                         } catch (RefillRequestAppropriateNotFoundException e) {
                             log.error(e);
@@ -187,7 +188,7 @@ public class LiskServiceImpl implements LiskService {
         String txId = ParamMapUtils.getIfNotNull(params, "txId");
         String amount = ParamMapUtils.getIfNotNull(params, "amount");
         String fee = ParamMapUtils.getIfNotNull(params, "fee");
-        LiskTransaction transaction = getTransactionById(txId);
+//        LiskTransaction transaction = getTransactionById(txId);
         long txFee = 0L;//liskRestClient.getFee();
         BigDecimal scaledAmount = LiskTransaction.scaleAmount(Long.valueOf(amount) - Long.valueOf(fee));
 
