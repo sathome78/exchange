@@ -36,6 +36,8 @@ import me.exrates.service.exception.IllegalChatMessageException;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.util.IpUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -181,10 +183,15 @@ public class NgPublicController {
         }
     }
 
+    final Log loggerN = LogFactory.getLog(getClass());
+
     // /info/public/v2/all-pairs
     @GetMapping("/all-pairs")
     @ResponseBody
     public List<CurrencyPair> getAllPairs() {
+        logger.debug("simple log");
+        loggerN.info("do you expect this log?");
+        loggerN.debug("do you expect this log?");
         try {
             return currencyService.getAllCurrencyPairs(CurrencyPairType.MAIN);
         } catch (Exception e) {
