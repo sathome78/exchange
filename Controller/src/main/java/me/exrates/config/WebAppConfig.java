@@ -2108,6 +2108,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(tokensList, "ASG", "ASG", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "vinciServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService vinciServiceImpl() {
+        List<String> tokensList = ImmutableList.of("0x3db99ab08006aefcc9600972eca8c202396b4300");
+        return new EthTokenServiceImpl(tokensList, "VINCI", "VINCI", false, ExConvert.Unit.ETHER);
+    }
+
     @Bean(name = "binanceServiceImpl")
     @Conditional(MonolitConditional.class)
     public BinanceService binanceService(){
@@ -2126,12 +2133,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new BinTokenServiceImpl("ARN","ARN");
     }
 
-    @Bean(name = "vinciServiceImpl")
-    @Conditional(MonolitConditional.class)
-    public EthTokenService vinciServiceImpl() {
-        List<String> tokensList = ImmutableList.of("0x3db99ab08006aefcc9600972eca8c202396b4300");
-        return new EthTokenServiceImpl(tokensList, "VINCI", "VINCI", false, ExConvert.Unit.ETHER);
-    }
+
 
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
