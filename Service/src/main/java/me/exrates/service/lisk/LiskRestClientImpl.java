@@ -110,7 +110,7 @@ public class LiskRestClientImpl implements LiskRestClient {
         int newOffset = offset;
         int count;
         do {
-            //получает транзу
+            //получает транзу по адресу
             String response = sendGetTransactionsRequest(recipientAddress, newOffset);
             //сего транзакций
             count = Integer.parseInt(extractTargetNodeFromLiskResponseAdditional(objectMapper, response, "count", countNodeType).asText());
