@@ -986,7 +986,7 @@ public class AdminController {
         try {
             final String newComment = String.format("%s %s %s", amount.toPlainString(), currencyService.getCurrencyName(currencyId), comment);
 
-            userService.addUserComment(GENERAL, newComment, userService.getEmailById(userId), true);
+            userService.addUserComment(GENERAL, newComment, userService.getEmailById(userId), false);
         } catch (Exception ex) {
             LOG.error("Comment could not be saved", ex);
         }
