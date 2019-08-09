@@ -102,7 +102,7 @@ public class NixMoneyServiceImpl implements NixMoneyService {
             put("PAYMENT_URL", paymentUrl);
             put("NOPAYMENT_URL", noPaymentUrl);
             put("BAGGAGE_FIELDS", "PAYEE_ACCOUNT PAYMENT_AMOUNT PAYMENT_ID");
-            put("STATUS_URL", statustUrl);
+            put("STATUS_URL", paymentUrl);
         }};
         /**/
         return generateFullUrlMap(url, "POST", properties);

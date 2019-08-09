@@ -75,6 +75,7 @@ import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
+import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toList;
 
 @Repository
@@ -957,14 +958,16 @@ public class UserDaoImpl implements UserDao {
     @Override
     public boolean addUserComment(Comment comment) {
         String sql = "INSERT INTO USER_COMMENT (user_id, users_comment, user_creator_id, message_sent, topic_id) " +
-                "VALUES (:user_id, :comment, :user_creator_id, :message_sent, :topic_id);";
-        Map<String, Object> namedParameters = new HashMap<>();
-        namedParameters.put("user_id", comment.getUser().getId());
-        namedParameters.put("comment", comment.getComment());
-        namedParameters.put("user_creator_id", comment.getCreator() == null ? -1 : comment.getCreator().getId());
-        namedParameters.put("message_sent", comment.isMessageSent());
-        namedParameters.put("topic_id", comment.getUserCommentTopic().getCode());
-        return masterTemplate.update(sql, namedParameters) > 0;
+                "VALUES (:user_id, :comment, :user_creator_id, :message_sent, :topic_id)";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("user_id", comment.getUser().getId());
+        params.put("comment", comment.getComment());
+        params.put("user_creator_id", isNull(comment.getCreator()) ? -1 : comment.getCreator().getId());
+        params.put("message_sent", comment.isMessageSent());
+        params.put("topic_id", comment.getUserCommentTopic().getCode());
+
+        return masterTemplate.update(sql, params) > 0;
     }
 
     @Override

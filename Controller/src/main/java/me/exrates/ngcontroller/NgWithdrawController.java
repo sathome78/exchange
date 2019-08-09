@@ -121,10 +121,10 @@ public class NgWithdrawController {
         String email = getPrincipalEmail();
         boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(email), UserOperationAuthority.OUTPUT);
         if (!accessToOperationForUser) {
-            throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, Locale.ENGLISH));
+            throw new UserOperationAccessException();
         }
         if (!withdrawService.checkOutputRequestsLimit(requestParamsDto.getCurrency(), email)) {
-            throw new RequestLimitExceededException(messageSource.getMessage("merchants.OutputRequestsLimit", null, Locale.ENGLISH));
+            throw new RequestLimitExceededException();
         }
         if (!StringUtils.isEmpty(requestParamsDto.getDestinationTag())) {
             merchantService.checkDestinationTag(requestParamsDto.getMerchant(), requestParamsDto.getDestinationTag());
@@ -135,13 +135,13 @@ public class NgWithdrawController {
         User user = userService.findByEmail(email);
         if (g2faService.isGoogleAuthenticatorEnable(user.getId())) {
             if (!g2faService.checkGoogle2faVerifyCode(requestParamsDto.getSecurityCode(), user.getId())) {
-                throw new IncorrectPinException("Incorrect Google 2FA oauth code: " + requestParamsDto.getSecurityCode());
+                throw new IncorrectPinException();
             }
         } else {
             if (!userService.checkPin(getPrincipalEmail(), requestParamsDto.getSecurityCode(), NotificationMessageEventEnum.WITHDRAW)) {
                 Currency currency = currencyService.getById(requestParamsDto.getCurrency());
                 secureService.sendWithdrawPinCode(user, requestParamsDto.getSum().toPlainString(), currency.getName());
-                throw new IncorrectPinException("Incorrect pin: " + requestParamsDto.getSecurityCode());
+                throw new IncorrectPinException();
             }
         }
         try {
@@ -159,8 +159,7 @@ public class NgWithdrawController {
             return ResponseEntity.ok(withdrawalResponse);
         } catch (InvalidAmountException e) {
             logger.error("Failed to create withdraw request", e);
-            String message = String.format("Failed to create withdraw request %s", e.toString());
-            throw new NgResponseException(ErrorApiTitles.FAILED_TO_CREATE_WITHDRAW_REQUEST, message);
+            throw new NgResponseException(ErrorApiTitles.FAILED_TO_CREATE_WITHDRAW_REQUEST, e.getMessage());
         }
     }
 
@@ -175,7 +174,8 @@ public class NgWithdrawController {
             OperationType operationType = OUTPUT;
 
             Currency currency = currencyService.findByName(currencyName);
-            Wallet wallet = walletService.findByUserAndCurrency(userService.findByEmail(email), currency);
+            User user = userService.findByEmail(email);
+            Wallet wallet = walletService.findByUserAndCurrency(user, currency);
             UserRole userRole = userService.getUserRoleFromSecurityContext();
 
             BigDecimal minWithdrawSum = currencyService.retrieveMinLimitForRoleAndCurrency(userRole, operationType, currency.getId());
@@ -187,7 +187,7 @@ public class NgWithdrawController {
 
             //check additional field and fill it
             for (MerchantCurrency merchantCurrency : merchantCurrencyData) {
-                withdrawService.setAdditionalData(merchantCurrency);
+                withdrawService.setAdditionalData(merchantCurrency, user);
 
             }
 
@@ -213,8 +213,7 @@ public class NgWithdrawController {
             return ResponseEntity.ok(withdrawDataDto);
         } catch (Exception ex) {
             logger.error("outputCredits error:", ex);
-            String message = String.format("Failed output credits %s", currencyName);
-            throw new NgResponseException(ErrorApiTitles.FAILED_OUTPUT_CREDITS, message);
+            throw new NgResponseException(ErrorApiTitles.FAILED_OUTPUT_CREDITS, ex.getMessage());
         }
     }
 
@@ -235,8 +234,7 @@ public class NgWithdrawController {
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             logger.error("Failed to send pin code on user email", e);
-            String message = "Failed to send pin code on user email";
-            throw new NgResponseException(ErrorApiTitles.FAILED_TO_SEND_PIN_CODE_ON_USER_EMAIL, message);
+            throw new NgResponseException(ErrorApiTitles.FAILED_TO_SEND_PIN_CODE_ON_USER_EMAIL, "error.send_message_user");
         }
     }
 

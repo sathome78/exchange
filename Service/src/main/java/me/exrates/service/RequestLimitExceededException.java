@@ -5,8 +5,13 @@ package me.exrates.service;
  */
 public class RequestLimitExceededException extends RuntimeException {
 
+    private static String REASON_CODE = "merchants.OutputRequestsLimit";
+
     public RequestLimitExceededException(String message) {
         super(message);
     }
 
+    public RequestLimitExceededException() {
+        super(REASON_CODE);
+    }
 }

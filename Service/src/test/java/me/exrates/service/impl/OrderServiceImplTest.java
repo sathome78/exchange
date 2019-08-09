@@ -711,7 +711,7 @@ public class OrderServiceImplTest {
         when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("10"));
 
         OrderValidationDto orderValidationDto = orderService
-                    .validateOrder(getMockOrderCreateDto(BigDecimal.TEN), Boolean.FALSE, new User());
+                .validateOrder(getMockOrderCreateDto(BigDecimal.TEN), Boolean.FALSE, new User());
 
         assertNotNull(orderValidationDto);
         assertEquals(4, orderValidationDto.getErrors().size());
@@ -3092,7 +3092,7 @@ public class OrderServiceImplTest {
         final Optional<OrderCreationResultDto> resultDto = orderService.autoAcceptMarketOrders(testOrderCreatedDto, Locale.ENGLISH);
 
         final OrderCreationResultDto result = resultDto.orElseThrow(RuntimeException::new);
-        assertEquals(3, (int)result.getAutoAcceptedQuantity());
+        assertEquals(3, (int) result.getAutoAcceptedQuantity());
         assertEquals(BigDecimal.ONE.intValue(), result.getPartiallyAcceptedAmount().intValue());
         assertEquals(3, result.getFullyAcceptedOrdersIds().size());
         assertEquals(BigDecimal.valueOf(3.0), result.getPartiallyAcceptedOrderFullAmount());
@@ -6421,29 +6421,9 @@ public class OrderServiceImplTest {
     }
 
     @Test
-    public void getOrderExcelFile_OrderStatus_OPENED() throws Exception {
+    public void getOrderExcelFile_success() throws Exception {
         ReportDto transactionExcelFile = orderService
-                .getOrderExcelFile(Collections.singletonList(new OrderWideListDto()), OrderStatus.OPENED);
-
-        assertNotNull(transactionExcelFile);
-        assertEquals(String.format("Orders_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)),
-                transactionExcelFile.getFileName());
-    }
-
-    @Test
-    public void getOrderExcelFile_not_supported() {
-        try {
-            orderService.getOrderExcelFile(Collections.singletonList(new OrderWideListDto()), OrderStatus.DELETED);
-        } catch (Exception e) {
-            assertTrue(e instanceof RuntimeException);
-            assertEquals("Not supported", e.getMessage());
-        }
-    }
-
-    @Test
-    public void getOrderExcelFile_OrderStatus_CLOSED() throws Exception {
-        ReportDto transactionExcelFile = orderService
-                .getOrderExcelFile(Collections.singletonList(new OrderWideListDto()), OrderStatus.CLOSED);
+                .getOrderExcelFile(Collections.singletonList(new OrderWideListDto()));
 
         assertNotNull(transactionExcelFile);
         assertEquals(String.format("Orders_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)),
