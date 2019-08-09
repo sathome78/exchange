@@ -977,7 +977,7 @@ public class AdminController {
     public ResponseEntity changeActiveBalance(@RequestParam Integer userId,
                                               @RequestParam("currency") Integer currencyId,
                                               @RequestParam BigDecimal amount,
-                                              @RequestParam(defaultValue = "manually credited") String comment,
+                                              @RequestParam String comment,
                                               Principal principal) {
         LOG.debug("userId = " + userId + ", currencyId = " + currencyId + ", amount = " + amount);
 
