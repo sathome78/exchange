@@ -32,9 +32,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Log4j2
-@Service
-@Conditional(MonolitConditional.class)
-@PropertySource("classpath:/merchants/binance.properties")
 public class BinanceServiceImpl implements BinanceService {
 
     private static final String LAST_BLOCK_PARAM = "LastScannedBlock";

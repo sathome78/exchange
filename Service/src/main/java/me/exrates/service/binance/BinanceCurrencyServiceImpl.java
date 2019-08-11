@@ -1,6 +1,7 @@
 package me.exrates.service.binance;
 
 import com.binance.dex.api.client.domain.broadcast.Transaction;
+import com.binance.dex.api.client.domain.broadcast.TxType;
 import com.binance.dex.api.client.impl.BinanceDexApiNodeClientImpl;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.condition.MonolitConditional;
@@ -28,8 +29,15 @@ public class BinanceCurrencyServiceImpl implements BinanceCurrencyService {
 
     public static void main(String[] args) {
         BinanceCurrencyServiceImpl binanceCurrencyService = new BinanceCurrencyServiceImpl();
-        long value = 6760515L;
+        long value = 26660676L;
         System.out.println("..........................");
+        while (true) {
+            List<Transaction> transactions = binanceCurrencyService.getBlockTransactions(++value);
+            transactions.forEach(transaction -> {
+                if (transaction.getTxType() == TxType.TRANSFER) {
+                    System.out.println(binanceCurrencyService.getToken(transaction));
+                }
+            });
 //        while(true){
 //            value++;
 //            if (binanceCurrencyService.binanceDexApiNodeClient.getBlockMetaByHeight(value).getHeader().getNumTxs()>0) {
@@ -38,12 +46,14 @@ public class BinanceCurrencyServiceImpl implements BinanceCurrencyService {
 //                break;
 //            }
 //        }
-        System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getNodeInfo().getSyncInfo().getLatestBlockHeight());
-        System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getTransaction("DBA8BD55160F809FABF75D2E6164C55BF18059C5EF0B22F675D21717EEC26EC8").getRealTx().toString());
-        System.out.println("-="+ binanceCurrencyService.binanceDexApiNodeClient.getBlockMetaByHeight(6760515L)+"=-");
+//        System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getNodeInfo().getSyncInfo().getLatestBlockHeight());
+//        System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getTransaction("DBA8BD55160F809FABF75D2E6164C55BF18059C5EF0B22F675D21717EEC26EC8").getRealTx().toString());
+//        System.out.println("-="+ binanceCurrencyService.binanceDexApiNodeClient.getBlockMetaByHeight(6760515L)+"=-");
 //        System.out.println(binanceCurrencyService.getBlockTransactions( 6760625L).size());
-        System.out.println("..........................");
-       }
+//        System.out.println("..........................");
+        }
+    }
+
 
 
     @Override
