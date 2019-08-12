@@ -146,15 +146,13 @@ public class NgTransferController {
         String email = getPrincipalEmail();
         if (!rateLimitService.checkLimitsExceed(email)) {
             log.info("Limits exceeded for user " + email);
-            String message = String.format("Limits exceeded for user %s", email);
-            throw new NgResponseException(ErrorApiTitles.FAILED_ACCEPT_TRANSFER, message);
+            throw new NgResponseException(ErrorApiTitles.FAILED_ACCEPT_TRANSFER, "message.limits_exceed");
         }
         InvoiceActionTypeEnum action = PRESENT_VOUCHER;
         List<InvoiceStatus> requiredStatus = TransferStatusEnum.getAvailableForActionStatusesList(action);
         if (requiredStatus.size() > 1) {
             log.info("To many invoices: " + requiredStatus.size());
-            String message = String.format("To many invoices: %s", requiredStatus.size());
-            throw new NgResponseException(ErrorApiTitles.FAILED_ACCEPT_TRANSFER, message);
+            throw new NgResponseException(ErrorApiTitles.FAILED_ACCEPT_TRANSFER, "message.error_accept_by_current_code");
         }
         String code = params.getOrDefault("CODE", "");
         Optional<TransferRequestFlatDto> dto = transferService
@@ -211,19 +209,18 @@ public class NgTransferController {
             throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, locale));
         }
         if (requestParamsDto.getRecipient() != null && CharUtils.isCyrillic(requestParamsDto.getRecipient())) {
-            throw new IllegalArgumentException(messageSource.getMessage(
-                    "message.only.latin.symblos", null, locale));
+            throw new IllegalArgumentException("message.only.latin.symblos");
         }
         User user = userService.findByEmail(email);
         if (g2faService.isGoogleAuthenticatorEnable(user.getId())) {
             if (!g2faService.checkGoogle2faVerifyCode(requestParamsDto.getPin(), user.getId())) {
-                throw new IncorrectPinException("Incorrect Google 2FA oauth code: " + requestParamsDto.getPin());
+                throw new IncorrectPinException();
             }
         } else {
             if (!userService.checkPin(getPrincipalEmail(), requestParamsDto.getPin(), NotificationMessageEventEnum.TRANSFER)) {
                 Currency currency = currencyService.getById(requestParamsDto.getCurrency());
                 secureService.sendTransferPinCode(user, requestParamsDto.getSum().toPlainString(), currency.getName());
-                throw new IncorrectPinException("Incorrect pin: " + requestParamsDto.getPin());
+                throw new IncorrectPinException();
             }
         }
 
@@ -296,8 +293,7 @@ public class NgTransferController {
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             logger.error("Failed to send user email", e);
-            String message = String.format("Failed to send user email");
-            throw new NgResponseException(ErrorApiTitles.FAILED_TO_SEND_USER_EMAIL, message);
+            throw new NgResponseException(ErrorApiTitles.FAILED_TO_SEND_USER_EMAIL, "error.send_message_user");
         }
     }
 

@@ -603,7 +603,7 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Override
     public List<MarketVolume> getAllMarketVolumes() {
-        if (defaultMarketVolumes != null) {
+        if (defaultMarketVolumes != null && !defaultMarketVolumes.isEmpty()) {
             return defaultMarketVolumes.entrySet().stream()
                     .map(o -> new MarketVolume(o.getKey(), o.getValue()))
                     .collect(Collectors.toList());

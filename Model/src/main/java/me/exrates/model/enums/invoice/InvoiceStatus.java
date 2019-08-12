@@ -1,40 +1,38 @@
 package me.exrates.model.enums.invoice;
 
-import java.util.HashSet;
+import me.exrates.model.enums.BaseStatus;
+
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-/**
- * Created by ValkSam on 18.02.2017.
- */
 public interface InvoiceStatus {
 
-  default Optional<InvoiceStatus> nextState(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap, InvoiceActionTypeEnum action) {
-    return Optional.ofNullable(schemaMap.get(action));
-  }
+    default Optional<InvoiceStatus> nextState(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap, InvoiceActionTypeEnum action) {
+        return Optional.ofNullable(schemaMap.get(action));
+    }
 
-  InvoiceStatus nextState(InvoiceActionTypeEnum action);
+    InvoiceStatus nextState(InvoiceActionTypeEnum action);
 
-  default Boolean availableForAction(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap, InvoiceActionTypeEnum action) {
-    return schemaMap.get(action) != null;
-  }
+    default Boolean availableForAction(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap, InvoiceActionTypeEnum action) {
+        return schemaMap.get(action) != null;
+    }
 
-  InvoiceStatus nextState(InvoiceActionTypeEnum action, InvoiceActionTypeEnum.InvoiceActionParamsValue paramsValue);
+    InvoiceStatus nextState(InvoiceActionTypeEnum action, InvoiceActionTypeEnum.InvoiceActionParamsValue paramsValue);
 
-  Boolean availableForAction(InvoiceActionTypeEnum action);
+    Boolean availableForAction(InvoiceActionTypeEnum action);
 
-  Set<InvoiceActionTypeEnum> getAvailableActionList(InvoiceActionTypeEnum.InvoiceActionParamsValue paramsValue);
+    Set<InvoiceActionTypeEnum> getAvailableActionList(InvoiceActionTypeEnum.InvoiceActionParamsValue paramsValue);
 
-  void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap);
+    void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap);
 
-  Boolean isEndStatus();
+    Boolean isEndStatus();
 
-  Boolean isSuccessEndStatus();
+    Boolean isSuccessEndStatus();
 
-  Integer getCode();
+    Integer getCode();
 
-  String name();
+    String name();
 
+    BaseStatus getBaseStatus();
 }

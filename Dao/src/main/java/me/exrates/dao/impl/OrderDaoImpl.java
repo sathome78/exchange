@@ -2352,7 +2352,10 @@ public class OrderDaoImpl implements OrderDao {
                 amountWithCommission = BigDecimalProcessing.doAction(amountWithCommission, rs.getBigDecimal("commission_fixed_amount"), ActionType.ADD);
             }
             orderWideListDto.setAmountWithCommission(BigDecimalProcessing.formatLocale(amountWithCommission, locale, 2));
-            orderWideListDto.setDateCreation(getLocalDateTime(rs, "date_creation"));
+            LocalDateTime orderDate = userId == acceptorId
+                    ? getLocalDateTime(rs, "date_acception")
+                    : getLocalDateTime(rs, "date_creation");
+            orderWideListDto.setDateCreation(orderDate);
             orderWideListDto.setStatus(OrderStatus.convert(rs.getInt("status_id")));
             orderWideListDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
             orderWideListDto.setDateModification(getLocalDateTime(rs, "date_modification"));

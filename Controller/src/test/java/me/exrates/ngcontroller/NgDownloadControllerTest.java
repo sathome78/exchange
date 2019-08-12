@@ -32,7 +32,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Matchers.anyMapOf;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -91,7 +90,7 @@ public class NgDownloadControllerTest extends AngularApiCommonTest {
                 any(LocalDateTime.class),
                 any(Locale.class))
         ).thenReturn(Collections.singletonList(new OrderWideListDto()));
-        when(orderService.getOrderExcelFile(anyListOf(OrderWideListDto.class), any(OrderStatus.class)))
+        when(orderService.getOrderExcelFile(anyListOf(OrderWideListDto.class)))
                 .thenReturn(new ReportDto());
 
         mockMvc.perform(get(BASE_URL + "/orders/{status}/export", OrderStatus.OPENED))
@@ -113,8 +112,7 @@ public class NgDownloadControllerTest extends AngularApiCommonTest {
                 any(LocalDateTime.class),
                 any(Locale.class));
         verify(orderService, times(1)).getOrderExcelFile(
-                anyListOf(OrderWideListDto.class)
-                , any(OrderStatus.class));
+                anyListOf(OrderWideListDto.class));
     }
 
     @Test
@@ -136,7 +134,7 @@ public class NgDownloadControllerTest extends AngularApiCommonTest {
                 any(LocalDateTime.class),
                 any(Locale.class))
         ).thenReturn(Collections.singletonList(new OrderWideListDto()));
-        when(orderService.getOrderExcelFile(anyListOf(OrderWideListDto.class), any(OrderStatus.class)))
+        when(orderService.getOrderExcelFile(anyListOf(OrderWideListDto.class)))
                 .thenReturn(getMockReportDto());
 
         mockMvc.perform(get(BASE_URL + "/orders/{status}/export", OrderStatus.OPENED)
@@ -164,8 +162,7 @@ public class NgDownloadControllerTest extends AngularApiCommonTest {
                 any(LocalDateTime.class),
                 any(Locale.class));
         verify(orderService, times(1)).getOrderExcelFile(
-                anyListOf(OrderWideListDto.class)
-                , any(OrderStatus.class));
+                anyListOf(OrderWideListDto.class));
     }
 
     @Test

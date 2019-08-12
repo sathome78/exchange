@@ -23,6 +23,7 @@ public class ErrorInfo {
     public final String url;
     public final String cause;
     public final String detail;
+    public String[] arguments;
     public String title;
     public String uuid;
     public Integer code;

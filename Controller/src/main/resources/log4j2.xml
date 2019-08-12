@@ -14,7 +14,7 @@
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
         <RollingFile name="Logs" fileName="${sys:catalina.home}/logs/general/log.log"
-            filePattern="${sys:catalina.home}/logs/general/log_%d_%i.log" append="true">
+                     filePattern="${sys:catalina.home}/logs/general/log_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
@@ -773,19 +773,18 @@
         <logger name="org.apache.http" level="ERROR" additivity="false">
             <AppenderRef ref="bitcoin_core_log"/>
         </logger>
-        <Logger name="org.springframework" level="ERROR" additivity="false">
-            <AppenderRef ref="Console"/>
+        <logger name="org.springframework" level="ERROR" additivity="false">
             <AppenderRef ref="Logs"/>
-        </Logger>
-<!--        <logger name="org.springframework.security" level="ERROR" additivity="false">-->
-<!--            <AppenderRef ref="Logs"/>-->
-<!--        </logger>-->
-<!--        <logger name="org.springframework.jdbc.core.JdbcTemplate" level="ERROR" additivity="false">-->
-<!--            <appender-ref ref="Console"/>-->
-<!--        </logger>-->
-<!--        <logger name="org.springframework.jdbc.core.StatementCreatorUtils" level="ERROR" additivity="false">-->
-<!--            <appender-ref ref="Console"/>-->
-<!--        </logger>-->
+        </logger>
+        <logger name="org.springframework.security" level="ERROR" additivity="false">
+            <AppenderRef ref="Logs"/>
+        </logger>
+        <logger name="org.springframework.jdbc.core.JdbcTemplate" level="ERROR" additivity="false">
+            <appender-ref ref="Console"/>
+        </logger>
+        <logger name="org.springframework.jdbc.core.StatementCreatorUtils" level="ERROR" additivity="false">
+            <appender-ref ref="Console"/>
+        </logger>
         <Logger name="me.exrates.controller.OnlineRestController" level="INFO" additivity="false">
             <AppenderRef ref="OnlineServices"/>
         </Logger>
@@ -823,7 +822,7 @@
         </Logger>
 
         <!--profiling-->
-        <Logger name="profile" level="ALL" additivity="false">F
+        <Logger name="profile" level="ALL" additivity="false">
             <AppenderRef ref="profile_log"/>
         </Logger>
 
@@ -1054,12 +1053,9 @@
         <logger name="inout" level="ALL" additivity="false">
             <AppenderRef ref="inout"/>
         </logger>
-        <logger name="me.exrates" level="ERROR" additivity="false">
+        <Root level="INFO">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Logs"/>
-        </logger>
-        <Root level="ERROR">
-            <AppenderRef ref="Console"/>
         </Root>
     </Loggers>
 </Configuration>

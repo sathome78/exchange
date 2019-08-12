@@ -1,6 +1,7 @@
 package me.exrates.service.impl;
 
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
@@ -636,28 +637,27 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean addUserComment(UserCommentTopicEnum topic, String newComment, String email, boolean sendMessage) {
+        Function<String, User> userFunction = this::findByEmail;
 
-        User user = findByEmail(email);
-        User creator;
         Comment comment = new Comment();
         comment.setMessageSent(sendMessage);
-        comment.setUser(user);
+        comment.setUser(userFunction.apply(email));
         comment.setComment(newComment);
         comment.setUserCommentTopic(topic);
+
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            creator = findByEmail(auth.getName());
-            comment.setCreator(creator);
+
+            comment.setCreator(userFunction.apply(auth.getName()));
         } catch (Exception e) {
             LOGGER.error(e);
         }
         boolean success = userDao.addUserComment(comment);
 
         if (comment.isMessageSent()) {
-            notificationService.notifyUser(user.getId(), NotificationEvent.ADMIN, "admin.subjectCommentTitle",
+            notificationService.notifyUser(getIdByEmail(email), NotificationEvent.ADMIN, "admin.subjectCommentTitle",
                     "admin.subjectCommentMessage", new Object[]{": " + newComment});
         }
-
         return success;
     }
 
