@@ -21,7 +21,7 @@ public class BinanceCurrencyServiceImpl implements BinanceCurrencyService {
     private static final String TOKEN_CODE = "coins=[Token[denom=";
     private static final String AMOUNT_CODE = "amount=";
 
-    BinanceDexApiNodeClientImpl binanceDexApiNodeClient;
+    private BinanceDexApiNodeClientImpl binanceDexApiNodeClient;
 
 
     @Autowired
@@ -31,6 +31,24 @@ public class BinanceCurrencyServiceImpl implements BinanceCurrencyService {
 
     public static void main(String[] args) {
         BinanceCurrencyServiceImpl binanceCurrencyService = new BinanceCurrencyServiceImpl();
+        long value = 26668656L;
+        //https://explorer.binance.org/txs?asset=ARN-71B
+        System.out.println("..........................");
+        while (true) {
+            List<Transaction> transactions = binanceCurrencyService.getBlockTransactions(++value);
+            long long1 = value;
+            transactions.forEach(transaction -> {
+                if (transaction.getTxType() == TxType.TRANSFER &&
+                        !binanceCurrencyService.getToken(transaction).equals("BNB")) {
+                    System.out.print(transaction.getHeight() + "  ");
+                    System.out.println(binanceCurrencyService.getToken(transaction));
+                    System.out.println(binanceCurrencyService.getAmount(transaction));
+                    System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getBlockMetaByHeight(long1).getHeader().getHeight());
+                    System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getBlockMetaByHeight(long1).getBlockId().getHash());
+                }
+            });
+        }
+
 //        long value = 26077660L;
 //        System.out.println("..........................");
 //        while(true){
@@ -40,7 +58,6 @@ public class BinanceCurrencyServiceImpl implements BinanceCurrencyService {
 //                if (transaction.getTxType() == TxType.TRANSFER){
 //                    System.out.println(binanceCurrencyService.getToken(transaction));
 //                }
-        System.out.println("OK");
 //            if (binanceCurrencyService.binanceDexApiNodeClient.getBlockMetaByHeight(value).getHeader().getNumTxs()>0) {
 //                System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getBlockMetaByHeight(value).getHeader().getHeight());
 //                System.out.println(binanceCurrencyService.binanceDexApiNodeClient.getBlockMetaByHeight(value).getHeader().getNumTxs());

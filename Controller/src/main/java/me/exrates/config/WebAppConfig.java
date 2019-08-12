@@ -2117,9 +2117,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     @Bean(name = "binanceServiceImpl")
     @Conditional(MonolitConditional.class)
-
-//    @Bean(name = "binanceServiceImpl")
-//    @Conditional(MonolitConditional.class)
     public BinanceService binanceService(){
         return new BinanceServiceImpl("BinanceBlockchain", 40);
     }

@@ -32,8 +32,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Log4j2
-@Service
-@Conditional(MonolitConditional.class)
 @PropertySource("classpath:/merchants/binance.properties")
 public class BinanceServiceImpl implements BinanceService {
 
@@ -43,7 +41,7 @@ public class BinanceServiceImpl implements BinanceService {
     private int confirmations;
     private static Map<String, BinTokenServiceImpl> tokenMap = new HashMap<String, BinTokenServiceImpl>(){{
         put("BNB", new BinTokenServiceImpl("BinanceCoin","BNB"));
-        put("ARN", new BinTokenServiceImpl("ARN","ARN"));
+        put("ARN-71B", new BinTokenServiceImpl("ARN","ARN"));
     }};
 
     private Merchant merchant;
