@@ -54,4 +54,8 @@ public interface BinTokenService extends IRefillable, IWithdrawable {
     default String additionalRefillFieldName() {
         return "MEMO";
     }
+
+    String getMerchantName();
+
+    String getCurrencyName();
 }

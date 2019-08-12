@@ -4,11 +4,13 @@ import com.binance.dex.api.client.domain.broadcast.Transaction;
 import com.binance.dex.api.client.domain.broadcast.TxType;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
+import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.MerchantSpecParamDto;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
@@ -18,6 +20,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -35,28 +38,27 @@ public class BinanceServiceImpl implements BinanceService {
 
     private String merchantName;
     private int confirmations;
-    private static Map<String, BinTokenServiceImpl> tokenMap = new HashMap<String, BinTokenServiceImpl>(){{
+    private static Map<String, BinTokenService> tokenMap = new HashMap<String, BinTokenService>(){{
         put("BNB", new BinTokenServiceImpl("merchants/binance.properties", "BinanceCoin","BNB"));
         put("ARN-71B", new BinTokenServiceImpl("merchants/binance.properties", "ARN","ARN"));
     }};
 
-    private Merchant merchant;
-    private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-
+    private Merchant assetMerchant;
+    private Currency assetCurrency;
     private String mainAddress;
+
+    private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     @Autowired
     private MerchantService merchantService;
     @Autowired
+    private CurrencyService currencyService;
+    @Autowired
     private RefillService refillService;
     @Autowired
-    private MessageSource messageSource;
-    @Autowired
     private WithdrawUtils withdrawUtils;
-
     @Autowired
     private MerchantSpecParamsDao specParamsDao;
-
     @Autowired
     private BinanceCurrencyService binanceCurrencyService;
 
@@ -75,7 +77,6 @@ public class BinanceServiceImpl implements BinanceService {
 
     @PostConstruct
     public void init() {
-        merchant = merchantService.findByName(merchantName);
         scheduler.scheduleAtFixedRate(this::checkRefills, 1, 1, TimeUnit.MINUTES);
     }
 
@@ -88,25 +89,31 @@ public class BinanceServiceImpl implements BinanceService {
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         String address = params.get("address");
         String hash = params.get("hash");
-        String merchantId = params.get("merchantId");
-        String currencyId = params.get("currencyId");
+        String merchantName = params.get("merchantName");
+        String currencyName = params.get("currencyName");
         BigDecimal amount = new BigDecimal(params.get("amount"));
 
-        if (checkTransactionForDuplicate(hash, Integer.valueOf(merchantId), Integer.valueOf(currencyId))) {
+        assetMerchant = merchantService.findByName(merchantName);
+        assetCurrency = currencyService.findByName(currencyName);
+
+        if (checkTransactionForDuplicate(hash, assetMerchant.getId(), assetCurrency.getId())) {
             log.warn("*** binance *** transaction {} already accepted", hash);
             return;
         }
 
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
-                .merchantId(Integer.valueOf(merchantId))
-                .currencyId(Integer.valueOf(currencyId))
+                .merchantId(assetMerchant.getId())
+                .currencyId(assetCurrency.getId())
                 .amount(amount)
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
 
         refillService.createAndAutoAcceptRefillRequest(requestAcceptDto);
+
+        assetMerchant = null;
+        assetCurrency = null;
     }
 
     @Override
@@ -134,14 +141,14 @@ public class BinanceServiceImpl implements BinanceService {
                         binanceCurrencyService.getReceiverAddress(transaction).equalsIgnoreCase(mainAddress) &&
                         tokenMap.containsKey(binanceCurrencyService.getToken(transaction))){
 
-                    BinTokenServiceImpl binTokenService = tokenMap.get(binanceCurrencyService.getToken(transaction));
+                    BinTokenService binTokenService = tokenMap.get(binanceCurrencyService.getToken(transaction));
 
                     Map<String, String> map = new HashMap<>();
                     map.put("address",binanceCurrencyService.getMemo(transaction));
                     map.put("hash",binanceCurrencyService.getHash(transaction));
                     map.put("amount",binanceCurrencyService.getAmount(transaction));
-                    map.put("merchantId", String.valueOf(binTokenService.getMerchantName()));
-                    map.put("currencyId", String.valueOf(binTokenService.getCurrencyName()));
+                    map.put("merchantName", binTokenService.getMerchantName());
+                    map.put("currencyName", binTokenService.getCurrencyName());
 
                     try {
                         processPayment(map);
@@ -168,5 +175,10 @@ public class BinanceServiceImpl implements BinanceService {
 
     private void saveLastBlock(long blockNum) {
         specParamsDao.updateParam(merchantName, LAST_BLOCK_PARAM, String.valueOf(blockNum));
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        scheduler.shutdown();
     }
 }

@@ -1,13 +1,10 @@
 package me.exrates.service.binance;
 
-import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
-import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.CurrencyService;
-import me.exrates.service.MerchantService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.util.CryptoUtils;
 import me.exrates.service.util.WithdrawUtils;
@@ -21,22 +18,15 @@ import java.util.Map;
 import java.util.Properties;
 
 @Log4j2
-@Data
 public class BinTokenServiceImpl implements BinTokenService {
-
 
     private String currencyName;
     private String merchantName;
-
-    private Merchant merchant;
-    private Currency currency;
-
     private String mainAddress;
+    private Currency currency;
 
     @Autowired
     private CurrencyService currencyService;
-    @Autowired
-    private MerchantService merchantService;
     @Autowired
     private MessageSource messageSource;
     @Autowired
@@ -59,12 +49,6 @@ public class BinTokenServiceImpl implements BinTokenService {
     @PostConstruct
     public void init() {
         currency = currencyService.findByName(currencyName);
-        merchant = merchantService.findByName(merchantName);
-    }
-
-    @Override
-    public String getMainAddress(){
-        return mainAddress;
     }
 
     @Override
@@ -93,5 +77,20 @@ public class BinTokenServiceImpl implements BinTokenService {
     @Override
     public boolean isValidDestinationAddress(String address) {
         return withdrawUtils.isValidDestinationAddress(mainAddress, address);
+    }
+
+    @Override
+    public String getMerchantName() {
+        return merchantName;
+    }
+
+    @Override
+    public String getCurrencyName() {
+        return currencyName;
+    }
+
+    @Override
+    public String getMainAddress(){
+        return mainAddress;
     }
 }
