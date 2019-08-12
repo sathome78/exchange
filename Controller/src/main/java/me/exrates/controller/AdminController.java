@@ -45,7 +45,6 @@ import me.exrates.model.dto.RefillRequestBtcInfoDto;
 import me.exrates.model.dto.RefsListContainer;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
-import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.dto.UserSessionDto;
 import me.exrates.model.dto.UserTransferInfoDto;
 import me.exrates.model.dto.UserWalletSummaryDto;
@@ -80,10 +79,8 @@ import me.exrates.model.enums.ReportGroupUserRole;
 import me.exrates.model.enums.TransactionType;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserEventEnum;
-import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
-import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.form.AuthorityOptionsForm;
 import me.exrates.model.form.UserOperationAuthorityOptionsForm;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -985,19 +982,19 @@ public class AdminController {
     public ResponseEntity changeActiveBalance(@RequestParam Integer userId,
                                               @RequestParam("currency") Integer currencyId,
                                               @RequestParam BigDecimal amount,
-                                              @RequestParam(defaultValue = "manually credited") String comment,
+                                              @RequestParam String comment,
                                               Principal principal) {
         LOG.debug("userId = " + userId + ", currencyId = " + currencyId + ", amount = " + amount);
 
         walletService.manualBalanceChange(userId, currencyId, amount, principal.getName());
 
-        stompMessenger.sendPersonalMessageToUser(
-                userService.findEmailById(userId),
-                UserNotificationMessage.builder()
-                        .notificationType(UserNotificationType.INFORMATION)
-                        .sourceTypeEnum(WsSourceTypeEnum.SUBSCRIBE)
-                        .text(String.format("%s %s %s", amount.toPlainString(), currencyService.getCurrencyName(currencyId), comment))
-                        .build());
+        try {
+            final String newComment = String.format("%s %s %s", amount.toPlainString(), currencyService.getCurrencyName(currencyId), comment);
+
+            userService.addUserComment(GENERAL, newComment, userService.getEmailById(userId), false);
+        } catch (Exception ex) {
+            LOG.error("Comment could not be saved", ex);
+        }
         return ResponseEntity.ok().build();
     }
 
@@ -1177,7 +1174,7 @@ public class AdminController {
     @ResponseBody
     @PostMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPairs/market/post")
     public ResponseEntity<Void> updateMarketVolume(@RequestParam(value = "name") String name,
-                                                                  @RequestParam(value = "volume") String volume) {
+                                                   @RequestParam(value = "volume") String volume) {
         if (StringUtils.isEmpty(volume) && !StringUtils.isNumeric(volume)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }

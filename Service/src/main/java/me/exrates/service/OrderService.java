@@ -439,7 +439,7 @@ public interface OrderService {
                                              Integer offset, Boolean hideCanceled, String sortByCreated,
                                              LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo, Locale locale);
 
-    ReportDto getOrderExcelFile(List<OrderWideListDto> orders, OrderStatus orderStatus) throws Exception;
+    ReportDto getOrderExcelFile(List<OrderWideListDto> orders) throws Exception;
 
     ReportDto getTransactionExcelFile(List<MyInputOutputHistoryDto> transactions) throws Exception;
 

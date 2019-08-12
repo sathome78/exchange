@@ -2,12 +2,10 @@ package me.exrates.model.enums.invoice;
 
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.constants.ErrorApiTitles;
-import me.exrates.model.exceptions.IeoException;
+import me.exrates.model.enums.BaseStatus;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
 import me.exrates.model.exceptions.UnsupportedInvoiceStatusForActionException;
-import me.exrates.model.exceptions.UnsupportedWithdrawRequestStatusIdException;
 import me.exrates.model.exceptions.UnsupportedWithdrawRequestStatusNameException;
 
 import java.util.Arrays;
@@ -21,9 +19,6 @@ import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.InvoiceActionParamsValue;
 
-/**
- * Created by ValkSam
- */
 @Log4j2
 public enum IeoStatusEnum implements InvoiceStatus {
 
@@ -160,5 +155,10 @@ public enum IeoStatusEnum implements InvoiceStatus {
         return code;
     }
 
-}
+    @Override
+    public BaseStatus getBaseStatus() {
+        log.warn("Not implemented yet");
 
+        return null;
+    }
+}

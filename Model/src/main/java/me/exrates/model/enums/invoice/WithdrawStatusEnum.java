@@ -2,6 +2,7 @@ package me.exrates.model.enums.invoice;
 
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.enums.BaseStatus;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
 import me.exrates.model.exceptions.UnsupportedInvoiceStatusForActionException;
@@ -23,11 +24,9 @@ import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.PUT_FOR_AUTO;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.PUT_FOR_CONFIRM;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.PUT_FOR_MANUAL;
 
-/**
- * Created by ValkSam
- */
 @Log4j2
 public enum WithdrawStatusEnum implements InvoiceStatus {
+
     CREATED_USER(1) {
         @Override
         public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
@@ -295,5 +294,19 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
         }
     }
 
+    @Override
+    public BaseStatus getBaseStatus() {
+        switch (this) {
+            case REVOKED_USER:
+                return BaseStatus.CANCELED;
+            case DECLINED_ADMIN:
+            case DECLINED_ERROR:
+                return BaseStatus.DECLINED;
+            case POSTED_MANUAL:
+            case POSTED_AUTO:
+                return BaseStatus.COMPLETED;
+            default:
+                return null;
+        }
+    }
 }
-
