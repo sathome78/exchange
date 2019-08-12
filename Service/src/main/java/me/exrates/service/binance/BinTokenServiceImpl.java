@@ -3,6 +3,7 @@ package me.exrates.service.binance;
 import lombok.Data;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
@@ -11,13 +12,17 @@ import me.exrates.service.util.CryptoUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
 
 @Data
+@Service
+@Conditional(MonolitConditional.class)
 @PropertySource("classpath:/merchants/binance.properties")
 public class BinTokenServiceImpl implements BinTokenService {
 
