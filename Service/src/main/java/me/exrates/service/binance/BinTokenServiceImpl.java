@@ -1,29 +1,27 @@
 package me.exrates.service.binance;
 
 import lombok.Data;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
-import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.util.CryptoUtils;
+import me.exrates.service.util.WithdrawUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
+@Log4j2
 @Data
-@Service
-@Conditional(MonolitConditional.class)
-@PropertySource("classpath:/merchants/binance.properties")
 public class BinTokenServiceImpl implements BinTokenService {
 
 
@@ -33,7 +31,6 @@ public class BinTokenServiceImpl implements BinTokenService {
     private Merchant merchant;
     private Currency currency;
 
-    @Value("${binance.main.address}")
     private String mainAddress;
 
     @Autowired
@@ -42,8 +39,19 @@ public class BinTokenServiceImpl implements BinTokenService {
     private MerchantService merchantService;
     @Autowired
     private MessageSource messageSource;
+    @Autowired
+    private WithdrawUtils withdrawUtils;
 
-    public BinTokenServiceImpl(String merchantName, String currencyName){
+    public BinTokenServiceImpl(String propertySource, String merchantName, String currencyName){
+        Properties props = new Properties();
+
+        try {
+            props.load(getClass().getClassLoader().getResourceAsStream(propertySource));
+            this.mainAddress = props.getProperty("binance.main.address");
+        } catch (IOException e) {
+            log.error(e);
+        }
+
         this.merchantName = merchantName;
         this.currencyName = currencyName;
     }
@@ -52,6 +60,11 @@ public class BinTokenServiceImpl implements BinTokenService {
     public void init() {
         currency = currencyService.findByName(currencyName);
         merchant = merchantService.findByName(merchantName);
+    }
+
+    @Override
+    public String getMainAddress(){
+        return mainAddress;
     }
 
     @Override
@@ -72,4 +85,13 @@ public class BinTokenServiceImpl implements BinTokenService {
 
     }
 
+    @Override
+    public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
+        throw new RuntimeException("not supported");
+    }
+
+    @Override
+    public boolean isValidDestinationAddress(String address) {
+        return withdrawUtils.isValidDestinationAddress(mainAddress, address);
+    }
 }

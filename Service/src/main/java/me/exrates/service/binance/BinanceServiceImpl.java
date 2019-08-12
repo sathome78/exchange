@@ -5,7 +5,6 @@ import com.binance.dex.api.client.domain.broadcast.TxType;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Merchant;
-import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.MerchantSpecParamDto;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
@@ -15,24 +14,21 @@ import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.util.WithdrawUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Log4j2
-@PropertySource("classpath:/merchants/binance.properties")
 public class BinanceServiceImpl implements BinanceService {
 
     private static final String LAST_BLOCK_PARAM = "LastScannedBlock";
@@ -40,14 +36,13 @@ public class BinanceServiceImpl implements BinanceService {
     private String merchantName;
     private int confirmations;
     private static Map<String, BinTokenServiceImpl> tokenMap = new HashMap<String, BinTokenServiceImpl>(){{
-        put("BNB", new BinTokenServiceImpl("BinanceCoin","BNB"));
-        put("ARN-71B", new BinTokenServiceImpl("ARN","ARN"));
+        put("BNB", new BinTokenServiceImpl("merchants/binance.properties", "BinanceCoin","BNB"));
+        put("ARN-71B", new BinTokenServiceImpl("merchants/binance.properties", "ARN","ARN"));
     }};
 
     private Merchant merchant;
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    @Value("${binance.main.address}")
     private String mainAddress;
 
     @Autowired
@@ -65,7 +60,15 @@ public class BinanceServiceImpl implements BinanceService {
     @Autowired
     private BinanceCurrencyService binanceCurrencyService;
 
-    public BinanceServiceImpl(String merchantName, int confirmations){
+    public BinanceServiceImpl(String propertySource, String merchantName, int confirmations){
+        Properties props = new Properties();
+
+        try {
+            props.load(getClass().getClassLoader().getResourceAsStream(propertySource));
+            this.mainAddress = props.getProperty("binance.main.address");
+        } catch (IOException e) {
+            log.error(e);
+        }
         this.merchantName = merchantName;
         this.confirmations = confirmations;
     }
@@ -73,7 +76,7 @@ public class BinanceServiceImpl implements BinanceService {
     @PostConstruct
     public void init() {
         merchant = merchantService.findByName(merchantName);
-        scheduler.scheduleAtFixedRate(this::checkRefills, 5, 20, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::checkRefills, 1, 1, TimeUnit.MINUTES);
     }
 
     @Override
@@ -136,7 +139,6 @@ public class BinanceServiceImpl implements BinanceService {
                     Map<String, String> map = new HashMap<>();
                     map.put("address",binanceCurrencyService.getMemo(transaction));
                     map.put("hash",binanceCurrencyService.getHash(transaction));
-                    //TODO Как получать Amount в правильном формате
                     map.put("amount",binanceCurrencyService.getAmount(transaction));
                     map.put("merchantId", String.valueOf(binTokenService.getMerchant().getId()));
                     map.put("currencyId", String.valueOf(binTokenService.getCurrency().getId()));
@@ -166,9 +168,5 @@ public class BinanceServiceImpl implements BinanceService {
 
     private void saveLastBlock(long blockNum) {
         specParamsDao.updateParam(merchantName, LAST_BLOCK_PARAM, String.valueOf(blockNum));
-    }
-
-    public static void main(String[] args) {
-
     }
 }
