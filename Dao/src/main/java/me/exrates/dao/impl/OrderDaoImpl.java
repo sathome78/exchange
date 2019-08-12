@@ -2132,27 +2132,34 @@ public class OrderDaoImpl implements OrderDao {
 
         String sql = "SELECT " +
                 "EO.currency_pair_id, " +
+                "(IFNULL ((predlast.exrate " +
+                " ), 0)) AS pred_last, " +
+                " (IFNULL ((predlast.acc_date " +
+                " ), null)) AS pred_last_date," +
                 "(IFNULL ((" +
-                "   SELECT PREDLASTORDER.exrate" +
-                "   FROM EXORDERS PREDLASTORDER" +
-                "   WHERE" +
-                "       PREDLASTORDER.currency_pair_id = EO.currency_pair_id AND" +
-                "       PREDLASTORDER.status_id = EO.status_id" +
-                "   ORDER BY PREDLASTORDER.date_acception DESC" +
-                "   LIMIT 1" +
-                "   OFFSET 1" +
-                "), 0)) AS pred_last, " +
-                "(IFNULL ((" +
-                "   SELECT LASTORDER.exrate" +
-                "   FROM EXORDERS LASTORDER" +
-                "   WHERE" +
-                "       LASTORDER.currency_pair_id = EO.currency_pair_id AND" +
-                "       LASTORDER.status_id = EO.status_id" +
-                "   ORDER BY LASTORDER.date_acception DESC" +
-                "   LIMIT 1" +
-                "), 0)) AS last " +
+                " last.exrate " +
+                " ), 0)) AS last, " +
+                " (IFNULL ((last.acc_date " +
+                " ), null)) AS last_date " +
                 " FROM EXORDERS EO " +
-                "WHERE EO.status_id = 3 " +
+                "  LEFT JOIN ( " +
+                "        SELECT PREDLASTORDER.exrate as exrate, PREDLASTORDER.date_acception as acc_date, PREDLASTORDER.currency_pair_id as pair " +
+                "        FROM EXORDERS PREDLASTORDER " +
+                "        WHERE " +
+                "         PREDLASTORDER.status_id = 3 " +
+                "         ORDER BY PREDLASTORDER.date_acception DESC " +
+                "         LIMIT 1 " +
+                "         OFFSET 1 " +
+                "         ) predlast ON EO.currency_pair_id = predlast.pair " +
+                "  LEFT JOIN ( " +
+                "        SELECT LASTORDER.exrate as exrate, LASTORDER.date_acception as acc_date, LASTORDER.currency_pair_id as pair " +
+                "        FROM EXORDERS LASTORDER " +
+                "        WHERE " +
+                "         LASTORDER.status_id = 3 " +
+                "         ORDER BY LASTORDER.date_acception DESC " +
+                "         LIMIT 1 " +
+                "          ) last ON EO.currency_pair_id = last.pair " +
+                " WHERE EO.status_id = 3 " +
                 whereClause +
                 "GROUP BY EO.currency_pair_id";
 
@@ -2165,6 +2172,10 @@ public class OrderDaoImpl implements OrderDao {
                 .currencyPairId(rs.getInt("currency_pair_id"))
                 .lastOrderRate(rs.getBigDecimal("last").toPlainString())
                 .predLastOrderRate(rs.getBigDecimal("pred_last").toPlainString())
+                .lastDealDate(rs.getTimestamp("last_date") == null
+                        ? null : rs.getTimestamp("last_date").toLocalDateTime())
+                .predLastDealDate(rs.getTimestamp("pred_last_date") == null
+                        ? null : rs.getTimestamp("pred_last_date").toLocalDateTime())
                 .build());
     }
 
@@ -2172,18 +2183,21 @@ public class OrderDaoImpl implements OrderDao {
     public ExOrderStatisticsShortByPairsDto getBeforeLastRateForCache(Integer currencyPairId) {
         String sql = "SELECT " +
                 "EO.currency_pair_id, " +
-                "(IFNULL ((" +
-                "   SELECT PREDLASTORDER.exrate" +
-                "   FROM EXORDERS PREDLASTORDER" +
-                "   WHERE" +
-                "       PREDLASTORDER.currency_pair_id = EO.currency_pair_id AND" +
-                "       PREDLASTORDER.status_id = EO.status_id" +
-                "   ORDER BY PREDLASTORDER.date_acception DESC" +
-                "   LIMIT 1" +
-                "   OFFSET 1" +
+                "(IFNULL ((predlast.exrate " +
                 "), 0)) AS pred_last, " +
+                "(IFNULL ((predlast.date_acception " +
+                "), null)) AS predlast_date, " +
                 "0 AS last " +
                 " FROM EXORDERS EO " +
+                " LEFT JOIN (" +
+                "   SELECT PREDLASTORDER.exrate, PREDLASTORDER.date_acception, PREDLASTORDER.currency_pair_id as pair " +
+                "   FROM EXORDERS PREDLASTORDER " +
+                "   WHERE " +
+                "       PREDLASTORDER.status_id = 3 " +
+                "   ORDER BY PREDLASTORDER.date_acception DESC " +
+                "   LIMIT 1" +
+                "   OFFSET 1" +
+                "      ) predlast ON predlast.pair = EO.currency_pair_id " +
                 "WHERE EO.status_id = 3 " +
                 " AND EO.currency_pair_id = :currency_pair_id " +
                 "GROUP BY EO.currency_pair_id";
@@ -2195,6 +2209,7 @@ public class OrderDaoImpl implements OrderDao {
                 .currencyPairId(rs.getInt("currency_pair_id"))
                 .lastOrderRate(rs.getBigDecimal("last").toPlainString())
                 .predLastOrderRate(rs.getBigDecimal("pred_last").toPlainString())
+                .predLastDealDate(rs.getTimestamp("predlast_date") ==  null ? null : rs.getTimestamp("predlast_date").toLocalDateTime())
                 .build());
         return objectList.stream()
                 .findFirst()
@@ -2223,7 +2238,8 @@ public class OrderDaoImpl implements OrderDao {
                 "(IFNULL (AGR.quoteVolume, 0)) AS quoteVolume, " +
                 "(IFNULL (AGR.high24hr, 0)) AS high24hr, " +
                 "(IFNULL (AGR.low24hr, 0)) AS low24hr, " +
-                "(IFNULL (AGR.last24hr, 0)) AS last24hr " +
+                "(IFNULL (AGR.last24hr, 0)) AS last24hr, " +
+                "(IFNULL (AGR.lastDate, null)) AS lastDate " +
                 "FROM " +
                 "   (SELECT" +
                 "       CP.name, " +
@@ -2239,7 +2255,15 @@ public class OrderDaoImpl implements OrderDao {
                 "       LASTORDER.status_id = EO.status_id AND" +
                 "       LASTORDER.date_acception >= now() - INTERVAL 24 HOUR" +
                 "   ORDER BY LASTORDER.date_acception ASC" +
-                "   LIMIT 1) AS last24hr " +
+                "   LIMIT 1) AS last24hr, " +
+                "(SELECT LASTORDER.date_acception" +
+                "   FROM EXORDERS LASTORDER" +
+                "   WHERE" +
+                "       LASTORDER.currency_pair_id = EO.currency_pair_id AND" +
+                "       LASTORDER.status_id = EO.status_id AND" +
+                "       LASTORDER.date_acception >= now() - INTERVAL 24 HOUR" +
+                "   ORDER BY LASTORDER.date_acception ASC" +
+                "   LIMIT 1) AS lastDate " +
                 "        FROM EXORDERS EO " +
                 "        JOIN CURRENCY_PAIR CP ON (CP.id = EO.currency_pair_id) " +
                 "        WHERE EO.status_id = 3 AND EO.date_acception >= now() - INTERVAL 24 HOUR " +
@@ -2264,6 +2288,7 @@ public class OrderDaoImpl implements OrderDao {
                 .high24hr(rs.getBigDecimal("high24hr").toPlainString())
                 .low24hr(rs.getBigDecimal("low24hr").toPlainString())
                 .lastOrderRate24hr(rs.getBigDecimal("last24hr").toPlainString())
+                .lastDealDate(rs.getTimestamp("lastDate") == null ? null : rs.getTimestamp("lastDate").toLocalDateTime())
                 .build());
     }
 

@@ -46,6 +46,10 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
     @JsonIgnore
     private LocalDateTime updated;
     private boolean isTopMarket;
+    @JsonIgnore
+    private LocalDateTime lastDealDate;
+    @JsonIgnore
+    private LocalDateTime predLastDealDate;
 
 
     public ExOrderStatisticsShortByPairsDto() {

@@ -190,13 +190,18 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         synchronized (getRatesMapSyncSynchronizerSafe(currencyPairId)) {
             final BigDecimal lastOrderRate = order.getExRate();
             BigDecimal predLastOrderRate;
+            LocalDateTime predLastDealDate;
             if (ratesMap.containsKey(currencyPairId)) {
-                predLastOrderRate = new BigDecimal(ratesMap.get(currencyPairId).getLastOrderRate());
+                ExOrderStatisticsShortByPairsDto dto = ratesMap.get(currencyPairId);
+                predLastOrderRate = new BigDecimal(dto.getLastOrderRate());
+                predLastDealDate = dto.getLastDealDate();
             } else {
                 log.info("<<CACHE>>: Started retrieving SINGLE pred last rate for currencyPairId: " + currencyPairId);
-                String newRate = orderService.getBeforeLastRateForCache(currencyPairId).getPredLastOrderRate();
+                ExOrderStatisticsShortByPairsDto dto = orderService.getBeforeLastRateForCache(currencyPairId);
+                String newRate = dto.getPredLastOrderRate();
                 log.info("<<CACHE>>: Finished retrieving SINGLE pred last rate for currencyPairId: " + currencyPairId);
                 predLastOrderRate = new BigDecimal(newRate);
+                predLastDealDate = dto.getPredLastDealDate();
             }
 
             ExOrderStatisticsShortByPairsDto cachedItem = loadingCache.getUnchecked(currencyPairId);
@@ -204,8 +209,15 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
                 cachedItem = new ExOrderStatisticsShortByPairsDto();
             }
             cachedItem.setPriceInUSD(calculatePriceInUsd(cachedItem));
-            cachedItem.setLastOrderRate(lastOrderRate.toPlainString());
-            cachedItem.setPredLastOrderRate(predLastOrderRate.toPlainString());
+            if (cachedItem.getLastDealDate() == null || order.getDateAcception().isAfter(cachedItem.getLastDealDate())) {
+                cachedItem.setLastOrderRate(lastOrderRate.toPlainString());
+                cachedItem.setPredLastOrderRate(predLastOrderRate.toPlainString());
+                cachedItem.setLastDealDate(order.getDateAcception());
+                cachedItem.setPredLastDealDate(predLastDealDate);
+            } else if (cachedItem.getPredLastDealDate() == null || order.getDateAcception().isAfter(cachedItem.getPredLastDealDate())) {
+                cachedItem.setPredLastOrderRate(predLastOrderRate.toPlainString());
+                cachedItem.setPredLastDealDate(predLastDealDate);
+            }
             cachedItem.setUpdated(LocalDateTime.now());
             cachedItem.setLastUpdateCache(DATE_TIME_FORMATTER.format(LocalDateTime.now()));
             setDailyData(cachedItem, lastOrderRate.toPlainString());
@@ -270,14 +282,16 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
 
                     String lastOrderRate;
                     String predLastOrderRate;
-
+                    LocalDateTime predlastDealDate;
                     if (ratesMap.containsKey(id)) {
                         ExOrderStatisticsShortByPairsDto rate = ratesMap.get(id);
                         lastOrderRate = rate.getLastOrderRate();
                         predLastOrderRate = rate.getPredLastOrderRate();
+                        predlastDealDate = rate.getPredLastDealDate();
                     } else {
                         lastOrderRate = BigDecimal.ZERO.toPlainString();
                         predLastOrderRate = BigDecimal.ZERO.toPlainString();
+                        predlastDealDate = null;
                         ExOrderStatisticsShortByPairsDto newItem = ExOrderStatisticsShortByPairsDto.builder()
                                 .currencyPairId(id)
                                 .lastOrderRate(lastOrderRate)
@@ -290,6 +304,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
 
                     data.setLastOrderRate(lastOrderRate);
                     data.setPredLastOrderRate(predLastOrderRate);
+                    data.setPredLastDealDate(predlastDealDate);
                     data.setLastUpdateCache(DATE_TIME_FORMATTER.format(LocalDateTime.now()));
                     setUSDRates(data);
                 })
