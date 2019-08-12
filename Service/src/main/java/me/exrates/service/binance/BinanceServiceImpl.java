@@ -140,8 +140,8 @@ public class BinanceServiceImpl implements BinanceService {
                     map.put("address",binanceCurrencyService.getMemo(transaction));
                     map.put("hash",binanceCurrencyService.getHash(transaction));
                     map.put("amount",binanceCurrencyService.getAmount(transaction));
-                    map.put("merchantId", String.valueOf(binTokenService.getMerchant().getId()));
-                    map.put("currencyId", String.valueOf(binTokenService.getCurrency().getId()));
+                    map.put("merchantId", String.valueOf(binTokenService.getMerchantName()));
+                    map.put("currencyId", String.valueOf(binTokenService.getCurrencyName()));
 
                     try {
                         processPayment(map);
