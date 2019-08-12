@@ -20,6 +20,8 @@ import java.util.Properties;
 @Log4j2
 public class BinTokenServiceImpl implements BinTokenService {
 
+    //TODO @Log4j2
+    //url in properties
     private String currencyName;
     private String merchantName;
     private String mainAddress;
