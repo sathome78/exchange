@@ -165,6 +165,7 @@ public class NgUserServiceImpl implements NgUserService {
 
         String emailIncome = userEmailDto.getEmail();
         User user = userDao.findByEmail(emailIncome);
+        userService.deleteTemporalTokenByUserIdAndTokenType(user.getId(), TokenType.CHANGE_PASSWORD);
         sendEmailWithToken(user,
                 TokenType.CHANGE_PASSWORD,
                 "emailsubmitResetPassword.subject",

@@ -2699,7 +2699,9 @@ public class OrderServiceImpl implements OrderService {
                     ? getValue(order.getDateStatusModification())
                     : getValue(order.getDateModification()));
             row.createCell(2, CellType.STRING).setCellValue(getValue(order.getCurrencyPairName()));
-            row.createCell(3, CellType.STRING).setCellValue(getValue(order.getOrderBaseType()));
+            row.createCell(3, CellType.STRING).setCellValue(nonNull(order.getOperationType())
+                    ? getValue(order.getOperationType().split(" ")[1])
+                    : getValue(order.getOrderBaseType()));
             row.createCell(4, CellType.STRING).setCellValue(getValue(order.getOperationTypeEnum()));
             row.createCell(5, CellType.STRING).setCellValue(isLimitOrder
                     ? getValue(order.getExExchangeRate())

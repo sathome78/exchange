@@ -977,7 +977,7 @@ public class AdminController {
     public ResponseEntity changeActiveBalance(@RequestParam Integer userId,
                                               @RequestParam("currency") Integer currencyId,
                                               @RequestParam BigDecimal amount,
-                                              @RequestParam(defaultValue = "manually credited") String comment,
+                                              @RequestParam String comment,
                                               Principal principal) {
         LOG.debug("userId = " + userId + ", currencyId = " + currencyId + ", amount = " + amount);
 
@@ -986,7 +986,7 @@ public class AdminController {
         try {
             final String newComment = String.format("%s %s %s", amount.toPlainString(), currencyService.getCurrencyName(currencyId), comment);
 
-            userService.addUserComment(GENERAL, newComment, userService.getEmailById(userId), true);
+            userService.addUserComment(GENERAL, newComment, userService.getEmailById(userId), false);
         } catch (Exception ex) {
             LOG.error("Comment could not be saved", ex);
         }
