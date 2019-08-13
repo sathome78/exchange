@@ -50,6 +50,7 @@ public class WebSocketSecurity  extends AbstractSecurityWebSocketMessageBrokerCo
                 .simpSubscribeDestMatchers("/user/queue/personal/*").permitAll()
                 .simpSubscribeDestMatchers("/app/all_trades/*").permitAll()
                 .simpSubscribeDestMatchers("/user/queue/my_orders/*").authenticated()
+                .simpSubscribeDestMatchers("/user/queue/open_orders//*").authenticated()
                 .simpSubscribeDestMatchers("/app/message/private/*").authenticated()
                 .simpSubscribeDestMatchers("/app/ieo_details/private/*").authenticated()
                 .simpSubscribeDestMatchers("/app/ieo/ieo_details/**").permitAll()

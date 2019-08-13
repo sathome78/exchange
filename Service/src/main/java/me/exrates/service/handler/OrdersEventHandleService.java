@@ -16,7 +16,6 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
-import me.exrates.service.cache.currencyPairsInfo.CpStatisticsHolder;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CancelOrderEvent;
 import me.exrates.service.events.CreateOrderEvent;
@@ -27,7 +26,9 @@ import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.vo.ChartRefreshHandler;
 import me.exrates.service.vo.CurrencyStatisticsHandler;
 import me.exrates.service.vo.MyTradesHandler;
+import me.exrates.service.vo.OpenOrdersRefreshDelayHandler;
 import me.exrates.service.vo.OrdersEventsHandler;
+import me.exrates.service.vo.PersonalOrderRefreshDelayHandler;
 import me.exrates.service.vo.TradesEventsHandler;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,13 +48,11 @@ import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Created by Maks on 28.08.2017.
@@ -81,9 +80,9 @@ public class OrdersEventHandleService {
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
-    private DefaultSimpUserRegistry registry;
-    @Autowired
     private CurrencyService currencyService;
+    @Autowired
+    private PersonalOrderRefreshDelayHandler openOrdersRefreshHandler;
 
     private final Object handlerSync = new Object();
 
@@ -97,17 +96,6 @@ public class OrdersEventHandleService {
 
     private Map<Integer, UserPersonalOrdersHandler> personalOrdersHandlerMap = new ConcurrentHashMap<>();
 
-    public void handleOrderEventOnMessage(InputCreateOrderDto orderDto) {
-//        ExOrder order = orderDto.toExorder();
-//        onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
-//        handleAllTrades(order);
-//        handleMyTrades(order);
-//        handleChart(order);
-//        ratesHolder.onRatesChange(order);
-//        currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
-    }
-
-
     @Async
     @TransactionalEventListener
     public void handleOrderEventAsync(CreateOrderEvent event) {
@@ -117,16 +105,16 @@ public class OrdersEventHandleService {
 
     @Async
     @TransactionalEventListener
-    public void handleOrderEventAsync(CancelOrderEvent event) throws JsonProcessingException {
+    public void handleOrderEventAsync(CancelOrderEvent event) {
         ExOrder exOrder = (ExOrder) event.getSource();
         onOrdersEvent(exOrder.getCurrencyPairId(), exOrder.getOperationType());
     }
-
 
     @Async
     @TransactionalEventListener
     public void handleOrderEventAsync(OrderEvent event) throws JsonProcessingException {
         ExOrder exOrder = (ExOrder) event.getSource();
+        openOrdersRefreshHandler.onEvent(exOrder.getUserId(), exOrder.getCurrencyPair().getName());
         if (!(event instanceof PartiallyAcceptedOrder)) {
             handleOrdersDetailed(exOrder, event.getOrderEventEnum());
         }
