@@ -112,7 +112,7 @@ public class LiskRestClientImpl implements LiskRestClient {
         do {
             //получает транзу по адресу
             String response = sendGetTransactionsRequest(recipientAddress, newOffset);
-            //сего транзакций
+            //всего транзакций
             count = Integer.parseInt(extractTargetNodeFromLiskResponseAdditional(objectMapper, response, "count", countNodeType).asText());
             // добавляет транзу в коллекцию в формате LiskTransaction
             result.addAll(extractListFromResponseAdditional(objectMapper, response, "transactions", LiskTransaction.class));
@@ -162,11 +162,11 @@ public class LiskRestClientImpl implements LiskRestClient {
 //        HttpEntity<String> entity = new HttpEntity<>(responseFromMicroservice, headers);
 
         //Post signed transaction with data into network
-        try {
-            restTemplate.postForObject(absoluteURI(sendTransactionEndpoint), dto, String.class);
-        } catch(Exception e){
-            System.out.println("..................................");
-        }
+//        try {
+//            restTemplate.postForObject(absoluteURI(sendTransactionEndpoint), dto, String.class);
+//        } catch(Exception e){
+//            System.out.println("..................................");
+//        }
 
         restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
 
@@ -208,9 +208,17 @@ public class LiskRestClientImpl implements LiskRestClient {
     }
 
     public static void main(String[] args) {
+        //http://qaru.site/questions/16742570/convert-curl-request-to-spring-resttemplate-method
         RestTemplate restTemplate = new RestTemplate();
-        System.out.println(restTemplate.getForObject("http://178.32.79.109/api/transactions?offset=0&limit=100&recipientId=3599059367956772302&sort=t_timestamp:asc"
-                , String.class));
+        restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("amount", "0.012");
+        headers.set("recipientId", "10751039947056279805");
+        headers.set("secret", "book tooth charge salt conduct horror initial grape body pretty hub tower");
+        HttpEntity entity = new HttpEntity(headers);
+        ResponseEntity<String> result = restTemplate.exchange("http://178.32.79.109:80/api/transactions", HttpMethod.PUT, entity, String.class);
+        System.out.println(result.getBody());
     }
 
 }
