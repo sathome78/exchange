@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.MerchantCurrency;
+import me.exrates.model.User;
 import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawableDataDto;
@@ -82,7 +83,7 @@ public class WithdrawServiceMsImpl extends WithdrawServiceImpl {
     }
 
     @Override
-    public void setAdditionalData(MerchantCurrency merchantCurrency) {
+    public void setAdditionalData(MerchantCurrency merchantCurrency, User user) {
         WithdrawableDataDto dto = template.getForObject(properties.getUrl() + API_WITHDRAW_GET_ADDITIONAL_SERVICE_DATA + merchantCurrency.getMerchantId(), WithdrawableDataDto.class);
         if (dto.getAdditionalTagForWithdrawAddressIsUsed()) {
             merchantCurrency.setAdditionalTagForWithdrawAddressIsUsed(true);

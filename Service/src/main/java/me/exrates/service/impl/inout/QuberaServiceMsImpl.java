@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.QuberaUserData;
 import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.dto.AccountQuberaResponseDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
@@ -151,6 +152,11 @@ public class QuberaServiceMsImpl implements QuberaService {
     @Override
     public byte[] getPdfFileForPayment(String email) {
         return new byte[0];
+    }
+
+    @Override
+    public QuberaUserData getUserDataByUserEmail(String email) {
+        return null;
     }
 
     @Override

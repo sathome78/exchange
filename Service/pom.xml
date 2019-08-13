@@ -35,6 +35,12 @@
             <version>2.9.1</version>
         </dependency>
         <dependency>
+            <groupId>com.binance.dex.api</groupId>
+            <artifactId>binance-dex-api-client</artifactId>
+            <version>1.0.3</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
             <groupId>com.yandex.money.api</groupId>
             <artifactId>yandex-money-sdk-java</artifactId>
             <version>5.0.8</version>
@@ -82,6 +88,12 @@
             <groupId>org.quartz-scheduler</groupId>
             <artifactId>quartz</artifactId>
             <version>${quartz.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
@@ -98,6 +110,12 @@
             <artifactId>httpclient</artifactId>
             <!--<version>4.3.6</version>-->
             <version>4.5.3</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.neemre.btcd-cli4j</groupId>
@@ -113,6 +131,12 @@
             <groupId>org.web3j</groupId>
             <artifactId>core</artifactId>
             <version>3.4.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.web3j</groupId>
@@ -185,12 +209,22 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpasyncclient</artifactId>
             <version>4.1.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>eu.bittrade.libs</groupId>
             <artifactId>steemj-core</artifactId>
             <version>0.4.3</version>
             <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
                 <exclusion>
                     <groupId>com.fasterxml.jackson.core</groupId>
                     <artifactId>jackson-databind</artifactId>
@@ -210,6 +244,10 @@
             <artifactId>crypto-core</artifactId>
             <version>0.1.0pre1</version>
             <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
                 <exclusion>
                     <groupId>com.fasterxml.jackson.core</groupId>
                     <artifactId>jackson-databind</artifactId>
@@ -253,6 +291,12 @@
             <groupId>io.jafka</groupId>
             <artifactId>jeos</artifactId>
             <version>1.0-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.firestack</groupId>
