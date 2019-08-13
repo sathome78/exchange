@@ -23,6 +23,8 @@ import me.exrates.service.NamedParameterJdbcTemplateWrapper;
 import me.exrates.service.achain.AchainContract;
 import me.exrates.service.binance.BinTokenService;
 import me.exrates.service.binance.BinTokenServiceImpl;
+import me.exrates.service.binance.BinanceCurrencyService;
+import me.exrates.service.binance.BinanceCurrencyServiceImpl;
 import me.exrates.service.binance.BinanceService;
 import me.exrates.service.binance.BinanceServiceImpl;
 import me.exrates.service.ethereum.EthTokenService;
@@ -2113,6 +2115,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public EthTokenService vinciServiceImpl() {
         List<String> tokensList = ImmutableList.of("0x3db99ab08006aefcc9600972eca8c202396b4300");
         return new EthTokenServiceImpl(tokensList, "VINCI", "VINCI", false, ExConvert.Unit.ETHER);
+    }
+
+    @Bean
+    @Conditional(MonolitConditional.class)
+    public BinanceCurrencyService binanceCurrencyService(){
+        return new BinanceCurrencyServiceImpl("merchants/binance.properties");
     }
 
     @Bean(name = "binanceServiceImpl")

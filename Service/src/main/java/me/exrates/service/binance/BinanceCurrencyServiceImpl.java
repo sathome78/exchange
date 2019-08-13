@@ -3,20 +3,14 @@ package me.exrates.service.binance;
 import com.binance.dex.api.client.domain.broadcast.Transaction;
 import com.binance.dex.api.client.impl.BinanceDexApiNodeClientImpl;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.condition.MonolitConditional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Properties;
 
 @Log4j2 (topic = "binance_log")
-@Service
-@Conditional(MonolitConditional.class)
-@PropertySource("classpath:/merchants/binance.properties")
 public class BinanceCurrencyServiceImpl implements BinanceCurrencyService {
 
     private static final String RECEIVER_ADDRESS_CODE = "outputs=[InputOutput[address=";
@@ -25,17 +19,21 @@ public class BinanceCurrencyServiceImpl implements BinanceCurrencyService {
     private static final BigDecimal FACTOR = new BigDecimal(100000000);
 
     private BinanceDexApiNodeClientImpl binanceDexApiNodeClient;
-
-    @Value("${binance.node.host}")
-    private String host;
-    @Value("${binance.node.port}")
-    private String port;
-
+    private String fullUrl;
 
     @Autowired
-    public BinanceCurrencyServiceImpl(){
+    public BinanceCurrencyServiceImpl(String propertySource){
+        Properties props = new Properties();
+        try {
+            props.load(getClass().getClassLoader().getResourceAsStream(propertySource));
+            String host = props.getProperty("binance.node.host");
+            String port = props.getProperty("binance.node.port");
+            fullUrl = String.join(":", host, port);
+        } catch (IOException e) {
+            log.error(e);
+        }
+
         // TODO HRP????
-        String fullUrl = String.join(":", host, port);
         binanceDexApiNodeClient = new BinanceDexApiNodeClientImpl(fullUrl,"BNB");
     }
 
