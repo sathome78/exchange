@@ -5,7 +5,9 @@ import com.binance.dex.api.client.impl.BinanceDexApiNodeClientImpl;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.condition.MonolitConditional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -14,6 +16,7 @@ import java.util.List;
 @Log4j2 (topic = "binance_log")
 @Service
 @Conditional(MonolitConditional.class)
+@PropertySource("classpath:/merchants/binance.properties")
 public class BinanceCurrencyServiceImpl implements BinanceCurrencyService {
 
     private static final String RECEIVER_ADDRESS_CODE = "outputs=[InputOutput[address=";
@@ -23,11 +26,17 @@ public class BinanceCurrencyServiceImpl implements BinanceCurrencyService {
 
     private BinanceDexApiNodeClientImpl binanceDexApiNodeClient;
 
+    @Value("${binance.node.host}")
+    private String host;
+    @Value("${binance.node.port}")
+    private String port;
+
 
     @Autowired
     public BinanceCurrencyServiceImpl(){
         // TODO HRP????
-        binanceDexApiNodeClient = new BinanceDexApiNodeClientImpl("http://172.31.30.170:27147","BNB");
+        String fullUrl = String.join(":", host, port);
+        binanceDexApiNodeClient = new BinanceDexApiNodeClientImpl(fullUrl,"BNB");
     }
 
     @Override
