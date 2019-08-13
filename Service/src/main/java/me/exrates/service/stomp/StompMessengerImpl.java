@@ -7,6 +7,7 @@ import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.IEODetails;
+import me.exrates.model.chart.CandleDetailedDto;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.RefreshStatisticDto;
 import me.exrates.model.dto.UserNotificationMessage;
@@ -14,6 +15,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.PrecissionsEnum;
 import me.exrates.model.enums.RefreshObjectsEnum;
+import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.util.BiTuple;
@@ -109,6 +111,13 @@ public class StompMessengerImpl implements StompMessenger {
 
 
     @Override
+    public void sendLastCandle(CandleDetailedDto dto) {
+        String destination = String.format("/app/chart/%s/%s", dto.getBackDealInterval().getInterval(), OpenApiUtils.transformCurrencyPairBack(dto.getPairName()));
+        sendMessageToDestination(destination, dto.getCandleDto());
+    }
+
+
+    @Override
     public List<ChartTimeFrame> getSubscribedTimeFramesForCurrencyPair(Integer pairId) {
         List<ChartTimeFrame> timeFrames = new ArrayList<>();
         orderService.getChartTimeFrames().forEach(timeFrame -> {
@@ -190,7 +199,7 @@ public class StompMessengerImpl implements StompMessenger {
         return registry.findSubscriptions(subscription -> subscription.getDestination().equals(destination));
     }
 
-    private void sendMessageToDestination(String destination, String message) {
+    private void sendMessageToDestination(String destination, Object message) {
         messagingTemplate.convertAndSend(destination, message);
     }
 

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.SneakyThrows;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.IEODetails;
+import me.exrates.model.chart.CandleDetailedDto;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.dto.WsMessageObject;
@@ -28,6 +29,8 @@ public interface StompMessenger {
     void sendMyTradesToUser(int userId, Integer currencyPair);
 
     void sendAllTrades(CurrencyPair currencyPair);
+
+    void sendLastCandle(CandleDetailedDto dto);
 
     List<ChartTimeFrame> getSubscribedTimeFramesForCurrencyPair(Integer pairId);
 

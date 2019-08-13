@@ -1,48 +1,34 @@
-//package me.exrates.service.impl;
-//
-//import com.fasterxml.jackson.core.JsonProcessingException;
-//import com.fasterxml.jackson.databind.ObjectMapper;
-//import me.exrates.model.dto.InputCreateOrderDto;
-//import me.exrates.service.RabbitMqService;
-//import me.exrates.service.exception.RabbitMqException;
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
-//import org.springframework.amqp.AmqpException;
-//import org.springframework.amqp.rabbit.core.RabbitTemplate;
-//import org.springframework.stereotype.Service;
-//
-//@Service
-//public class RabbitMqServiceImpl implements RabbitMqService {
-//
-//    private static final Logger logger = LoggerFactory.getLogger(RabbitMqServiceImpl.class);
-//
-//    private final ObjectMapper objectMapper;
-//    private final RabbitTemplate rabbitTemplate;
-//
-//    public RabbitMqServiceImpl(ObjectMapper objectMapper,
-//                               RabbitTemplate rabbitTemplate) {
-//        this.objectMapper = objectMapper;
-//        this.rabbitTemplate = rabbitTemplate;
-//    }
-//
-////    @Override
-////    public void sendOrderInfo(InputCreateOrderDto inputOrder, String queueName) {
-////        try {
-////            String orderJson = objectMapper.writeValueAsString(inputOrder);
-////            logger.info("Sending order to demo-server {}", orderJson);
-////
-////            try {
-////                byte[] bytes = (byte[]) this.rabbitTemplate.convertSendAndReceive(queueName, orderJson);
-////                String result = new String(bytes);
-////                logger.info("Return from demo-server {}", result);
-////            } catch (AmqpException e) {
-////                String msg = "Failed to send data via rabbit queue";
-////                logger.error(msg + " " + orderJson, e);
-////                throw new RabbitMqException(msg);
-////            }
-////        } catch (JsonProcessingException e) {
-////            logger.error("Failed to send order to old instance", e);
-////        }
-////
-////    }
-//}
+package me.exrates.service.impl;
+
+import lombok.extern.log4j.Log4j2;
+import me.exrates.model.chart.CandleDetailedDto;
+import me.exrates.service.RabbitMqService;
+import me.exrates.service.stomp.StompMessenger;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.springframework.amqp.rabbit.annotation.EnableRabbit;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Log4j2
+@EnableRabbit
+@Service
+public class RabbitMqServiceImpl implements RabbitMqService {
+
+    private final StompMessenger stompMessenger;
+
+    @Autowired
+    public RabbitMqServiceImpl(StompMessenger stompMessenger) {
+        this.stompMessenger = stompMessenger;
+    }
+
+    @RabbitListener(queues = "${rabbit.candles.topic}")
+    public void processRefillEvent(CandleDetailedDto dto) {
+        try {
+            /*todo synchronize here by pair and interval*/
+            stompMessenger.sendLastCandle(dto);
+        } catch (Exception e) {
+            log.error(ExceptionUtils.getStackTrace(e));
+        }
+    }
+}

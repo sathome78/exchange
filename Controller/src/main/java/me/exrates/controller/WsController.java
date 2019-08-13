@@ -8,6 +8,7 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.IEODetails;
 import me.exrates.model.User;
 import me.exrates.model.dto.AlertDto;
+import me.exrates.model.dto.CandleDto;
 import me.exrates.model.dto.OrderBookWrapperDto;
 import me.exrates.model.dto.OrdersListWrapper;
 import me.exrates.model.dto.WsMessageObject;
@@ -38,6 +39,7 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -93,6 +95,14 @@ public class WsController {
     @SubscribeMapping("/statistics/pairInfo/{pairName}")
     public ResponseInfoCurrencyPairDto subscribePairInfo(@DestinationVariable String pairName) {
         return orderService.getStatForPair(OpenApiUtils.transformCurrencyPair(pairName));
+    }
+
+    @SubscribeMapping("/chart/{interval}/{pairName}")
+    public List subscribePairInfo(@DestinationVariable BackDealInterval interval, @DestinationVariable String pairName) {
+        String currencyPair = OpenApiUtils.transformCurrencyPair(pairName);
+        log.debug("interval {}, pairName {}", interval, currencyPair);
+        /*todo : return init data for chart*/
+        return Collections.EMPTY_LIST;
     }
 
     @SubscribeMapping("/queue/trade_orders/f/{currencyId}")
