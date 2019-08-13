@@ -32,10 +32,8 @@ public class OpenOrdersRefreshDelayHandler implements PersonalOrderRefreshDelayH
     @Override
     public void onEvent(int userId, String currencyPairName) {
         Semaphore semaphore = safeGetSemaphore(userId, currencyPairName);
-        log.debug("try to refresh {}", userId);
         if (semaphore.tryAcquire()) {
             try {
-                log.debug("wait refresh {}", userId);
                 Thread.sleep(LATENCY);
                 stompMessenger.sendPersonalOpenOrdersToUser(userId, currencyPairName);
             } catch (InterruptedException e) {
