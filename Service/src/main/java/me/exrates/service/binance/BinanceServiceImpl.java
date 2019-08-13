@@ -16,7 +16,6 @@ import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.util.WithdrawUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
@@ -31,7 +30,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-@Log4j2
+@Log4j2 (topic = "binance_log")
 public class BinanceServiceImpl implements BinanceService {
 
     private static final String LAST_BLOCK_PARAM = "LastScannedBlock";
