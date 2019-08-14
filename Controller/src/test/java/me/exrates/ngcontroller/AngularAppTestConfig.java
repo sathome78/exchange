@@ -39,6 +39,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
 import me.exrates.service.cache.ExchangeRatesHolder;
+import me.exrates.service.chart.CandleDataProcessingService;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.G2faService;
@@ -342,5 +343,10 @@ public class AngularAppTestConfig {
     @Bean
     public RestApiUtilComponent restApiUtils() {
         return Mockito.mock(RestApiUtilComponent.class);
+    }
+
+    @Bean
+    public CandleDataProcessingService candleDataProcessingService() {
+        return Mockito.mock(CandleDataProcessingService.class);
     }
 }

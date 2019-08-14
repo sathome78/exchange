@@ -11,12 +11,12 @@ import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.api.ExchangeApi;
+import me.exrates.service.chart.CandleDataProcessingService;
 import me.exrates.service.userOperation.UserOperationService;
 import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -37,7 +37,6 @@ import static org.mockito.Mockito.when;
 
 public abstract class OpenApiCommonTest {
 
-
     @Autowired
     private WebApplicationContext webApplicationContext;
     @Autowired
@@ -54,6 +53,8 @@ public abstract class OpenApiCommonTest {
     WalletService walletService;
     @Autowired
     ExchangeApi exchangeApi;
+    @Autowired
+    CandleDataProcessingService candleDataProcessingService;
 
     MockMvc mockMvc;
 

@@ -1562,4 +1562,14 @@ public class UserDaoImpl implements UserDao {
         }};
         return masterTemplate.update(sql, params) > 0;
     }
+
+    @Override
+    public void deleteTemporalTokenByUserIdAndTokenType(int userId, TokenType tokenType) {
+        final String sql = "DELETE FROM TEMPORAL_TOKEN WHERE user_id = :userId AND token_type_id = :token_type";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("userId", userId);
+            put("token_type", tokenType.getTokenType());
+        }};
+        masterTemplate.update(sql, params);
+    }
 }
