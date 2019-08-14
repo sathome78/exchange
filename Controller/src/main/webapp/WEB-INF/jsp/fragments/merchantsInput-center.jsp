@@ -148,12 +148,9 @@
                                  <c:when test="${merchantCurrency.name == 'LHT'}">
                                       <c:out value='usdx%3A${merchantCurrency.mainAddress}%3Fcurrency%3D${merchantCurrency.name}%26memo%3D${merchantCurrency.address}%26ro%3Dtrue'/>'
                                  </c:when>
-                                 <c:when test="${merchantCurrency.name == 'ARN'}">
+                                 <c:when test="${merchantCurrency.name == 'ARN' || merchantCurrency.name == 'BinanceCoin'}">
                                       <c:out value="${merchantCurrency.mainAddress}"/>'
                                  </c:when>
-                                  <c:when test="${merchantCurrency.name == 'BinanceCoin'}">
-                                      <c:out value="${merchantCurrency.mainAddress}"/>'
-                                  </c:when>
                                   <c:otherwise>
                                       <c:out value="${merchantCurrency.address}"/>'
                                   </c:otherwise>
