@@ -44,7 +44,6 @@ import me.exrates.service.UserTransferService;
 import me.exrates.service.WalletService;
 import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.api.WalletsApi;
-import me.exrates.service.cache.ChartsCacheManager;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.merchantStrategy.IMerchantService;
@@ -404,11 +403,6 @@ public class ServiceTestConfig {
     @Bean
     public ObjectMapper objectMapper() {
         return Mockito.mock(ObjectMapper.class);
-    }
-
-    @Bean
-    public ChartsCacheManager chartsCacheManager() {
-        return new ChartsCacheManager();
     }
 
     @Bean

@@ -89,7 +89,6 @@ import me.exrates.service.TransactionService;
 import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
-import me.exrates.service.cache.ChartsCacheManager;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.exception.AttemptToAcceptBotOrderException;
@@ -174,8 +173,6 @@ public class OrderServiceImplTest {
     private OrderDao orderDao;
     @Mock
     private ExchangeRatesHolder exchangeRatesHolder;
-    @Mock
-    private ChartsCacheManager chartsCacheManager;
     @Mock
     private CurrencyService currencyService;
     @Mock
@@ -323,135 +320,6 @@ public class OrderServiceImplTest {
 
         verify(orderDao, times(1))
                 .getDataForAreaChart(any(CurrencyPair.class), any(BackDealInterval.class));
-    }
-
-    @Test
-    public void getDataForCandleChart_has_arguments_CurrencyPair_BackDealInterval() {
-        when(orderDao.getDataForCandleChart(any(CurrencyPair.class), any(BackDealInterval.class)))
-                .thenReturn(Collections.singletonList(getMockCandleChartItemDto()));
-
-        List<CandleChartItemDto> dataForCandleChart = orderService
-                .getDataForCandleChart(new CurrencyPair("BTC/USD"), getMockBackDealInterval());
-
-        assertNotNull(dataForCandleChart);
-        assertEquals(1, dataForCandleChart.size());
-        assertEquals(
-                LocalDateTime.of(2019, 4, 4, 15, 9, 10),
-                dataForCandleChart.get(0).getBeginPeriod());
-        assertEquals(
-                LocalDateTime.of(2019, 4, 4, 15, 15, 10),
-                dataForCandleChart.get(0).getEndPeriod());
-        assertEquals(BigDecimal.TEN, dataForCandleChart.get(0).getOpenRate());
-        assertEquals(BigDecimal.TEN, dataForCandleChart.get(0).getCloseRate());
-        assertEquals(BigDecimal.TEN, dataForCandleChart.get(0).getLowRate());
-        assertEquals(BigDecimal.TEN, dataForCandleChart.get(0).getHighRate());
-        assertEquals(BigDecimal.TEN, dataForCandleChart.get(0).getBaseVolume());
-        assertEquals(
-                Timestamp.valueOf(LocalDateTime.of(2019, 4, 4, 15, 9, 10)),
-                dataForCandleChart.get(0).getBeginDate());
-        assertEquals(
-                Timestamp.valueOf(LocalDateTime.of(2019, 4, 4, 15, 15, 10)),
-                dataForCandleChart.get(0).getEndDate());
-
-        verify(orderDao, times(1))
-                .getDataForCandleChart(any(CurrencyPair.class), any(BackDealInterval.class));
-    }
-
-    @Test
-    public void getCachedDataForCandle() {
-        ChartTimeFrame chartTimeFrame = new ChartTimeFrame(
-                new ChartResolution(30, ChartResolutionTimeUnit.MINUTE), 5, IntervalType2.DAY);
-
-        when(chartsCacheManager.getData(anyInt(), any(ChartTimeFrame.class)))
-                .thenReturn(Collections.singletonList(getMockCandleChartItemDto()));
-
-        List<CandleChartItemDto> dataForCandleChart = orderService
-                .getCachedDataForCandle(new CurrencyPair("BTC/USD"), chartTimeFrame);
-
-        assertNotNull(dataForCandleChart);
-        assertEquals(1, dataForCandleChart.size());
-        assertEquals(Collections.singletonList(getMockCandleChartItemDto()), dataForCandleChart);
-
-        verify(chartsCacheManager, times(1)).getData(anyInt(), any(ChartTimeFrame.class));
-    }
-
-    @Test
-    public void getLastDataForCandleChart() {
-        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(new CurrencyPair("BTC/USD"));
-        when(orderDao.getDataForCandleChart(
-                any(CurrencyPair.class),
-                any(LocalDateTime.class),
-                any(LocalDateTime.class),
-                anyInt(),
-                anyString())
-        ).thenReturn(Collections.singletonList(getMockCandleChartItemDto()));
-
-        List<CandleChartItemDto> lastDataForCandleChart = orderService.getLastDataForCandleChart(
-                1,
-                LocalDateTime.now(),
-                new ChartResolution(30, ChartResolutionTimeUnit.MINUTE));
-
-        assertNotNull(lastDataForCandleChart);
-        assertEquals(1, lastDataForCandleChart.size());
-        assertEquals(Collections.singletonList(getMockCandleChartItemDto()), lastDataForCandleChart);
-
-        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
-        verify(orderDao, atLeastOnce()).getDataForCandleChart(
-                any(CurrencyPair.class),
-                any(LocalDateTime.class),
-                any(LocalDateTime.class),
-                anyInt(),
-                anyString());
-    }
-
-    @Test
-    public void getDataForCandleChart_has_arguments_int_and_ChartTimeFrame() {
-        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(new CurrencyPair("BTC/USD"));
-        when(orderDao.getDataForCandleChart(
-                any(CurrencyPair.class),
-                any(LocalDateTime.class),
-                any(LocalDateTime.class),
-                anyInt(),
-                anyString())
-        ).thenReturn(Collections.singletonList(getMockCandleChartItemDto()));
-
-        List<CandleChartItemDto> dataForCandleChart = orderService.getDataForCandleChart(
-                1,
-                new ChartTimeFrame(new ChartResolution(30, ChartResolutionTimeUnit.MINUTE), 5, IntervalType2.DAY));
-
-        assertNotNull(dataForCandleChart);
-        assertEquals(1, dataForCandleChart.size());
-        assertEquals(Collections.singletonList(getMockCandleChartItemDto()), dataForCandleChart);
-
-        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
-        verify(orderDao, atLeastOnce()).getDataForCandleChart(
-                any(CurrencyPair.class),
-                any(LocalDateTime.class),
-                any(LocalDateTime.class),
-                anyInt(),
-                anyString());
-    }
-
-    @Test
-    public void getDataForCandleChart_has_arguments_CurrencyPair_BackDealInterval_LocalDateTime() {
-        when(orderDao.getDataForCandleChart(
-                any(CurrencyPair.class),
-                any(BackDealInterval.class),
-                any(LocalDateTime.class))).thenReturn(Collections.singletonList(getMockCandleChartItemDto()));
-
-        List<CandleChartItemDto> dataForCandleChart = orderService.getDataForCandleChart(
-                new CurrencyPair("BTC/USD"),
-                getMockBackDealInterval(),
-                LocalDateTime.now());
-
-        assertNotNull(dataForCandleChart);
-        assertEquals(1, dataForCandleChart.size());
-        assertEquals(Collections.singletonList(getMockCandleChartItemDto()), dataForCandleChart);
-
-        verify(orderDao, atLeastOnce()).getDataForCandleChart(
-                any(CurrencyPair.class),
-                any(BackDealInterval.class),
-                any(LocalDateTime.class));
     }
 
     @Test

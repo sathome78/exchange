@@ -3,10 +3,9 @@ package me.exrates.controller.openAPI;
 import me.exrates.controller.model.BaseResponse;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.constants.ErrorApiTitles;
-import me.exrates.model.dto.CandleChartItemDto;
+import me.exrates.model.dto.CandleDto;
 import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.api.RateDto;
-import me.exrates.model.dto.mobileApiDto.CandleChartItemReducedDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
 import me.exrates.model.dto.openAPI.OrderBookItem;
 import me.exrates.model.dto.openAPI.TickerJsonDto;
@@ -18,6 +17,7 @@ import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.api.ExchangeApi;
+import me.exrates.service.chart.CandleDataProcessingService;
 import me.exrates.service.util.CollectionUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -30,11 +30,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
@@ -48,14 +48,17 @@ public class OpenApiPublicController {
     private final OrderService orderService;
     private final CurrencyService currencyService;
     private final ExchangeApi exchangeApi;
+    private final CandleDataProcessingService candleDataProcessingService;
 
     @Autowired
     public OpenApiPublicController(OrderService orderService,
                                    CurrencyService currencyService,
-                                   ExchangeApi exchangeApi) {
+                                   ExchangeApi exchangeApi,
+                                   CandleDataProcessingService candleDataProcessingService) {
         this.orderService = orderService;
         this.currencyService = currencyService;
         this.exchangeApi = exchangeApi;
+        this.candleDataProcessingService = candleDataProcessingService;
     }
 
     @GetMapping("/ticker")
@@ -105,16 +108,21 @@ public class OpenApiPublicController {
 
 
     @GetMapping(value = "/{currency_pair}/candle_chart", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseResponse<List<CandleChartItemReducedDto>>> getCandleChartData(@PathVariable(value = "currency_pair") String currencyPair,
-                                                                                            @RequestParam(value = "interval_type") IntervalType intervalType,
-                                                                                            @RequestParam(value = "interval_value") Integer intervalValue) {
-        final CurrencyPair currencyPairByName = currencyService.getCurrencyPairByName(transformCurrencyPair(currencyPair));
+    public ResponseEntity<BaseResponse<List<CandleDto>>> getCandleChartData(@PathVariable(value = "currency_pair") String pairName,
+                                                                            @RequestParam(value = "from_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+                                                                            @RequestParam(value = "to_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+                                                                            @RequestParam(value = "interval_type") IntervalType intervalType,
+                                                                            @RequestParam(value = "interval_value") Integer intervalValue) {
+        final CurrencyPair currencyPair = currencyService.getCurrencyPairByName(transformCurrencyPair(pairName));
         final BackDealInterval interval = new BackDealInterval(intervalValue, intervalType);
 
-        List<CandleChartItemDto> dataForCandleChart = orderService.getDataForCandleChart(currencyPairByName, interval);
+        List<CandleDto> dataForCandleChart = candleDataProcessingService.getData(
+                currencyPair.getName(),
+                fromDate.atTime(LocalTime.MIN),
+                toDate.minusDays(1).atTime(LocalTime.MAX),
+                interval);
 
-        return ResponseEntity.ok(
-                BaseResponse.success(formatCandleData(dataForCandleChart)));
+        return ResponseEntity.ok(BaseResponse.success(dataForCandleChart));
     }
 
     private void validateCurrencyPair(String currencyPairName) {
@@ -127,15 +135,6 @@ public class OpenApiPublicController {
                 .stream()
                 .map(TickerJsonDto::new)
                 .collect(toList())
-                : Collections.emptyList();
-    }
-
-    private List<CandleChartItemReducedDto> formatCandleData(List<CandleChartItemDto> data) {
-        return CollectionUtil.isNotEmpty(data)
-                ? data
-                .stream()
-                .map(CandleChartItemReducedDto::new)
-                .collect(Collectors.toList())
                 : Collections.emptyList();
     }
 }

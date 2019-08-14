@@ -26,7 +26,7 @@ import me.exrates.model.dto.AdminOrderInfoDto;
 import me.exrates.model.dto.AlertDto;
 import me.exrates.model.dto.BotTradingSettingsShortDto;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
-import me.exrates.model.dto.CandleChartItemDto;
+import me.exrates.model.dto.CandleDto;
 import me.exrates.model.dto.ComissionCountDto;
 import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.dto.CurrencyPairLimitDto;
@@ -106,6 +106,7 @@ import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
 import me.exrates.service.aidos.AdkService;
 import me.exrates.service.aidos.AdkServiceImpl;
+import me.exrates.service.chart.CandleDataProcessingService;
 import me.exrates.service.exception.NoRequestedBeansFoundException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.process.NotCreatableOrderException;
@@ -284,6 +285,10 @@ public class AdminController {
     private UsdxService usdxService;
     @Autowired
     private G2faService g2faService;
+    @Autowired
+    private CandleDataProcessingService candleDataProcessingService;
+
+
     @Autowired
     @Qualifier("ExratesSessionRegistry")
     private SessionRegistry sessionRegistry;
@@ -977,7 +982,7 @@ public class AdminController {
     public ResponseEntity changeActiveBalance(@RequestParam Integer userId,
                                               @RequestParam("currency") Integer currencyId,
                                               @RequestParam BigDecimal amount,
-                                              @RequestParam(defaultValue = "manually credited") String comment,
+                                              @RequestParam String comment,
                                               Principal principal) {
         LOG.debug("userId = " + userId + ", currencyId = " + currencyId + ", amount = " + amount);
 
@@ -986,7 +991,7 @@ public class AdminController {
         try {
             final String newComment = String.format("%s %s %s", amount.toPlainString(), currencyService.getCurrencyName(currencyId), comment);
 
-            userService.addUserComment(GENERAL, newComment, userService.getEmailById(userId), true);
+            userService.addUserComment(GENERAL, newComment, userService.getEmailById(userId), false);
         } catch (Exception ex) {
             LOG.error("Comment could not be saved", ex);
         }
@@ -1228,18 +1233,20 @@ public class AdminController {
 
     @RequestMapping(value = "/2a8fy7b07dxe44/getCandleTableData", method = RequestMethod.GET)
     @ResponseBody
-    public List<CandleChartItemDto> getCandleChartData(@RequestParam("currencyPair") Integer currencyPairId,
-                                                       @RequestParam("interval") String interval,
-                                                       @RequestParam("startTime") String startTimeString) {
-        CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
-        BackDealInterval backDealInterval = new BackDealInterval(interval);
-        LocalDateTime startTime = LocalDateTime.parse(startTimeString, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        return orderService.getDataForCandleChart(currencyPair, backDealInterval, startTime);
+    public List<CandleDto> getCandleChartData(@RequestParam("currencyPair") Integer currencyPairId,
+                                              @RequestParam("interval") String interval,
+                                              @RequestParam("startTime") String startTimeString) {
+        final CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
+        final BackDealInterval backDealInterval = new BackDealInterval(interval);
+        final LocalDateTime fromDate = LocalDateTime.parse(startTimeString, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        final LocalDateTime toDate = LocalDateTime.now();
+
+        return candleDataProcessingService.getData(currencyPair.getName(), fromDate, toDate, backDealInterval);
     }
 
     private BitcoinService getBitcoinServiceByMerchantName(String merchantName) {
         IMerchantService merchantService = serviceContext.getBitcoinServiceByMerchantName(merchantName);
-        if (merchantService == null || !(merchantService instanceof BitcoinService)) {
+        if (!(merchantService instanceof BitcoinService)) {
             throw new NoRequestedBeansFoundException("Merchant name: " + merchantName);
         }
         return (BitcoinService) merchantService;

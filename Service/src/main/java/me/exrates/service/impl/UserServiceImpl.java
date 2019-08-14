@@ -1100,4 +1100,9 @@ public class UserServiceImpl implements UserService {
     public boolean updateCountryCode(String countryCode) {
         return userDao.updateCountryCode(countryCode, getUserEmailFromSecurityContext());
     }
+
+    @Override
+    public void deleteTemporalTokenByUserIdAndTokenType(int userId, TokenType tokenType) {
+        userDao.deleteTemporalTokenByUserIdAndTokenType(userId, tokenType);
+    }
 }

@@ -14,9 +14,9 @@ import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
+import me.exrates.service.RabbitMqService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
-import me.exrates.service.cache.currencyPairsInfo.CpStatisticsHolder;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CancelOrderEvent;
 import me.exrates.service.events.CreateOrderEvent;
@@ -24,7 +24,6 @@ import me.exrates.service.events.EventsForDetailed.DetailOrderEvent;
 import me.exrates.service.events.OrderEvent;
 import me.exrates.service.events.PartiallyAcceptedOrder;
 import me.exrates.service.stomp.StompMessenger;
-import me.exrates.service.vo.ChartRefreshHandler;
 import me.exrates.service.vo.CurrencyStatisticsHandler;
 import me.exrates.service.vo.MyTradesHandler;
 import me.exrates.service.vo.OrdersEventsHandler;
@@ -43,17 +42,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Created by Maks on 28.08.2017.
@@ -81,9 +77,9 @@ public class OrdersEventHandleService {
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
-    private DefaultSimpUserRegistry registry;
-    @Autowired
     private CurrencyService currencyService;
+    @Autowired
+    private RabbitMqService rabbitMqService;
 
     private final Object handlerSync = new Object();
 
@@ -92,7 +88,6 @@ public class OrdersEventHandleService {
 
     private Map<Integer, TradesEventsHandler> mapTrades = new ConcurrentHashMap<>();
     private Map<Integer, MyTradesHandler> mapMyTrades = new ConcurrentHashMap<>();
-    private Map<Integer, ChartRefreshHandler> mapChart = new ConcurrentHashMap<>();
     private Map<Integer, OrdersReFreshHandler> mapOrders = new ConcurrentHashMap<>();
 
     private Map<Integer, UserPersonalOrdersHandler> personalOrdersHandlerMap = new ConcurrentHashMap<>();
@@ -102,11 +97,9 @@ public class OrdersEventHandleService {
 //        onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
 //        handleAllTrades(order);
 //        handleMyTrades(order);
-//        handleChart(order);
 //        ratesHolder.onRatesChange(order);
 //        currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
     }
-
 
     @Async
     @TransactionalEventListener
@@ -121,7 +114,6 @@ public class OrdersEventHandleService {
         ExOrder exOrder = (ExOrder) event.getSource();
         onOrdersEvent(exOrder.getCurrencyPairId(), exOrder.getOperationType());
     }
-
 
     @Async
     @TransactionalEventListener
@@ -140,21 +132,19 @@ public class OrdersEventHandleService {
 
     @Async
     @TransactionalEventListener
-    public void handleOrderPersonalEventAsync(DetailOrderEvent event){
+    public void handleOrderPersonalEventAsync(DetailOrderEvent event) {
         try {
             List<ExOrder> orderList;
             if (event.getOrderEventEnum() == OrderEventEnum.AUTO_ACCEPT) {
                 orderList = (List<ExOrder>) event.getSource();
             } else {
-                orderList = Collections.singletonList(((ExOrder)event.getSource()));
+                orderList = Collections.singletonList(((ExOrder) event.getSource()));
             }
             handlePersonalOrders(orderList, event.getPairId());
         } catch (Exception e) {
             ExceptionUtils.printRootCauseStackTrace(e);
         }
     }
-
-
 
     private void handleAcceptorUserId(ExOrder exOrder) {
         String url = userService.getCallBackUrlByUserAcceptorId(exOrder.getUserAcceptorId(), exOrder.getCurrencyPairId());
@@ -166,17 +156,16 @@ public class OrdersEventHandleService {
         }
     }
 
-
     @Async
     @TransactionalEventListener
     public void handleOrderEventAsync(AcceptOrderEvent event) {
         ExOrder order = (ExOrder) event.getSource();
         handleAllTrades(order);
         handleMyTrades(order);
+        rabbitMqService.sendTradeInfo(order);
         ratesHolder.onRatesChange(order);
         currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
         onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
-        handleChart(order);
     }
 
     private void handleCallBack(OrderEvent event) throws JsonProcessingException {
@@ -299,19 +288,18 @@ public class OrdersEventHandleService {
         }
     }
 
-
     private void handlePersonalOrders(List<ExOrder> orders, int pairId) {
         try {
             Map<Integer, List<OrderWsDetailDto>> byUserMap = new HashMap<>();
-            orders.forEach(p-> {
-                byUserMap.computeIfAbsent(p.getUserId(),  y -> new ArrayList<>()).add(new OrderWsDetailDto(p));
+            orders.forEach(p -> {
+                byUserMap.computeIfAbsent(p.getUserId(), y -> new ArrayList<>()).add(new OrderWsDetailDto(p));
                 if (p.getStatus() == OrderStatus.CLOSED && p.getUserId() != p.getUserAcceptorId()) {
                     byUserMap.computeIfAbsent(p.getUserAcceptorId(), y -> new ArrayList<>()).add(new OrderWsDetailDto(p));
                 }
             });
             String pairName = currencyService.findCurrencyPairById(pairId).getName().replace("/", "_").toLowerCase();
             UserPersonalOrdersHandler handler = getHandlerSafe(pairId, pairName, stompMessenger);
-            byUserMap.forEach((k,v)-> handler.sendInstant(v, k));
+            byUserMap.forEach((k, v) -> handler.sendInstant(v, k));
         } catch (Exception e) {
             ExceptionUtils.printRootCauseStackTrace(e);
         }
@@ -342,16 +330,4 @@ public class OrdersEventHandleService {
         handler.onAcceptOrderEvent(exOrder.getUserId());
         handler.onAcceptOrderEvent(exOrder.getUserAcceptorId());
     }
-
-
-    private void handleChart(ExOrder exOrder) {
-        try {
-            ChartRefreshHandler handler = mapChart
-                    .computeIfAbsent(exOrder.getCurrencyPairId(), k -> ChartRefreshHandler.init(exOrder.getCurrencyPairId()));
-            handler.onAcceptOrderEvent();
-        } catch (Exception e) {
-            log.error(e);
-        }
-    }
-
 }
