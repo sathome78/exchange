@@ -1,11 +1,15 @@
 package me.exrates.ngcontroller;
 
-import me.exrates.model.CurrencyPair;
+import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.dto.CandleDto;
-import me.exrates.model.enums.ChartTimeFramesEnum;
-import me.exrates.ngService.NgOrderService;
+import me.exrates.model.enums.ChartResolution;
+import me.exrates.model.vo.BackDealInterval;
+import me.exrates.properties.chart.ChartProperty;
+import me.exrates.properties.chart.SymbolInfoProperty;
 import me.exrates.service.CurrencyService;
-import me.exrates.service.OrderService;
+import me.exrates.service.chart.CandleDataConverter;
+import me.exrates.service.chart.CandleDataProcessingService;
+import me.exrates.service.util.CollectionUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,144 +17,77 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.json.Json;
-import javax.json.JsonObject;
 import javax.ws.rs.QueryParam;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+
+import static java.util.Objects.nonNull;
 
 @RestController
-@RequestMapping(value = "/api/public/v2/graph")
+@RequestMapping("/api/public/v2/graph")
 public class NgChartController {
 
     private final CurrencyService currencyService;
-    private final NgOrderService ngOrderService;
-    private final OrderService orderService;
+    private final CandleDataProcessingService processingService;
 
     @Autowired
     public NgChartController(CurrencyService currencyService,
-                             NgOrderService ngOrderService,
-                             OrderService orderService) {
+                             CandleDataProcessingService processingService) {
         this.currencyService = currencyService;
-        this.ngOrderService = ngOrderService;
-        this.orderService = orderService;
+        this.processingService = processingService;
     }
 
     @GetMapping("/history")
-    public ResponseEntity getCandleChartHistoryData(
-            @QueryParam("symbol") String symbol,
-            @QueryParam("to") Long to,
-            @QueryParam("from") Long from,
-            @QueryParam("resolution") String resolution,
-            @QueryParam("countback") String countback) {
+    public ResponseEntity getCandleChartHistoryData(@QueryParam("symbol") String symbol,
+                                                    @QueryParam("from") Long from,
+                                                    @QueryParam("to") Long to,
+                                                    @QueryParam("resolution") String resolution) {
+        Map<String, Object> response = new HashMap<>();
 
-        CurrencyPair currencyPair = currencyService.getCurrencyPairByName(symbol);
-        List<CandleDto> result = new ArrayList<>();
-        if (currencyPair == null) {
-            HashMap<String, Object> errors = new HashMap<>();
-            errors.putAll(ngOrderService.filterDataPeriod(result, from, to, resolution));
-            errors.put("s", "error");
-            errors.put("errmsg", "can not find currencyPair");
-            return new ResponseEntity(errors, HttpStatus.NOT_FOUND);
+        try {
+            currencyService.getCurrencyPairByName(symbol);
+        } catch (CurrencyPairNotFoundException ex) {
+            response.put("s", "error");
+            response.put("errmsg", "did not find currency pair");
+
+            return ResponseEntity.badRequest().body(response);
         }
 
-        String rsolutionForChartTime = (resolution.equals("W") || resolution.equals("M")) ? "D" : resolution;
-        result = orderService.getCachedDataForCandle(currencyPair,
-                ChartTimeFramesEnum.ofResolution(rsolutionForChartTime).getTimeFrame())
-                .stream()
-                .map(CandleDto::new)
-                .collect(Collectors.toList());
-        return new ResponseEntity(ngOrderService.filterDataPeriod(result, from, to, resolution), HttpStatus.OK);
+        final LocalDateTime fromDate = LocalDateTime.ofEpochSecond(from, 0, ZoneOffset.UTC);
+        final LocalDateTime toDate = LocalDateTime.ofEpochSecond(to, 0, ZoneOffset.UTC);
+        final BackDealInterval interval = ChartResolution.ofResolution(resolution);
+
+        List<CandleDto> result = processingService.getData(symbol, fromDate, toDate, interval);
+
+        if (CollectionUtil.isEmpty(result)) {
+            LocalDateTime nextTime = processingService.getLastCandleTimeBeforeDate(symbol, fromDate, interval);
+
+            response.put("s", "no_data");
+
+            if (nonNull(nextTime)) {
+                response.put("nextTime", nextTime);
+            }
+
+            return new ResponseEntity(response, HttpStatus.NOT_FOUND);
+        }
+        return ResponseEntity.ok(CandleDataConverter.convert(result));
     }
 
-    @GetMapping("/timescale_marks")
-    public ResponseEntity getCandleTimeScaleMarks(
-            @QueryParam("symbol") String symbol,
-            @QueryParam("to") Long to,
-            @QueryParam("from") Long from,
-            @QueryParam("resolution") String resolution,
-            @QueryParam("countback") String countback) {
-
-        return getCandleChartHistoryData(symbol, to, from, resolution, countback);
+    @GetMapping("/config")
+    public ResponseEntity<String> getChartConfig() {
+        return ResponseEntity.ok(ChartProperty.get());
     }
 
-    @GetMapping(value = "/config")
-    public ResponseEntity getChartConfig() {
-        return new ResponseEntity(getConfig().toString(), HttpStatus.OK);
+    @GetMapping("/symbols")
+    public ResponseEntity<String> getChartSymbol(@QueryParam("symbol") String symbol) {
+        return ResponseEntity.ok(SymbolInfoProperty.get(symbol));
     }
 
-    @GetMapping(value = "/symbols")
-    public ResponseEntity getChartSymbol(@QueryParam("symbol") String symbol) {
-        return new ResponseEntity(getSymbolInfo(symbol).toString(), HttpStatus.OK);
+    @GetMapping("/time")
+    public ResponseEntity<Long> getChartTime() {
+        return ResponseEntity.ok(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC));
     }
-
-    @GetMapping(value = "/time")
-    public ResponseEntity getChartTime() {
-        return new ResponseEntity(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC), HttpStatus.OK);
-    }
-
-    /**
-     * Returns configurations for chart graphic
-     *
-     * @return
-     */
-    private JsonObject getConfig() {
-
-        return Json.createObjectBuilder()
-                .add("supports_search", true)
-                .add("supports_group_request", false)
-                .add("supports_marks", false)
-                .add("supports_timescale_marks", true)
-                .add("supports_time", true)
-                .add("exchanges", Json.createArrayBuilder()
-                        .add(Json.createObjectBuilder()
-                                .add("value", "")
-                                .add("name", "All Exchanges")
-                                .add("desc", ""))
-                        .add(Json.createObjectBuilder()
-                                .add("value", "EXRATES")
-                                .add("name", "EXRATES")
-                                .add("desc", "EXRATES")))
-                .add("symbols_types", Json.createArrayBuilder()
-                        .add(Json.createObjectBuilder()
-                                .add("name", "All types")
-                                .add("value", "")))
-                .add("supported_resolutions", Json.createArrayBuilder()
-                        .add("30").add("60").add("240").add("720").add("D").add("2D").add("3D").add("W").add("3W").add("M"))
-                .build();
-    }
-
-    private JsonObject getSymbolInfo(@QueryParam("symbol") String symbol) {
-
-        return Json.createObjectBuilder()
-                .add("name", symbol)
-                .add("base_name", Json.createArrayBuilder().add(symbol))
-                .add("description", "description")
-                .add("full_name", symbol)
-                .add("has_seconds", false)
-                .add("has_intraday", true)
-                .add("has_no_volume", false)
-                .add("listed_exchange", "EXRATES")
-                .add("exchange", "EXRATES")
-                .add("minmov", 1)
-                .add("fractional", false)
-                .add("pricescale", 1000000000)
-                .add("type", "bitcoin")
-                .add("session", "24x7")
-                .add("ticker", symbol)
-                .add("timezone", "UTC")
-                .add("supported_resolutions", Json.createArrayBuilder()
-                        .add("30").add("60").add("240").add("720").add("D").add("2D").add("3D").add("W").add("3W").add("M"))
-                .add("force_session_rebuild", false)
-                .add("has_daily", true)
-                .add("has_weekly_and_monthly", true)
-                .add("has_empty_bars", true)
-                .add("volume_precision", 2)
-                .build();
-    }
-
 }

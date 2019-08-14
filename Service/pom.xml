@@ -35,6 +35,12 @@
             <version>2.9.1</version>
         </dependency>
         <dependency>
+            <groupId>com.binance.dex.api</groupId>
+            <artifactId>binance-dex-api-client</artifactId>
+            <version>1.0.3</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
             <groupId>com.yandex.money.api</groupId>
             <artifactId>yandex-money-sdk-java</artifactId>
             <version>5.0.8</version>

@@ -19,11 +19,9 @@ import me.exrates.model.Transaction;
 import me.exrates.model.User;
 import me.exrates.model.UserRoleSettings;
 import me.exrates.model.Wallet;
-import me.exrates.model.chart.ChartResolution;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AdminOrderInfoDto;
 import me.exrates.model.dto.CallBackLogDto;
-import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
@@ -100,7 +98,6 @@ import me.exrates.service.TransactionService;
 import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
-import me.exrates.service.cache.ChartsCacheManager;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CancelOrderEvent;
@@ -262,8 +259,6 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private ApplicationEventPublisher eventPublisher;
     @Autowired
-    private ChartsCacheManager chartsCacheManager;
-    @Autowired
     private ExchangeRatesHolder exchangeRatesHolder;
 
     @PostConstruct
@@ -306,50 +301,6 @@ public class OrderServiceImpl implements OrderService {
     public List<Map<String, Object>> getDataForAreaChart(CurrencyPair currencyPair, BackDealInterval interval) {
         logger.info("Begin 'getDataForAreaChart' method");
         return orderDao.getDataForAreaChart(currencyPair, interval);
-    }
-
-
-    @Override
-    public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval interval) {
-        return orderDao.getDataForCandleChart(currencyPair, interval);
-    }
-
-
-    @Override
-    public List<CandleChartItemDto> getCachedDataForCandle(CurrencyPair currencyPair, ChartTimeFrame timeFrame) {
-        return chartsCacheManager.getData(currencyPair.getId(), timeFrame);
-    }
-
-
-    @Override
-    public List<CandleChartItemDto> getLastDataForCandleChart(Integer currencyPairId,
-                                                              LocalDateTime startTime, ChartResolution resolution) {
-
-
-        return orderDao.getDataForCandleChart(currencyService.findCurrencyPairById(currencyPairId), startTime, LocalDateTime.now(),
-                resolution.getTimeValue(), resolution.getTimeUnit().name());
-    }
-
-
-    @Override
-    public List<CandleChartItemDto> getDataForCandleChart(int pairId, ChartTimeFrame timeFrame) {
-        LocalDateTime endTime = LocalDateTime.now();
-//    LocalDateTime lastHalfHour = endTime.truncatedTo(ChronoUnit.HOURS)
-//            .plusMinutes(30 * (endTime.getMinute() / 30));
-        LocalDateTime startTime = endTime.minus(timeFrame.getTimeValue(), timeFrame.getTimeUnit().getCorrespondingTimeUnit());
-//    LocalDateTime firstHalfHour = startTime.truncatedTo(ChronoUnit.HOURS)
-//            .plusMinutes(30 * (startTime.getMinute() / 30));
-
-        return orderDao.getDataForCandleChart(currencyService.findCurrencyPairById(pairId),
-                startTime, endTime, timeFrame.getResolution().getTimeValue(),
-                timeFrame.getResolution().getTimeUnit().name());
-    }
-
-
-    @Override
-    public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval interval, LocalDateTime startTime) {
-        LocalDateTime endTime = startTime.plus((long) interval.getIntervalValue(), interval.getIntervalType().getCorrespondingTimeUnit());
-        return orderDao.getDataForCandleChart(currencyPair, interval, endTime);
     }
 
     @Transactional(readOnly = true)
@@ -735,7 +686,6 @@ public class OrderServiceImpl implements OrderService {
         return createOrder(orderCreateDto, action, null, false);
     }
 
-
     @Override
     @Transactional(rollbackFor = {Exception.class})
     public int createOrder(OrderCreateDto orderCreateDto, OrderActionEnum action, List<ExOrder> eventsList, boolean partialAccept) {
@@ -823,7 +773,6 @@ public class OrderServiceImpl implements OrderService {
         eventPublisher.publishEvent(new AcceptOrderEvent(exOrder));
     }
 
-
     @Override
     @Transactional
     public OrderCreateDto prepareOrderRest(OrderCreationParamsDto orderCreationParamsDto, String userEmail, Locale locale, OrderBaseType orderBaseType) {
@@ -843,7 +792,6 @@ public class OrderServiceImpl implements OrderService {
         return orderCreateDto;
     }
 
-
     @Override
     @Transactional
     public OrderCreationResultDto createPreparedOrderRest(OrderCreateDto orderCreateDto, Locale locale) {
@@ -862,7 +810,6 @@ public class OrderServiceImpl implements OrderService {
         log.info("Order creation result result: " + autoAcceptResult);
         return orderCreationResultDto;
     }
-
 
     @Override
     @Transactional
@@ -1538,7 +1485,6 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-
     private void checkAcceptPermissionForUser(Integer acceptorId, Integer creatorId, Locale locale) {
         UserRole acceptorRole = userService.getUserRoleFromDB(acceptorId);
         UserRole creatorRole = userService.getUserRoleFromDB(creatorId);
@@ -1553,8 +1499,6 @@ public class OrderServiceImpl implements OrderService {
             }
 
         }
-
-
     }
 
     private String getWalletTransferExceptionMessage(WalletTransferStatus status, String negativeBalanceMessageCode, Locale locale) {
@@ -1581,7 +1525,6 @@ public class OrderServiceImpl implements OrderService {
         }
         return message;
     }
-
 
     private BigDecimal getAmountWithComissionForCreator(ExOrder exOrder) {
         if (exOrder.getOperationType() == OperationType.SELL) {
@@ -1937,7 +1880,6 @@ public class OrderServiceImpl implements OrderService {
         return result;
     }
 
-
     @Override
     public List<OrderListDto> getAllSellOrders(CacheData cacheData,
                                                CurrencyPair currencyPair, Locale locale, Boolean orderRoleFilterEnabled) {
@@ -2087,7 +2029,6 @@ public class OrderServiceImpl implements OrderService {
         return result;
     }
 
-
     @Transactional
     Object deleteOrder(int orderId, OrderStatus newOrderStatus, OrderActionEnum action, List<ExOrder> acceptEventsList, boolean forPartialAccept) {
         List<OrderDetailDto> list = walletService.getOrderRelatedDataAndBlock(orderId);
@@ -2214,7 +2155,6 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getUserSummaryOrdersByCurrencyPairList(requesterUserId, startDate, endDate, roles);
     }
 
-
     @Override
     public String getOrdersForRefresh(Integer pairId, OperationType operationType, UserRole userRole) {
         CurrencyPair cp = currencyService.findCurrencyPairById(pairId);
@@ -2238,7 +2178,6 @@ public class OrderServiceImpl implements OrderService {
             return null;
         }
     }
-
 
     @Override
     public BiTuple<String, String> getTradesForRefresh(Integer pairId, String email, RefreshObjectsEnum refreshObjectEnum) {
@@ -2286,37 +2225,6 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(CurrencyPair currencyPair, OperationType operationType) {
         return orderDao.getLastOrderPriceByCurrencyPairAndOperationType(currencyPair.getId(), operationType.getType());
-    }
-
-    @Transactional(transactionManager = "slaveTxManager")
-    @Override
-    public String getChartData(Integer currencyPairId, final BackDealInterval backDealInterval) {
-        CurrencyPair cp = currencyService.findCurrencyPairById(currencyPairId);
-        List<CandleChartItemDto> rows = this.getDataForCandleChart(cp, backDealInterval);
-        ArrayList<List> arrayListMain = new ArrayList<>();
-        /*in first row return backDealInterval - to synchronize period menu with it*/
-        arrayListMain.add(new ArrayList<Object>() {{
-            add(backDealInterval);
-        }});
-        for (CandleChartItemDto candle : rows) {
-            ArrayList<Object> arrayList = new ArrayList<>();
-            /*values*/
-            arrayList.add(candle.getBeginDate().toString());
-            arrayList.add(candle.getEndDate().toString());
-            arrayList.add(candle.getOpenRate());
-            arrayList.add(candle.getCloseRate());
-            arrayList.add(candle.getLowRate());
-            arrayList.add(candle.getHighRate());
-            arrayList.add(candle.getBaseVolume());
-            arrayListMain.add(arrayList);
-        }
-        try {
-            return objectMapper.writeValueAsString(new OrdersListWrapper(arrayListMain,
-                    backDealInterval.getInterval(), currencyPairId));
-        } catch (JsonProcessingException e) {
-            log.error(e);
-            return null;
-        }
     }
 
     @Override
@@ -2422,7 +2330,6 @@ public class OrderServiceImpl implements OrderService {
         processStats(statisticList, Locale.ENGLISH);
         return statisticList;
     }
-
 
     @Override
     public Map<OrderType, List<OrderBookItem>> getOrderBook(String currencyPairName, @Nullable OrderType orderType) {
