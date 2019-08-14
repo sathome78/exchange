@@ -55,6 +55,7 @@ var onConnect = function() {
 function subscribeAll() {
     if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || f != enableF)) {
         subscribeTradeOrders();
+        subscribeChart();
     }
     if (connectedPS) {
         subscribeStatistics();
@@ -138,6 +139,19 @@ function subscribeTrades() {
             initTrades(JSON.parse(object), currentCurrencyPairId);
         });
 
+    }, headers);
+}
+
+function subscribeChart() {
+    if (chartSubscription !== undefined) {
+        chartSubscription.unsubscribe();
+    }
+    var headers = {};
+    var path = '/app/chart/' + newChartPeriod + '/' + currentPairName.replace('/', '_').toLowerCase();
+    console.log(path);
+    tradesSubscription = client.subscribe(path, function(message) {
+        var messageBody = JSON.parse(message.body);
+        console.log(messageBody)
     }, headers);
 }
 

@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import com.antkorwin.xsync.XSync;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.chart.CandleDetailedDto;
 import me.exrates.service.RabbitMqService;
@@ -16,19 +17,23 @@ import org.springframework.stereotype.Service;
 public class RabbitMqServiceImpl implements RabbitMqService {
 
     private final StompMessenger stompMessenger;
+    private XSync<String> xSync;
 
     @Autowired
     public RabbitMqServiceImpl(StompMessenger stompMessenger) {
         this.stompMessenger = stompMessenger;
+        xSync = new XSync<>();
     }
 
     @RabbitListener(queues = "${rabbit.candles.topic}")
     public void processRefillEvent(CandleDetailedDto dto) {
-        try {
-            /*todo synchronize here by pair and interval*/
-            stompMessenger.sendLastCandle(dto);
-        } catch (Exception e) {
-            log.error(ExceptionUtils.getStackTrace(e));
-        }
+        String key = dto.getPairName().concat(dto.getBackDealInterval().getInterval());
+        xSync.execute(key, () -> {
+            try {
+                stompMessenger.sendLastCandle(dto);
+            } catch (Exception e) {
+                log.error(ExceptionUtils.getStackTrace(e));
+            }
+        });
     }
 }
