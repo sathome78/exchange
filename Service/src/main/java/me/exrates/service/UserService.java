@@ -286,4 +286,6 @@ public interface UserService {
     DataTable<List<IpLogDto>> getIpAdressesTable(AdminIpLogsFilterData adminOrderFilterData, DataTableParams dataTableParams);
 
     boolean updateCountryCode(String countryCode);
+
+    void deleteTemporalTokenByUserIdAndTokenType(int userId, TokenType tokenType);
 }

@@ -25,6 +25,4 @@ public class StockChartController {
     public Map<String, ChartTimeFrameDto> getTimeFrames() {
         return stockChartService.getTimeFramesByResolutions();
     }
-
-
 }
