@@ -151,11 +151,8 @@
                               <c:when test="${merchantCurrency.name == 'ARN'}">
                                 <c:out value="${merchantCurrency.mainAddress}"/>'
                               </c:when>
-                              <c:when test="${merchantCurrency.name == 'BNB'}">
-                                <c:out value="${'1'}"/>'
-                              </c:when>
                               <c:when test="${merchantCurrency.name == 'BinanceCoin'}">
-                                <c:out value="${'2'}"/>'
+                                <c:out value="${merchantCurrency.mainAddress}"/>'
                               </c:when>
                                   <c:otherwise>
                                       <c:out value="${merchantCurrency.address}"/>'
