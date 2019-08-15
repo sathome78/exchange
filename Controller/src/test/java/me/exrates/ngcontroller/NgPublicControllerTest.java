@@ -23,7 +23,6 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.IEOService;
 import me.exrates.service.NewsParser;
 import me.exrates.service.OrderService;
-import me.exrates.service.QuberaService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
@@ -34,9 +33,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -114,8 +111,6 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
     private IEOService ieoService;
     @Autowired
     private NewsParser newsParser;
-    @Autowired
-    private QuberaService quberaService;
     @Autowired
     private SendMailService sendMailService;
 

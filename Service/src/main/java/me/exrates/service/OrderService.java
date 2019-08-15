@@ -5,11 +5,9 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.User;
-import me.exrates.model.chart.ChartResolution;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AdminOrderInfoDto;
 import me.exrates.model.dto.CallBackLogDto;
-import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
@@ -279,29 +277,6 @@ public interface OrderService {
      */
     ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval, Locale locale);
 
-    @Transactional
-    List<CandleChartItemDto> getCachedDataForCandle(CurrencyPair currencyPair, ChartTimeFrame timeFrame);
-
-    @Transactional
-    List<CandleChartItemDto> getLastDataForCandleChart(Integer currencyPairId,
-                                                       LocalDateTime startTime, ChartResolution resolution);
-
-    List<CandleChartItemDto> getDataForCandleChart(int pairId, ChartTimeFrame timeFrame);
-
-    @Transactional
-    List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval interval, LocalDateTime startTime);
-
-
-    /**
-     * Returns data for candle chart for <i>currencyPair</i> for for period: from current moment to <i></>interval</i> back
-     *
-     * @param currencyPair
-     * @param interval
-     * @return data for candle chart
-     * @author ValkSam
-     */
-    List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval interval);
-
     /**
      * Returns data for area type chart for <i>currencyPair</i> for for period: from current moment to <i></>interval</i> back
      *
@@ -410,8 +385,6 @@ public interface OrderService {
     Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(CurrencyPair currencyPair, OperationType operationType);
 
     String getOrdersForRefresh(Integer pairId, OperationType operationType, UserRole userRole);
-
-    String getChartData(Integer currencyPairId, BackDealInterval backDealInterval);
 
     String getAllCurrenciesStatForRefresh(RefreshObjectsEnum refreshObjectsEnum);
 

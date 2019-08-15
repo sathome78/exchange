@@ -65,7 +65,7 @@ function ChartAmchartsClass2(currencyPair) {
                 {text: "2m", resolution: "D"},
                 {text: "7d", resolution: "60"},
                 {text: "5d", resolution: "30"},
-                {text: "3d", resolution: "30"},
+                {text: "3d", resolution: "30"}
             ]
 
         });
