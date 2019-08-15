@@ -21,6 +21,7 @@ public class AdGroupDaoImpl implements AdGroupDao {
         AdGroupTx adGroupTx = new AdGroupTx();
         adGroupTx.setId(rs.getInt("id"));
         adGroupTx.setRefillRequestId(rs.getInt("refill_request_id"));
+        adGroupTx.setUserId(rs.getInt("user_id"));
         adGroupTx.setStatus(rs.getString("status"));
         adGroupTx.setTx(rs.getString("tx"));
         adGroupTx.setTime(rs.getTimestamp("date"));
@@ -37,9 +38,10 @@ public class AdGroupDaoImpl implements AdGroupDao {
 
     @Override
     public AdGroupTx save(AdGroupTx adGroupTx) {
-        String sql = "INSERT INTO MERCHANT_ADGROUP_TX (refill_request_id, tx, status) VALUES (:refill_request_id, :tx, :status)";
+        String sql = "INSERT INTO MERCHANT_ADGROUP_TX (refill_request_id, user_id, tx, status) VALUES (:refill_request_id, :user_id, :tx, :status)";
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("refill_request_id", adGroupTx.getRefillRequestId());
+        params.addValue("user_id", adGroupTx.getUserId());
         params.addValue("tx", adGroupTx.getTx());
         params.addValue("status", adGroupTx.getStatus());
         KeyHolder keyHolder = new GeneratedKeyHolder();

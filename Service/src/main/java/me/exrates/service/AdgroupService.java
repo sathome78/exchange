@@ -3,7 +3,7 @@ package me.exrates.service;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 
-public interface AdgroupeService extends IRefillable, IWithdrawable {
+public interface AdgroupService extends IRefillable, IWithdrawable {
 
     @Override
     default Boolean createdRefillRequestRecordNeeded() {

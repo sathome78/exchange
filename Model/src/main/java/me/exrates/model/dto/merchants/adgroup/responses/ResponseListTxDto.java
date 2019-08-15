@@ -14,7 +14,6 @@ public class ResponseListTxDto {
     private String errors;
 
     @Data
-    @Builder
     public class Transaction {
         @JsonProperty("tx")
         private List<Tx> tx;

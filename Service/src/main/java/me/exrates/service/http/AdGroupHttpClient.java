@@ -7,7 +7,9 @@ import me.exrates.model.constants.Constants;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.merchants.adgroup.AdGroupCommonRequestDto;
 import me.exrates.model.dto.merchants.adgroup.responses.AdGroupResponseDto;
+import me.exrates.model.dto.merchants.adgroup.responses.InvoiceDto;
 import me.exrates.model.dto.merchants.adgroup.responses.ResponseListTxDto;
+import me.exrates.model.dto.merchants.adgroup.responses.ResponsePayOutDto;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.http.HttpEntity;
@@ -36,7 +38,7 @@ public class AdGroupHttpClient {
         this.template = new RestTemplate(requestFactory);
     }
 
-    public AdGroupResponseDto createInvoice(String url, String authorizationKey, AdGroupCommonRequestDto requestDto) {
+    public AdGroupResponseDto<InvoiceDto> createInvoice(String url, String authorizationKey, AdGroupCommonRequestDto requestDto) {
         log.info("createInvoice(), {}", toJson(requestDto));
 
         HttpHeaders headers = new HttpHeaders();
@@ -68,7 +70,7 @@ public class AdGroupHttpClient {
         return responseEntity.getBody();
     }
 
-    public ResponseListTxDto getTransactions(String url, String authorizationKey, AdGroupCommonRequestDto requestDto) {
+    public AdGroupResponseDto<ResponseListTxDto> getTransactions(String url, String authorizationKey, AdGroupCommonRequestDto requestDto) {
         log.info("getApprovedTransactions(), {}", toJson(requestDto));
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
@@ -79,10 +81,10 @@ public class AdGroupHttpClient {
         URI uri = builder.build(true).toUri();
 
         HttpEntity<?> request = new HttpEntity<>(requestDto, headers);
-        ResponseEntity<ResponseListTxDto> responseEntity;
+        ResponseEntity<AdGroupResponseDto> responseEntity;
         try {
             responseEntity =
-                    template.exchange(uri, HttpMethod.POST, request, ResponseListTxDto.class);
+                    template.exchange(uri, HttpMethod.POST, request, AdGroupResponseDto.class);
         } catch (Exception e) {
             log.error("Error http request while fetch list transactions {}", e);
             throw new RuntimeException(ErrorApiTitles.QUBERA_RESPONSE_CREATE_APPLICANT_ERROR);
@@ -92,6 +94,38 @@ public class AdGroupHttpClient {
 
         if (!httpStatus.is2xxSuccessful()) {
             String errorString = "Error while creating invoice ";
+            log.error(errorString + " {}", responseEntity);
+            throw new NgDashboardException("Error while response from service, create invoice",
+                    Constants.ErrorApi.QUBERA_RESPONSE_CREATE_APPLICANT_ERROR);
+        }
+        return responseEntity.getBody();
+    }
+
+
+    public AdGroupResponseDto<ResponsePayOutDto> createPayOut(String url, String authorizationKey, AdGroupCommonRequestDto requestDto) {
+        log.info("createPayOut(), {}", toJson(requestDto));
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+        headers.set("Authorization", "Basic " + authorizationKey);
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
+        builder.queryParam("synchronous", "true");
+        URI uri = builder.build(true).toUri();
+
+        HttpEntity<?> request = new HttpEntity<>(requestDto, headers);
+        ResponseEntity<AdGroupResponseDto> responseEntity;
+        try {
+            responseEntity =
+                    template.exchange(uri, HttpMethod.POST, request, AdGroupResponseDto.class);
+        } catch (Exception e) {
+            log.error("Error http request while createPayOut {}", e);
+            throw new RuntimeException(ErrorApiTitles.QUBERA_RESPONSE_CREATE_APPLICANT_ERROR);
+        }
+
+        HttpStatus httpStatus = responseEntity.getStatusCode();
+
+        if (!httpStatus.is2xxSuccessful()) {
+            String errorString = "Error while createPayOut ";
             log.error(errorString + " {}", responseEntity);
             throw new NgDashboardException("Error while response from service, create invoice",
                     Constants.ErrorApi.QUBERA_RESPONSE_CREATE_APPLICANT_ERROR);
