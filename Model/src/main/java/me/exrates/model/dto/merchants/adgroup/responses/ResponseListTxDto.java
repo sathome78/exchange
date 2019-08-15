@@ -15,6 +15,8 @@ public class ResponseListTxDto {
 
     @Data
     public class Transaction {
+        @JsonProperty("_id")
+        private String id;
         @JsonProperty("tx")
         private List<Tx> tx;
         @JsonProperty("src_user")
