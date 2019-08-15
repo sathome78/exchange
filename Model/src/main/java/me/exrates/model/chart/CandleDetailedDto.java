@@ -1,20 +1,15 @@
 package me.exrates.model.chart;
 
-import lombok.Getter;
-import lombok.Setter;
-import me.exrates.model.vo.BackDealInterval;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter
-@Setter
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class CandleDetailedDto {
 
     private String pairName;
-    private BackDealInterval backDealInterval;
+    private String backDealInterval;
     private CandleDto candleDto;
-
-    public CandleDetailedDto(String pairName, BackDealInterval backDealInterval, CandleDto candleDto) {
-        this.pairName = pairName;
-        this.backDealInterval = backDealInterval;
-        this.candleDto = candleDto;
-    }
 }

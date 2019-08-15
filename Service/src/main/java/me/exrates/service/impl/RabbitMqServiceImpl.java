@@ -3,6 +3,8 @@ package me.exrates.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
+import me.exrates.model.chart.CandleDetailedDto;
+import me.exrates.model.dto.OrderDetailDto;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.RabbitMqService;
@@ -20,8 +22,8 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import com.antkorwin.xsync.XSync;
-import me.exrates.model.chart.CandleDetailedDto;
 
+import java.io.IOException;
 import java.util.Objects;
 
 import static java.util.Objects.isNull;
@@ -94,9 +96,10 @@ public class RabbitMqServiceImpl implements RabbitMqService {
         }
     }
 
-    @RabbitListener(queues = "${rabbit.candles.topic}")
-    public void processRefillEvent(CandleDetailedDto dto) {
-        String key = dto.getPairName().concat(dto.getBackDealInterval().getInterval());
+    @RabbitListener(queues = "${rabbit.candles.topic}", containerFactory = "rabbitListenerContainerFactory")
+    @Override
+    public void listenNewCandles(CandleDetailedDto dto) {
+        String key = dto.getPairName().concat(dto.getBackDealInterval());
         xSync.execute(key, () -> {
             try {
                 stompMessenger.sendLastCandle(dto);

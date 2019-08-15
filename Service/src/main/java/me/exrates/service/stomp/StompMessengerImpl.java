@@ -112,7 +112,8 @@ public class StompMessengerImpl implements StompMessenger {
 
     @Override
     public void sendLastCandle(CandleDetailedDto dto) {
-        String destination = String.format("/app/chart/%s/%s", dto.getBackDealInterval().getInterval(), OpenApiUtils.transformCurrencyPairBack(dto.getPairName()));
+        String destination = String.format("/app/chart/%s/%s", dto.getBackDealInterval(), OpenApiUtils.transformCurrencyPairBack(dto.getPairName()));
+        log.debug("send chart data to {}", destination);
         sendMessageToDestination(destination, dto.getCandleDto());
     }
 

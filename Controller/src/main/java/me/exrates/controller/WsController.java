@@ -98,8 +98,9 @@ public class WsController {
     }
 
     @SubscribeMapping("/chart/{interval}/{pairName}")
-    public List subscribePairInfo(@DestinationVariable BackDealInterval interval, @DestinationVariable String pairName) {
+    public List subscribePairInfo(@DestinationVariable String interval, @DestinationVariable String pairName) {
         String currencyPair = OpenApiUtils.transformCurrencyPair(pairName);
+        BackDealInterval backDealInterval = new BackDealInterval(interval);
         log.debug("interval {}, pairName {}", interval, currencyPair);
         /*todo : return init data for chart*/
         return Collections.EMPTY_LIST;
