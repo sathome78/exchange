@@ -224,6 +224,7 @@ public class AdgroupServiceImpl implements AdgroupService {
                                 params.put("userId", String.valueOf(transaction.getUserId()));
                                 try {
                                     processPayment(params);
+                                    adGroupDao.deleteTxById(transaction.getId());
                                 } catch (RefillRequestAppropriateNotFoundException e) {
                                     e.printStackTrace();
                                 }
