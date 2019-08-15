@@ -35,7 +35,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.util.NestedServletException;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -282,7 +281,7 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         when(userService.getUserRoleFromSecurityContext()).thenReturn(UserRole.USER);
         when(currencyService.retrieveMinLimitForRoleAndCurrency(anyObject(), anyObject(), anyInt())).thenReturn(BigDecimal.TEN);
         when(currencyService.retrieveMaxDailyRequestForRoleAndCurrency(anyObject(), anyObject(), anyInt())).thenReturn(BigDecimal.TEN);
-        when(withdrawService.getLeftOutputRequestsSum(anyInt(), anyString())).thenReturn(BigDecimal.ONE);
+        when(withdrawService.getLeftOutputRequestsCount(anyInt(), anyString())).thenReturn(BigDecimal.ONE);
         when(currencyService.getCurrencyScaleByCurrencyId(anyInt())).thenReturn(getMockMerchantCurrencyScaleDto());
         when(merchantService.getAllUnblockedForOperationTypeByCurrencies(anyList(), anyObject())).thenReturn((Collections.EMPTY_LIST));
         when(currencyService.getWarningForCurrency(anyInt(), anyObject())).thenReturn(getWarningCodeList());
@@ -347,7 +346,7 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         when(userService.getUserRoleFromSecurityContext()).thenReturn(UserRole.USER);
         when(currencyService.retrieveMinLimitForRoleAndCurrency(anyObject(), anyObject(), anyInt())).thenReturn(BigDecimal.TEN);
         when(currencyService.retrieveMaxDailyRequestForRoleAndCurrency(anyObject(), anyObject(), anyInt())).thenReturn(BigDecimal.TEN);
-        when(withdrawService.getLeftOutputRequestsSum(anyInt(), anyString())).thenReturn(BigDecimal.ONE);
+        when(withdrawService.getLeftOutputRequestsCount(anyInt(), anyString())).thenReturn(BigDecimal.ONE);
         when(currencyService.getCurrencyScaleByCurrencyId(anyInt())).thenReturn(getMockMerchantCurrencyScaleDto());
         when(merchantService.getAllUnblockedForOperationTypeByCurrencies(anyList(), anyObject())).thenReturn((Collections.singletonList(getMockMerchantCurrency())));
         when(merchantServiceContext.getMerchantService(anyInt())).thenReturn(withdrawable);
@@ -386,7 +385,7 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         when(userService.getUserRoleFromSecurityContext()).thenReturn(UserRole.USER);
         when(currencyService.retrieveMinLimitForRoleAndCurrency(anyObject(), anyObject(), anyInt())).thenReturn(BigDecimal.TEN);
         when(currencyService.retrieveMaxDailyRequestForRoleAndCurrency(anyObject(), anyObject(), anyInt())).thenReturn(BigDecimal.TEN);
-        when(withdrawService.getLeftOutputRequestsSum(anyInt(), anyString())).thenReturn(BigDecimal.ONE);
+        when(withdrawService.getLeftOutputRequestsCount(anyInt(), anyString())).thenReturn(BigDecimal.ONE);
         when(currencyService.getCurrencyScaleByCurrencyId(anyInt())).thenReturn(getMockMerchantCurrencyScaleDto());
         when(merchantService.getAllUnblockedForOperationTypeByCurrencies(anyList(), anyObject())).thenReturn((Collections.singletonList(getMockMerchantCurrency())));
         when(merchantServiceContext.getMerchantService(anyInt())).thenReturn(withdrawable);

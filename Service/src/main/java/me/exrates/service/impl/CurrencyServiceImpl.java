@@ -115,8 +115,8 @@ public class CurrencyServiceImpl implements CurrencyService {
         allPairs = findAllCurrencyPair()
                 .stream().collect(Collectors.toMap(CurrencyPair::getId, Function.identity()));
 
-        defaultMarketVolumes = getAllMarketVolumes().stream()
-                .collect(Collectors.toMap(MarketVolume::getName, MarketVolume::getMarketVolume));
+      /*  defaultMarketVolumes = getAllMarketVolumes().stream()
+                .collect(Collectors.toMap(MarketVolume::getName, MarketVolume::getMarketVolume));*/
     }
 
     @Override
@@ -156,14 +156,14 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
-    public void updateCurrencyLimit(int currencyId, OperationType operationType, String roleName, BigDecimal minAmount, BigDecimal minAmountUSD, Integer maxDailyRequest) {
-        currencyDao.updateCurrencyLimit(currencyId, operationType, userRoleService.getRealUserRoleIdByBusinessRoleList(roleName), minAmount, minAmountUSD, maxDailyRequest);
+    public void updateCurrencyLimit(int currencyId, OperationType operationType, String roleName, BigDecimal minAmount, BigDecimal minAmountUSD, BigDecimal maxAmount, Integer maxDailyRequest) {
+        currencyDao.updateCurrencyLimit(currencyId, operationType, userRoleService.getRealUserRoleIdByBusinessRoleList(roleName), minAmount, minAmountUSD, maxAmount, maxDailyRequest);
     }
 
     @Override
-    public void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, BigDecimal minAmountUSD, Integer maxDailyRequest) {
+    public void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, BigDecimal minAmountUSD, BigDecimal maxAmount, Integer maxDailyRequest) {
 
-        currencyDao.updateCurrencyLimit(currencyId, operationType, minAmount, minAmountUSD, maxDailyRequest);
+        currencyDao.updateCurrencyLimit(currencyId, operationType, minAmount, minAmountUSD, maxAmount, maxDailyRequest);
     }
 
     @Override
@@ -171,6 +171,11 @@ public class CurrencyServiceImpl implements CurrencyService {
         return currencyDao.retrieveCurrencyLimitsForRoles(
                 userRoleService.getRealUserRoleIdByBusinessRoleList(roleName),
                 operationType);
+    }
+
+    @Override
+    public CurrencyLimit getCurrencyLimit(Integer currencyId, Integer operationType, Integer roleId) {
+        return currencyDao.getCurrencyLimit(currencyId, roleId, operationType);
     }
 
     @Transactional(readOnly = true)

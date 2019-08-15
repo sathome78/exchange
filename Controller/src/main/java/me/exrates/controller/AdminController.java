@@ -899,11 +899,12 @@ public class AdminController {
                                             @RequestParam(defaultValue = "0") BigDecimal minAmount,
                                             @RequestParam(defaultValue = "0") BigDecimal minAmountUSD,
                                             @RequestParam Integer maxDailyRequest,
+                                            @RequestParam(defaultValue = "0") BigDecimal maxAmount,
                                             @RequestParam(required = false) Object allRolesEdit) {
         if (nonNull(allRolesEdit)) {
-            currencyService.updateCurrencyLimit(currencyId, operationType, minAmount, minAmountUSD, maxDailyRequest);
+            currencyService.updateCurrencyLimit(currencyId, operationType, minAmount, minAmountUSD, maxAmount, maxDailyRequest);
         } else {
-            currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount, minAmountUSD, maxDailyRequest);
+            currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount, minAmountUSD, maxAmount, maxDailyRequest);
         }
         return ResponseEntity.ok().build();
     }

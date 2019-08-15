@@ -1,6 +1,7 @@
 package me.exrates.ngcontroller;
 
 import me.exrates.controller.annotation.CheckActiveUserStatus;
+import me.exrates.model.CurrencyLimit;
 import me.exrates.service.annotation.LogIp;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
@@ -178,9 +179,8 @@ public class NgWithdrawController {
             Wallet wallet = walletService.findByUserAndCurrency(user, currency);
             UserRole userRole = userService.getUserRoleFromSecurityContext();
 
-            BigDecimal minWithdrawSum = currencyService.retrieveMinLimitForRoleAndCurrency(userRole, operationType, currency.getId());
-            BigDecimal maxDailyRequestSum = currencyService.retrieveMaxDailyRequestForRoleAndCurrency(userRole, operationType, currency.getId());
-
+            CurrencyLimit currencyLimit = currencyService.getCurrencyLimit(currency.getId(), operationType.type, userRole.getRole());
+            BigDecimal withdrawnToday = withdrawService.getDailyWithdrawalSum(user.getEmail(), currency.getId());
             Integer scaleForCurrency = currencyService.getCurrencyScaleByCurrencyId(currency.getId()).getScaleForWithdraw();
             List<Integer> currenciesId = Collections.singletonList(currency.getId());
             List<MerchantCurrency> merchantCurrencyData = merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
@@ -188,24 +188,23 @@ public class NgWithdrawController {
             //check additional field and fill it
             for (MerchantCurrency merchantCurrency : merchantCurrencyData) {
                 withdrawService.setAdditionalData(merchantCurrency, user);
-
             }
 
             List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), WITHDRAW_CURRENCY_WARNING);
 
-            BigDecimal leftRequestSum = withdrawService.getLeftOutputRequestsSum(currency.getId(), email);
-            if (leftRequestSum.compareTo(BigDecimal.ZERO) < 0) {
-                leftRequestSum = BigDecimal.ZERO;
-            }
+            BigDecimal leftRequestSum = withdrawService.getLeftOutputRequestsCount(currency.getId(), email).max(BigDecimal.ZERO);
 
             WithdrawDataDto withdrawDataDto = WithdrawDataDto
                     .builder()
                     .activeBalance(isNull(wallet) ? BigDecimal.ZERO : wallet.getActiveBalance())
                     .currenciesId(Collections.singletonList(currency.getId()))
                     .operationType(operationType)
-                    .minWithdrawSum(minWithdrawSum)
-                    .maxDailyRequestSum(maxDailyRequestSum)
+                    .minWithdrawSum(currencyLimit.getMinSum())
+                    .maxDailyRequestSum(currencyLimit.getMaxDailyRequest())
                     .leftRequestSum(leftRequestSum)
+                    .maxDailyWithdrawAmount(currencyLimit.getMaxSum())
+                    .withdrawnToday(withdrawnToday)
+                    .leftDailyWithdrawAmount((currencyLimit.getMaxSum().subtract(withdrawnToday)).max(BigDecimal.ZERO))
                     .merchantCurrencyData(merchantCurrencyData)
                     .scaleForCurrency(scaleForCurrency)
                     .warningCodeList(warningCodeList)

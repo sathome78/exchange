@@ -87,5 +87,8 @@ public interface WithdrawService {
                                                                 int requesterId);
   void setAdditionalData(MerchantCurrency merchantCurrency, User user);
 
-  BigDecimal getLeftOutputRequestsSum(int id, String email);
+  BigDecimal getLeftOutputRequestsCount(int id, String email);
+
+  @Transactional(readOnly = true)
+  BigDecimal getDailyWithdrawalSum(String email, int currencyId);
 }

@@ -64,6 +64,7 @@
                                 <th><loc:message code="admin.currencyLimits.usdRate"/></th>
                                 <th><loc:message code="admin.currencyLimits.minLimit"/></th>
                                 <th><loc:message code="admin.currencyLimits.minLimitUsdRate"/></th>
+                                <th><loc:message code="admin.currencyLimits.maxLimit"/></th>
                                 <th><loc:message code="admin.currencyLimits.maxDailyRequest"/></th>
                                 <th><loc:message code="admin.currencyLimits.changeAutomaticallyByUSD"/></th>
                             </tr>
@@ -171,6 +172,15 @@
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
                             <input id="minAmountUSD" name="minAmountUSD" class="input-block-wrapper__input" type="number">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message
+                                    code="admin.currencyLimits.maxLimit"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input id="maxAmount" name="maxAmount" class="input-block-wrapper__input" type="number">
                         </div>
                     </div>
                     <div class="input-block-wrapper">
