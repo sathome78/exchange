@@ -46,6 +46,7 @@ public class RefillRequestCreateDto {
     private Locale locale;
     private RefillRequestParam refillRequestParam = new RefillRequestParam();
     private String txHash;
+    private String paymentMethod;
 
 
     public RefillRequestCreateDto(RefillRequestParamsDto paramsDto, CreditsOperation creditsOperation, RefillStatusEnum status, Locale locale) {
