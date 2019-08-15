@@ -57,6 +57,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -490,16 +491,35 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   private List<BtcTransactionHistoryDto> sortListTransactionByColumn(List<BtcTransactionHistoryDto> list, String orderColumn,
                                                                      DataTableParams.OrderDirection orderDirection){
-      Map<String, String> attributes = new HashMap<>();
-      for(Field field : BtcTransactionHistoryDto.class.getDeclaredFields()) {
-          attributes.put(field.getName(), field.getGenericType().getTypeName());
-      }
 
-      if(attributes.get(orderColumn) != null){
-          list.sort((trans1, trans2) -> getValueForSort(orderColumn, orderDirection, attributes.get(orderColumn), trans1, trans2));
-      }
+      Collections.sort(list, new Comparator<BtcTransactionHistoryDto>() {
+
+          @Override
+          public int compare(BtcTransactionHistoryDto o1, BtcTransactionHistoryDto o2) {
+              if (orderColumn.equalsIgnoreCase("time")){
+
+              } else if (orderColumn.equalsIgnoreCase("confirmations")){
+
+              } else {
+                    return o1.getConfirmations() - o2.getConfirmations();
+              }
+              return 0;
+          }
+      });
 
       return list;
+
+
+//      Map<String, String> attributes = new HashMap<>();
+//      for(Field field : BtcTransactionHistoryDto.class.getDeclaredFields()) {
+//          attributes.put(field.getName(), field.getGenericType().getTypeName());
+//      }
+//
+//      if(attributes.get(orderColumn) != null){
+//          list.sort((trans1, trans2) -> getValueForSort(orderColumn, orderDirection, attributes.get(orderColumn), trans1, trans2));
+//      }
+
+//      return list;
   }
 
     private Integer getValueForSort(String orderColumn, DataTableParams.OrderDirection orderDirection, String nameOfTypeOrderColumn,
