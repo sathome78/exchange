@@ -99,7 +99,7 @@ public class AdgroupServiceImpl implements AdgroupService {
 
     @PostConstruct
     void startAdgroup() {
-        newTxCheckerScheduler.scheduleAtFixedRate(this::regularlyCheckStatusTransactions, 10, 2, TimeUnit.MINUTES);
+        newTxCheckerScheduler.scheduleAtFixedRate(this::regularlyCheckStatusTransactions, 10, 60, TimeUnit.MINUTES);
     }
 
     @Override
