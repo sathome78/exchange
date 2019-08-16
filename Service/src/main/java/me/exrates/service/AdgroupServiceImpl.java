@@ -25,6 +25,7 @@ import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.merchants.AdGroupTx;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.http.AdGroupHttpClient;
 import me.exrates.service.stomp.StompMessenger;
 import org.apache.commons.lang3.StringUtils;
@@ -175,6 +176,9 @@ public class AdgroupServiceImpl implements AdgroupService {
         AdGroupResponseDto<ResponsePayOutDto> responseDto =
                 httpClient.createPayOut(urlRequest, getAuthorizationKey(), requestDto);
         log.info("Response from adgroup {}", responseDto);
+        if (!responseDto.getResponseData().getStatus().equalsIgnoreCase("APPROVED")) {
+            throw new MerchantException("Not approved");
+        }
         return Collections.emptyMap();
     }
 
