@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
 
 @Service
 @PropertySource({"classpath:/merchants/ad_group.properties"})
-@Log4j2(topic = "adroup_log")
+@Log4j2(topic = "adgroup_log")
 @Conditional(MonolitConditional.class)
 public class AdgroupServiceImpl implements AdgroupService {
 
