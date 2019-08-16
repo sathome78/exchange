@@ -160,7 +160,7 @@ public class AdgroupServiceImpl implements AdgroupService {
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
-        CommonAdGroupHeaderDto header = new CommonAdGroupHeaderDto("QiwiPayout");
+        CommonAdGroupHeaderDto header = new CommonAdGroupHeaderDto("YandexPayout");
         log.info("Starting withdraw {}", withdrawMerchantOperationDto);
         AdGroupRequestPayOutDto requestPayOutDto = AdGroupRequestPayOutDto.builder()
                 .amount(new BigDecimal(withdrawMerchantOperationDto.getAmount()))
