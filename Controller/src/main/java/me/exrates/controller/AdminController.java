@@ -944,10 +944,11 @@ public class AdminController {
                                       @RequestParam BigDecimal minRate,
                                       @RequestParam BigDecimal maxRate,
                                       @RequestParam BigDecimal minAmount,
-                                      @RequestParam BigDecimal maxAmount) {
+                                      @RequestParam BigDecimal maxAmount,
+                                      @RequestParam BigDecimal minTotal) {
         validateDecimalLimitValues(minAmount, maxAmount);
         validateDecimalLimitValues(minRate, maxRate);
-        currencyService.updateCurrencyPairLimit(currencyPairId, orderType, roleName, minRate, maxRate, minAmount, maxAmount);
+        currencyService.updateCurrencyPairLimit(currencyPairId, orderType, roleName, minRate, maxRate, minAmount, maxAmount, minTotal);
     }
 
     private void validateDecimalLimitValues(BigDecimal min, BigDecimal max) {

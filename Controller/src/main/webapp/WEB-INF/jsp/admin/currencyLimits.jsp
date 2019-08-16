@@ -104,6 +104,7 @@
                                 <th><loc:message code="admin.currencyLimits.maxRate"/></th>
                                 <th><loc:message code="admin.currencyLimits.minAmount"/></th>
                                 <th><loc:message code="admin.currencyLimits.maxAmount"/></th>
+                                <th><loc:message code="admin.currencyLimits.minTotal"/></th>
                             </tr>
                             </thead>
                             <tbody></tbody>
@@ -268,6 +269,15 @@
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
                             <input name="maxAmount" class="input-block-wrapper__input admin-form-input" type="number">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message
+                                    code="admin.currencyLimits.minTotal"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input name="minTotal" class="input-block-wrapper__input admin-form-input" type="number">
                         </div>
                     </div>
                     <button id="submitNewPairLimit" class="blue-box admin-form-submit" type="submit"><loc:message

@@ -115,8 +115,8 @@ public class CurrencyServiceImpl implements CurrencyService {
         allPairs = findAllCurrencyPair()
                 .stream().collect(Collectors.toMap(CurrencyPair::getId, Function.identity()));
 
-        defaultMarketVolumes = getAllMarketVolumes().stream()
-                .collect(Collectors.toMap(MarketVolume::getName, MarketVolume::getMarketVolume));
+//        defaultMarketVolumes = getAllMarketVolumes().stream()
+//                .collect(Collectors.toMap(MarketVolume::getName, MarketVolume::getMarketVolume));
     }
 
     @Override
@@ -350,9 +350,10 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
-    public void updateCurrencyPairLimit(Integer currencyPairId, OrderType orderType, String roleName, BigDecimal minRate, BigDecimal maxRate, BigDecimal minAmount, BigDecimal maxAmount) {
+    public void updateCurrencyPairLimit(Integer currencyPairId, OrderType orderType, String roleName,
+                                        BigDecimal minRate, BigDecimal maxRate, BigDecimal minAmount, BigDecimal maxAmount, BigDecimal minTotal) {
         currencyDao.setCurrencyPairLimit(currencyPairId, userRoleService.getRealUserRoleIdByBusinessRoleList(roleName), orderType.getType(), minRate,
-                maxRate, minAmount, maxAmount);
+                maxRate, minAmount, maxAmount, minTotal);
     }
 
     @Override
