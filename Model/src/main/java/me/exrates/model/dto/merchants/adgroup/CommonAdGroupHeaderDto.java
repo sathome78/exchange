@@ -9,4 +9,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CommonAdGroupHeaderDto {
     private String txName;
+    private Double version;
 }

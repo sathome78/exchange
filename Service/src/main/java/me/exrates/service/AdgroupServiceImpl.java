@@ -105,7 +105,7 @@ public class AdgroupServiceImpl implements AdgroupService {
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
         log.info("Starting refill {}", request);
-        CommonAdGroupHeaderDto header = new CommonAdGroupHeaderDto("p2pInvoiceRequest");
+        CommonAdGroupHeaderDto header = new CommonAdGroupHeaderDto("p2pInvoiceRequest", 0.1);
         AdGroupRequestRefillBodyDto reqBody = AdGroupRequestRefillBodyDto.builder()
                 .amount(request.getAmount())
                 .currency(request.getCurrencyName())
@@ -160,7 +160,7 @@ public class AdgroupServiceImpl implements AdgroupService {
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
-        CommonAdGroupHeaderDto header = new CommonAdGroupHeaderDto("YandexPayout");
+        CommonAdGroupHeaderDto header = new CommonAdGroupHeaderDto("YandexPayout", 0.1);
         log.info("Starting withdraw {}", withdrawMerchantOperationDto);
         AdGroupRequestPayOutDto requestPayOutDto = AdGroupRequestPayOutDto.builder()
                 .amount(new BigDecimal(withdrawMerchantOperationDto.getAmount()))
@@ -197,7 +197,7 @@ public class AdgroupServiceImpl implements AdgroupService {
         final String requestUrl = url + "/transfer/get-merchant-tx";
         List<String> txStrings = pendingTx.stream().map(AdGroupTx::getTx).collect(Collectors.toList());
 
-        CommonAdGroupHeaderDto header = new CommonAdGroupHeaderDto("fetchMerchTx");
+        CommonAdGroupHeaderDto header = new CommonAdGroupHeaderDto("fetchMerchTx", 0.1);
         AdGroupFetchTxDto requestBody = AdGroupFetchTxDto.builder()
                 .start(0)
                 .limit(pendingTx.size())
