@@ -1,6 +1,7 @@
 package me.exrates.ngcontroller;
 
 import me.exrates.model.Currency;
+import me.exrates.model.CurrencyLimit;
 import me.exrates.model.dto.PinOrderInfoDto;
 import me.exrates.model.dto.WithdrawRequestParamsDto;
 import me.exrates.model.enums.OperationType;
@@ -46,10 +47,7 @@ import static org.hamcrest.Matchers.hasValue;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -121,7 +119,7 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
     public void createWithdrawalRequest_RequestLimitExceededException() {
         when(userOperationService.getStatusAuthorityForUserByOperation(anyInt(), anyObject())).thenReturn(Boolean.TRUE);
         when(messageSource.getMessage(anyString(), anyObject(), anyObject())).thenReturn("TEST ERROR MSG");
-        when(withdrawService.checkOutputRequestsLimit(anyInt(), anyString())).thenReturn(Boolean.FALSE);
+        when(withdrawService.checkOutputRequestsLimit(anyInt(), anyString(), any())).thenReturn(Boolean.FALSE);
 
         try {
             mockMvc.perform(post(BASE_URL + "/request/create")
@@ -140,7 +138,7 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
     @Test
     public void createWithdrawalRequest_forbidden() throws Exception {
         when(userOperationService.getStatusAuthorityForUserByOperation(anyInt(), anyObject())).thenReturn(Boolean.TRUE);
-        when(withdrawService.checkOutputRequestsLimit(anyInt(), anyString())).thenReturn(Boolean.TRUE);
+        when(withdrawService.checkOutputRequestsLimit(anyInt(), anyString(), any())).thenReturn(Boolean.TRUE);
         doNothing().when(merchantService).checkDestinationTag(anyInt(), anyString());
 
         mockMvc.perform(post(BASE_URL + "/request/create")
@@ -155,7 +153,7 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
     @Test
     public void createWithdrawalRequest_checkGoogle2faVerifyCode_IncorrectPinException() throws Exception {
         when(userOperationService.getStatusAuthorityForUserByOperation(anyInt(), anyObject())).thenReturn(Boolean.TRUE);
-        when(withdrawService.checkOutputRequestsLimit(anyInt(), anyString())).thenReturn(Boolean.TRUE);
+        when(withdrawService.checkOutputRequestsLimit(anyInt(), anyString(), any())).thenReturn(Boolean.TRUE);
         doNothing().when(merchantService).checkDestinationTag(anyInt(), anyString());
         when(userService.findByEmail(anyString())).thenReturn(getMockUser());
         when(g2faService.isGoogleAuthenticatorEnable(anyInt())).thenReturn(Boolean.TRUE);
@@ -169,7 +167,7 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
 
         verify(userOperationService, times(1))
                 .getStatusAuthorityForUserByOperation(anyInt(), anyObject());
-        verify(withdrawService, times(1)).checkOutputRequestsLimit(anyInt(), anyString());
+        verify(withdrawService, times(1)).checkOutputRequestsLimit(anyInt(), anyString(), any());
         verify(merchantService, times(1)).checkDestinationTag(anyInt(), anyString());
         verify(userService, times(1)).findByEmail(anyString());
         verify(g2faService, times(1)).isGoogleAuthenticatorEnable(anyInt());
@@ -179,7 +177,7 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
     @Test
     public void createWithdrawalRequest_checkPin_IncorrectPinException() throws Exception {
         when(userOperationService.getStatusAuthorityForUserByOperation(anyInt(), anyObject())).thenReturn(Boolean.TRUE);
-        when(withdrawService.checkOutputRequestsLimit(anyInt(), anyString())).thenReturn(Boolean.TRUE);
+        when(withdrawService.checkOutputRequestsLimit(anyInt(), anyString(), any())).thenReturn(Boolean.TRUE);
         doNothing().when(merchantService).checkDestinationTag(anyInt(), anyString());
         when(userService.findByEmail(anyString())).thenReturn(getMockUser());
         when(g2faService.isGoogleAuthenticatorEnable(anyInt())).thenReturn(Boolean.FALSE);
@@ -195,7 +193,7 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
 
         verify(userOperationService, times(1))
                 .getStatusAuthorityForUserByOperation(anyInt(), anyObject());
-        verify(withdrawService, times(1)).checkOutputRequestsLimit(anyInt(), anyString());
+        verify(withdrawService, times(1)).checkOutputRequestsLimit(anyInt(), anyString(), any());
         verify(merchantService, times(1)).checkDestinationTag(anyInt(), anyString());
         verify(userService, times(1)).findByEmail(anyString());
         verify(g2faService, times(1)).isGoogleAuthenticatorEnable(anyInt());
@@ -209,7 +207,7 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         response.put("TEST_KEY", "TEST_VALUE");
 
         when(userOperationService.getStatusAuthorityForUserByOperation(anyInt(), anyObject())).thenReturn(Boolean.TRUE);
-        when(withdrawService.checkOutputRequestsLimit(anyInt(), anyString())).thenReturn(Boolean.TRUE);
+        when(withdrawService.checkOutputRequestsLimit(anyInt(), anyString(), any())).thenReturn(Boolean.TRUE);
         doNothing().when(merchantService).checkDestinationTag(anyInt(), anyString());
         when(userService.findByEmail(anyString())).thenReturn(getMockUser());
         when(g2faService.isGoogleAuthenticatorEnable(anyInt())).thenReturn(Boolean.FALSE);
@@ -227,7 +225,7 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
 
         verify(userOperationService, times(1))
                 .getStatusAuthorityForUserByOperation(anyInt(), anyObject());
-        verify(withdrawService, times(1)).checkOutputRequestsLimit(anyInt(), anyString());
+        verify(withdrawService, times(1)).checkOutputRequestsLimit(anyInt(), anyString(), any());
         verify(merchantService, times(1)).checkDestinationTag(anyInt(), anyString());
         verify(userService, times(1)).findByEmail(anyString());
         verify(g2faService, times(1)).isGoogleAuthenticatorEnable(anyInt());
@@ -239,7 +237,7 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
     @Test
     public void createWithdrawalRequest_InvalidAmountException() throws Exception {
         when(userOperationService.getStatusAuthorityForUserByOperation(anyInt(), anyObject())).thenReturn(Boolean.TRUE);
-        when(withdrawService.checkOutputRequestsLimit(anyInt(), anyString())).thenReturn(Boolean.TRUE);
+        when(withdrawService.checkOutputRequestsLimit(anyInt(), anyString(), any())).thenReturn(Boolean.TRUE);
         doNothing().when(merchantService).checkDestinationTag(anyInt(), anyString());
         when(userService.findByEmail(anyString())).thenReturn(getMockUser());
         when(g2faService.isGoogleAuthenticatorEnable(anyInt())).thenReturn(Boolean.FALSE);
@@ -264,7 +262,7 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
 
         verify(userOperationService, times(1))
                 .getStatusAuthorityForUserByOperation(anyInt(), anyObject());
-        verify(withdrawService, times(1)).checkOutputRequestsLimit(anyInt(), anyString());
+        verify(withdrawService, times(1)).checkOutputRequestsLimit(anyInt(), anyString(), any());
         verify(merchantService, times(1)).checkDestinationTag(anyInt(), anyString());
         verify(userService, times(1)).findByEmail(anyString());
         verify(g2faService, times(1)).isGoogleAuthenticatorEnable(anyInt());
@@ -285,6 +283,8 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         when(currencyService.getCurrencyScaleByCurrencyId(anyInt())).thenReturn(getMockMerchantCurrencyScaleDto());
         when(merchantService.getAllUnblockedForOperationTypeByCurrencies(anyList(), anyObject())).thenReturn((Collections.EMPTY_LIST));
         when(currencyService.getWarningForCurrency(anyInt(), anyObject())).thenReturn(getWarningCodeList());
+        when(currencyService.getCurrencyLimit(anyInt(), anyInt(), anyInt())).thenReturn(getCurrencyLimit());
+        when(withdrawService.getDailyWithdrawalSum(anyString(), anyInt())).thenReturn(BigDecimal.ZERO);
 
         mockMvc.perform(get(BASE_URL + "/merchants/output")
                 .param("currency", "BTC")
@@ -292,7 +292,8 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.operationType", is("OUTPUT")))
                 .andExpect(jsonPath("$.minWithdrawSum", is(10.0)))
-                .andExpect(jsonPath("$.maxDailyRequestSum", is(10.0)))
+                .andExpect(jsonPath("$.maxDailyRequestSum", is(10)))
+                .andExpect(jsonPath("$.maxDailyWithdrawAmount", is(100.0)))
                 .andExpect(jsonPath("$.warningCodeList.[0]", is("WARNING_CODE_ONE")))
                 .andExpect(jsonPath("$.warningCodeList.[1]", is("WARNING_CODE_TWO")));
 
@@ -300,8 +301,6 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         verify(userService, times(1)).findByEmail(anyString());
         verify(walletService, times(1)).findByUserAndCurrency(anyObject(), anyObject());
         verify(userService, times(1)).getUserRoleFromSecurityContext();
-        verify(currencyService, times(1)).retrieveMinLimitForRoleAndCurrency(anyObject(), anyObject(), anyInt());
-        verify(currencyService, times(1)).retrieveMaxDailyRequestForRoleAndCurrency(anyObject(), anyObject(), anyInt());
         verify(currencyService, times(1)).getCurrencyScaleByCurrencyId(anyInt());
         verify(merchantService, times(1)).getAllUnblockedForOperationTypeByCurrencies(anyList(), anyObject());
         verify(currencyService, times(1)).getWarningForCurrency(anyInt(), anyObject());
@@ -352,6 +351,8 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         when(merchantServiceContext.getMerchantService(anyInt())).thenReturn(withdrawable);
         when(withdrawable.additionalTagForWithdrawAddressIsUsed()).thenReturn(Boolean.FALSE);
         when(currencyService.getWarningForCurrency(anyInt(), anyObject())).thenReturn(getWarningCodeList());
+        when(currencyService.getCurrencyLimit(anyInt(), anyInt(), anyInt())).thenReturn(getCurrencyLimit());
+        when(withdrawService.getDailyWithdrawalSum(anyString(), anyInt())).thenReturn(BigDecimal.ZERO);
 
         mockMvc.perform(get(BASE_URL + "/merchants/output")
                 .param("currency", "BTC")
@@ -359,7 +360,8 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.operationType", is("OUTPUT")))
                 .andExpect(jsonPath("$.minWithdrawSum", is(10.0)))
-                .andExpect(jsonPath("$.maxDailyRequestSum", is(10.0)))
+                .andExpect(jsonPath("$.maxDailyRequestSum", is(10)))
+                .andExpect(jsonPath("$.maxDailyWithdrawAmount", is(100.0)))
                 .andExpect(jsonPath("$.warningCodeList.[0]", is("WARNING_CODE_ONE")))
                 .andExpect(jsonPath("$.warningCodeList.[1]", is("WARNING_CODE_TWO")));
 
@@ -367,8 +369,6 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         verify(userService, times(1)).findByEmail(anyString());
         verify(walletService, times(1)).findByUserAndCurrency(anyObject(), anyObject());
         verify(userService, times(1)).getUserRoleFromSecurityContext();
-        verify(currencyService, times(1)).retrieveMinLimitForRoleAndCurrency(anyObject(), anyObject(), anyInt());
-        verify(currencyService, times(1)).retrieveMaxDailyRequestForRoleAndCurrency(anyObject(), anyObject(), anyInt());
         verify(currencyService, times(1)).getCurrencyScaleByCurrencyId(anyInt());
         verify(merchantService, times(1)).getAllUnblockedForOperationTypeByCurrencies(anyList(), anyObject());
         verify(currencyService, times(1)).getWarningForCurrency(anyInt(), anyObject());
@@ -391,6 +391,8 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         when(merchantServiceContext.getMerchantService(anyInt())).thenReturn(withdrawable);
         when(withdrawable.additionalTagForWithdrawAddressIsUsed()).thenReturn(Boolean.TRUE);
         when(currencyService.getWarningForCurrency(anyInt(), anyObject())).thenReturn(getWarningCodeList());
+        when(currencyService.getCurrencyLimit(anyInt(), anyInt(), anyInt())).thenReturn(getCurrencyLimit());
+        when(withdrawService.getDailyWithdrawalSum(anyString(), anyInt())).thenReturn(BigDecimal.ZERO);
 
         mockMvc.perform(get(BASE_URL + "/merchants/output")
                 .param("currency", "BTC")
@@ -398,7 +400,8 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.operationType", is("OUTPUT")))
                 .andExpect(jsonPath("$.minWithdrawSum", is(10.0)))
-                .andExpect(jsonPath("$.maxDailyRequestSum", is(10.0)))
+                .andExpect(jsonPath("$.maxDailyWithdrawAmount", is(100.0)))
+                .andExpect(jsonPath("$.maxDailyRequestSum", is(10)))
                 .andExpect(jsonPath("$.warningCodeList.[0]", is("WARNING_CODE_ONE")))
                 .andExpect(jsonPath("$.warningCodeList.[1]", is("WARNING_CODE_TWO")));
 
@@ -406,8 +409,6 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         verify(userService, times(1)).findByEmail(anyString());
         verify(walletService, times(1)).findByUserAndCurrency(anyObject(), anyObject());
         verify(userService, times(1)).getUserRoleFromSecurityContext();
-        verify(currencyService, times(1)).retrieveMinLimitForRoleAndCurrency(anyObject(), anyObject(), anyInt());
-        verify(currencyService, times(1)).retrieveMaxDailyRequestForRoleAndCurrency(anyObject(), anyObject(), anyInt());
         verify(currencyService, times(1)).getCurrencyScaleByCurrencyId(anyInt());
         verify(merchantService, times(1)).getAllUnblockedForOperationTypeByCurrencies(anyList(), anyObject());
         verify(currencyService, times(1)).getWarningForCurrency(anyInt(), anyObject());
@@ -531,5 +532,17 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         currency.setHidden(false);
         currency.setId(3);
         return currency;
+    }
+
+    private CurrencyLimit getCurrencyLimit() {
+        CurrencyLimit currencyLimit = new CurrencyLimit();
+        currencyLimit.setId(1);
+        currencyLimit.setMinSum(BigDecimal.TEN);
+        currencyLimit.setMaxSum(new BigDecimal(100));
+        currencyLimit.setMaxDailyRequest(10);
+        currencyLimit.setOperationType(OperationType.OUTPUT);
+        currencyLimit.setMinSumUsdRate(BigDecimal.ONE);
+        currencyLimit.setMinSumUsdRate(BigDecimal.ONE);
+        return currencyLimit;
     }
 }

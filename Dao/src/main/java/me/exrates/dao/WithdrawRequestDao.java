@@ -52,7 +52,7 @@ public interface WithdrawRequestDao {
 
     boolean checkOutputRequests(int currencyId, String email);
 
-    boolean checkOutputMaxSum(int currencyId, String email);
+    boolean checkOutputMaxSum(int currencyId, String email, BigDecimal newSum);
 
     Optional<Integer> findUserIdById(Integer requestId);
 

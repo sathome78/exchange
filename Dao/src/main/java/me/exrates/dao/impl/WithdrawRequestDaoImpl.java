@@ -383,11 +383,11 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     }
 
     @Override
-    public boolean checkOutputMaxSum(int currencyId, String email) {
+    public boolean checkOutputMaxSum(int currencyId, String email, BigDecimal newSum) {
         String sql = "SELECT " +
-                " (SELECT SUM(WR.amount) FROM WITHDRAW_REQUEST WR " +
+                " ((SELECT IFNULL(SUM(WR.amount), 0) FROM WITHDRAW_REQUEST WR " +
                 " JOIN USER ON(USER.id = WR.user_id) " +
-                " WHERE USER.email = :email and WR.currency_id = :currency_id and WR.status_id NOT IN (:statuses) and WR.date_creation > CURDATE()) " +
+                " WHERE USER.email = :email and WR.currency_id = :currency_id and WR.status_id NOT IN (:statuses) and WR.date_creation > CURDATE()) + :newSum) " +
                 "< " +
                 "(SELECT IFNULL(Cl.max_sum, 999999999999)  FROM CURRENCY_LIMIT CL  " +
                 " JOIN USER ON (USER.roleid = CL.user_role_id) " +
@@ -397,6 +397,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         params.put("currency_id", currencyId);
         params.put("email", email);
         params.put("statuses", Arrays.asList(7,8,12));
+        params.put("newSum", newSum);
 
         return jdbcTemplate.queryForObject(sql, params, Integer.class) == 1;
     }
@@ -576,7 +577,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
 
     @Override
     public BigDecimal getDailyWithdrawalSumByCurrency(String email, Integer currencyId) {
-        final String sql = "SELECT SUM(WR.amount) " +
+        final String sql = "SELECT IFNULL(SUM(WR.amount), 0) " +
                 "           FROM WITHDRAW_REQUEST WR " +
                 "           JOIN USER U ON U.id = WR.user_id " +
                 "           WHERE U.email = :email and WR.currency_id = :currency_id and WR.status_id NOT IN (:statuses) and WR.date_creation > CURDATE()";

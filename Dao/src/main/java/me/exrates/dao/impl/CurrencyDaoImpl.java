@@ -1102,7 +1102,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 "CL.min_sum, " +
                 "CL.min_sum_usd, " +
                 "CL.usd_rate, " +
-                "CL.max_sum, " +
+                "IFNULL(CL.max_sum, 999999999999) as max_sum, " +
                 "CL.max_daily_request, " +
                 "CL.recalculate_to_usd " +
                 "FROM CURRENCY_LIMIT CL " +

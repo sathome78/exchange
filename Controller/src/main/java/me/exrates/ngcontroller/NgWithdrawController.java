@@ -1,5 +1,6 @@
 package me.exrates.ngcontroller;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.annotation.CheckActiveUserStatus;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.service.annotation.LogIp;
@@ -70,14 +71,13 @@ import static java.util.Objects.isNull;
 import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.WITHDRAW_CURRENCY_WARNING;
 
+@Log4j2
 @RestController
 @PreAuthorize("!hasRole('ICO_MARKET_MAKER')")
 @RequestMapping(value = "/api/private/v2/balances/withdraw",
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class NgWithdrawController {
-
-    private static final Logger logger = LoggerFactory.getLogger(NgWithdrawController.class);
 
     private final CurrencyService currencyService;
     private final G2faService g2faService;
@@ -124,7 +124,7 @@ public class NgWithdrawController {
         if (!accessToOperationForUser) {
             throw new UserOperationAccessException();
         }
-        if (!withdrawService.checkOutputRequestsLimit(requestParamsDto.getCurrency(), email)) {
+        if (!withdrawService.checkOutputRequestsLimit(requestParamsDto.getCurrency(), email, requestParamsDto.getSum())) {
             throw new RequestLimitExceededException();
         }
         if (!StringUtils.isEmpty(requestParamsDto.getDestinationTag())) {
@@ -159,7 +159,7 @@ public class NgWithdrawController {
             Map<String, String> withdrawalResponse = withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, Locale.ENGLISH);
             return ResponseEntity.ok(withdrawalResponse);
         } catch (InvalidAmountException e) {
-            logger.error("Failed to create withdraw request", e);
+            log.error("Failed to create withdraw request", e);
             throw new NgResponseException(ErrorApiTitles.FAILED_TO_CREATE_WITHDRAW_REQUEST, e.getMessage());
         }
     }
@@ -211,7 +211,7 @@ public class NgWithdrawController {
                     .build();
             return ResponseEntity.ok(withdrawDataDto);
         } catch (Exception ex) {
-            logger.error("outputCredits error:", ex);
+            log.error("outputCredits error:", ex);
             throw new NgResponseException(ErrorApiTitles.FAILED_OUTPUT_CREDITS, ex.getMessage());
         }
     }
@@ -232,7 +232,7 @@ public class NgWithdrawController {
             }
             return ResponseEntity.ok().build();
         } catch (Exception e) {
-            logger.error("Failed to send pin code on user email", e);
+            log.error("Failed to send pin code on user email", e);
             throw new NgResponseException(ErrorApiTitles.FAILED_TO_SEND_PIN_CODE_ON_USER_EMAIL, "error.send_message_user");
         }
     }

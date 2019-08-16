@@ -668,9 +668,9 @@ public class WithdrawServiceImpl implements WithdrawService {
 
     @Override
     @Transactional(readOnly = true)
-    public boolean checkOutputRequestsLimit(int merchantId, String email) {
+    public boolean checkOutputRequestsLimit(int merchantId, String email, BigDecimal newSum) {
         boolean checkCount = withdrawRequestDao.checkOutputRequests(merchantId, email);
-        boolean checkMaxSum = withdrawRequestDao.checkOutputMaxSum(merchantId, email);
+        boolean checkMaxSum = withdrawRequestDao.checkOutputMaxSum(merchantId, email, newSum);
         return checkCount && checkMaxSum;
     }
 
