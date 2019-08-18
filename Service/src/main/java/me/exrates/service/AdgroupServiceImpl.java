@@ -1,7 +1,7 @@
 package me.exrates.service;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.dao.AdGroupDao;
+import me.exrates.dao.RefillRequestDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Email;
 import me.exrates.model.Merchant;
@@ -9,6 +9,7 @@ import me.exrates.model.User;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.dto.merchants.adgroup.AdGroupCommonRequestDto;
@@ -23,7 +24,6 @@ import me.exrates.model.dto.merchants.adgroup.responses.ResponseListTxDto;
 import me.exrates.model.dto.merchants.adgroup.responses.ResponsePayOutDto;
 import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.WsSourceTypeEnum;
-import me.exrates.model.merchants.AdGroupTx;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.http.AdGroupHttpClient;
@@ -55,7 +55,6 @@ import java.util.stream.Collectors;
 public class AdgroupServiceImpl implements AdgroupService {
 
     private final AdGroupHttpClient httpClient;
-    private final AdGroupDao adGroupDao;
     private final CurrencyService currencyService;
     private final MerchantService merchantService;
     private final RefillService refillService;
@@ -63,6 +62,7 @@ public class AdgroupServiceImpl implements AdgroupService {
     private final UserService userService;
     private final SendMailService sendMailService;
     private final StompMessenger stompMessenger;
+    private final RefillRequestDao refillRequestDao;
 
     @Value("${base_url}")
     private String url;
@@ -79,16 +79,15 @@ public class AdgroupServiceImpl implements AdgroupService {
 
     @Autowired
     public AdgroupServiceImpl(AdGroupHttpClient httpClient,
-                              AdGroupDao adGroupDao,
                               CurrencyService currencyService,
                               MerchantService merchantService,
                               RefillService refillService,
                               GtagService gtagService,
                               UserService userService,
                               SendMailService sendMailService,
-                              StompMessenger stompMessenger) {
+                              StompMessenger stompMessenger,
+                              RefillRequestDao refillRequestDao) {
         this.httpClient = httpClient;
-        this.adGroupDao = adGroupDao;
         this.currencyService = currencyService;
         this.merchantService = merchantService;
         this.refillService = refillService;
@@ -96,6 +95,7 @@ public class AdgroupServiceImpl implements AdgroupService {
         this.userService = userService;
         this.sendMailService = sendMailService;
         this.stompMessenger = stompMessenger;
+        this.refillRequestDao = refillRequestDao;
     }
 
     @PostConstruct
@@ -116,19 +116,14 @@ public class AdgroupServiceImpl implements AdgroupService {
                 .build();
 
         AdGroupCommonRequestDto requestDto = new AdGroupCommonRequestDto<>(header, reqBody);
-        String urlRequest = url + "/transfer/tx-merchant-wallet";
+        final String urlRequest = url + "/transfer/tx-merchant-wallet";
 
         AdGroupResponseDto<InvoiceDto> response = httpClient.createInvoice(urlRequest, getAuthorizationKey(), requestDto);
         log.info("Response refill {}", response);
 
-        AdGroupTx tx = AdGroupTx.builder()
-                .refillRequestId(request.getId())
-                .tx(response.getResponseData().getId())
-                .status("PENDING")
-                .userId(request.getUserId())
-                .build();
-
-        adGroupDao.save(tx);
+        refillRequestDao.setRemarkAndTransactionIdById("PENDING",
+                response.getResponseData().getId(),
+                request.getId());
 
         String link = response.getResponseData().getPaymentLink();
         return generateFullUrlMap(link, "GET", new Properties());
@@ -193,13 +188,15 @@ public class AdgroupServiceImpl implements AdgroupService {
     }
 
     public void regularlyCheckStatusTransactions() {
-        List<AdGroupTx> pendingTx = adGroupDao.findByStatus("PENDING");
+        Merchant merchant = merchantService.findByName("Adgroup");
+        List<RefillRequestFlatDto> pendingTx = refillRequestDao.getByMerchantIdAndRemark(merchant.getId(), "PENDING");
+
         if (pendingTx.isEmpty()) {
             return;
         }
         log.info("Staring check transactions {}", pendingTx);
         final String requestUrl = url + "/transfer/get-merchant-tx";
-        List<String> txStrings = pendingTx.stream().map(AdGroupTx::getTx).collect(Collectors.toList());
+        List<String> txStrings = pendingTx.stream().map(RefillRequestFlatDto::getMerchantTransactionId).collect(Collectors.toList());
 
         CommonAdGroupHeaderDto header = new CommonAdGroupHeaderDto("fetchMerchTx", 0.1);
         AdGroupFetchTxDto requestBody = AdGroupFetchTxDto.builder()
@@ -214,21 +211,20 @@ public class AdgroupServiceImpl implements AdgroupService {
                 httpClient.getTransactions(requestUrl, getAuthorizationKey(), requestDto);
 
         log.info("Response from adgroup {}", responseDto);
-        for (AdGroupTx transaction : pendingTx) {
+        for (RefillRequestFlatDto transaction : pendingTx) {
             responseDto.getResponseData().getTransactions()
                     .stream()
-                    .filter(tx -> tx.getRefid().equalsIgnoreCase(transaction.getTx()))
+                    .filter(tx -> tx.getRefid().equalsIgnoreCase(transaction.getMerchantTransactionId()))
                     .peek(tx -> {
                         switch (TxStatus.valueOf(tx.getTxStatus())) {
                             case APPROVED:
                                 Map<String, String> params = new HashMap<>();
                                 params.put("amount", tx.getAmount().toString());
                                 params.put("currency", tx.getCurrency());
-                                params.put("paymentId", transaction.getTx());
+                                params.put("paymentId", transaction.getMerchantTransactionId());
                                 params.put("userId", String.valueOf(transaction.getUserId()));
                                 try {
                                     processPayment(params);
-                                    adGroupDao.deleteTxById(transaction.getId());
                                 } catch (RefillRequestAppropriateNotFoundException e) {
                                     e.printStackTrace();
                                 }
@@ -236,7 +232,7 @@ public class AdgroupServiceImpl implements AdgroupService {
                             case PENDING:
                                 break;
                             case REJECTED:
-                                //decline refill request id
+                                //mark request_refill as rejected
                                 break;
                             case CREATED:
                         }

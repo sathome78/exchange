@@ -1538,4 +1538,33 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
 
         return namedParameterJdbcTemplate.update(sql, params) > 0;
     }
+
+    @Override
+    public boolean setRemarkAndTransactionIdById(String remark, String transaction, int id) {
+        String sql = "UPDATE REFILL_REQUEST SET merchant_transaction_id = :transaction, remark = :remark WHERE id = :id";
+        Map<String, Object> params = new HashMap<>();
+        params.put("transaction", transaction);
+        params.put("remark", remark);
+        params.put("id", id);
+        return namedParameterJdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public List<RefillRequestFlatDto> getByMerchantIdAndRemark(int merchantId, String remark) {
+        String sql = "SELECT  REFILL_REQUEST.*, RRA.*, RRP.*, " +
+                "                 INVOICE_BANK.name, INVOICE_BANK.account_number, INVOICE_BANK.recipient, INVOICE_BANK.bank_details " +
+                " FROM REFILL_REQUEST " +
+                "   LEFT JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = REFILL_REQUEST.refill_request_address_id) " +
+                "   LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.id = REFILL_REQUEST.refill_request_param_id) " +
+                "   LEFT JOIN INVOICE_BANK ON (INVOICE_BANK.id = RRP.recipient_bank_id) " +
+                "   LEFT JOIN REFILL_REQUEST_CONFIRMATION RRC ON (RRC.refill_request_id = REFILL_REQUEST.id) " +
+                " WHERE REFILL_REQUEST.merchant_id = :merchant_id " +
+                "       AND REFILL_REQUEST.remark = :remark ";
+
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("merchant_id", merchantId);
+            put("remark", remark);
+        }};
+        return namedParameterJdbcTemplate.query(sql, params, refillRequestFlatDtoRowMapper);
+    }
 }
