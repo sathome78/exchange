@@ -149,6 +149,7 @@ public class AdgroupServiceImpl implements AdgroupService {
         params.put("request_id", requestId.toString());
         sendNotification(userId, paymentAmount, currency.getName());
 
+        refillRequestDao.setRemarkById(requestId, "SUCCESS");
         final String gaTag = refillService.getUserGAByRequestId(requestId);
         log.info("Process of sending data to Google Analytics...");
         gtagService.sendGtagEvents(paymentAmount, currency.getName(), gaTag);
@@ -232,7 +233,7 @@ public class AdgroupServiceImpl implements AdgroupService {
                             case PENDING:
                                 break;
                             case REJECTED:
-                                //mark request_refill as rejected
+                                refillRequestDao.setRemarkById(transaction.getId(), "REJECTED");
                                 break;
                             case CREATED:
                         }
