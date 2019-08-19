@@ -1,6 +1,5 @@
 package me.exrates.service.btcCore;
 
-import com.google.common.collect.ImmutableList;
 import com.neemre.btcdcli4j.core.BitcoindException;
 import com.neemre.btcdcli4j.core.Commands;
 import com.neemre.btcdcli4j.core.CommunicationException;
@@ -25,6 +24,7 @@ import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
+import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.merchants.btc.BtcBlockDto;
 import me.exrates.model.dto.merchants.btc.BtcPaymentFlatDto;
 import me.exrates.model.dto.merchants.btc.BtcPaymentResultDto;
@@ -701,18 +701,36 @@ public class CoreWalletServiceImpl implements CoreWalletService {
     }
 
     @Override
-    public PagingData<List<BtcTransactionHistoryDto>> listTransaction(int start, int length, String searchValue) {
-        try {
-            PagingData<List<BtcTransactionHistoryDto>> result = new PagingData<>();
+    public PagingData<List<BtcTransactionHistoryDto>> listTransaction(DataTableParams dataTableParams) {
 
+        List<BtcTransactionHistoryDto> dataResult = new ArrayList<>();
+        PagingData<List<BtcTransactionHistoryDto>> result = new PagingData<>();
+        int start = dataTableParams.getStart();
+        int length = dataTableParams.getLength() == 0 ? 10 : dataTableParams.getLength();
+        String searchValue = dataTableParams.getSearchValue();
+        String orderColumn = dataTableParams.getOrderColumnName();
+        DataTableParams.OrderDirection orderDirection = (dataTableParams.getDraw() == 1) ?
+                DataTableParams.OrderDirection.DESC :
+                dataTableParams.getOrderDirection();
+
+        try {
             int recordsTotal = getWalletInfo().getTransactionCount() != null ? getWalletInfo().getTransactionCount() : calculateTransactionCount();
-            List<BtcTransactionHistoryDto> data = getTransactionsForPagination(start, length);
+            List<BtcTransactionHistoryDto> dataAll = (dataTableParams.getDraw() == 1) ?
+                    getTransactionsForPagination(start, length) :
+                    getTransactionsForPagination(0, recordsTotal);
 
             if (!(StringUtils.isEmpty(searchValue))) {
                 recordsTotal = findTransactions(searchValue).size();
-                data = findTransactions(searchValue);
+                dataAll = findTransactions(searchValue);
             }
-            result.setData(data);
+
+            dataAll = sortListTransactionByColumn(dataAll, orderColumn, orderDirection);
+
+            for (int i = start; i >= start && i < recordsTotal && i < start + length; i++) {
+                dataResult.add(dataAll.get(i));
+            }
+
+            result.setData(dataResult);
             result.setTotal(recordsTotal);
             result.setFiltered(recordsTotal);
 
@@ -723,7 +741,49 @@ public class CoreWalletServiceImpl implements CoreWalletService {
         }
     }
 
-    ;
+    private List<BtcTransactionHistoryDto> sortListTransactionByColumn(List<BtcTransactionHistoryDto> list, String orderColumn,
+                                                                       DataTableParams.OrderDirection orderDirection){
+        Map<String, String> attributes = new HashMap<>();
+        for(Field field : BtcTransactionHistoryDto.class.getDeclaredFields()) {
+            attributes.put(field.getName(), field.getGenericType().getTypeName());
+        }
+
+        if(attributes.get(orderColumn) != null){
+            list.sort((trans1, trans2) -> getValueForSort(orderColumn, orderDirection, attributes.get(orderColumn), trans1, trans2));
+        }
+
+        return list;
+    }
+
+    private Integer getValueForSort(String orderColumn, DataTableParams.OrderDirection orderDirection, String nameOfTypeOrderColumn,
+                                    BtcTransactionHistoryDto trans1, BtcTransactionHistoryDto trans2) {
+        Object valueOfAttributeOfTrans1 = trans1.getAttributeValueByName(orderColumn);
+        Object valueOfAttributeOfTrans2 = trans2.getAttributeValueByName(orderColumn);
+
+        if(orderDirection.equals(DataTableParams.OrderDirection.ASC)) {
+            return getValueForSortWithUnboxingAndDefaultComparator(nameOfTypeOrderColumn, valueOfAttributeOfTrans1, valueOfAttributeOfTrans2);
+
+        } else if(orderDirection.equals(DataTableParams.OrderDirection.DESC)) {
+            return getValueForSortWithUnboxingAndDefaultComparator(nameOfTypeOrderColumn, valueOfAttributeOfTrans2, valueOfAttributeOfTrans1);
+        }
+        return null;
+    }
+
+    private Integer getValueForSortWithUnboxingAndDefaultComparator(String nameOfTypeOrderColumn, Object value1, Object value2) {
+        if (nameOfTypeOrderColumn.equals(String.class.getName())) {
+            return ((String) value1).compareTo(((String) value2));
+
+        } else if (nameOfTypeOrderColumn.equals(Integer.class.getName())) {
+            return ((Integer) value1).compareTo(((Integer) value2));
+
+        } else if (nameOfTypeOrderColumn.equals(Long.class.getName())) {
+            return ((Long) value1).compareTo(((Long) value2));
+
+        } else if (nameOfTypeOrderColumn.equals(LocalDateTime.class.getName())) {
+            return ((LocalDateTime) value1).compareTo(((LocalDateTime) value2));
+        }
+        return null;
+    }
 
 
     @Override
@@ -744,10 +804,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
     @Override
     public List<BtcTransactionHistoryDto> getTransactionsForPagination(int start, int length) throws BitcoindException, CommunicationException {
         List<Payment> payments;
-        List<Payment> paymentsAll;
         try {
-            paymentsAll = btcdClient.listTransactions();
-
             payments = btcdClient.listTransactions("*", length, start);
         } catch (BitcoindException ex){
             //Fix for coin with specific 'listtransactions' method without first params
