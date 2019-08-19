@@ -189,10 +189,10 @@ public class CurrencyServiceImplTest {
     public void updateCurrencyLimit_Test() {
         when(userRoleService.getRealUserRoleIdByBusinessRoleList(anyString())).thenReturn(Arrays.asList(5, 6, 7));
         doNothing().when(currencyDao).updateCurrencyLimit(anyInt(), any(OperationType.class), anyListOf(Integer.TYPE), any(BigDecimal.class), any(BigDecimal.class), any(BigDecimal.class), any(Integer.class));
-        currencyService.updateCurrencyLimit(6, OperationType.STORNO, "", new BigDecimal(5), new BigDecimal(5), new BigDecimal(9), 8);
+        currencyService.updateCurrencyLimit(6, OperationType.STORNO, "", new BigDecimal(5), new BigDecimal(5),  new BigDecimal(9), 8);
 
         verify(userRoleService, times(1)).getRealUserRoleIdByBusinessRoleList("");
-        verify(currencyDao, times(1)).updateCurrencyLimit(6, OperationType.STORNO, Arrays.asList(5, 6, 7), new BigDecimal(5), new BigDecimal(5), new BigDecimal(8), 8);
+        verify(currencyDao, times(1)).updateCurrencyLimit(6, OperationType.STORNO, Arrays.asList(5, 6, 7), new BigDecimal(5), new BigDecimal(5), new BigDecimal(9), 8);
     }
 
     @Test
