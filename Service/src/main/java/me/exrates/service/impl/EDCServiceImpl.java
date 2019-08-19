@@ -38,9 +38,11 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -83,6 +85,12 @@ public class EDCServiceImpl implements EDCService {
     private EDCServiceNode edcServiceNode;
     @Autowired
     private GtagService gtagService;
+
+    @PostConstruct
+    public void init(){
+        getAddress();
+        log.info("Call method getAddress");
+    }
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
@@ -203,17 +211,27 @@ public class EDCServiceImpl implements EDCService {
 
         HttpEntity<String> entity = new HttpEntity<>(request.toString(), headers);
 
-        final String returnResponse;
+        log.debug("Url (create new account): {}", urlCreateNewAccount + token);
+        log.debug("Headers (create new account): {}", headers);
+        log.debug("Request json (create new account): {}", request);
+
+        final ResponseEntity<String> returnResponse;
         try {
-            returnResponse = restTemplate.exchange(urlCreateNewAccount + token, HttpMethod.POST, entity, String.class).getBody();
+            returnResponse = restTemplate.exchange(urlCreateNewAccount + token, HttpMethod.POST, entity, String.class);
+            log.debug("Return response (create new account): {}", returnResponse);
+
+            String bodyResponse = returnResponse.getBody();
+            log.debug("Body of response (create new account): {}", bodyResponse);
 
             JsonParser parser = new JsonParser();
-            JsonObject object = parser.parse(returnResponse).getAsJsonObject();
+            JsonObject object = parser.parse(bodyResponse).getAsJsonObject();
+
+            log.debug("JsonObject (create new account): {}", object);
             return object.get("address").getAsString();
 
         } catch (Exception e) {
             log.error("EDC coin. Error in generate new address for refill: {}", e);
-            throw new MerchantInternalException("Unfortunately, the operation is not available at the moment, please try again later!");
+            throw new MerchantInternalException("Unfortunately, the operation is not available at the moment, please try again later!" + e);
         }
     }
 
@@ -221,6 +239,21 @@ public class EDCServiceImpl implements EDCService {
     public boolean isValidDestinationAddress(String address) {
 
         return withdrawUtils.isValidDestinationAddress(address);
+    }
+
+    public static void main(String[] args) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36");
+
+        JSONObject request = new JSONObject();
+        request.put("account", "account");
+        request.put("hook", "hook");
+
+        HttpEntity<String> entity = new HttpEntity<>(request.toString(), headers);
+        System.out.println(entity);
+
+        System.out.println(request);
     }
 
 
