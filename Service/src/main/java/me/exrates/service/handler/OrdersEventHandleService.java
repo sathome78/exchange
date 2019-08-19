@@ -172,9 +172,8 @@ public class OrdersEventHandleService {
         ExOrder order = (ExOrder) event.getSource();
         handleAllTrades(order);
         handleMyTrades(order);
-        rabbitMqService.sendTradeInfo(order);
-        /*ratesHolder.onRatesChange(order);*/
         onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
+        rabbitMqService.sendTradeInfo(order);
     }
 
     private void handleCallBack(OrderEvent event) throws JsonProcessingException {
