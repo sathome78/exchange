@@ -188,19 +188,19 @@ public class CurrencyServiceImplTest {
     @Test
     public void updateCurrencyLimit_Test() {
         when(userRoleService.getRealUserRoleIdByBusinessRoleList(anyString())).thenReturn(Arrays.asList(5, 6, 7));
-        doNothing().when(currencyDao).updateCurrencyLimit(anyInt(), any(OperationType.class), anyListOf(Integer.TYPE), any(BigDecimal.class), any(BigDecimal.class), any(Integer.class));
-        currencyService.updateCurrencyLimit(6, OperationType.STORNO, "", new BigDecimal(5), new BigDecimal(5), 8);
+        doNothing().when(currencyDao).updateCurrencyLimit(anyInt(), any(OperationType.class), anyListOf(Integer.TYPE), any(BigDecimal.class), any(BigDecimal.class), any(BigDecimal.class), any(Integer.class));
+        currencyService.updateCurrencyLimit(6, OperationType.STORNO, "", new BigDecimal(5), new BigDecimal(5),  new BigDecimal(9), 8);
 
         verify(userRoleService, times(1)).getRealUserRoleIdByBusinessRoleList("");
-        verify(currencyDao, times(1)).updateCurrencyLimit(6, OperationType.STORNO, Arrays.asList(5, 6, 7), new BigDecimal(5), new BigDecimal(5), 8);
+        verify(currencyDao, times(1)).updateCurrencyLimit(6, OperationType.STORNO, Arrays.asList(5, 6, 7), new BigDecimal(5), new BigDecimal(5), new BigDecimal(9), 8);
     }
 
     @Test
     public void updateCurrencyLimit1_Test() {
-        doNothing().when(currencyDao).updateCurrencyLimit(anyInt(), any(OperationType.class), any(BigDecimal.class), any(BigDecimal.class), any(Integer.class));
-        currencyService.updateCurrencyLimit(6, OperationType.STORNO, new BigDecimal(5), new BigDecimal(5), 8);
+        doNothing().when(currencyDao).updateCurrencyLimit(anyInt(), any(OperationType.class), any(BigDecimal.class), any(BigDecimal.class), any(BigDecimal.class), any(Integer.class));
+        currencyService.updateCurrencyLimit(6, OperationType.STORNO, new BigDecimal(5), new BigDecimal(5), new BigDecimal(8), 8);
 
-        verify(currencyDao, times(1)).updateCurrencyLimit(6, OperationType.STORNO, new BigDecimal(5), new BigDecimal(5), 8);
+        verify(currencyDao, times(1)).updateCurrencyLimit(6, OperationType.STORNO, new BigDecimal(5), new BigDecimal(5), new BigDecimal(8), 8);
     }
 
     @Test
@@ -523,12 +523,12 @@ public class CurrencyServiceImplTest {
     public void updateCurrencyPairLimit_Test() {
         when(userRoleService.getRealUserRoleIdByBusinessRoleList(anyString())).thenReturn(Arrays.asList(5, 6, 7));
         doNothing().when(currencyDao).setCurrencyPairLimit(anyInt(), anyList(), anyInt(), any(BigDecimal.class),
-                any(BigDecimal.class), any(BigDecimal.class), any(BigDecimal.class));
+                any(BigDecimal.class), any(BigDecimal.class), any(BigDecimal.class), any(BigDecimal.class));
 
-        currencyService.updateCurrencyPairLimit(5, OrderType.BUY, "USER", new BigDecimal(3), new BigDecimal(7), new BigDecimal(5), new BigDecimal(18));
+        currencyService.updateCurrencyPairLimit(5, OrderType.BUY, "USER", new BigDecimal(3), new BigDecimal(7), new BigDecimal(5), new BigDecimal(18), new BigDecimal(0));
 
         verify(userRoleService, times(1)).getRealUserRoleIdByBusinessRoleList("USER");
-        verify(currencyDao, times(1)).setCurrencyPairLimit(5, Arrays.asList(5, 6, 7), 2, new BigDecimal(3), new BigDecimal(7), new BigDecimal(5), new BigDecimal(18));
+        verify(currencyDao, times(1)).setCurrencyPairLimit(5, Arrays.asList(5, 6, 7), 2, new BigDecimal(3), new BigDecimal(7), new BigDecimal(5), new BigDecimal(18), new BigDecimal(0));
     }
 
     @Test

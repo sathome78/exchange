@@ -18,4 +18,5 @@ public class CurrencyPairLimitDto {
   private BigDecimal maxRate;
   private BigDecimal minAmount;
   private BigDecimal maxAmount;
+  private BigDecimal minTotal;
 }
