@@ -271,14 +271,15 @@ public class CurrencyDaoImpl implements CurrencyDao {
     }
 
     @Override
-    public void updateCurrencyLimit(int currencyId, OperationType operationType, List<Integer> roleIds, BigDecimal minAmount, BigDecimal minAmountUSD, Integer maxDailyRequest) {
+    public void updateCurrencyLimit(int currencyId, OperationType operationType, List<Integer> roleIds, BigDecimal minAmount, BigDecimal minAmountUSD, BigDecimal maxAmount, Integer maxDailyRequest) {
         String sql = "UPDATE CURRENCY_LIMIT " +
-                "SET min_sum = :min_sum, min_sum_usd = :min_sum_usd, max_daily_request = :max_daily_request " +
+                "SET min_sum = :min_sum, min_sum_usd = :min_sum_usd, max_sum = :max_sum, max_daily_request = :max_daily_request " +
                 "WHERE currency_id = :currency_id AND operation_type_id = :operation_type_id AND user_role_id IN (:role_ids)";
 
         final Map<String, Object> params = new HashMap<String, Object>() {
             {
                 put("min_sum", minAmount);
+                put("max_sum", maxAmount);
                 put("min_sum_usd", minAmountUSD);
                 put("currency_id", currencyId);
                 put("operation_type_id", operationType.getType());
@@ -290,14 +291,15 @@ public class CurrencyDaoImpl implements CurrencyDao {
     }
 
     @Override
-    public void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, BigDecimal minAmountUSD, Integer maxDailyRequest) {
+    public void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, BigDecimal minAmountUSD, BigDecimal maxAmount, Integer maxDailyRequest) {
         String sql = "UPDATE CURRENCY_LIMIT " +
-                "SET min_sum = :min_sum, min_sum_usd = :min_sum_usd, max_daily_request = :max_daily_request " +
+                "SET min_sum = :min_sum, min_sum_usd = :min_sum_usd, max_sum = :max_sum, max_daily_request = :max_daily_request " +
                 "WHERE currency_id = :currency_id AND operation_type_id = :operation_type_id";
 
         final Map<String, Object> params = new HashMap<String, Object>() {
             {
                 put("min_sum", minAmount);
+                put("max_sum", maxAmount);
                 put("min_sum_usd", minAmountUSD);
                 put("currency_id", currencyId);
                 put("operation_type_id", operationType.getType());
@@ -1094,5 +1096,34 @@ public class CurrencyDaoImpl implements CurrencyDao {
         params.put("volume", marketVolume);
         params.put("name", name);
         return masterJdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public CurrencyLimit getCurrencyLimit(Integer currencyId, Integer roleId, Integer operationType) {
+        String sql = "SELECT " +
+                "CL.currency_id, " +
+                "CL.min_sum, " +
+                "CL.min_sum_usd, " +
+                "CL.usd_rate, " +
+                "IFNULL(CL.max_sum, 999999999999) as max_sum, " +
+                "CL.max_daily_request, " +
+                "CL.recalculate_to_usd " +
+                "FROM CURRENCY_LIMIT CL " +
+                "WHERE user_role_id = :role_id AND CL.operation_type_id = :operation_type_id AND CL.currency_id = :currency_id ";
+
+        final Map<String, Object> params = new HashMap<String, Object>() {{
+            put("role_id", roleId);
+            put("currency_id", currencyId);
+            put("operation_type_id", operationType);
+        }};
+
+        return masterJdbcTemplate.queryForObject(sql, params, (rs, row) -> CurrencyLimit.builder()
+                .minSum(rs.getBigDecimal("min_sum"))
+                .minSumUsdRate(rs.getBigDecimal("min_sum_usd"))
+                .maxSum(rs.getBigDecimal("max_sum"))
+                .currencyUsdRate(rs.getBigDecimal("usd_rate"))
+                .maxDailyRequest(rs.getInt("max_daily_request"))
+                .recalculateToUsd(rs.getBoolean("recalculate_to_usd"))
+                .build());
     }
 }

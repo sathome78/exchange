@@ -91,7 +91,7 @@ public class WithdrawRequestController {
     if(!accessToOperationForUser) {
       throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, localeResolver.resolveLocale(servletRequest)));
     }
-    if (!withdrawService.checkOutputRequestsLimit(requestParamsDto.getCurrency(), principal.getName())) {
+    if (!withdrawService.checkOutputRequestsLimit(requestParamsDto.getCurrency(), principal.getName(), requestParamsDto.getSum())) {
       throw new RequestLimitExceededException(messageSource.getMessage("merchants.OutputRequestsLimit", null, locale));
     }
     if (!StringUtils.isEmpty(requestParamsDto.getDestinationTag())) {

@@ -28,10 +28,15 @@ public class WithdrawDataDto {
     private OperationType operationType;
     @JsonSerialize(using = BigDecimalToDoubleSerializer.class)
     private BigDecimal minWithdrawSum;
-    @JsonSerialize(using = BigDecimalToDoubleSerializer.class)
-    private BigDecimal maxDailyRequestSum;
+    private Integer maxDailyRequestSum;
     @JsonSerialize(using = BigDecimalToDoubleSerializer.class)
     private BigDecimal leftRequestSum;
+    @JsonSerialize(using = BigDecimalToDoubleSerializer.class)
+    private BigDecimal maxDailyWithdrawAmount;
+    @JsonSerialize(using = BigDecimalToDoubleSerializer.class)
+    private BigDecimal leftDailyWithdrawAmount;
+    @JsonSerialize(using = BigDecimalToDoubleSerializer.class)
+    private BigDecimal withdrawnToday;
     private Integer scaleForCurrency;
     private List<Integer> currenciesId;
     private List<MerchantCurrency> merchantCurrencyData;
