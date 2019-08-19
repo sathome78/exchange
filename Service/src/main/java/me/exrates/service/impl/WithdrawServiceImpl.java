@@ -668,8 +668,10 @@ public class WithdrawServiceImpl implements WithdrawService {
 
     @Override
     @Transactional(readOnly = true)
-    public boolean checkOutputRequestsLimit(int merchantId, String email) {
-        return withdrawRequestDao.checkOutputRequests(merchantId, email);
+    public boolean checkOutputRequestsLimit(int merchantId, String email, BigDecimal newSum) {
+        boolean checkCount = withdrawRequestDao.checkOutputRequests(merchantId, email);
+        boolean checkMaxSum = withdrawRequestDao.checkOutputMaxSum(merchantId, email, newSum);
+        return checkCount && checkMaxSum;
     }
 
     @Transactional(readOnly = true)
@@ -778,7 +780,13 @@ public class WithdrawServiceImpl implements WithdrawService {
 
     @Override
     @Transactional(readOnly = true)
-    public BigDecimal getLeftOutputRequestsSum(int currencyId, String email) {
-        return withdrawRequestDao.getLeftOutputRequestsSum(currencyId, email);
+    public BigDecimal getLeftOutputRequestsCount(int currencyId, String email) {
+        return withdrawRequestDao.getLeftOutputRequestsCount(currencyId, email);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BigDecimal getDailyWithdrawalSum(String email, int currencyId) {
+        return withdrawRequestDao.getDailyWithdrawalSumByCurrency(email, currencyId);
     }
 }

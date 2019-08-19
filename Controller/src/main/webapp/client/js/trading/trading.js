@@ -743,6 +743,8 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
         $exrateErrorContainer.empty();
         var $stopErrorContainer = $('#order-create-confirm__modal').find('[for=stop]');
         $stopErrorContainer.empty();
+        var $totalErrorContainer = $('#order-create-confirm__modal').find('[for=total]');
+        $totalErrorContainer.empty();
         $('#order-create-confirm__submit').removeClass('hidden');
         $.ajax({
             headers: {
@@ -787,6 +789,9 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
                     }
                     if (f.split('_')[0] == 'stop') {
                         $stopErrorContainer.append('<div class="input-block-wrapper__error">' + responseData[f] + '</div>');
+                    }
+                    if (f.split('_')[0] == 'total') {
+                        $totalErrorContainer.append('<div class="input-block-wrapper__error">' + responseData[f] + '</div>');
                     }
                 }
                 var data = responseData.order;
