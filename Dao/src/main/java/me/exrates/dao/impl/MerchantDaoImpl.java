@@ -800,6 +800,14 @@ public class MerchantDaoImpl implements MerchantDao {
         });
     }
 
+    @Override
+    public String getMerchantImageNameById(Integer id) {
+        final String sql = "SELECT image_name FROM MERCHANT_IMAGE WHERE id = :id";
+        Map<String, Object> params = new HashMap<>();
+        params.put("id", id);
+        return slaveJdbcTemplate.queryForObject(sql, params, String.class);
+    }
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public void updateMerchantCommissionsLimits(List<MerchantCurrencyOptionsDto> merchantCommissionsLimits) {

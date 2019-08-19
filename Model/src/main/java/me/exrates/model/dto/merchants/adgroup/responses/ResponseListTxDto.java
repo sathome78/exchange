@@ -1,19 +1,25 @@
 package me.exrates.model.dto.merchants.adgroup.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ResponseListTxDto {
     private String total;
     private List<Transaction> transactions;
     private String errors;
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public class Transaction {
         @JsonProperty("_id")
         private String id;
@@ -43,6 +49,8 @@ public class ResponseListTxDto {
     }
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public class Tx {
         @JsonProperty("_id")
         private String id;

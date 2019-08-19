@@ -101,4 +101,5 @@ public interface MerchantDao {
 
     MerchantCurrency getMerchantByCurrencyForVoucher(Integer currencyId, TransferTypeVoucher transferType);
 
+    String getMerchantImageNameById(Integer id);
 }

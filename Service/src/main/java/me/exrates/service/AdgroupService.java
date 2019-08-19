@@ -12,7 +12,7 @@ public interface AdgroupService extends IRefillable, IWithdrawable {
 
     @Override
     default Boolean needToCreateRefillRequestRecord() {
-        return false;
+        return true;
     }
 
     @Override
@@ -22,7 +22,7 @@ public interface AdgroupService extends IRefillable, IWithdrawable {
 
     @Override
     default Boolean generatingAdditionalRefillAddressAvailable() {
-        return null;
+        return false;
     }
 
     @Override

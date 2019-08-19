@@ -12,6 +12,7 @@ import me.exrates.model.dto.merchants.adgroup.responses.ResponseListTxDto;
 import me.exrates.model.dto.merchants.adgroup.responses.ResponsePayOutDto;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -50,10 +51,11 @@ public class AdGroupHttpClient {
         URI uri = builder.build(true).toUri();
 
         HttpEntity<?> request = new HttpEntity<>(requestDto, headers);
-        ResponseEntity<AdGroupResponseDto> responseEntity;
+        ResponseEntity<AdGroupResponseDto<InvoiceDto>> responseEntity;
         try {
-            responseEntity =
-                    template.exchange(uri, HttpMethod.POST, request, AdGroupResponseDto.class);
+            responseEntity = template.exchange(uri, HttpMethod.POST, request,
+                    new ParameterizedTypeReference<AdGroupResponseDto<InvoiceDto>>() {
+                    });
         } catch (Exception e) {
             log.error("Error http request while create invoice {}", e);
             throw new RuntimeException(ErrorApiTitles.QUBERA_RESPONSE_CREATE_APPLICANT_ERROR);
@@ -81,10 +83,12 @@ public class AdGroupHttpClient {
         URI uri = builder.build(true).toUri();
 
         HttpEntity<?> request = new HttpEntity<>(requestDto, headers);
-        ResponseEntity<AdGroupResponseDto> responseEntity;
+        ResponseEntity<AdGroupResponseDto<ResponseListTxDto>> responseEntity;
         try {
             responseEntity =
-                    template.exchange(uri, HttpMethod.POST, request, AdGroupResponseDto.class);
+                    template.exchange(uri, HttpMethod.POST, request,
+                            new ParameterizedTypeReference<AdGroupResponseDto<ResponseListTxDto>>() {
+                            });
         } catch (Exception e) {
             log.error("Error http request while fetch list transactions {}", e);
             throw new RuntimeException(ErrorApiTitles.QUBERA_RESPONSE_CREATE_APPLICANT_ERROR);
@@ -113,10 +117,12 @@ public class AdGroupHttpClient {
         URI uri = builder.build(true).toUri();
 
         HttpEntity<?> request = new HttpEntity<>(requestDto, headers);
-        ResponseEntity<AdGroupResponseDto> responseEntity;
+        ResponseEntity<AdGroupResponseDto<ResponsePayOutDto>> responseEntity;
         try {
             responseEntity =
-                    template.exchange(uri, HttpMethod.POST, request, AdGroupResponseDto.class);
+                    template.exchange(uri, HttpMethod.POST, request,
+                            new ParameterizedTypeReference<AdGroupResponseDto<ResponsePayOutDto>>() {
+                            });
         } catch (Exception e) {
             log.error("Error http request while createPayOut {}", e);
             throw new RuntimeException(ErrorApiTitles.QUBERA_RESPONSE_CREATE_APPLICANT_ERROR);

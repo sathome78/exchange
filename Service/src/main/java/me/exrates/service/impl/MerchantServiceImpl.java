@@ -17,7 +17,11 @@ import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.MerchantProcessType;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.TransferTypeVoucher;
+import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -642,6 +646,11 @@ public class MerchantServiceImpl implements MerchantService {
 
 
         return collect1;
+    }
+
+    @Override
+    public String getImageNameById(Integer id) {
+        return merchantDao.getMerchantImageNameById(id);
     }
 
     private BitcoinService getBitcoinServiceByMerchantName(String merchantName) {
