@@ -481,6 +481,7 @@ public class BitcoinServiceImpl implements BitcoinService {
               length, dataTableParams.getSearchValue());
 
       DataTable<List<BtcTransactionHistoryDto>> output = new DataTable<>();
+      // сортирует 10 транзакций на странице
       output.setData(sortListTransactionByColumn(searchResult.getData(), dataTableParams.getOrderColumnName(), dataTableParams.getOrderDirection()));
       output.setRecordsTotal(searchResult.getTotal());
       output.setRecordsFiltered(searchResult.getFiltered());

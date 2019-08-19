@@ -744,7 +744,10 @@ public class CoreWalletServiceImpl implements CoreWalletService {
     @Override
     public List<BtcTransactionHistoryDto> getTransactionsForPagination(int start, int length) throws BitcoindException, CommunicationException {
         List<Payment> payments;
+        List<Payment> paymentsAll;
         try {
+            paymentsAll = btcdClient.listTransactions();
+
             payments = btcdClient.listTransactions("*", length, start);
         } catch (BitcoindException ex){
             //Fix for coin with specific 'listtransactions' method without first params
