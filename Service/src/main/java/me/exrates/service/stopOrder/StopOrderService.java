@@ -60,7 +60,7 @@ public interface StopOrderService {
                                                 String scope, Integer offset, Integer limit, Locale locale);
 
     @Transactional(readOnly = true)
-    List<OrderWideListDto> getUsersStopOrdersWithStateForAdmin(String email, CurrencyPair currencyPair, OrderStatus status,
+    List<OrderWideListDto> getUsersStopOrdersWithStateForAdmin(Integer id, CurrencyPair currencyPair, OrderStatus status,
                                                                OperationType operationType,
                                                                Integer offset, Integer limit, Locale locale);
 
@@ -78,4 +78,7 @@ public interface StopOrderService {
     List<Integer> getAllOpenedStopOrdersByUserId(Integer userId);
 
     List<Integer> getOpenedStopOrdersByCurrencyPair(Integer userId, String currencyPair);
+
+    int getUsersStopOrdersWithStateForAdminCount(int id, CurrencyPair currencyPair, OrderStatus orderStatus, OperationType operationType, int offset, int limit);
+
 }

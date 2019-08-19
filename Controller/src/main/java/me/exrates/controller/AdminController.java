@@ -17,6 +17,7 @@ import me.exrates.model.Comment;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.MarketVolume;
 import me.exrates.model.Merchant;
 import me.exrates.model.RefillRequestAddressShortDto;
 import me.exrates.model.User;
@@ -25,7 +26,8 @@ import me.exrates.model.dto.AdminOrderInfoDto;
 import me.exrates.model.dto.AlertDto;
 import me.exrates.model.dto.BotTradingSettingsShortDto;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
-import me.exrates.model.dto.CandleChartItemDto;
+import me.exrates.model.dto.CandleDto;
+import me.exrates.model.dto.ComissionCountDto;
 import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.EditMerchantCommissionDto;
@@ -43,7 +45,6 @@ import me.exrates.model.dto.RefillRequestBtcInfoDto;
 import me.exrates.model.dto.RefsListContainer;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
-import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.dto.UserSessionDto;
 import me.exrates.model.dto.UserTransferInfoDto;
 import me.exrates.model.dto.UserWalletSummaryDto;
@@ -78,12 +79,8 @@ import me.exrates.model.enums.ReportGroupUserRole;
 import me.exrates.model.enums.TransactionType;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserEventEnum;
-import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
-import me.exrates.model.enums.WsSourceTypeEnum;
-import me.exrates.model.enums.invoice.InvoiceStatus;
-import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.form.AuthorityOptionsForm;
 import me.exrates.model.form.UserOperationAuthorityOptionsForm;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -109,6 +106,7 @@ import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
 import me.exrates.service.aidos.AdkService;
 import me.exrates.service.aidos.AdkServiceImpl;
+import me.exrates.service.chart.CandleDataProcessingService;
 import me.exrates.service.exception.NoRequestedBeansFoundException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.process.NotCreatableOrderException;
@@ -137,6 +135,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -220,7 +219,22 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 public class AdminController {
 
     private static final Logger LOG = LogManager.getLogger(AdminController.class);
-
+    public static String adminAnyAuthority;
+    public static String nonAdminAnyAuthority;
+    public static String traderAuthority;
+    public static String botAuthority;
+    @Autowired
+    UserRoleService userRoleService;
+    @Autowired
+    UserTransferService userTransferService;
+    @Autowired
+    WithdrawService withdrawService;
+    @Autowired
+    StopOrderService stopOrderService;
+    @Autowired
+    RefillService refillService;
+    @Autowired
+    BotService botService;
     @Autowired
     private MessageSource messageSource;
     @Autowired
@@ -256,18 +270,6 @@ public class AdminController {
     @Autowired
     private CommissionService commissionService;
     @Autowired
-    UserRoleService userRoleService;
-    @Autowired
-    UserTransferService userTransferService;
-    @Autowired
-    WithdrawService withdrawService;
-    @Autowired
-    StopOrderService stopOrderService;
-    @Autowired
-    RefillService refillService;
-    @Autowired
-    BotService botService;
-    @Autowired
     private MerchantServiceContext serviceContext;
     @Autowired
     private NotificatorsService notificatorsService;
@@ -283,6 +285,8 @@ public class AdminController {
     private UsdxService usdxService;
     @Autowired
     private G2faService g2faService;
+    @Autowired
+    private CandleDataProcessingService candleDataProcessingService;
 
 
     @Autowired
@@ -292,12 +296,6 @@ public class AdminController {
     private BigDecimalConverter converter;
     @Autowired
     private StompMessenger stompMessenger;
-
-    public static String adminAnyAuthority;
-    public static String nonAdminAnyAuthority;
-    public static String traderAuthority;
-    public static String botAuthority;
-
 
     @PostConstruct
     private void init() {
@@ -538,6 +536,8 @@ public class AdminController {
     private DataTable<List<OrderWideListDto>> getOrderWideListDtos(String tableType, CurrencyPair currencyPair, int id, Locale locale, Map<String, String> params) {
         OrderStatus orderStatus = null;
         OperationType operationType = null;
+        boolean isStopOrder = false;
+
         switch (tableType) {
             case "ordersBuyClosed":
                 orderStatus = OrderStatus.CLOSED;
@@ -565,21 +565,28 @@ public class AdminController {
                 break;
             case "stopOrdersCancelled":
                 orderStatus = OrderStatus.CANCELLED;
+                isStopOrder = true;
                 break;
             case "stopOrdersClosed":
                 orderStatus = OrderStatus.CLOSED;
+                isStopOrder = true;
                 break;
             case "stopOrdersOpened":
                 orderStatus = OrderStatus.OPENED;
+                isStopOrder = true;
                 break;
         }
         DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
 
-        final int notFilteredAmount = orderService.getUsersOrdersWithStateForAdminCount(id, currencyPair, orderStatus, operationType, 0, -1, locale);
+        final int notFilteredAmount = isStopOrder
+                ? stopOrderService.getUsersStopOrdersWithStateForAdminCount(id, currencyPair, orderStatus, operationType, 0, -1)
+                : orderService.getUsersOrdersWithStateForAdminCount(id, currencyPair, orderStatus, operationType, 0, -1);
 
         List<OrderWideListDto> filteredOrders = Collections.emptyList();
         if (notFilteredAmount > 0) {
-            filteredOrders = orderService.getUsersOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, dataTableParams.getStart(), dataTableParams.getLength(), locale);
+            filteredOrders = isStopOrder
+                    ? stopOrderService.getUsersStopOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, dataTableParams.getStart(), dataTableParams.getLength(), locale)
+                    : orderService.getUsersOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, dataTableParams.getStart(), dataTableParams.getLength(), locale);
         }
         DataTable<List<OrderWideListDto>> result = new DataTable<>();
         result.setRecordsFiltered(notFilteredAmount);
@@ -610,9 +617,12 @@ public class AdminController {
         }
 
         model.addObject("user", user);
-        model.addObject("user2fa", g2faService.isGoogleAuthenticatorEnable(user.getId()));
+        model.addObject("userGoogle2fa", g2faService.isGoogleAuthenticatorEnable(user.getId()));
         model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
-        model.addObject("currencies", currencyService.findAllCurrenciesWithHidden());
+        model.addObject("currencies", currencyService.findAllCurrenciesWithHidden()
+                .stream()
+                .sorted(Comparator.comparing(Currency::getName))
+                .collect(Collectors.toList()));
         model.addObject("currencyPairs", currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL));
         model.setViewName("admin/editUser");
         model.addObject("userFiles", userService.findUserDoc(user.getId()));
@@ -972,19 +982,19 @@ public class AdminController {
     public ResponseEntity changeActiveBalance(@RequestParam Integer userId,
                                               @RequestParam("currency") Integer currencyId,
                                               @RequestParam BigDecimal amount,
-                                              @RequestParam(defaultValue = "manually credited") String comment,
+                                              @RequestParam String comment,
                                               Principal principal) {
         LOG.debug("userId = " + userId + ", currencyId = " + currencyId + ", amount = " + amount);
 
         walletService.manualBalanceChange(userId, currencyId, amount, principal.getName());
 
-        stompMessenger.sendPersonalMessageToUser(
-                userService.findEmailById(userId),
-                UserNotificationMessage.builder()
-                        .notificationType(UserNotificationType.INFORMATION)
-                        .sourceTypeEnum(WsSourceTypeEnum.SUBSCRIBE)
-                        .text(String.format("%s %s %s", amount.toPlainString(), currencyService.getCurrencyName(currencyId), comment))
-                        .build());
+        try {
+            final String newComment = String.format("%s %s %s", amount.toPlainString(), currencyService.getCurrencyName(currencyId), comment);
+
+            userService.addUserComment(GENERAL, newComment, userService.getEmailById(userId), false);
+        } catch (Exception ex) {
+            LOG.error("Comment could not be saved", ex);
+        }
         return ResponseEntity.ok().build();
     }
 
@@ -1143,6 +1153,38 @@ public class AdminController {
     }
 
     @ResponseBody
+    @GetMapping(value = "/2a8fy7b07dxe44/merchantAccess/getMarketVolumes")
+    public List<MarketVolume> getMarketVolumes() {
+        return currencyService.getAllMarketVolumes();
+    }
+
+    @ResponseBody
+    @PostMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPairs/post")
+    public ResponseEntity<Void> updateMarketVolumeForCurrencyPair(@RequestParam(value = "id") Integer pairId,
+                                                                  @RequestParam(value = "volume", required = false) String volume) {
+        BigDecimal volumeTopMarket = null;
+        if (StringUtils.isNoneEmpty(volume) && StringUtils.isNumeric(volume)) {
+            volumeTopMarket = new BigDecimal(volume);
+        }
+        HttpStatus status =
+                currencyService.updateMarketVolumeCurrecencyPair(pairId, volumeTopMarket) ? HttpStatus.OK : HttpStatus.BAD_REQUEST;
+        return new ResponseEntity<>(status);
+    }
+
+    @ResponseBody
+    @PostMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPairs/market/post")
+    public ResponseEntity<Void> updateMarketVolume(@RequestParam(value = "name") String name,
+                                                   @RequestParam(value = "volume") String volume) {
+        if (StringUtils.isEmpty(volume) && !StringUtils.isNumeric(volume)) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        BigDecimal marketVolume = new BigDecimal(volume);
+        HttpStatus status =
+                currencyService.updateDefaultMarketVolume(name, marketVolume) ? HttpStatus.OK : HttpStatus.BAD_REQUEST;
+        return new ResponseEntity<>(status);
+    }
+
+    @ResponseBody
     @PostMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPair/visibility/update")
     public ResponseEntity<Void> updateVisibilityCurrencyPairById(@RequestParam("currencyPairId") int currencyPairId) {
         currencyService.updateVisibilityCurrencyPairById(currencyPairId);
@@ -1191,18 +1233,20 @@ public class AdminController {
 
     @RequestMapping(value = "/2a8fy7b07dxe44/getCandleTableData", method = RequestMethod.GET)
     @ResponseBody
-    public List<CandleChartItemDto> getCandleChartData(@RequestParam("currencyPair") Integer currencyPairId,
-                                                       @RequestParam("interval") String interval,
-                                                       @RequestParam("startTime") String startTimeString) {
-        CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
-        BackDealInterval backDealInterval = new BackDealInterval(interval);
-        LocalDateTime startTime = LocalDateTime.parse(startTimeString, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        return orderService.getDataForCandleChart(currencyPair, backDealInterval, startTime);
+    public List<CandleDto> getCandleChartData(@RequestParam("currencyPair") Integer currencyPairId,
+                                              @RequestParam("interval") String interval,
+                                              @RequestParam("startTime") String startTimeString) {
+        final CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
+        final BackDealInterval backDealInterval = new BackDealInterval(interval);
+        final LocalDateTime fromDate = LocalDateTime.parse(startTimeString, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        final LocalDateTime toDate = LocalDateTime.now();
+
+        return candleDataProcessingService.getData(currencyPair.getName(), fromDate, toDate, backDealInterval);
     }
 
     private BitcoinService getBitcoinServiceByMerchantName(String merchantName) {
         IMerchantService merchantService = serviceContext.getBitcoinServiceByMerchantName(merchantName);
-        if (merchantService == null || !(merchantService instanceof BitcoinService)) {
+        if (!(merchantService instanceof BitcoinService)) {
             throw new NoRequestedBeansFoundException("Merchant name: " + merchantName);
         }
         return (BitcoinService) merchantService;
@@ -1882,11 +1926,17 @@ public class AdminController {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
-    public static void main(String[] args) {
-        System.out.println(WithdrawStatusEnum.getEndStatesSet()
-                .stream()
-                .map(InvoiceStatus::getCode)
-                .collect(Collectors.toList()));
+    @RequestMapping(value = "/2a8fy7b07dxe44/comission_count", method = GET)
+    public String comissionCount() {
+        return "admin/comissionCount";
+    }
+
+
+    @ResponseBody
+    @RequestMapping(value = "/2a8fy7b07dxe44/comission_count/get", method = GET)
+    public List<ComissionCountDto> getCountedComissions(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd_HH-mm-ss") LocalDateTime from,
+                                                        @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd_HH-mm-ss") LocalDateTime to) {
+        return commissionService.getComissionsCount(from, to);
     }
 
 }

@@ -1,4 +1,4 @@
-package me.exrates.service.zil;
+package me.exrates.service.zil.impl;
 
 import com.firestack.laksaj.account.Wallet;
 import com.firestack.laksaj.crypto.KeyTools;
@@ -10,6 +10,9 @@ import com.firestack.laksaj.utils.Bech32;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RefillRequestAddressDto;
+import me.exrates.service.AlgorithmService;
+import me.exrates.service.zil.ZilCurrencyService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
@@ -23,19 +26,28 @@ import java.security.NoSuchProviderException;
 
 import static com.firestack.laksaj.account.Wallet.pack;
 
-@Log4j2
+@Log4j2(topic = "zil_log")
 @Service
 @Conditional(MonolitConditional.class)
 @PropertySource("classpath:/merchants/zil_wallet.properties")
-public class ZilCurrencyServiceImpl implements ZilCurrencyService{
+public class ZilCurrencyServiceImpl implements ZilCurrencyService {
 
     public static final String DEFAULT_GAS_PRISE = "1000000000";
     private static final String DEFAULT_FACTOR = "1000000000000";
+
+    private static final String CODE_FROM_AWS = "zil_coin\":\"";
 
     private static HttpProvider client;
 
     @Value("${zil.mainaddress}")
     private String mainAccount;
+
+    private final AlgorithmService algorithmService;
+
+    @Autowired
+    public ZilCurrencyServiceImpl(AlgorithmService algorithmService){
+        this.algorithmService = algorithmService;
+    }
 
     @PostConstruct
     private void init(){
@@ -71,7 +83,8 @@ public class ZilCurrencyServiceImpl implements ZilCurrencyService{
     }
 
     public void createTransaction(RefillRequestAddressDto dto) throws Exception {
-        String privKey = dto.getPrivKey();
+
+        String privKey = algorithmService.decodeByKey(CODE_FROM_AWS, dto.getPrivKey());
         String pubKey = dto.getPubKey();
 
         BigDecimal accountAmount = getAmount(Bech32.fromBech32Address(dto.getAddress()));

@@ -8,6 +8,8 @@ import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.PagingData;
+import me.exrates.model.QuberaUserData;
+import me.exrates.model.User;
 import me.exrates.model.WithdrawRequest;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.CommissionDataDto;
@@ -41,10 +43,15 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.InputOutputService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.NotificationService;
+import me.exrates.service.QuberaService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
-import me.exrates.service.exception.*;
+import me.exrates.service.exception.WithdrawRequestAlreadyPostedException;
+import me.exrates.service.exception.WithdrawRequestCreationException;
+import me.exrates.service.exception.WithdrawRequestNotFoundException;
+import me.exrates.service.exception.WithdrawRequestPostException;
+import me.exrates.service.exception.WithdrawRequestRevokeException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
@@ -100,45 +107,35 @@ import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 public class WithdrawServiceImpl implements WithdrawService {
 
     private static final Logger log = LogManager.getLogger("withdraw");
-
-    @Autowired
-    private MerchantDao merchantDao;
-
-    @Autowired
-    private CurrencyService currencyService;
-
-    @Autowired
-    private MessageSource messageSource;
-
-    @Autowired
-    private WithdrawRequestDao withdrawRequestDao;
-
-    @Autowired
-    private WalletService walletService;
-
-    @Autowired
-    private CompanyWalletService companyWalletService;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private NotificationService notificationService;
-
     @Autowired
     TransactionDescription transactionDescription;
-
     @Autowired
     MerchantServiceContext merchantServiceContext;
-
-    @Autowired
-    private CommissionService commissionService;
-
     @Autowired
     InputOutputService inputOutputService;
-
+    @Autowired
+    private MerchantDao merchantDao;
+    @Autowired
+    private CurrencyService currencyService;
+    @Autowired
+    private MessageSource messageSource;
+    @Autowired
+    private WithdrawRequestDao withdrawRequestDao;
+    @Autowired
+    private WalletService walletService;
+    @Autowired
+    private CompanyWalletService companyWalletService;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private NotificationService notificationService;
+    @Autowired
+    private CommissionService commissionService;
     @Autowired
     private MerchantService merchantService;
+
+    @Autowired
+    private QuberaService quberaService;
 
     @Override
     @Transactional
@@ -199,7 +196,7 @@ public class WithdrawServiceImpl implements WithdrawService {
     }
 
     @Transactional(rollbackFor = {Exception.class})
-    private Integer createWithdraw(WithdrawRequestCreateDto withdrawRequestCreateDto) {
+    public Integer createWithdraw(WithdrawRequestCreateDto withdrawRequestCreateDto) {
         merchantServiceContext.getMerchantService(withdrawRequestCreateDto.getMerchantId())
                 .checkWithdrawAddressName(withdrawRequestCreateDto.getDestinationWallet());
         WithdrawStatusEnum currentStatus = WithdrawStatusEnum.convert(withdrawRequestCreateDto.getStatusId());
@@ -744,25 +741,40 @@ public class WithdrawServiceImpl implements WithdrawService {
         return notification;
     }
 
-  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
-  @Override
-  public List<WithdrawRequestFlatForReportDto> findAllByPeriodAndRoles(LocalDateTime startTime,
-                                                                       LocalDateTime endTime,
-                                                                       List<UserRole> userRoles,
-                                                                       int requesterId) {
-    return withdrawRequestDao.findAllByPeriodAndRoles(startTime, endTime, userRoles, requesterId);
-  }
-
-  @Override
-  public void setAdditionalData(MerchantCurrency merchantCurrency) {
-    IWithdrawable withdrawable = (IWithdrawable) merchantServiceContext.getMerchantService(merchantCurrency.getMerchantId());
-    if (withdrawable.additionalTagForWithdrawAddressIsUsed()) {
-      merchantCurrency.setAdditionalTagForWithdrawAddressIsUsed(true);
-      merchantCurrency.setAdditionalFieldName(withdrawable.additionalWithdrawFieldName());
-    } else {
-      merchantCurrency.setAdditionalTagForWithdrawAddressIsUsed(false);
+    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+    @Override
+    public List<WithdrawRequestFlatForReportDto> findAllByPeriodAndRoles(LocalDateTime startTime,
+                                                                         LocalDateTime endTime,
+                                                                         List<UserRole> userRoles,
+                                                                         int requesterId) {
+        return withdrawRequestDao.findAllByPeriodAndRoles(startTime, endTime, userRoles, requesterId);
     }
-  }
+
+    @Override
+    public void setAdditionalData(MerchantCurrency merchantCurrency, User user) {
+        IWithdrawable withdrawable = (IWithdrawable) merchantServiceContext.getMerchantService(merchantCurrency.getMerchantId());
+        if (withdrawable.additionalTagForWithdrawAddressIsUsed()) {
+            merchantCurrency.setAdditionalTagForWithdrawAddressIsUsed(true);
+            merchantCurrency.setAdditionalFieldName(withdrawable.additionalWithdrawFieldName());
+        } else {
+            merchantCurrency.setAdditionalTagForWithdrawAddressIsUsed(false);
+        }
+
+        if (merchantCurrency.getNeedVerification()) {
+            switch (merchantCurrency.getVerificationType()) {
+                case ariadnext:
+                    QuberaUserData quberaUserData = quberaService.getUserDataByUserEmail(user.getEmail());
+                    if (quberaUserData != null) {
+                        String status = quberaUserData.getBankVerificationStatus();
+                        merchantCurrency.setNeedVerification(!status.equalsIgnoreCase("SUCCESS"));
+                    }
+                    break;
+                case shuftipro:
+                    merchantCurrency.setNeedVerification(!user.getKycStatus().equalsIgnoreCase("SUCCESS"));
+                    break;
+            }
+        }
+    }
 
     @Override
     @Transactional(readOnly = true)

@@ -198,48 +198,48 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         log.info("start " + merchantName);
 
         web3j = Web3j.build(new HttpService(url));
-
-        scheduler.scheduleAtFixedRate(new Runnable() {
-            public void run() {
-                checkSession();
-            }
-        }, 3, 8, TimeUnit.MINUTES);
-
-        scheduler.scheduleWithFixedDelay(() -> {
-            try {
-                transferFundsToMainAccount();
-            } catch (Exception e) {
-                log.error(e);
-            }
-        }, 4, 20, TimeUnit.MINUTES);
-
-        scheduler.scheduleWithFixedDelay(new Runnable() {
-            public void run() {
-                try {
-                    if (subscribeCreated == true) {
-                        saveLastBlock(currentBlockNumber.toString());
-                    }
-                } catch (Exception e) {
-                    log.error(e);
-                }
-            }
-        }, 1, 24, TimeUnit.HOURS);
-
-        checkerScheduler.scheduleWithFixedDelay(() -> {
-            if (needToCheckTokens) {
-                checkUnconfirmedTokensTransactions(currentBlockNumber);
-            }
-        }, 5, 5, TimeUnit.MINUTES);
-
-        if (currencyName.equals("ETI")) {
-            scheduler.scheduleWithFixedDelay(() -> {
-                try {
-                    checkConnection();
-                } catch (Exception e) {
-                    log.error(e);
-                }
-            }, 4, 3, TimeUnit.MINUTES);
-        }
+//todo: uncomment after some changes and test
+//        scheduler.scheduleAtFixedRate(new Runnable() {
+//            public void run() {
+//                checkSession();
+//            }
+//        }, 3, 8, TimeUnit.MINUTES);
+//
+//        scheduler.scheduleWithFixedDelay(() -> {
+//            try {
+//                transferFundsToMainAccount();
+//            } catch (Exception e) {
+//                log.error(e);
+//            }
+//        }, 4, 20, TimeUnit.MINUTES);
+//
+//        scheduler.scheduleWithFixedDelay(new Runnable() {
+//            public void run() {
+//                try {
+//                    if (subscribeCreated == true) {
+//                        saveLastBlock(currentBlockNumber.toString());
+//                    }
+//                } catch (Exception e) {
+//                    log.error(e);
+//                }
+//            }
+//        }, 1, 24, TimeUnit.HOURS);
+//
+//        checkerScheduler.scheduleWithFixedDelay(() -> {
+//            if (needToCheckTokens) {
+//                checkUnconfirmedTokensTransactions(currentBlockNumber);
+//            }
+//        }, 5, 5, TimeUnit.MINUTES);
+//
+//        if (currencyName.equals("ETI")) {
+//            scheduler.scheduleWithFixedDelay(() -> {
+//                try {
+//                    checkConnection();
+//                } catch (Exception e) {
+//                    log.error(e);
+//                }
+//            }, 4, 3, TimeUnit.MINUTES);
+//        }
     }
 
     @Override

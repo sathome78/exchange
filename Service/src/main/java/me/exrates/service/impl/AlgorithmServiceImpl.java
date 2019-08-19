@@ -37,7 +37,6 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
 @Service
 @Log4j2(topic = "algorithm_log")
 @PropertySource("classpath:/env.properties")
-@Conditional(MonolitConditional.class)
 public class AlgorithmServiceImpl implements AlgorithmService {
 
     private static final int decimalPlaces = 8;

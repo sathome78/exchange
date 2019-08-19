@@ -65,7 +65,7 @@ public class EosReceiveService {
             client = EosApiFactory.create("http://127.0.0.1:8900",
                     "https://api.eosnewyork.io",
                     "https://api.eosnewyork.io");
-            scheduler.scheduleAtFixedRate(this::checkRefills, 5, 5, TimeUnit.MINUTES);
+            scheduler.scheduleAtFixedRate(this::checkRefills, 5, 20, TimeUnit.MINUTES);
         }
     }
 

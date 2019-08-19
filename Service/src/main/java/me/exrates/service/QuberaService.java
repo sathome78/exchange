@@ -1,5 +1,6 @@
 package me.exrates.service;
 
+import me.exrates.model.QuberaUserData;
 import me.exrates.model.dto.AccountQuberaResponseDto;
 import me.exrates.model.dto.kyc.IdentityDataRequest;
 import me.exrates.model.dto.kyc.responces.KycStatusResponseDto;
@@ -80,4 +81,8 @@ public interface QuberaService extends IRefillable, IWithdrawable {
     OnboardingResponseDto startVerificationProcessing(IdentityDataRequest identityDataRequest, String email);
 
     boolean confirmExternalPayment(Integer paymentId);
+
+    byte[] getPdfFileForPayment(String email);
+
+    QuberaUserData getUserDataByUserEmail(String email);
 }

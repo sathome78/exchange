@@ -149,30 +149,17 @@
 
                         <div class="panel-body">
 
-              <form:form class="form-horizontal form_full_height_width" id="user-edit-form"
-                         action="/2a8fy7b07dxe44/edituser/submit"
-                         method="post" modelAttribute="user">
-                <div>
-                  <fieldset class="field-user">
-                    <div class="input-block-wrapper">
-                      <div class="col-md-8 input-block-wrapper__label-wrapper">
-                        <label class="input-block-wrapper__label"><loc:message code="message.2fa.title"/></label>
-                      </div>
-
-                      <div class="col-md-4 input-block-wrapper__input-wrapper">
-                        <input type="checkbox" name="user2fa" class="input-block-wrapper__input admin-form-input"
-                               readonly disabled
-                               <c:if test="${user2fa}">checked</c:if>
-                        />
-                      </div>
-                    </div>
-
-                    <div class="input-block-wrapper">
-                      <div class="col-md-3 input-block-wrapper__label-wrapper">
-                        <label for="user-name"
-                               class="input-block-wrapper__label"><loc:message
-                                code="admin.login"/></label>
-                      </div>
+                            <form:form class="form-horizontal form_full_height_width" id="user-edit-form"
+                                       action="/2a8fy7b07dxe44/edituser/submit"
+                                       method="post" modelAttribute="user">
+                                <div>
+                                    <fieldset class="field-user">
+                                        <div class="input-block-wrapper">
+                                            <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                                <label for="user-name"
+                                                       class="input-block-wrapper__label"><loc:message
+                                                        code="admin.login"/></label>
+                                            </div>
 
                                             <div class="col-md-9 input-block-wrapper__input-wrapper">
                                                 <form:input path="id" type="hidden"
@@ -285,6 +272,40 @@
                                                 </div>
                                             </div>
                                         </sec:authorize>
+
+                                        <div class="input-block-wrapper">
+                                            <div class="col-md-12 input-block-wrapper__label-wrapper">
+                                                <label class="input-block-wrapper__label">2-FA</label>
+                                            </div>
+                                        </div>
+
+                                        <div class="input-block-wrapper">
+                                            <div class="col-md-8 input-block-wrapper__label-wrapper">
+                                                <label class="input-block-wrapper__label">Email</label>
+                                            </div>
+
+                                            <div class="col-md-4 input-block-wrapper__input-wrapper">
+                                                <input type="checkbox" name="user2fa"
+                                                       class="input-block-wrapper__input admin-form-input"
+                                                       readonly disabled
+                                                       <c:if test="${!userGoogle2fa}">checked</c:if>
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div class="input-block-wrapper">
+                                            <div class="col-md-8 input-block-wrapper__label-wrapper">
+                                                <label class="input-block-wrapper__label">Google Aunthenticator</label>
+                                            </div>
+
+                                            <div class="col-md-4 input-block-wrapper__input-wrapper">
+                                                <input type="checkbox" name="user2fa"
+                                                       class="input-block-wrapper__input admin-form-input"
+                                                       readonly disabled
+                                                       <c:if test="${userGoogle2fa}">checked</c:if>
+                                                />
+                                            </div>
+                                        </div>
                                     </fieldset>
                                 </div>
                             </form:form>
@@ -362,24 +383,22 @@
                                     </div>
 
                                 </div>
-                                <%--MERCHANT--%>
+                                <%--CURRENCY--%>
                                 <div class="input-block-wrapper">
                                     <div class="col-md-3 input-block-wrapper__label-wrapper">
                                         <label class="input-block-wrapper__label">
-                                            <loc:message code="withdrawal.merchant"/>
+                                            <loc:message code="withdrawal.currency"/>
                                         </label>
                                     </div>
                                     <div class="col-md-9 input-block-wrapper__input-wrapper">
                                         <ul class="checkbox-grid">
-                                            <c:forEach items="${merchants}" var="merchant">
-                                                <li><input type="checkbox" name="merchants"
-                                                           value="${merchant.id}"><span>${merchant.name}</span>
+                                            <c:forEach items="${currencies}" var="currency">
+                                                <li><input type="checkbox" name="currencyIds"
+                                                           value="${currency.id}"><span>${currency.name}</span>
                                                 </li>
                                             </c:forEach>
                                         </ul>
-
                                     </div>
-
                                 </div>
 
                                 <%--AMOUNT--%>
@@ -1040,4 +1059,3 @@
 
 </body>
 </html>
-

@@ -478,3 +478,31 @@ HTTP/1.1 400 OK
     "code": 1200
 }
 ###
+
+###
+@api {get} api/public/v2/merchants/qubera/download Download pdf file for payment
+@apiName  Download pdf file for payment
+@apiVersion 0.0.1
+@apiGroup Qubera
+@apiUse Exrates
+@apiUse ApiJSON
+
+@apiExample {curl} Example usage:
+ curl -X GET \
+  http://localhost:8080/api/public/v2/merchants/qubera/download \
+  -H 'Exrates-rest-token: $token' \
+
+@apiSuccessExample {json} Success-Response:
+HTTP/1.1 200 OK
+
+@apiErrorExample {json} Error-Response:
+HTTP/1.1 400 OK
+{
+    "url": "url",
+    "cause": "cause",
+    "detail": "detail",
+    "title": "title",
+    "uuid": "uuid",
+    "code": 1200
+}
+###

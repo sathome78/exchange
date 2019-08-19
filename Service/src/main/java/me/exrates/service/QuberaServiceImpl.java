@@ -1,6 +1,14 @@
 package me.exrates.service;
 
 import com.google.common.collect.Maps;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.Image;
+import com.itextpdf.text.Phrase;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
 import me.exrates.dao.QuberaDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Email;
@@ -53,7 +61,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ResourceUtils;
 
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Date;
@@ -101,7 +111,7 @@ public class QuberaServiceImpl implements QuberaService {
     private @Value("${qubera.city}")
     String city;
 
-    private @Value("${qubera.country}")
+    private @Value("${qubera.address}")
     String address;
 
     @Value("${server-host}")
@@ -372,6 +382,7 @@ public class QuberaServiceImpl implements QuberaService {
                 .country(country)
                 .city(city)
                 .iban(userData.getIban())
+                .url(String.format("%s/api/private/v2/merchants/qubera/download", host))
                 .build();
     }
 
@@ -397,7 +408,7 @@ public class QuberaServiceImpl implements QuberaService {
         email.setTo(user.getEmail());
         email.setSubject("Deposit for your bank account");
         email.setMessage(msg);
-        sendMailService.sendInfoMail(email);
+        sendMailService.sendMail(email);
     }
 
     @Override
@@ -422,7 +433,7 @@ public class QuberaServiceImpl implements QuberaService {
                 .message(String.format("Dear user, your current bank verification status is %s", eventStatus))
                 .build();
 
-        sendMailService.sendMailMandrill(email);
+        sendMailService.sendMail(email);
         UserNotificationType type;
         String msg = String.format("Dear user, your current bank verification status is %s", eventStatus);
         if (eventStatus.equalsIgnoreCase("SUCCESS")
@@ -488,6 +499,152 @@ public class QuberaServiceImpl implements QuberaService {
         throw new NgDashboardException(ErrorApiTitles.QUBERA_PAYMENT_NOT_CONFIFM);
     }
 
+    @Override
+    public byte[] getPdfFileForPayment(String email) {
+        QuberaUserData userData = quberaDao.getUserDataByUserEmail(email);
+        if (userData == null) {
+            return null;
+        }
+
+        QuberaPaymentInfoDto quberaPaymentInfoDto = QuberaPaymentInfoDto.builder()
+                .bic(bic)
+                .bankName(bankName)
+                .swiftCode(swiftCode)
+                .address(address)
+                .country(country)
+                .city(city)
+                .iban(userData.getIban())
+                .build();
+
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        Document document = new Document();
+
+        try {
+            PdfWriter.getInstance(document, stream);
+
+            document.open();
+
+            Image img = Image.getInstance(ResourceUtils.getFile("classpath:img/logo_payment_fug.png").getAbsolutePath());
+            img.scalePercent(30f, 30f);
+            img.setAbsolutePosition(94f, 750f);
+            document.add(img);
+
+            PdfPTable table = new PdfPTable(2);
+            table.setWidthPercentage(75);
+            addRows(table, quberaPaymentInfoDto);
+            document.add(table);
+
+            document.close();
+
+            return stream.toByteArray();
+        } catch (Exception e) {
+            logger.error("Error generating pdf document {}", e);
+            throw new NgDashboardException(ErrorApiTitles.QUBERA_PDF_ERROR_GENERATING);
+        }
+    }
+
+    @Override
+    public QuberaUserData getUserDataByUserEmail(String email) {
+        return quberaDao.getUserDataByUserEmail(email);
+    }
+
+    private void addRows(PdfPTable table, QuberaPaymentInfoDto info) {
+
+        Font boldFont = new Font(Font.FontFamily.TIMES_ROMAN, 12, Font.BOLD);
+        Font normal = new Font(Font.FontFamily.TIMES_ROMAN, 13, Font.NORMAL);
+
+        PdfPCell empty = new PdfPCell(new Phrase("", normal));
+        empty.setVerticalAlignment(Element.ALIGN_CENTER);
+        empty.setFixedHeight(90);
+        empty.setBorder(0);
+        table.addCell(empty);
+        table.addCell(empty);
+
+        PdfPCell bicKey = new PdfPCell(new Phrase("BIC", normal));
+        bicKey.setPaddingLeft(5);
+        bicKey.setVerticalAlignment(Element.ALIGN_CENTER);
+        bicKey.setFixedHeight(25);
+        table.addCell(bicKey);
+
+        PdfPCell bicValue = new PdfPCell(new Phrase(info.getBic(), normal));
+        bicValue.setPaddingLeft(5);
+        bicValue.setVerticalAlignment(Element.ALIGN_CENTER);
+        bicValue.setFixedHeight(25);
+        table.addCell(bicValue);
+
+        PdfPCell bankKey = new PdfPCell(new Phrase("Bank name", normal));
+        bankKey.setPaddingLeft(5);
+        bankKey.setVerticalAlignment(Element.ALIGN_CENTER);
+        bankKey.setFixedHeight(25);
+        table.addCell(bankKey);
+
+        PdfPCell bankVal = new PdfPCell(new Phrase(info.getBankName(), normal));
+        bankVal.setPaddingLeft(5);
+        bankVal.setVerticalAlignment(Element.ALIGN_CENTER);
+        bankVal.setFixedHeight(25);
+        table.addCell(bankVal);
+
+        PdfPCell swiftKey = new PdfPCell(new Phrase("SWIFT CODE", normal));
+        swiftKey.setPaddingLeft(5);
+        swiftKey.setVerticalAlignment(Element.ALIGN_CENTER);
+        swiftKey.setFixedHeight(25);
+        table.addCell(swiftKey);
+
+        PdfPCell swiftVal = new PdfPCell(new Phrase(info.getSwiftCode(), normal));
+        swiftVal.setPaddingLeft(5);
+        swiftVal.setVerticalAlignment(Element.ALIGN_CENTER);
+        swiftVal.setFixedHeight(25);
+        table.addCell(swiftVal);
+
+        PdfPCell ibanKey = new PdfPCell(new Phrase("Iban", normal));
+        ibanKey.setPaddingLeft(5);
+        ibanKey.setVerticalAlignment(Element.ALIGN_CENTER);
+        ibanKey.setFixedHeight(25);
+        table.addCell(ibanKey);
+
+        PdfPCell ibanValue = new PdfPCell(new Phrase(info.getIban(), boldFont));
+        ibanValue.setPaddingLeft(5);
+        ibanValue.setVerticalAlignment(Element.ALIGN_CENTER);
+        ibanValue.setFixedHeight(25);
+        table.addCell(ibanValue);
+
+        PdfPCell countryKey = new PdfPCell(new Phrase("COUNTRY", normal));
+        countryKey.setPaddingLeft(5);
+        countryKey.setVerticalAlignment(Element.ALIGN_CENTER);
+        countryKey.setFixedHeight(25);
+        table.addCell(countryKey);
+
+        PdfPCell countryVal = new PdfPCell(new Phrase(info.getCountry(), normal));
+        countryVal.setPaddingLeft(5);
+        countryVal.setVerticalAlignment(Element.ALIGN_CENTER);
+        countryVal.setFixedHeight(25);
+        table.addCell(countryVal);
+
+        PdfPCell cityKey = new PdfPCell(new Phrase("CITY", normal));
+        cityKey.setPaddingLeft(5);
+        cityKey.setVerticalAlignment(Element.ALIGN_CENTER);
+        cityKey.setFixedHeight(25);
+        table.addCell(cityKey);
+
+        PdfPCell cityVal = new PdfPCell(new Phrase(info.getCity(), normal));
+        cityVal.setPaddingLeft(5);
+        cityVal.setVerticalAlignment(Element.ALIGN_CENTER);
+        cityVal.setFixedHeight(25);
+        table.addCell(cityVal);
+
+        PdfPCell addressKey = new PdfPCell(new Phrase("ADDRESS", normal));
+        addressKey.setPaddingLeft(5);
+        addressKey.setVerticalAlignment(Element.ALIGN_CENTER);
+        addressKey.setFixedHeight(25);
+        table.addCell(addressKey);
+
+        PdfPCell addressKeyVal = new PdfPCell(new Phrase(info.getAddress(), normal));
+        addressKeyVal.setPaddingLeft(5);
+        addressKeyVal.setVerticalAlignment(Element.ALIGN_CENTER);
+        addressKeyVal.setFixedHeight(25);
+        table.addCell(addressKeyVal);
+    }
+
     public void sendNotification(int userId, String paymentAmount) {
         User user = userService.getUserById(userId);
         String msg = "Success deposit amount " + paymentAmount + " EUR.";
@@ -502,7 +659,7 @@ public class QuberaServiceImpl implements QuberaService {
         email.setTo(user.getEmail());
         email.setSubject("Deposit fiat");
         email.setMessage(msg);
-        sendMailService.sendInfoMail(email);
+        sendMailService.sendMail(email);
     }
 
     private void sendPersonalMessage(KycStatusResponseDto kycStatusResponseDto, User user) {

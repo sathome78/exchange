@@ -5,14 +5,13 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.User;
-import me.exrates.model.chart.ChartResolution;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AdminOrderInfoDto;
 import me.exrates.model.dto.CallBackLogDto;
-import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
+import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.dto.OrderBasicInfoDto;
 import me.exrates.model.dto.OrderBookWrapperDto;
 import me.exrates.model.dto.OrderCommissionsDto;
@@ -116,7 +115,16 @@ public interface OrderService {
     OrderCreationResultDto prepareAndCreateOrderRest(String currencyPairName, OperationType orderType,
                                                      BigDecimal amount, BigDecimal exrate, String userEmail);
 
+
+    @Transactional
+    String createMarketOrder(OrderCreateDto orderCreateDto);
+
+    OrderCreateDto prepareMarketOrder(InputCreateOrderDto inputOrder);
+
     Optional<String> autoAccept(OrderCreateDto orderCreateDto, Locale locale);
+
+    @Transactional(rollbackFor = Exception.class)
+    Optional<OrderCreationResultDto> autoAcceptMarketOrders(OrderCreateDto orderCreateDto, Locale locale);
 
     Optional<OrderCreationResultDto> autoAcceptOrders(OrderCreateDto orderCreateDto, Locale locale);
 
@@ -175,24 +183,10 @@ public interface OrderService {
      */
     void acceptOrdersList(int userAcceptorId, List<Integer> ordersList, Locale locale, List<ExOrder> eventsList, boolean partialAccept);
 
-    /**
-     * Accepts the order
-     * and generates set of transactions for creator-user and acceptor-user
-     * and modifies wallets for users and company
-     * If there were errors while accept, errors will be thrown:
-     * - NotEnoughUserWalletMoneyException
-     * - TransactionPersistException
-     * - OrderAcceptionException
-     *
-     * @param acceptorEmail is email of acceptor-user
-     * @param orderId       is ID of order that must be accepted
-     * @param locale        is current locale. Used to generate messages
-     */
-    /*void acceptOrder(int userId, int orderId, Locale locale);*/
-
     void acceptOrderByAdmin(String acceptorEmail, Integer orderId, Locale locale);
 
     void acceptManyOrdersByAdmin(String acceptorEmail, List<Integer> orderIds, Locale locale);
+
 
     @Transactional
     boolean cancelOrder(Integer orderId);
@@ -283,29 +277,6 @@ public interface OrderService {
      */
     ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval, Locale locale);
 
-    @Transactional
-    List<CandleChartItemDto> getCachedDataForCandle(CurrencyPair currencyPair, ChartTimeFrame timeFrame);
-
-    @Transactional
-    List<CandleChartItemDto> getLastDataForCandleChart(Integer currencyPairId,
-                                                       LocalDateTime startTime, ChartResolution resolution);
-
-    List<CandleChartItemDto> getDataForCandleChart(int pairId, ChartTimeFrame timeFrame);
-
-    @Transactional
-    List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval interval, LocalDateTime startTime);
-
-
-    /**
-     * Returns data for candle chart for <i>currencyPair</i> for for period: from current moment to <i></>interval</i> back
-     *
-     * @param currencyPair
-     * @param interval
-     * @return data for candle chart
-     * @author ValkSam
-     */
-    List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval interval);
-
     /**
      * Returns data for area type chart for <i>currencyPair</i> for for period: from current moment to <i></>interval</i> back
      *
@@ -386,11 +357,11 @@ public interface OrderService {
     List<OrderReportInfoDto> getOrdersForReport(AdminOrderFilterData adminOrderFilterData);
 
     List<OrderWideListDto> getUsersOrdersWithStateForAdmin(int id, CurrencyPair currencyPair, OrderStatus status,
-                                                           OperationType operationType,
-                                                           Integer offset, Integer limit, Locale locale);
+                                                           OperationType operationType, Integer offset, Integer limit,
+                                                           Locale locale);
 
     int getUsersOrdersWithStateForAdminCount(int id, CurrencyPair currencyPair, OrderStatus orderStatus,
-                                             OperationType operationType, int offset, int limit, Locale locale);
+                                             OperationType operationType, int offset, int limit);
 
     List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
                                                 OperationType operationType, String scope,
@@ -414,8 +385,6 @@ public interface OrderService {
     Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(CurrencyPair currencyPair, OperationType operationType);
 
     String getOrdersForRefresh(Integer pairId, OperationType operationType, UserRole userRole);
-
-    String getChartData(Integer currencyPairId, BackDealInterval backDealInterval);
 
     String getAllCurrenciesStatForRefresh(RefreshObjectsEnum refreshObjectsEnum);
 
@@ -456,8 +425,6 @@ public interface OrderService {
                                          @Null Integer limit,
                                          @Null Integer offset);
 
-
-    @Transactional(readOnly = true)
     Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, String currencyName,
                                                                   OrderStatus orderStatus, String scope, Integer limit,
                                                                   Integer offset, Boolean hideCanceled, String sortByCreated,
@@ -472,7 +439,7 @@ public interface OrderService {
                                              Integer offset, Boolean hideCanceled, String sortByCreated,
                                              LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo, Locale locale);
 
-    ReportDto getOrderExcelFile(List<OrderWideListDto> orders, OrderStatus orderStatus) throws Exception;
+    ReportDto getOrderExcelFile(List<OrderWideListDto> orders) throws Exception;
 
     ReportDto getTransactionExcelFile(List<MyInputOutputHistoryDto> transactions) throws Exception;
 

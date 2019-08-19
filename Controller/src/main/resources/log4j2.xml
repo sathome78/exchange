@@ -14,7 +14,7 @@
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
         <RollingFile name="Logs" fileName="${sys:catalina.home}/logs/general/log.log"
-            filePattern="${sys:catalina.home}/logs/general/log_%d_%i.log" append="true">
+                     filePattern="${sys:catalina.home}/logs/general/log_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
@@ -690,6 +690,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="binance_log" fileName="${sys:catalina.home}/logs/merchants/binance.log"
+                     filePattern="${sys:catalina.home}/logs/merchants/binance_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="algorithm_log" fileName="${sys:catalina.home}/logs/merchants/algorithm.log"
                      filePattern="${sys:catalina.home}/logs/merchants/algorithm_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
@@ -776,14 +785,14 @@
         <logger name="org.springframework" level="ERROR" additivity="false">
             <AppenderRef ref="Logs"/>
         </logger>
-        <logger name="org.springframework.security" level="INFO" additivity="false">
+        <logger name="org.springframework.security" level="ERROR" additivity="false">
             <AppenderRef ref="Logs"/>
         </logger>
         <logger name="org.springframework.jdbc.core.JdbcTemplate" level="ERROR" additivity="false">
-            <appender-ref ref="Console" />
+            <appender-ref ref="Console"/>
         </logger>
         <logger name="org.springframework.jdbc.core.StatementCreatorUtils" level="ERROR" additivity="false">
-            <appender-ref ref="Console" />
+            <appender-ref ref="Console"/>
         </logger>
         <Logger name="me.exrates.controller.OnlineRestController" level="INFO" additivity="false">
             <AppenderRef ref="OnlineServices"/>
@@ -1037,6 +1046,9 @@
         </logger>
         <logger name="aisi_log" level="ALL" additivity="false">
             <AppenderRef ref="aisi_log"/>
+        </logger>
+        <logger name="binance_log" level="ALL" additivity="false">
+            <AppenderRef ref="binance_log"/>
         </logger>
         <logger name="algorithm_log" level="ALL" additivity="false">
             <AppenderRef ref="algorithm_log"/>

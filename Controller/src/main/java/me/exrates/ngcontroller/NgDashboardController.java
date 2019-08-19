@@ -112,15 +112,21 @@ public class NgDashboardController {
     @PostMapping("/order")
     @CheckUserAuthority(authority = UserOperationAuthority.TRADING)
     public ResponseEntity createOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
-        OrderCreateDto prepareNewOrder = ngOrderService.prepareOrder(inputOrder);
-
+        OrderBaseType baseType = OrderBaseType.valueOf(inputOrder.getBaseType());
         String result;
-        switch (prepareNewOrder.getOrderBaseType()) {
+        switch (baseType) {
+            case MARKET: {
+                OrderCreateDto newOrder = orderService.prepareMarketOrder(inputOrder);
+                result = orderService.createMarketOrder(newOrder);
+                break;
+            }
             case STOP_LIMIT: {
+                OrderCreateDto prepareNewOrder = ngOrderService.prepareOrder(inputOrder);
                 result = stopOrderService.create(prepareNewOrder, OrderActionEnum.CREATE, null);
                 break;
             }
             default: {
+                OrderCreateDto prepareNewOrder = ngOrderService.prepareOrder(inputOrder);
                 result = orderService.createOrder(prepareNewOrder, OrderActionEnum.CREATE, null);
             }
         }
@@ -244,20 +250,19 @@ public class NgDashboardController {
             @RequestParam(required = false, name = "dateTo") String dateTo,
             @RequestParam(required = false, name = "limited", defaultValue = "false") Boolean limited,
             HttpServletRequest request) {
-        Integer userId = userService.getIdByEmail(getPrincipalEmail());
-        Locale locale = localeResolver.resolveLocale(request);
-        OrderStatus orderStatus = OrderStatus.valueOf(status);
-        LocalDateTime dateTimeFrom = DateUtils.convert(dateFrom, false);
-        LocalDateTime dateTimeTo = DateUtils.convert(dateTo, true);
+        final Integer userId = userService.getIdByEmail(getPrincipalEmail());
+        final Locale locale = localeResolver.resolveLocale(request);
+        final OrderStatus orderStatus = OrderStatus.valueOf(status);
+        final LocalDateTime dateTimeFrom = DateUtils.convert(dateFrom, false);
+        final LocalDateTime dateTimeTo = DateUtils.convert(dateTo, true);
 
-        Integer offset = (page - 1) * limit;
+        final Integer offset = (page - 1) * limit;
 
         CurrencyPair currencyPair = null;
         if (currencyPairId > 0) {
             currencyPair = currencyService.findCurrencyPairById(currencyPairId);
         } else if (currencyPairId == 0 && StringUtils.isNotBlank(currencyPairName)) {
-            currencyPair = new CurrencyPair(currencyPairName);
-            currencyPair.setId(currencyPairId);
+            currencyPair = currencyService.getCurrencyPairByName(currencyPairName);
         }
         try {
             Pair<Integer, List<OrderWideListDto>> ordersTuple = orderService.getMyOrdersWithStateMap(
@@ -308,16 +313,15 @@ public class NgDashboardController {
             @RequestParam(required = false, defaultValue = "15") Integer limit,
             @RequestParam(required = false, defaultValue = "0") Integer offset,
             HttpServletRequest request) {
-        Integer userId = userService.getIdByEmail(getPrincipalEmail());
-        Locale locale = localeResolver.resolveLocale(request);
-        OrderStatus orderStatus = OrderStatus.valueOf(status);
+        final Integer userId = userService.getIdByEmail(getPrincipalEmail());
+        final Locale locale = localeResolver.resolveLocale(request);
+        final OrderStatus orderStatus = OrderStatus.valueOf(status);
 
         CurrencyPair currencyPair = null;
         if (currencyPairId > 0) {
             currencyPair = currencyService.findCurrencyPairById(currencyPairId);
         } else if (currencyPairId == 0 && StringUtils.isNotBlank(currencyPairName)) {
-            currencyPair = new CurrencyPair(currencyPairName);
-            currencyPair.setId(currencyPairId);
+            currencyPair = currencyService.getCurrencyPairByName(currencyPairName);
         }
         try {
             Pair<Integer, List<OrderWideListDto>> ordersTuple = orderService.getMyOrdersWithStateMap(

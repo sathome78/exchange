@@ -32,7 +32,6 @@ import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.exception.IncorrectCurrentUserException;
 import me.exrates.service.exception.StopOrderNoConditionException;
 import me.exrates.service.exception.process.NotCreatableOrderException;
-import me.exrates.service.exception.process.OrderAcceptionException;
 import me.exrates.service.exception.process.OrderCancellingException;
 import me.exrates.service.util.Cache;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +43,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.NavigableSet;
@@ -331,7 +331,7 @@ public class StopOrderServiceImpl implements StopOrderService {
                                                        String email, CurrencyPair currencyPair, OrderStatus status,
                                                        OperationType operationType,
                                                        String scope, Integer offset, Integer limit, Locale locale) {
-        List<OrderWideListDto> result = stopOrderDao.getMyOrdersWithState(email, currencyPair, status, operationType, scope, offset, limit, locale);
+        List<OrderWideListDto> result = stopOrderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, offset, limit, locale);
         if (Cache.checkCache(cacheData, result)) {
             result = new ArrayList<OrderWideListDto>() {{
                 add(new OrderWideListDto(false));
@@ -342,10 +342,10 @@ public class StopOrderServiceImpl implements StopOrderService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<OrderWideListDto> getUsersStopOrdersWithStateForAdmin(String email, CurrencyPair currencyPair, OrderStatus status,
+    public List<OrderWideListDto> getUsersStopOrdersWithStateForAdmin(Integer id, CurrencyPair currencyPair, OrderStatus status,
                                                                       OperationType operationType,
                                                                       Integer offset, Integer limit, Locale locale) {
-        return stopOrderDao.getMyOrdersWithState(email, currencyPair, status, operationType, null, offset, limit, locale);
+        return stopOrderDao.getMyOrdersWithState(id, currencyPair, status, operationType, offset, limit, locale);
     }
 
     @Override
@@ -381,6 +381,12 @@ public class StopOrderServiceImpl implements StopOrderService {
     @Override
     public List<Integer> getOpenedStopOrdersByCurrencyPair(Integer userId, String currencyPair) {
         return stopOrderDao.getOpenedStopOrdersByCurrencyPair(userId, currencyPair);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public int getUsersStopOrdersWithStateForAdminCount(int id, CurrencyPair currencyPair, OrderStatus orderStatus, OperationType operationType, int offset, int limit) {
+        return stopOrderDao.getUnfilteredOrdersCount(id, currencyPair, Collections.singletonList(orderStatus), operationType, offset, limit);
     }
 
     @PreDestroy

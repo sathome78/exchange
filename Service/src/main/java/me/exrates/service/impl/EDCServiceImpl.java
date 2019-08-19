@@ -4,7 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.squareup.okhttp.FormEncodingBuilder;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import lombok.extern.log4j.Log4j2;
@@ -45,10 +44,8 @@ import org.springframework.web.client.RestTemplate;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @Log4j2(topic = "edc_log")
 @Service
@@ -85,12 +82,6 @@ public class EDCServiceImpl implements EDCService {
     private EDCServiceNode edcServiceNode;
     @Autowired
     private GtagService gtagService;
-
-    @PostConstruct
-    public void init(){
-        getAddress();
-        log.info("Call method getAddress");
-    }
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
@@ -231,7 +222,7 @@ public class EDCServiceImpl implements EDCService {
 
         } catch (Exception e) {
             log.error("EDC coin. Error in generate new address for refill: {}", e);
-            throw new MerchantInternalException("Unfortunately, the operation is not available at the moment, please try again later!" + e);
+            throw new MerchantInternalException("Unfortunately, the operation is not available at the moment, please try again later!");
         }
     }
 
@@ -240,21 +231,5 @@ public class EDCServiceImpl implements EDCService {
 
         return withdrawUtils.isValidDestinationAddress(address);
     }
-
-    public static void main(String[] args) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36");
-
-        JSONObject request = new JSONObject();
-        request.put("account", "account");
-        request.put("hook", "hook");
-
-        HttpEntity<String> entity = new HttpEntity<>(request.toString(), headers);
-        System.out.println(entity);
-
-        System.out.println(request);
-    }
-
 
 }

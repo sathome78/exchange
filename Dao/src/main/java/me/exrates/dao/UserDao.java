@@ -258,4 +258,7 @@ public interface UserDao {
     String getUserPublicId(String userEmail);
 
     boolean updateCountryCode(String countryCode, String userEmail);
+
+    void deleteTemporalTokenByUserIdAndTokenType(int userId, TokenType tokenType);
+
 }

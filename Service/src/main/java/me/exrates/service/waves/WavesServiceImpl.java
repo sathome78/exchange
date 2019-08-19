@@ -351,7 +351,7 @@ public class WavesServiceImpl implements WavesService {
             email.setMessage(messageSource.getMessage("fee.wallet.insufficientCosts.body", new Object[]{currencyBase.getName(),
                     feeAccount}, notifyEmailLocale));
 
-            sendMailService.sendInfoMail(email);
+            sendMailService.sendMail(email);
 
         } catch (Exception e) {
             log.error(e);
