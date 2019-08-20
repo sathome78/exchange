@@ -709,25 +709,28 @@ public class CoreWalletServiceImpl implements CoreWalletService {
         int length = dataTableParams.getLength() == 0 ? 10 : dataTableParams.getLength();
         String searchValue = dataTableParams.getSearchValue();
         String orderColumn = dataTableParams.getOrderColumnName();
-        DataTableParams.OrderDirection orderDirection = (dataTableParams.getDraw() == 1) ?
-                DataTableParams.OrderDirection.DESC :
-                dataTableParams.getOrderDirection();
+        DataTableParams.OrderDirection orderDirection = dataTableParams.getOrderDirection();
 
         try {
             int recordsTotal = getWalletInfo().getTransactionCount() != null ? getWalletInfo().getTransactionCount() : calculateTransactionCount();
-            List<BtcTransactionHistoryDto> dataAll = (dataTableParams.getDraw() == 1) ?
-                    getTransactionsForPagination(start, length) :
-                    getTransactionsForPagination(0, recordsTotal);
+            List<BtcTransactionHistoryDto> dataAll;
 
-            if (!(StringUtils.isEmpty(searchValue))) {
-                recordsTotal = findTransactions(searchValue).size();
-                dataAll = findTransactions(searchValue);
-            }
+            if (orderDirection == DataTableParams.OrderDirection.DESC && orderColumn.equals("time")){
+                dataResult = getTransactionsForPagination(start, length);
 
-            dataAll = sortListTransactionByColumn(dataAll, orderColumn, orderDirection);
+            } else {
+                dataAll = getTransactionsForPagination(0, recordsTotal);
 
-            for (int i = start; i >= start && i < recordsTotal && i < start + length; i++) {
-                dataResult.add(dataAll.get(i));
+                if (!(StringUtils.isEmpty(searchValue))) {
+                    recordsTotal = findTransactions(searchValue).size();
+                    dataAll = findTransactions(searchValue);
+                }
+
+                dataAll = sortListTransactionByColumn(dataAll, orderColumn, orderDirection);
+
+                for (int i = start; i < recordsTotal && i < start + length; i++) {
+                    dataResult.add(dataAll.get(i));
+                }
             }
 
             result.setData(dataResult);
