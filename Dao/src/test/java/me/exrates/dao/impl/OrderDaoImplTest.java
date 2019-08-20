@@ -679,9 +679,9 @@ public class OrderDaoImplTest extends DataComparisonTest {
     public void getMyOrdersWithState_Ok_ClosedOrders() throws SQLException {
         String sql1 = "INSERT INTO EXORDERS " +
                 "(id, user_id, operation_type_id, exrate, amount_base, amount_convert, commission_id, commission_fixed_amount," +
-                "user_acceptor_id, status_id, currency_pair_id, base_type, date_creation, status_modification_date) " +
+                "user_acceptor_id, status_id, currency_pair_id, base_type, date_creation, date_acception, status_modification_date) " +
                 "VALUES " +
-                "(3, 16, 3, 41340.930000000, 0.002221200, 91.826473716, 8, 0.183652947, 1, 3, 3, \'LIMIT\', \'2018-07-04 21:50:54\', \'2018-07-04 21:50:54\');";
+                "(3, 16, 3, 41340.930000000, 0.002221200, 91.826473716, 8, 0.183652947, 16, 3, 3, \'LIMIT\', \'2018-07-04 21:50:54\', \'2018-07-04 21:50:54\', \'2018-07-04 21:50:54\');";
 
         String sql2 = "INSERT INTO CURRENCY_PAIR " +
                 "(id, name, currency1_id, currency2_id, ticker_name) " +
@@ -700,7 +700,6 @@ public class OrderDaoImplTest extends DataComparisonTest {
         CurrencyPair currencyPair = new CurrencyPair();
         currencyPair.setId(3);
         OrderStatus status = OrderStatus.CLOSED;
-        OperationType operationType = OperationType.SELL;
         String all = "ALL";
         int offset = 0;
         int limit = 5;
