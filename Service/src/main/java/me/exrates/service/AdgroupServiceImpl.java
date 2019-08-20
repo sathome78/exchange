@@ -107,9 +107,8 @@ public class AdgroupServiceImpl implements AdgroupService {
     public Map<String, String> refill(RefillRequestCreateDto request) {
         log.info("Starting refill {}", request);
 
-        Integer merchantImage = Integer.valueOf(request.getMerchantImage());
-        String imageName = merchantService.getImageNameById(merchantImage);
-        String paymentMethod = imageName.equalsIgnoreCase("Yandex.Money(PaymentCard)") ? "AC" : "PC";
+        Merchant merchant = merchantService.findById(request.getMerchantId());
+        String paymentMethod = merchant.getName().equalsIgnoreCase("Adgroup(Wallet)") ? "PC" : "AC";
 
         CommonAdGroupHeaderDto header = new CommonAdGroupHeaderDto("p2pInvoiceRequest", 0.1);
         AdGroupRequestRefillBodyDto reqBody = AdGroupRequestRefillBodyDto.builder()
