@@ -737,7 +737,6 @@ public class CoreWalletServiceImpl implements CoreWalletService {
             result.setTotal(recordsTotal);
             result.setFiltered(recordsTotal);
 
-            dataResult.clear();
             dataAll.clear();
 
             return result;
