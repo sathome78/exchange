@@ -15,6 +15,7 @@ import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderEventEnum;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.enums.OrderType;
+import org.apache.commons.compress.utils.Lists;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,6 +47,7 @@ public class OrderDaoImplTest extends DataComparisonTest {
 
     private final String TABLE_EXORDERS = "EXORDERS";
     private final String TABLE_CURRENCY_PAIR = "CURRENCY_PAIR";
+    private final String TABLE_COMMISSION = "COMMISSION";
 
     @Autowired
     private OrderDao orderDao;
@@ -53,7 +55,7 @@ public class OrderDaoImplTest extends DataComparisonTest {
     @Override
     protected void before() {
         try {
-            truncateTables(TABLE_EXORDERS, TABLE_CURRENCY_PAIR);
+            truncateTables(TABLE_EXORDERS, TABLE_CURRENCY_PAIR, TABLE_COMMISSION);
             String sql = "INSERT INTO EXORDERS"
                     + " (id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, "
                     + "commission_id, commission_fixed_amount, status_id, order_source_id, base_type)"
@@ -504,6 +506,54 @@ public class OrderDaoImplTest extends DataComparisonTest {
                 locale);
 
         assertEquals(1, actual.size());
+    }
+
+    @Test
+    public void getMyOrdersWithState_ByAcceptor() throws SQLException {
+        String sql1 = "INSERT INTO " + TABLE_EXORDERS
+                + " (id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, "
+                + "commission_id, commission_fixed_amount, status_id, order_source_id, base_type) VALUES "
+                + " (3, 3, 2, 3, 0.5, 1, 0.5, 1, 0.01, 2, 1, \'LIMIT\')";
+
+        String sql2 = "INSERT INTO " + TABLE_CURRENCY_PAIR +
+                "(id,name,currency1_id,currency2_id,ticker_name) " +
+                "VALUES " +
+                "(2,\'BTC/USD\',1,2,\'BTC/USD\');";
+
+        prepareTestData(sql1, sql2);
+
+        String sql3 = "UPDATE " + TABLE_EXORDERS + " SET date_acception = NOW(), date_creation = \'2019-01-01 12:12:12\', " +
+                "user_acceptor_id = 1, status_id = 3 WHERE id = 3";
+
+        String sql4 = "INSERT INTO " + TABLE_COMMISSION + " (id, value, operation_type) VALUES (1, 1.0, 2)";
+
+        prepareTestData(sql3, sql4);
+
+        CurrencyPair currencyPair = new CurrencyPair("BTC/USD");
+        currencyPair.setId(2);
+        int offset = 0;
+        int limit = 10;
+        Locale locale = Locale.ENGLISH;
+
+        List<OrderWideListDto> actual = Lists.newArrayList();
+        around()
+                .withSQL("SELECT * FROM " + TABLE_EXORDERS)
+                .run(() -> actual.addAll(orderDao.getMyOrdersWithState(
+                        1,
+                        currencyPair,
+                        null,
+                        OrderStatus.CLOSED,
+                        "ALL",
+                        limit,
+                        offset,
+                        false,
+                        "DESC",
+                        LocalDateTime.now().minusYears(1),
+                        LocalDateTime.now(),
+                        locale)));
+
+        assertEquals(1, actual.size());
+        assertTrue(actual.get(0).getDateCreation().isAfter(LocalDateTime.now().minusHours(6)));
     }
 
     @Test

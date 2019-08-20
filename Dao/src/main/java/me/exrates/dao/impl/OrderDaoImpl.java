@@ -1018,7 +1018,8 @@ public class OrderDaoImpl implements OrderDao {
                 "             o.counter_order_type, " +
                 "             cp.name                AS currency_pair_name, " +
                 "             com.value              AS commission_value, " +
-                "             o.date_creation        AS date_creation, " +
+//              "             o.date_creation        AS date_creation, " +
+                "             IF ((o.user_acceptor_id = :user_id AND o.user_id <> :user_id), o.date_acception, o.date_creation) as date_creation, " +
                 "             null                   AS child_order_id, " +
                 "             null                   AS stop_rate, " +
                 "             null                   AS limit_rate," +
@@ -2278,10 +2279,7 @@ public class OrderDaoImpl implements OrderDao {
                 amountWithCommission = BigDecimalProcessing.doAction(amountWithCommission, rs.getBigDecimal("commission_fixed_amount"), ActionType.ADD);
             }
             orderWideListDto.setAmountWithCommission(BigDecimalProcessing.formatLocale(amountWithCommission, locale, 2));
-            LocalDateTime orderDate = userId == acceptorId
-                    ? getLocalDateTime(rs, "date_acception")
-                    : getLocalDateTime(rs, "date_creation");
-            orderWideListDto.setDateCreation(orderDate);
+            orderWideListDto.setDateCreation(getLocalDateTime(rs, "date_creation"));
             orderWideListDto.setStatus(OrderStatus.convert(rs.getInt("status_id")));
             orderWideListDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
             orderWideListDto.setCurrencyPairName(rs.getString("currency_pair_name"));
