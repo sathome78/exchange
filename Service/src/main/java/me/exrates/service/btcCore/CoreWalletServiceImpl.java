@@ -714,18 +714,17 @@ public class CoreWalletServiceImpl implements CoreWalletService {
         try {
             final Integer transactionCount = getWalletInfo().getTransactionCount();
             if (transactionCount == null || transactionCount == 0 ) {
-                // todo
-                return  emptyTable;
+                return  PagingData.empty();
             }
             int recordsTotal = transactionCount > 10000 ? 10000 : transactionCount;
             if (orderDirection == DataTableParams.OrderDirection.DESC && orderColumn.equals("time")){
                result.setData(getTransactionsForPagination(start, length));
             } else {
                 List<BtcTransactionHistoryDto> dataAll = getTransactionsForPagination(0, recordsTotal);
-
                 if (StringUtils.isNotEmpty(searchValue)) {
-                    dataAll = dataAll.stream().filter(e ->
-                            (StringUtils.equals(e.getAddress(), searchValue)) || StringUtils.equals(e.getBlockhash(), searchValue) || StringUtils.equals(e.getTxId(), searchValue))
+                    dataAll = dataAll
+                            .stream()
+                            .filter(historyDtoPredicate(searchValue))
                             .collect(Collectors.toList());
                     recordsTotal = dataAll.size();
                 }
@@ -758,6 +757,12 @@ public class CoreWalletServiceImpl implements CoreWalletService {
         }
     }
 
+    private Predicate<BtcTransactionHistoryDto> historyDtoPredicate(String value) {
+        return e ->
+                (StringUtils.equals(e.getAddress(), value))
+                        || StringUtils.equals(e.getBlockhash(), value)
+                        || StringUtils.equals(e.getTxId(), value);
+    }
     private List<BtcTransactionHistoryDto> sortListTransactionByColumn(List<BtcTransactionHistoryDto> list, String orderColumn,
                                                                        DataTableParams.OrderDirection orderDirection){
         Map<String, String> attributes = new HashMap<>();
