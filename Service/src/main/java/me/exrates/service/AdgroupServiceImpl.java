@@ -136,7 +136,7 @@ public class AdgroupServiceImpl implements AdgroupService {
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         Currency currency = currencyService.findByName(params.get("currency"));
-        Merchant merchant = merchantService.findByName("Adgroup");
+        Merchant merchant = merchantService.findById(Integer.parseInt(params.get("merchantId")));
         int userId = Integer.parseInt(params.get("userId"));
 
         String paymentAmount = params.getOrDefault("amount", "0");
@@ -228,6 +228,7 @@ public class AdgroupServiceImpl implements AdgroupService {
                                 params.put("currency", tx.getCurrency());
                                 params.put("paymentId", transaction.getMerchantTransactionId());
                                 params.put("userId", String.valueOf(transaction.getUserId()));
+                                params.put("merchantId", String.valueOf(transaction.getMerchantId()));
                                 try {
                                     processPayment(params);
                                 } catch (RefillRequestAppropriateNotFoundException e) {
