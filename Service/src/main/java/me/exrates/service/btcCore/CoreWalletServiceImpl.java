@@ -714,29 +714,24 @@ public class CoreWalletServiceImpl implements CoreWalletService {
 
         try {
             int recordsTotal = getWalletInfo().getTransactionCount() != null ? getWalletInfo().getTransactionCount() : calculateTransactionCount();
-
+            recordsTotal = (recordsTotal > 10000) ? 10000 : recordsTotal;
             if (orderDirection == DataTableParams.OrderDirection.DESC && orderColumn.equals("time")){
                 dataResult = getTransactionsForPagination(start, length);
 
             } else {
                 dataAll = getTransactionsForPagination(0, recordsTotal);
-
                 if (!(StringUtils.isEmpty(searchValue))) {
                     recordsTotal = findTransactions(searchValue).size();
                     dataAll = findTransactions(searchValue);
                 }
-
                 dataAll = sortListTransactionByColumn(dataAll, orderColumn, orderDirection);
-
                 for (int i = start; i < recordsTotal && i < start + length; i++) {
                     dataResult.add(dataAll.get(i));
                 }
             }
-
             result.setData(dataResult);
             result.setTotal(recordsTotal);
             result.setFiltered(recordsTotal);
-
             dataAll.clear();
 
             return result;
