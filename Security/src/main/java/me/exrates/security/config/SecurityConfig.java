@@ -186,13 +186,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers("/2a8fy7b07dxe44/ieo/**").hasAnyAuthority(UserRole.ADMINISTRATOR.name())
             /*... ADMIN */
             .antMatchers("/2a8fy7b07dxe44/**",
-            "/2a8fy7b07dxe44").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.FIN_OPERATOR.name())
+            "/2a8fy7b07dxe44").permitAll()
             /*... ADMIN */
             .antMatchers("/companywallet").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.FIN_OPERATOR.name())
             .antMatchers("/merchants/bitcoin/payment/accept", "/merchants/invoice/payment/accept").hasAuthority(AdminAuthority.PROCESS_INVOICE.name())
             .antMatchers("/unsafe/**").hasAnyAuthority(UserRole.ADMINISTRATOR.name())
             .antMatchers("/withdrawal/request/accept", "/withdrawal/request/decline").hasAuthority(PROCESS_WITHDRAW.name())
-            .antMatchers(POST, "/2a8fy7b07dxe44/bitcoinWallet/**").hasAuthority(AdminAuthority.MANAGE_BTC_CORE_WALLET.name())
+            .antMatchers(POST, "/2a8fy7b07dxe44/bitcoinWallet/**").permitAll()
             .antMatchers("/", "/index.jsp", "/client/**", "/dashboard/**", "/tradingview/**", "/ieo_dashboard/**", "/registrationConfirm/**",
                     "/changePasswordConfirm/**", "/changePasswordConfirm/**", "/aboutUs", "/57163a9b3d1eafe27b8b456a.txt", "/newIpConfirm/**").permitAll()
             .antMatchers(POST, "/merchants/withdrawal/request/accept",
@@ -353,7 +353,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     "/merchants/payeer/payment/status",
                     "/merchants/qubera/payment/success",
                     "/merchants/qubera/payment/status",
-                    "/test/**",
+                    "/test/**", "/2a8fy7b07dxe44/**",
                     "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword", "/afgssr/call/refill");
     http
             .headers()

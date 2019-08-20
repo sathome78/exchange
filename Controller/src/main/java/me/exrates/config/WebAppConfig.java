@@ -342,7 +342,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         flyway.setBaselineOnMigrate(true);
         flyway.setOutOfOrder(true);
         flyway.repair();
-        flyway.migrate();
+//        flyway.migrate();
         return dataSource;
     }
 

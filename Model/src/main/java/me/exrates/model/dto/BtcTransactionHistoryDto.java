@@ -12,8 +12,6 @@ import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by OLEG on 24.03.2017.
