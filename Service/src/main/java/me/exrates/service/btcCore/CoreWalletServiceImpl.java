@@ -50,6 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.web3j.abi.datatypes.Int;
 import org.zeromq.ZMQ;
 import reactor.core.publisher.Flux;
 
@@ -63,6 +64,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,6 +78,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -702,38 +705,52 @@ public class CoreWalletServiceImpl implements CoreWalletService {
 
     @Override
     public PagingData<List<BtcTransactionHistoryDto>> listTransaction(DataTableParams dataTableParams) {
-
         PagingData<List<BtcTransactionHistoryDto>> result = new PagingData<>();
-        List<BtcTransactionHistoryDto> dataResult = new ArrayList<>();
-        List<BtcTransactionHistoryDto> dataAll = new ArrayList<>();
         int start = dataTableParams.getStart();
         int length = dataTableParams.getLength() == 0 ? 10 : dataTableParams.getLength();
         String searchValue = dataTableParams.getSearchValue();
         String orderColumn = dataTableParams.getOrderColumnName();
         DataTableParams.OrderDirection orderDirection = dataTableParams.getOrderDirection();
-
         try {
-            int recordsTotal = getWalletInfo().getTransactionCount() != null ? getWalletInfo().getTransactionCount() : calculateTransactionCount();
-            recordsTotal = (recordsTotal > 10000) ? 10000 : recordsTotal;
+            final Integer transactionCount = getWalletInfo().getTransactionCount();
+            if (transactionCount == null || transactionCount == 0 ) {
+                // todo
+                return  emptyTable;
+            }
+            int recordsTotal = transactionCount > 10000 ? 10000 : transactionCount;
             if (orderDirection == DataTableParams.OrderDirection.DESC && orderColumn.equals("time")){
-                dataResult = getTransactionsForPagination(start, length);
-
+               result.setData(getTransactionsForPagination(start, length));
             } else {
-                dataAll = getTransactionsForPagination(0, recordsTotal);
-                if (!(StringUtils.isEmpty(searchValue))) {
-                    recordsTotal = findTransactions(searchValue).size();
-                    dataAll = findTransactions(searchValue);
+                List<BtcTransactionHistoryDto> dataAll = getTransactionsForPagination(0, recordsTotal);
+
+                if (StringUtils.isNotEmpty(searchValue)) {
+                    dataAll = dataAll.stream().filter(e ->
+                            (StringUtils.equals(e.getAddress(), searchValue)) || StringUtils.equals(e.getBlockhash(), searchValue) || StringUtils.equals(e.getTxId(), searchValue))
+                            .collect(Collectors.toList());
+                    recordsTotal = dataAll.size();
                 }
-                dataAll = sortListTransactionByColumn(dataAll, orderColumn, orderDirection);
+
+//                dataAll = sortListTransactionByColumn(dataAll, orderColumn, orderDirection);
+                Collections.sort(dataAll, new Comparator<BtcTransactionHistoryDto>() {
+                    @Override
+                    public int compare(BtcTransactionHistoryDto o1, BtcTransactionHistoryDto o2) {
+                        // todo
+                        return 0;
+                    }
+                });
+
+                // todo
+                int last = recordsTotal % (length * (start -1));
+
                 for (int i = start; i < recordsTotal && i < start + length; i++) {
                     dataResult.add(dataAll.get(i));
                 }
+
+                result.setData(dataAll.subList(1, 16));
             }
-            result.setData(dataResult);
+//            result.setData(dataResultult);
             result.setTotal(recordsTotal);
             result.setFiltered(recordsTotal);
-            dataAll.clear();
-
             return result;
         } catch (BitcoindException | CommunicationException e) {
             log.error(e);
@@ -742,6 +759,20 @@ public class CoreWalletServiceImpl implements CoreWalletService {
     }
 
     private List<BtcTransactionHistoryDto> sortListTransactionByColumn(List<BtcTransactionHistoryDto> list, String orderColumn,
+                                                                       DataTableParams.OrderDirection orderDirection){
+        Map<String, String> attributes = new HashMap<>();
+        for(Field field : BtcTransactionHistoryDto.class.getDeclaredFields()) {
+            attributes.put(field.getName(), field.getGenericType().getTypeName());
+        }
+
+        if(attributes.get(orderColumn) != null){
+            list.sort((trans1, trans2) -> getValueForSort(orderColumn, orderDirection, attributes.get(orderColumn), trans1, trans2));
+        }
+
+        return list;
+    }
+
+    private Comparator<BtcTransactionHistoryDto> sortTransactionByColumn(List<BtcTransactionHistoryDto> list, String orderColumn,
                                                                        DataTableParams.OrderDirection orderDirection){
         Map<String, String> attributes = new HashMap<>();
         for(Field field : BtcTransactionHistoryDto.class.getDeclaredFields()) {
@@ -862,15 +893,13 @@ public class CoreWalletServiceImpl implements CoreWalletService {
         return result;
     }
 
-    private int calculateTransactionCount() throws BitcoindException, CommunicationException {
 
+    private int calculateTransactionCount() throws BitcoindException, CommunicationException {
         List<BtcTransactionHistoryDto> transactions;
         int transactionCount = 0;
-
         for (int i = 0; (transactions = getTransactionsByPage(i, TRANSACTIONS_PER_PAGE_FOR_SEARCH)).size() > 0; i++) {
             transactionCount += transactions.size();
         }
-
         return transactionCount;
     }
 
