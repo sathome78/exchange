@@ -703,8 +703,9 @@ public class CoreWalletServiceImpl implements CoreWalletService {
     @Override
     public PagingData<List<BtcTransactionHistoryDto>> listTransaction(DataTableParams dataTableParams) {
 
-        List<BtcTransactionHistoryDto> dataResult = new ArrayList<>();
         PagingData<List<BtcTransactionHistoryDto>> result = new PagingData<>();
+        List<BtcTransactionHistoryDto> dataResult = new ArrayList<>();
+        List<BtcTransactionHistoryDto> dataAll = new ArrayList<>();
         int start = dataTableParams.getStart();
         int length = dataTableParams.getLength() == 0 ? 10 : dataTableParams.getLength();
         String searchValue = dataTableParams.getSearchValue();
@@ -713,7 +714,6 @@ public class CoreWalletServiceImpl implements CoreWalletService {
 
         try {
             int recordsTotal = getWalletInfo().getTransactionCount() != null ? getWalletInfo().getTransactionCount() : calculateTransactionCount();
-            List<BtcTransactionHistoryDto> dataAll;
 
             if (orderDirection == DataTableParams.OrderDirection.DESC && orderColumn.equals("time")){
                 dataResult = getTransactionsForPagination(start, length);
@@ -736,6 +736,9 @@ public class CoreWalletServiceImpl implements CoreWalletService {
             result.setData(dataResult);
             result.setTotal(recordsTotal);
             result.setFiltered(recordsTotal);
+
+            dataResult.clear();
+            dataAll.clear();
 
             return result;
         } catch (BitcoindException | CommunicationException e) {
