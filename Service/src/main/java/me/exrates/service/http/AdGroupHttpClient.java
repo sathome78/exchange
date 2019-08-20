@@ -47,7 +47,6 @@ public class AdGroupHttpClient {
         headers.set("Authorization", "Basic " + authorizationKey);
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
-        builder.queryParam("synchronous", "true");
         URI uri = builder.build(true).toUri();
 
         HttpEntity<?> request = new HttpEntity<>(requestDto, headers);
@@ -79,7 +78,6 @@ public class AdGroupHttpClient {
         headers.set("Authorization", "Basic " + authorizationKey);
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
-        builder.queryParam("synchronous", "true");
         URI uri = builder.build(true).toUri();
 
         HttpEntity<?> request = new HttpEntity<>(requestDto, headers);
@@ -113,7 +111,6 @@ public class AdGroupHttpClient {
         headers.set("Authorization", "Basic " + authorizationKey);
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
-        builder.queryParam("synchronous", "true");
         URI uri = builder.build(true).toUri();
 
         HttpEntity<?> request = new HttpEntity<>(requestDto, headers);
