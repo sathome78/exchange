@@ -108,7 +108,7 @@ public class AdgroupServiceImpl implements AdgroupService {
         log.info("Starting refill {}", request);
 
         Merchant merchant = merchantService.findById(request.getMerchantId());
-        String paymentMethod = merchant.getName().equalsIgnoreCase("Adgroup(Wallet)") ? "PC" : "AC";
+        String paymentMethod = merchant.getName().equalsIgnoreCase("Adgroup_Wallet") ? "PC" : "AC";
 
         CommonAdGroupHeaderDto header = new CommonAdGroupHeaderDto("p2pInvoiceRequest", 0.1);
         AdGroupRequestRefillBodyDto reqBody = AdGroupRequestRefillBodyDto.builder()
@@ -193,8 +193,8 @@ public class AdgroupServiceImpl implements AdgroupService {
     }
 
     public void regularlyCheckStatusTransactions() {
-        Merchant merchantWallet = merchantService.findByName("Adgroup(Wallet)");
-        Merchant merchantPaymentCard = merchantService.findByName("Adgroup(PaymentCard)");
+        Merchant merchantWallet = merchantService.findByName("Adgroup_Wallet");
+        Merchant merchantPaymentCard = merchantService.findByName("Adgroup_PaymentCard");
         List<RefillRequestFlatDto> pendingTx = refillRequestDao.getByMerchantIdAndRemark(merchantWallet.getId(), "PENDING");
         List<RefillRequestFlatDto> pendingTxPaymentCard = refillRequestDao.getByMerchantIdAndRemark(merchantPaymentCard.getId(), "PENDING");
         pendingTx.addAll(pendingTxPaymentCard);

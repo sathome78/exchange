@@ -103,6 +103,20 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         return refillRequestFlatDto;
     };
 
+    private static RowMapper<RefillRequestFlatDto> refillRequestFlatDtoRowMapperShort = (rs, idx) -> {
+        RefillRequestFlatDto refillRequestFlatDto = new RefillRequestFlatDto();
+        refillRequestFlatDto.setId(rs.getInt("id"));
+        refillRequestFlatDto.setAmount(rs.getBigDecimal("amount"));
+        refillRequestFlatDto.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
+        refillRequestFlatDto.setStatus(RefillStatusEnum.convert(rs.getInt("status_id")));
+        refillRequestFlatDto.setCurrencyId(rs.getInt("currency_id"));
+        refillRequestFlatDto.setMerchantId(rs.getInt("merchant_id"));
+        refillRequestFlatDto.setMerchantTransactionId(rs.getString("merchant_transaction_id"));
+        refillRequestFlatDto.setRemark(rs.getString("remark"), "");
+        refillRequestFlatDto.setAdminHolderId(rs.getInt("admin_holder_id"));
+        return refillRequestFlatDto;
+    };
+
     private static RowMapper<InvoiceBank> invoiceBankRowMapper = (rs, rowNum) -> {
         InvoiceBank bank = new InvoiceBank();
         bank.setId(rs.getInt("id"));
@@ -1551,20 +1565,14 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
 
     @Override
     public List<RefillRequestFlatDto> getByMerchantIdAndRemark(int merchantId, String remark) {
-        String sql = "SELECT  REFILL_REQUEST.*, RRA.*, RRP.*, " +
-                "                 INVOICE_BANK.name, INVOICE_BANK.account_number, INVOICE_BANK.recipient, INVOICE_BANK.bank_details " +
-                " FROM REFILL_REQUEST " +
-                "   LEFT JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = REFILL_REQUEST.refill_request_address_id) " +
-                "   LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.id = REFILL_REQUEST.refill_request_param_id) " +
-                "   LEFT JOIN INVOICE_BANK ON (INVOICE_BANK.id = RRP.recipient_bank_id) " +
-                "   LEFT JOIN REFILL_REQUEST_CONFIRMATION RRC ON (RRC.refill_request_id = REFILL_REQUEST.id) " +
-                " WHERE REFILL_REQUEST.merchant_id = :merchant_id " +
+        String sql = "SELECT  REFILL_REQUEST.* " +
+                " FROM REFILL_REQUEST WHERE REFILL_REQUEST.merchant_id = :merchant_id " +
                 "       AND REFILL_REQUEST.remark = :remark ";
 
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("merchant_id", merchantId);
             put("remark", remark);
         }};
-        return namedParameterJdbcTemplate.query(sql, params, refillRequestFlatDtoRowMapper);
+        return namedParameterJdbcTemplate.query(sql, params, refillRequestFlatDtoRowMapperShort);
     }
 }
