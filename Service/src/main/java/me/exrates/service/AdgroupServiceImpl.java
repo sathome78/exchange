@@ -193,8 +193,11 @@ public class AdgroupServiceImpl implements AdgroupService {
     }
 
     public void regularlyCheckStatusTransactions() {
-        Merchant merchant = merchantService.findByName("Adgroup");
-        List<RefillRequestFlatDto> pendingTx = refillRequestDao.getByMerchantIdAndRemark(merchant.getId(), "PENDING");
+        Merchant merchantWallet = merchantService.findByName("Adgroup(Wallet)");
+        Merchant merchantPaymentCard = merchantService.findByName("Adgroup(PaymentCard)");
+        List<RefillRequestFlatDto> pendingTx = refillRequestDao.getByMerchantIdAndRemark(merchantWallet.getId(), "PENDING");
+        List<RefillRequestFlatDto> pendingTxPaymentCard = refillRequestDao.getByMerchantIdAndRemark(merchantPaymentCard.getId(), "PENDING");
+        pendingTx.addAll(pendingTxPaymentCard);
 
         if (pendingTx.isEmpty()) {
             return;

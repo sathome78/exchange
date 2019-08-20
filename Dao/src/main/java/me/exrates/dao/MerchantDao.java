@@ -100,6 +100,4 @@ public interface MerchantDao {
     boolean checkAvailable(Integer currencyId, Integer merchantId);
 
     MerchantCurrency getMerchantByCurrencyForVoucher(Integer currencyId, TransferTypeVoucher transferType);
-
-    String getMerchantImageNameById(Integer id);
 }

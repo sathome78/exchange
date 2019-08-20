@@ -648,11 +648,6 @@ public class MerchantServiceImpl implements MerchantService {
         return collect1;
     }
 
-    @Override
-    public String getImageNameById(Integer id) {
-        return merchantDao.getMerchantImageNameById(id);
-    }
-
     private BitcoinService getBitcoinServiceByMerchantName(String merchantName) {
         String serviceBeanName = findByName(merchantName).getServiceBeanName();
         IMerchantService merchantService = merchantServiceContext.getMerchantService(serviceBeanName);

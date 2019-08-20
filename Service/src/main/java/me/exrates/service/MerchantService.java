@@ -109,6 +109,4 @@ public interface MerchantService {
     MerchantCurrency findMerchantForTransferByCurrencyId(Integer currencyId, TransferTypeVoucher transferType);
 
     Map<String, String> getWalletBalanceByCurrencyName(String currencyName, String token, String address);
-
-    String getImageNameById(Integer id);
 }
