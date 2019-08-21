@@ -49,7 +49,6 @@ public class BtcTransactionHistoryDto {
 
     public static Comparator<BtcTransactionHistoryDto> getComparator(String orderColumn, DataTableParams.OrderDirection orderDirection){
         int sortOrder = (orderDirection == DataTableParams.OrderDirection.ASC) ? 1 : -1;
-       try {
            switch (orderColumn) {
                case "txId":
                    return (ob1, ob2) -> compare(ob1.getTxId(), (ob2.getTxId())) * sortOrder;
@@ -69,10 +68,6 @@ public class BtcTransactionHistoryDto {
                default:
                    return (ob1, ob2) -> ob1.getTime().compareTo(ob2.getTime()) * sortOrder;
            }
-       } catch (Exception e){
-           e.printStackTrace();
-           return null;
-       }
     }
 
     private static int compare(String ob1, String ob2){
