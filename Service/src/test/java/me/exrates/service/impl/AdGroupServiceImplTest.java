@@ -2,12 +2,15 @@ package me.exrates.service.impl;
 
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.dto.merchants.adgroup.responses.AdGroupResponseDto;
 import me.exrates.model.dto.merchants.adgroup.responses.HeaderResponseDto;
 import me.exrates.model.dto.merchants.adgroup.responses.InvoiceDto;
+import me.exrates.model.dto.merchants.adgroup.responses.ResponsePayOutDto;
 import me.exrates.model.dto.merchants.adgroup.responses.ResultResponseDto;
 import me.exrates.service.AdgroupService;
 import me.exrates.service.MerchantService;
+import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.http.AdGroupHttpClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,6 +22,7 @@ import java.math.BigDecimal;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.anyInt;
@@ -46,7 +50,20 @@ public class AdGroupServiceImplTest {
 
         assertEquals("GET", refill.get("$__method"));
         assertEquals(getInvoice().getResponseData().getPaymentLink(), refill.get("$__redirectionUrl"));
+    }
 
+
+    @Test(expected = MerchantException.class)
+    public void withdraw_failed() throws Exception {
+        when(adGroupHttpClient.createPayOut(anyString(), anyString(), anyObject())).thenReturn(getWithdrawBad());
+        adgroupService.withdraw(getWithdrawRequest());
+    }
+
+    @Test
+    public void withdraw_ok() throws Exception {
+        when(adGroupHttpClient.createPayOut(anyString(), anyString(), anyObject())).thenReturn(getWithdrawOk());
+        Map<String, String> withdraw = adgroupService.withdraw(getWithdrawRequest());
+        assertTrue(withdraw.isEmpty());
     }
 
     private RefillRequestCreateDto getRefillRequestCreateDto() {
@@ -77,5 +94,48 @@ public class AdGroupServiceImplTest {
                 .build();
 
         return new AdGroupResponseDto<>(header, result, responseData, null);
+    }
+
+    private AdGroupResponseDto<ResponsePayOutDto> getWithdrawBad() {
+
+        HeaderResponseDto header = new HeaderResponseDto();
+        ResultResponseDto result = new ResultResponseDto();
+
+        ResponsePayOutDto responseData = ResponsePayOutDto.builder()
+                .originalAmount(new BigDecimal(100))
+                .amount(new BigDecimal(100))
+                .status("PENDING")
+                .id("a37eaa2a-e847-43ed-b290-0b1c3ef43dd6")
+                .refId("617871424097000304")
+                .extraId("821976011")
+                .build();
+
+        return new AdGroupResponseDto<>(header, result, responseData, null);
+    }
+
+    private AdGroupResponseDto<ResponsePayOutDto> getWithdrawOk() {
+
+        HeaderResponseDto header = new HeaderResponseDto();
+        ResultResponseDto result = new ResultResponseDto();
+
+        ResponsePayOutDto responseData = ResponsePayOutDto.builder()
+                .originalAmount(new BigDecimal(100))
+                .amount(new BigDecimal(100))
+                .status("APPROVED")
+                .id("a37eaa2a-e847-43ed-b290-0b1c3ef43dd6")
+                .refId("617871424097000304")
+                .extraId("821976011")
+                .build();
+
+        return new AdGroupResponseDto<>(header, result, responseData, null);
+    }
+
+    private WithdrawMerchantOperationDto getWithdrawRequest() {
+        return WithdrawMerchantOperationDto.builder()
+                .amount("100.00")
+                .currency("RUB")
+                .destinationTag("ewfwfwe")
+                .build();
+
     }
 }
