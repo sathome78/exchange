@@ -29,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -147,9 +146,6 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         }
         return refillRequestAddressDto;
     };
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
 
     @Autowired
     @Qualifier(value = "masterTemplate")
@@ -718,7 +714,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
             Integer currencyId,
             Integer intervalHours,
             List<Integer> statusIdList) {
-        LocalDateTime nowDate = jdbcTemplate.queryForObject("SELECT NOW()", LocalDateTime.class);
+        LocalDateTime nowDate = namedParameterJdbcTemplate.queryForObject("SELECT NOW()", Collections.emptyMap(), LocalDateTime.class);
         String sql =
                 " SELECT COUNT(*) " +
                         " FROM REFILL_REQUEST " +
@@ -1303,8 +1299,8 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     public List<Integer> getUnconfirmedTxsCurrencyIdsForTokens(int parentTokenId) {
         String sql = "SELECT RR.currency_id FROM REFILL_REQUEST RR " +
                 " JOIN MERCHANT M ON M.id=RR.merchant_id " +
-                " WHERE M.tokens_parrent_id = ? AND RR.status_id = 6";
-        return jdbcTemplate.queryForList(sql, Integer.class, parentTokenId);
+                " WHERE M.tokens_parrent_id = :parent_id AND RR.status_id = 6";
+        return namedParameterJdbcTemplate.queryForList(sql, Collections.singletonMap("parent_id", parentTokenId), Integer.class);
     }
 
     @Override
