@@ -86,27 +86,6 @@ public class AdgroupServiceImpl implements AdgroupService {
 
     private ScheduledExecutorService newTxCheckerScheduler = Executors.newSingleThreadScheduledExecutor();
 
-//    @Autowired
-//    public AdgroupServiceImpl(AdGroupHttpClient httpClient,
-//                              CurrencyService currencyService,
-//                              MerchantService merchantService,
-//                              RefillService refillService,
-//                              GtagService gtagService,
-//                              UserService userService,
-//                              SendMailService sendMailService,
-//                              StompMessenger stompMessenger,
-//                              RefillRequestDao refillRequestDao) {
-//        this.httpClient = httpClient;
-//        this.currencyService = currencyService;
-//        this.merchantService = merchantService;
-//        this.refillService = refillService;
-//        this.gtagService = gtagService;
-//        this.userService = userService;
-//        this.sendMailService = sendMailService;
-//        this.stompMessenger = stompMessenger;
-//        this.refillRequestDao = refillRequestDao;
-//    }
-
     @PostConstruct
     void startAdgroup() {
         newTxCheckerScheduler.scheduleAtFixedRate(this::regularlyCheckStatusTransactions, 10, 60, TimeUnit.MINUTES);
