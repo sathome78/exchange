@@ -49,9 +49,9 @@ public interface CurrencyDao {
 
     BigDecimal retrieveMaxDailyRequestForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId);
 
-    void updateCurrencyLimit(int currencyId, OperationType operationType, List<Integer> roleIds, BigDecimal minAmount, BigDecimal minAmountUSD, Integer maxDailyRequest);
+    void updateCurrencyLimit(int currencyId, OperationType operationType, List<Integer> roleIds, BigDecimal minAmount, BigDecimal minAmountUSD, BigDecimal maxAmount, Integer maxDailyRequest);
 
-    void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, BigDecimal minAmountUSD, Integer maxDailyRequest);
+    void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, BigDecimal minAmountUSD, BigDecimal maxAmount, Integer maxDailyRequest);
 
     List<CurrencyPair> getAllCurrencyPairs(CurrencyPairType type);
 
@@ -80,7 +80,7 @@ public interface CurrencyDao {
     List<CurrencyPairLimitDto> findLimitsForRolesByType(List<Integer> roleIds, Integer orderTypeId);
 
     void setCurrencyPairLimit(Integer currencyPairId, List<Integer> roleIds, Integer orderTypeId,
-                              BigDecimal minRate, BigDecimal maxRate, BigDecimal minAmount, BigDecimal maxAmount);
+                              BigDecimal minRate, BigDecimal maxRate, BigDecimal minAmount, BigDecimal maxAmount, BigDecimal minTotal);
 
     List<CurrencyPairWithLimitsDto> findAllCurrencyPairsWithLimits(Integer roleId);
 
@@ -149,4 +149,6 @@ public interface CurrencyDao {
     List<MarketVolume> getAllMarketVolumes();
 
     boolean updateDefaultMarketVolume(String name, BigDecimal marketVolume);
+
+    CurrencyLimit getCurrencyLimit(Integer currencyId, Integer currencyLimit, Integer operationType);
 }

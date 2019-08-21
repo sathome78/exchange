@@ -46,10 +46,13 @@ import org.springframework.web.client.RestTemplate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * Created by Maks on 28.08.2017.
@@ -140,6 +143,13 @@ public class OrdersEventHandleService {
             } else {
                 orderList = Collections.singletonList(((ExOrder) event.getSource()));
             }
+            CompletableFuture.runAsync(() -> {
+                orderList.stream()
+                        .filter(p->p.getStatus() == OrderStatus.CLOSED)
+                        .sorted(Comparator.comparing(ExOrder::getDateAcception))
+                        .forEach(p->ratesHolder.onRatesChange(p));
+                currencyStatisticsHandler.onEvent(event.getPairId());
+            });
             handlePersonalOrders(orderList, event.getPairId());
         } catch (Exception e) {
             ExceptionUtils.printRootCauseStackTrace(e);
@@ -162,10 +172,8 @@ public class OrdersEventHandleService {
         ExOrder order = (ExOrder) event.getSource();
         handleAllTrades(order);
         handleMyTrades(order);
-        rabbitMqService.sendTradeInfo(order);
-        ratesHolder.onRatesChange(order);
-        currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
         onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
+        rabbitMqService.sendTradeInfo(order);
     }
 
     private void handleCallBack(OrderEvent event) throws JsonProcessingException {
