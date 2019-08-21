@@ -21,6 +21,12 @@ import me.exrates.service.BitcoinService;
 import me.exrates.service.MoneroService;
 import me.exrates.service.NamedParameterJdbcTemplateWrapper;
 import me.exrates.service.achain.AchainContract;
+import me.exrates.service.binance.BinTokenService;
+import me.exrates.service.binance.BinTokenServiceImpl;
+import me.exrates.service.binance.BinanceCurrencyService;
+import me.exrates.service.binance.BinanceCurrencyServiceImpl;
+import me.exrates.service.binance.BinanceService;
+import me.exrates.service.binance.BinanceServiceImpl;
 import me.exrates.service.ethereum.EthTokenService;
 import me.exrates.service.ethereum.EthTokenServiceImpl;
 import me.exrates.service.ethereum.EthereumCommonService;
@@ -759,17 +765,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "OMG", true, ExConvert.Unit.ETHER);
     }
 
-    @Bean(name = "bnbServiceImpl")
-    @Conditional(MonolitConditional.class)
-    public EthTokenService BnbService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0xb8c77482e45f1f44de1745f52c74426c631bdd52");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "BinanceCoin",
-                "BNB", true, ExConvert.Unit.ETHER);
-    }
-
     @Bean(name = "atlServiceImpl")
     @Conditional(MonolitConditional.class)
     public EthTokenService ATLANTService() {
@@ -1159,16 +1154,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "MTC", true, ExConvert.Unit.ETHER);
     }
 
-    @Bean(name = "arnServiceImpl")
-    @Conditional(MonolitConditional.class)
-    public EthTokenService arnService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0xba5f11b16b155792cf3b2e6880e8706859a8aeb6");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "ARN",
-                "ARN", true, ExConvert.Unit.AIWEI);
-    }
+
 
     @Bean(name = "hstServiceImpl")
     @Conditional(MonolitConditional.class)
@@ -2129,6 +2115,32 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         List<String> tokensList = ImmutableList.of("0x3db99ab08006aefcc9600972eca8c202396b4300");
         return new EthTokenServiceImpl(tokensList, "VINCI", "VINCI", false, ExConvert.Unit.ETHER);
     }
+
+    @Bean
+    @Conditional(MonolitConditional.class)
+    public BinanceCurrencyService binanceCurrencyService(){
+        return new BinanceCurrencyServiceImpl("merchants/binance.properties");
+    }
+
+    @Bean(name = "binanceServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public BinanceService binanceService(){
+        return new BinanceServiceImpl("merchants/binance.properties", "BinanceBlockchain", 40);
+    }
+
+    @Bean(name = "bnbServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public BinTokenService bnbService() {
+        return new BinTokenServiceImpl("merchants/binance.properties", "BinanceCoin", "BNB");
+    }
+
+    @Bean(name = "arnServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public BinTokenService arnService() {
+        return new BinTokenServiceImpl("merchants/binance.properties", "ARN","ARN");
+    }
+
+
 
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")

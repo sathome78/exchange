@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -69,8 +70,9 @@ public class WithdrawServiceMsImpl extends WithdrawServiceImpl {
         return response.getBody();
     }
 
+    /*todo: add changes to microservice method*/
     @Override
-    public boolean checkOutputRequestsLimit(int merchantId, String email) {
+    public boolean checkOutputRequestsLimit(int merchantId, String email, BigDecimal newAmount) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_WITHDRAW_CHECK_OUTPUT_REQUESTS_LIMIT)
                 .queryParam("merchant_id", merchantId);
         HttpEntity<?> entity = new HttpEntity<>(requestUtil.prepareHeaders(email));

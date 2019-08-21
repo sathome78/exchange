@@ -55,43 +55,34 @@ $(function () {
                 "bFilter": false,
                 "columns": [
                     {
-                        "data": "beginDate",
-                        "render": function (data) {
-                            return moment(data).format('YYYY-MM-DD HH:mm:ss');
-                        }
+                        "data": "time"
                     },
                     {
-                        "data": "endDate",
-                        "render": function (data) {
-                            return moment(data).format('YYYY-MM-DD HH:mm:ss');
-                        }
-                    },
-                    {
-                        "data": "lowRate",
+                        "data": "low",
                         "render": function (data) {
                             return numbro(data).format('0.00[000000]');
                         }
                     },
                     {
-                        "data": "highRate",
+                        "data": "high",
                         "render": function (data) {
                             return numbro(data).format('0.00[000000]');
                         }
                     },
                     {
-                        "data": "openRate",
+                        "data": "open",
                         "render": function (data) {
                             return numbro(data).format('0.00[000000]');
                         }
                     },
                     {
-                        "data": "closeRate",
+                        "data": "close",
                         "render": function (data) {
                             return numbro(data).format('0.00[000000]');
                         }
                     },
                     {
-                        "data": "baseVolume",
+                        "data": "volume",
                         "render": function (data) {
                             return numbro(data).format('0.00[000000]');
                         }
