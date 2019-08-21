@@ -54,15 +54,24 @@ import java.util.stream.Collectors;
 @Conditional(MonolitConditional.class)
 public class AdgroupServiceImpl implements AdgroupService {
 
-    private final AdGroupHttpClient httpClient;
-    private final CurrencyService currencyService;
-    private final MerchantService merchantService;
-    private final RefillService refillService;
-    private final GtagService gtagService;
-    private final UserService userService;
-    private final SendMailService sendMailService;
-    private final StompMessenger stompMessenger;
-    private final RefillRequestDao refillRequestDao;
+    @Autowired
+    private AdGroupHttpClient httpClient;
+    @Autowired
+    private CurrencyService currencyService;
+    @Autowired
+    private MerchantService merchantService;
+    @Autowired
+    private RefillService refillService;
+    @Autowired
+    private GtagService gtagService;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private SendMailService sendMailService;
+    @Autowired
+    private StompMessenger stompMessenger;
+    @Autowired
+    private RefillRequestDao refillRequestDao;
 
     @Value("${base_url}")
     private String url;
@@ -71,32 +80,32 @@ public class AdgroupServiceImpl implements AdgroupService {
     @Value("${client_secret}")
     private String clientSecret;
     @Value("${walllet}")
-    private Integer wallet;
+    private String wallet;
     @Value("${pin}")
     private String pin;
 
     private ScheduledExecutorService newTxCheckerScheduler = Executors.newSingleThreadScheduledExecutor();
 
-    @Autowired
-    public AdgroupServiceImpl(AdGroupHttpClient httpClient,
-                              CurrencyService currencyService,
-                              MerchantService merchantService,
-                              RefillService refillService,
-                              GtagService gtagService,
-                              UserService userService,
-                              SendMailService sendMailService,
-                              StompMessenger stompMessenger,
-                              RefillRequestDao refillRequestDao) {
-        this.httpClient = httpClient;
-        this.currencyService = currencyService;
-        this.merchantService = merchantService;
-        this.refillService = refillService;
-        this.gtagService = gtagService;
-        this.userService = userService;
-        this.sendMailService = sendMailService;
-        this.stompMessenger = stompMessenger;
-        this.refillRequestDao = refillRequestDao;
-    }
+//    @Autowired
+//    public AdgroupServiceImpl(AdGroupHttpClient httpClient,
+//                              CurrencyService currencyService,
+//                              MerchantService merchantService,
+//                              RefillService refillService,
+//                              GtagService gtagService,
+//                              UserService userService,
+//                              SendMailService sendMailService,
+//                              StompMessenger stompMessenger,
+//                              RefillRequestDao refillRequestDao) {
+//        this.httpClient = httpClient;
+//        this.currencyService = currencyService;
+//        this.merchantService = merchantService;
+//        this.refillService = refillService;
+//        this.gtagService = gtagService;
+//        this.userService = userService;
+//        this.sendMailService = sendMailService;
+//        this.stompMessenger = stompMessenger;
+//        this.refillRequestDao = refillRequestDao;
+//    }
 
     @PostConstruct
     void startAdgroup() {
@@ -115,7 +124,7 @@ public class AdgroupServiceImpl implements AdgroupService {
                 .amount(request.getAmount())
                 .currency(request.getCurrencyName())
                 .platform("YANDEX")
-                .tel(wallet)
+                .tel(Integer.valueOf(wallet))
                 .paymentMethod(paymentMethod)
                 .build();
 
