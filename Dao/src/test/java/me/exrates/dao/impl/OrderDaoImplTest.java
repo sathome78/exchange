@@ -510,30 +510,27 @@ public class OrderDaoImplTest extends DataComparisonTest {
 
     @Test
     public void getMyOrdersWithState_ByAcceptor() throws SQLException {
-        String sql1 = "INSERT INTO " + TABLE_EXORDERS
+        String insertOrder = "INSERT INTO " + TABLE_EXORDERS
                 + " (id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, "
                 + "commission_id, commission_fixed_amount, status_id, order_source_id, base_type) VALUES "
                 + " (3, 3, 2, 3, 0.5, 1, 0.5, 1, 0.01, 2, 1, \'LIMIT\')";
 
-        String sql2 = "INSERT INTO " + TABLE_CURRENCY_PAIR +
+        String insertCP = "INSERT INTO " + TABLE_CURRENCY_PAIR +
                 "(id,name,currency1_id,currency2_id,ticker_name) " +
                 "VALUES " +
                 "(2,\'BTC/USD\',1,2,\'BTC/USD\');";
 
-        prepareTestData(sql1, sql2);
+        prepareTestData(insertOrder, insertCP);
 
-        String sql3 = "UPDATE " + TABLE_EXORDERS + " SET date_acception = NOW(), date_creation = \'2019-01-01 12:12:12\', " +
+        String updateOrder = "UPDATE " + TABLE_EXORDERS + " SET date_acception = NOW(), date_creation = \'2019-01-01 12:12:12\', " +
                 "user_acceptor_id = 1, status_id = 3 WHERE id = 3";
 
-        String sql4 = "INSERT INTO " + TABLE_COMMISSION + " (id, value, operation_type) VALUES (1, 1.0, 2)";
+        String insertCommission = "INSERT INTO " + TABLE_COMMISSION + " (id, value, operation_type) VALUES (1, 1.0, 2)";
 
-        prepareTestData(sql3, sql4);
+        prepareTestData(updateOrder, insertCommission);
 
         CurrencyPair currencyPair = new CurrencyPair("BTC/USD");
         currencyPair.setId(2);
-        int offset = 0;
-        int limit = 10;
-        Locale locale = Locale.ENGLISH;
 
         List<OrderWideListDto> actual = Lists.newArrayList();
         around()
@@ -544,13 +541,13 @@ public class OrderDaoImplTest extends DataComparisonTest {
                         null,
                         OrderStatus.CLOSED,
                         "ALL",
-                        limit,
-                        offset,
+                        10,
+                        0,
                         false,
                         "DESC",
                         LocalDateTime.now().minusYears(1),
                         LocalDateTime.now(),
-                        locale)));
+                        Locale.ENGLISH)));
 
         assertEquals(1, actual.size());
         assertTrue(actual.get(0).getDateCreation().isAfter(LocalDateTime.now().minusHours(6)));
