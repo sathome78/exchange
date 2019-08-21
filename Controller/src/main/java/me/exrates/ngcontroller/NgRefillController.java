@@ -1,6 +1,5 @@
 package me.exrates.ngcontroller;
 
-import me.exrates.controller.annotation.CheckActiveUserStatus;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.exception.RefillAddressException;
 import me.exrates.model.CreditsOperation;
@@ -8,8 +7,6 @@ import me.exrates.model.Currency;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Payment;
 import me.exrates.model.User;
-import me.exrates.model.constants.ErrorApiTitles;
-import me.exrates.model.dto.PinOrderInfoDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestParamsDto;
 import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
@@ -22,7 +19,6 @@ import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissio
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
 import me.exrates.model.ngExceptions.NgCurrencyNotFoundException;
 import me.exrates.model.ngExceptions.NgRefillException;
-import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.service.CheckUserAuthority;
@@ -40,6 +36,7 @@ import me.exrates.service.exception.MerchantServiceNotFoundException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import me.exrates.service.notifications.G2faService;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +59,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashMap;
@@ -308,6 +304,20 @@ public class NgRefillController {
             logger.error("Failed to get requests on confirmation", e);
             return Collections.emptyList();
         }
+    }
+
+    @GetMapping("/commission")
+    public Map<String, String> getCommissions(
+            @RequestParam("amount") BigDecimal amount,
+            @RequestParam("currency") Integer currencyId,
+            @RequestParam("merchant") Integer merchantId,
+            @RequestParam(value = "memo", required = false) String memo) {
+        Integer userId = userService.getIdByEmail(getPrincipalEmail());
+        if (!StringUtils.isEmpty(memo)) {
+            merchantService.checkDestinationTag(merchantId, memo);
+        }
+        return refillService.correctAmountAndCalculateCommissionPreliminarily(userId, amount, currencyId,
+                merchantId, Locale.ENGLISH, memo);
     }
 
     private String getPrincipalEmail() {
