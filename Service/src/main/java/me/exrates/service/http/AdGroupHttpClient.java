@@ -3,7 +3,6 @@ package me.exrates.service.http;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.constants.Constants;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.merchants.adgroup.AdGroupCommonRequestDto;
 import me.exrates.model.dto.merchants.adgroup.responses.AdGroupResponseDto;
@@ -57,7 +56,7 @@ public class AdGroupHttpClient {
                     });
         } catch (Exception e) {
             log.error("Error http request while create invoice {}", e);
-            throw new RuntimeException(ErrorApiTitles.QUBERA_RESPONSE_CREATE_APPLICANT_ERROR);
+            throw new NgDashboardException(ErrorApiTitles.AD_GROUP_ERROR_HTTP_CLIENT);
         }
 
         HttpStatus httpStatus = responseEntity.getStatusCode();
@@ -65,8 +64,7 @@ public class AdGroupHttpClient {
         if (!httpStatus.is2xxSuccessful()) {
             String errorString = "Error while creating invoice ";
             log.error(errorString + " {}", responseEntity);
-            throw new NgDashboardException("Error while response from service, create invoice",
-                    Constants.ErrorApi.QUBERA_RESPONSE_CREATE_APPLICANT_ERROR);
+            throw new NgDashboardException(ErrorApiTitles.AD_GROUP_HTTP_CLIENT_RESPONSE_NOT_200);
         }
         return responseEntity.getBody();
     }
@@ -89,7 +87,7 @@ public class AdGroupHttpClient {
                             });
         } catch (Exception e) {
             log.error("Error http request while fetch list transactions {}", e);
-            throw new RuntimeException(ErrorApiTitles.QUBERA_RESPONSE_CREATE_APPLICANT_ERROR);
+            throw new NgDashboardException(ErrorApiTitles.AD_GROUP_ERROR_HTTP_CLIENT);
         }
 
         HttpStatus httpStatus = responseEntity.getStatusCode();
@@ -97,8 +95,7 @@ public class AdGroupHttpClient {
         if (!httpStatus.is2xxSuccessful()) {
             String errorString = "Error while creating invoice ";
             log.error(errorString + " {}", responseEntity);
-            throw new NgDashboardException("Error while response from service, create invoice",
-                    Constants.ErrorApi.QUBERA_RESPONSE_CREATE_APPLICANT_ERROR);
+            throw new NgDashboardException(ErrorApiTitles.AD_GROUP_HTTP_CLIENT_RESPONSE_NOT_200);
         }
         return responseEntity.getBody();
     }
@@ -122,7 +119,7 @@ public class AdGroupHttpClient {
                             });
         } catch (Exception e) {
             log.error("Error http request while createPayOut {}", e);
-            throw new RuntimeException(ErrorApiTitles.QUBERA_RESPONSE_CREATE_APPLICANT_ERROR);
+            throw new NgDashboardException(ErrorApiTitles.AD_GROUP_ERROR_HTTP_CLIENT);
         }
 
         HttpStatus httpStatus = responseEntity.getStatusCode();
@@ -130,8 +127,7 @@ public class AdGroupHttpClient {
         if (!httpStatus.is2xxSuccessful()) {
             String errorString = "Error while createPayOut ";
             log.error(errorString + " {}", responseEntity);
-            throw new NgDashboardException("Error while response from service, create invoice",
-                    Constants.ErrorApi.QUBERA_RESPONSE_CREATE_APPLICANT_ERROR);
+            throw new NgDashboardException(ErrorApiTitles.AD_GROUP_HTTP_CLIENT_RESPONSE_NOT_200);
         }
         return responseEntity.getBody();
     }
