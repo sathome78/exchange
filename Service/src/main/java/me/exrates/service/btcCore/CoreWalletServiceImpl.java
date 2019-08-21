@@ -50,7 +50,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.web3j.abi.datatypes.Int;
 import org.zeromq.ZMQ;
 import reactor.core.publisher.Flux;
 
@@ -64,7 +63,6 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -728,26 +726,11 @@ public class CoreWalletServiceImpl implements CoreWalletService {
                             .collect(Collectors.toList());
                     recordsTotal = dataAll.size();
                 }
-
-//                dataAll = sortListTransactionByColumn(dataAll, orderColumn, orderDirection);
-                Collections.sort(dataAll, new Comparator<BtcTransactionHistoryDto>() {
-                    @Override
-                    public int compare(BtcTransactionHistoryDto o1, BtcTransactionHistoryDto o2) {
-                        // todo
-                        return 0;
-                    }
-                });
-
-                // todo
-                int last = recordsTotal % (length * (start -1));
-
-                for (int i = start; i < recordsTotal && i < start + length; i++) {
-                    dataResult.add(dataAll.get(i));
-                }
-
-                result.setData(dataAll.subList(1, 16));
+                dataAll.sort(BtcTransactionHistoryDto.getComparator(orderColumn, orderDirection));
+                int end = recordsTotal < (start + length) ? recordsTotal : start + length;
+                result.setData(dataAll.subList(start, end));
             }
-//            result.setData(dataResultult);
+
             result.setTotal(recordsTotal);
             result.setFiltered(recordsTotal);
             return result;
@@ -763,64 +746,6 @@ public class CoreWalletServiceImpl implements CoreWalletService {
                         || StringUtils.equals(e.getBlockhash(), value)
                         || StringUtils.equals(e.getTxId(), value);
     }
-    private List<BtcTransactionHistoryDto> sortListTransactionByColumn(List<BtcTransactionHistoryDto> list, String orderColumn,
-                                                                       DataTableParams.OrderDirection orderDirection){
-        Map<String, String> attributes = new HashMap<>();
-        for(Field field : BtcTransactionHistoryDto.class.getDeclaredFields()) {
-            attributes.put(field.getName(), field.getGenericType().getTypeName());
-        }
-
-        if(attributes.get(orderColumn) != null){
-            list.sort((trans1, trans2) -> getValueForSort(orderColumn, orderDirection, attributes.get(orderColumn), trans1, trans2));
-        }
-
-        return list;
-    }
-
-    private Comparator<BtcTransactionHistoryDto> sortTransactionByColumn(List<BtcTransactionHistoryDto> list, String orderColumn,
-                                                                       DataTableParams.OrderDirection orderDirection){
-        Map<String, String> attributes = new HashMap<>();
-        for(Field field : BtcTransactionHistoryDto.class.getDeclaredFields()) {
-            attributes.put(field.getName(), field.getGenericType().getTypeName());
-        }
-
-        if(attributes.get(orderColumn) != null){
-            list.sort((trans1, trans2) -> getValueForSort(orderColumn, orderDirection, attributes.get(orderColumn), trans1, trans2));
-        }
-
-        return list;
-    }
-
-    private Integer getValueForSort(String orderColumn, DataTableParams.OrderDirection orderDirection, String nameOfTypeOrderColumn,
-                                    BtcTransactionHistoryDto trans1, BtcTransactionHistoryDto trans2) {
-        Object valueOfAttributeOfTrans1 = trans1.getAttributeValueByName(orderColumn);
-        Object valueOfAttributeOfTrans2 = trans2.getAttributeValueByName(orderColumn);
-
-        if(orderDirection.equals(DataTableParams.OrderDirection.ASC)) {
-            return getValueForSortWithUnboxingAndDefaultComparator(nameOfTypeOrderColumn, valueOfAttributeOfTrans1, valueOfAttributeOfTrans2);
-
-        } else if(orderDirection.equals(DataTableParams.OrderDirection.DESC)) {
-            return getValueForSortWithUnboxingAndDefaultComparator(nameOfTypeOrderColumn, valueOfAttributeOfTrans2, valueOfAttributeOfTrans1);
-        }
-        return null;
-    }
-
-    private Integer getValueForSortWithUnboxingAndDefaultComparator(String nameOfTypeOrderColumn, Object value1, Object value2) {
-        if (nameOfTypeOrderColumn.equals(String.class.getName())) {
-            return ((String) value1).compareTo(((String) value2));
-
-        } else if (nameOfTypeOrderColumn.equals(Integer.class.getName())) {
-            return ((Integer) value1).compareTo(((Integer) value2));
-
-        } else if (nameOfTypeOrderColumn.equals(Long.class.getName())) {
-            return ((Long) value1).compareTo(((Long) value2));
-
-        } else if (nameOfTypeOrderColumn.equals(LocalDateTime.class.getName())) {
-            return ((LocalDateTime) value1).compareTo(((LocalDateTime) value2));
-        }
-        return null;
-    }
-
 
     @Override
     public List<BtcTransactionHistoryDto> getTransactionsByPage(int page, int transactionsPerPage) throws BitcoindException, CommunicationException {
