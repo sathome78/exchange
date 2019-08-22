@@ -713,8 +713,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
             final Integer transactionCount = getWalletInfo().getTransactionCount() != null
                     ? getWalletInfo().getTransactionCount()
                     : calculateTransactionCount();
-            int recordsTotal = transactionCount == null
-                    || transactionCount > 10000
+            int recordsTotal = transactionCount > 10000
                     || transactionCount == 0
                     ? 10000
                     : transactionCount;
