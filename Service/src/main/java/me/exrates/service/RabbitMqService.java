@@ -15,6 +15,4 @@ public interface RabbitMqService {
 
     void sendTradeInfo(ExOrder order);
 
-    @RabbitListener(queues = "${rabbit.candles.topic}", containerFactory = "rabbitListenerContainerFactory")
-    void listenNewCandles(CandleDetailedDto dto) throws IOException;
 }

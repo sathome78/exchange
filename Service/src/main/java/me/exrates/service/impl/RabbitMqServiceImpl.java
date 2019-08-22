@@ -95,17 +95,4 @@ public class RabbitMqServiceImpl implements RabbitMqService {
             throw new RabbitMqException("Failed to send data via rabbit queue");
         }
     }
-
-    @RabbitListener(queues = "${rabbit.candles.topic}", containerFactory = "rabbitListenerContainerFactory")
-    @Override
-    public void listenNewCandles(CandleDetailedDto dto) {
-        String key = dto.getPairName().concat(dto.getBackDealInterval());
-        xSync.execute(key, () -> {
-            try {
-                stompMessenger.sendLastCandle(dto);
-            } catch (Exception e) {
-                log.error(ExceptionUtils.getStackTrace(e));
-            }
-        });
-    }
 }
