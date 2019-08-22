@@ -389,7 +389,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
                 " JOIN USER ON(USER.id = WR.user_id) " +
                 " WHERE USER.email = :email and WR.currency_id = :currency_id and WR.status_id NOT IN (:statuses) and WR.date_creation > CURDATE()) + :newSum) " +
                 "< " +
-                "(SELECT IFNULL(Cl.max_sum, 999999999999)  FROM CURRENCY_LIMIT CL  " +
+                "(SELECT IFNULL(CL.max_sum, 999999999999)  FROM CURRENCY_LIMIT CL  " +
                 " JOIN USER ON (USER.roleid = CL.user_role_id) " +
                 " WHERE USER.email = :email AND operation_type_id = 2 AND currency_id = :currency_id) ";
 
