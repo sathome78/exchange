@@ -1001,11 +1001,6 @@ public class OrderServiceImpl implements OrderService {
                             locale, acceptEventsList, orderCreationResultDto, OrderBaseType.MARKET, false);
                     orderCreationResultDto.setPartiallyAcceptedAmount(partialAcceptResult);
                 }
-                if (orderCreateDto.getOperationType() == OperationType.SELL) {
-                    acceptableOrders.add(0, orderForPartialAccept);
-                } else {
-                    acceptEventsList.add(orderForPartialAccept);
-                }
 
                 if (!acceptEventsList.isEmpty()) {
                     eventPublisher.publishEvent(new AutoAcceptEventsList(acceptEventsList, orderCreateDto.getCurrencyPair().getId()));
