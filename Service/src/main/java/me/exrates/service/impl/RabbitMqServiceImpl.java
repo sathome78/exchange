@@ -1,29 +1,21 @@
 package me.exrates.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
-import me.exrates.model.chart.CandleDetailedDto;
-import me.exrates.model.dto.OrderDetailDto;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.RabbitMqService;
 import me.exrates.service.chart.TradeDataDto;
 import me.exrates.service.exception.RabbitMqException;
-import me.exrates.service.stomp.StompMessenger;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
-import com.antkorwin.xsync.XSync;
 
-import java.io.IOException;
 import java.util.Objects;
 
 import static java.util.Objects.isNull;
@@ -36,24 +28,15 @@ public class RabbitMqServiceImpl implements RabbitMqService {
 
     private final CurrencyService currencyService;
     private final RabbitTemplate rabbitTemplate;
-    private final ObjectMapper mapper;
-    private final StompMessenger stompMessenger;
-    private XSync<String> xSync;
-
     private String chartQueue;
 
     @Autowired
     public RabbitMqServiceImpl(CurrencyService currencyService,
                                RabbitTemplate rabbitTemplate,
-                               ObjectMapper mapper,
-                               @Value("${rabbit.chart.queue}") String chartQueue,
-                               StompMessenger stompMessenger) {
+                               @Value("${rabbit.chart.queue}") String chartQueue) {
         this.currencyService = currencyService;
         this.rabbitTemplate = rabbitTemplate;
-        this.mapper = mapper;
         this.chartQueue = chartQueue;
-        this.stompMessenger = stompMessenger;
-        xSync = new XSync<>();
     }
 
 //    @Override

@@ -148,9 +148,7 @@ function subscribeChart() {
     }
     var headers = {};
     var path = '/app/chart/30 MINUTE/' + currentPairName.replace('/', '_').toLowerCase();
-    console.log(path);
     chartSubscription = client.subscribe(path, function(message) {
-        console.log(message);
         var messageBody = JSON.parse(message.body);
         console.log(messageBody)
     }, headers);
