@@ -36,8 +36,7 @@ public class MicroserviceConditional implements Condition {
     }
 
     public MicroserviceConditional(){
-//        isEnabled = Boolean.parseBoolean(getJedis().get(INOUT_IS_ENABLED_JEDIS_KEY));
-        isEnabled = false;
+        isEnabled = Boolean.parseBoolean(getJedis().get(INOUT_IS_ENABLED_JEDIS_KEY));
         log.info("isEnabled = " + isEnabled);
     }
 

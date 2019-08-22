@@ -449,6 +449,7 @@ CREATE TABLE `COMMISSION` (
   `user_role` int(40) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`),
+  UNIQUE KEY `unique_optype_user_role_idx` (`operation_type`,`user_role`),
   KEY `COMMISSION` (`operation_type`),
   KEY `commission_fk_usr_role_idx` (`user_role`),
   CONSTRAINT `commission_fk_usr_role` FOREIGN KEY (`user_role`) REFERENCES `USER_ROLE` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
