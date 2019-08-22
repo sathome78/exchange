@@ -714,7 +714,6 @@ public class CoreWalletServiceImpl implements CoreWalletService {
                     ? getWalletInfo().getTransactionCount()
                     : calculateTransactionCount();
             int recordsTotal = transactionCount > 10000
-                    || transactionCount == 0
                     ? 10000
                     : transactionCount;
             if (orderDirection == DataTableParams.OrderDirection.DESC && orderColumn.equals("time")){
