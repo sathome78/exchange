@@ -714,7 +714,11 @@ public class CoreWalletServiceImpl implements CoreWalletService {
             if (transactionCount == null || transactionCount == 0 ) {
                 return  PagingData.empty();
             }
-            int recordsTotal = transactionCount > 10000 ? 10000 : transactionCount;
+            int recordsTotal = transactionCount == null
+                    || transactionCount > 10000
+                    || transactionCount == 0
+                    ? 10000
+                    : transactionCount;
             if (orderDirection == DataTableParams.OrderDirection.DESC && orderColumn.equals("time")){
                result.setData(getTransactionsForPagination(start, length));
             } else {
