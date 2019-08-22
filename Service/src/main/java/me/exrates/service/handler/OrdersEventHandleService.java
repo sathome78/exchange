@@ -54,6 +54,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.nonNull;
+
 /**
  * Created by Maks on 28.08.2017.
  */
@@ -144,11 +146,14 @@ public class OrdersEventHandleService {
                 orderList = Collections.singletonList(((ExOrder) event.getSource()));
             }
             CompletableFuture.runAsync(() -> {
-                orderList.stream()
-                        .filter(p->p.getStatus() == OrderStatus.CLOSED)
+                List<ExOrder> orders = orderList.stream()
+                        .filter(p-> nonNull(p) && p.getStatus() == OrderStatus.CLOSED)
                         .sorted(Comparator.comparing(ExOrder::getDateAcception))
-                        .forEach(p->ratesHolder.onRatesChange(p));
-                currencyStatisticsHandler.onEvent(event.getPairId());
+                        .collect(Collectors.toList());
+                orders.forEach(p->ratesHolder.onRatesChange(p));
+                if (!orders.isEmpty()) {
+                    currencyStatisticsHandler.onEvent(event.getPairId());
+                }
             });
             handlePersonalOrders(orderList, event.getPairId());
         } catch (Exception e) {
