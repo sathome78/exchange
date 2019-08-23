@@ -37,6 +37,7 @@ import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -45,7 +46,9 @@ import static org.junit.Assert.assertTrue;
 public class OrderDaoImplTest extends DataComparisonTest {
 
     private final String TABLE_EXORDERS = "EXORDERS";
+    private final String TABLE_STOP_ORDERS = "STOP_ORDERS";
     private final String TABLE_CURRENCY_PAIR = "CURRENCY_PAIR";
+    private final String COMMISSION = "COMMISSION";
 
     @Autowired
     private OrderDao orderDao;
@@ -53,7 +56,7 @@ public class OrderDaoImplTest extends DataComparisonTest {
     @Override
     protected void before() {
         try {
-            truncateTables(TABLE_EXORDERS, TABLE_CURRENCY_PAIR);
+            truncateTables(TABLE_EXORDERS, TABLE_STOP_ORDERS, TABLE_CURRENCY_PAIR, COMMISSION);
             String sql = "INSERT INTO EXORDERS"
                     + " (id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, "
                     + "commission_id, commission_fixed_amount, status_id, order_source_id, base_type)"
@@ -581,6 +584,248 @@ public class OrderDaoImplTest extends DataComparisonTest {
                 locale
         );
         assertEquals(1, actual.size());
+    }
+
+    @Test
+    public void getMyOrdersWithState_Ok_Insert() throws SQLException {
+        String sql1 = "INSERT INTO EXORDERS " +
+                "(id, user_id, operation_type_id, exrate, amount_base, amount_convert, commission_id, commission_fixed_amount," +
+                "user_acceptor_id, status_id, currency_pair_id, base_type, date_creation, status_modification_date) " +
+                "VALUES " +
+                "(3, 16, 3, 41340.930000000, 0.002221200, 91.826473716, 8, 0.183652947, 1, 2, 3, \'LIMIT\', \'2018-07-04 21:50:54\', \'2018-07-04 21:50:54\');";
+
+        prepareTestData(sql1);
+
+        String sql2 = "SELECT * FROM " + TABLE_EXORDERS;
+
+        Integer userId = 16;
+        CurrencyPair currencyPair = new CurrencyPair();
+        currencyPair.setId(3);
+        OrderStatus status = OrderStatus.OPENED;
+        String all = "ALL";
+        int offset = 0;
+        int limit = 5;
+        Locale locale = Locale.ENGLISH;
+
+        around()
+                .withSQL(sql2)
+                .run(() -> orderDao.getMyOrdersWithState(
+                        userId,
+                        currencyPair,
+                        null,
+                        status,
+                        all,
+                        limit,
+                        offset,
+                        false,
+                        "DESC",
+                        null,
+                        null,
+                        locale
+                ));
+    }
+
+    @Test
+    public void getMyOrdersWithState_Ok_OpenedOrders() throws SQLException {
+        String sql1 = "INSERT INTO EXORDERS " +
+                "(id, user_id, operation_type_id, exrate, amount_base, amount_convert, commission_id, commission_fixed_amount," +
+                "user_acceptor_id, status_id, currency_pair_id, base_type, date_creation, status_modification_date) " +
+                "VALUES " +
+                "(3, 16, 3, 41340.930000000, 0.002221200, 91.826473716, 8, 0.183652947, 1, 2, 3, \'LIMIT\', \'2018-07-04 21:50:54\', \'2018-07-04 21:50:54\');";
+
+        String sql2 = "INSERT INTO CURRENCY_PAIR " +
+                "(id, name, currency1_id, currency2_id, ticker_name) " +
+                "VALUES " +
+                "(3, \'BTC/USD\', 1, 2, \'BTC/USD\');";
+
+        String sql3 = "INSERT INTO COMMISSION " +
+                "(id, operation_type, value, date) " +
+                "VALUES " +
+                "(8,3, 0.002221200, \'2018-07-04 21:50:54\');";
+
+        prepareTestData(sql1, sql2, sql3);
+
+
+        Integer userId = 16;
+        CurrencyPair currencyPair = new CurrencyPair();
+        currencyPair.setId(3);
+        OrderStatus status = OrderStatus.OPENED;
+        String all = "ALL";
+        int offset = 0;
+        int limit = 5;
+        Locale locale = Locale.ENGLISH;
+
+        List<OrderWideListDto> actual = orderDao.getMyOrdersWithState(
+                userId,
+                currencyPair,
+                null,
+                status,
+                all,
+                limit,
+                offset,
+                false,
+                "DESC",
+                null,
+                null,
+                locale
+        );
+        assertEquals(1, actual.size());
+        assertNotNull(actual.get(0).getDateCreation());
+        assertNotNull(actual.get(0).getDateStatusModification());
+        assertNull(actual.get(0).getDateModification());
+    }
+
+    @Test
+    public void getMyOrdersWithState_Ok_ClosedOrders() throws SQLException {
+        String sql1 = "INSERT INTO EXORDERS " +
+                "(id, user_id, operation_type_id, exrate, amount_base, amount_convert, commission_id, commission_fixed_amount," +
+                "user_acceptor_id, status_id, currency_pair_id, base_type, date_creation, date_acception, status_modification_date) " +
+                "VALUES " +
+                "(3, 16, 3, 41340.930000000, 0.002221200, 91.826473716, 8, 0.183652947, 16, 3, 3, \'LIMIT\', \'2018-07-04 21:50:54\', \'2018-07-04 21:50:54\', \'2018-07-04 21:50:54\');";
+
+        String sql2 = "INSERT INTO CURRENCY_PAIR " +
+                "(id, name, currency1_id, currency2_id, ticker_name) " +
+                "VALUES " +
+                "(3, \'BTC/USD\', 1, 2, \'BTC/USD\');";
+
+        String sql3 = "INSERT INTO COMMISSION " +
+                "(id, operation_type, value, date) " +
+                "VALUES " +
+                "(8,3, 0.002221200, \'2018-07-04 21:50:54\');";
+
+        prepareTestData(sql1, sql2, sql3);
+
+
+        Integer userId = 16;
+        CurrencyPair currencyPair = new CurrencyPair();
+        currencyPair.setId(3);
+        OrderStatus status = OrderStatus.CLOSED;
+        String all = "ALL";
+        int offset = 0;
+        int limit = 5;
+        Locale locale = Locale.ENGLISH;
+
+        List<OrderWideListDto> actual = orderDao.getMyOrdersWithState(
+                userId,
+                currencyPair,
+                null,
+                status,
+                all,
+                limit,
+                offset,
+                false,
+                "DESC",
+                null,
+                null,
+                locale
+        );
+        assertEquals(1, actual.size());
+        assertNotNull(actual.get(0).getDateCreation());
+        assertNotNull(actual.get(0).getDateAcception());
+        assertNotNull(actual.get(0).getDateStatusModification());
+        assertNull(actual.get(0).getDateModification());
+    }
+
+    @Test
+    public void getMyOrdersWithState_Ok_OpenedStopOrders() throws SQLException {
+        String sql1 = "INSERT INTO STOP_ORDERS " +
+                "(id, user_id, currency_pair_id, operation_type_id, stop_rate, limit_rate, amount_base, amount_convert," +
+                "commission_id, commission_fixed_amount, date_creation, date_modification, status_id) " +
+                "VALUES " +
+                "(3, 16, 3, 3, 41340.930000000, 41500.000000000, 0.002221200, 91.826473716, 8, 0.183652947, \'2018-07-04 21:50:54\', \'2018-07-04 21:50:54\', 2);";
+
+        String sql2 = "INSERT INTO CURRENCY_PAIR " +
+                "(id, name, currency1_id, currency2_id, ticker_name) " +
+                "VALUES " +
+                "(3, \'BTC/USD\', 1, 2, \'BTC/USD\');";
+
+        String sql3 = "INSERT INTO COMMISSION " +
+                "(id, operation_type, value, date) " +
+                "VALUES " +
+                "(8,3, 0.002221200, \'2018-07-04 21:50:54\');";
+
+        prepareTestData(sql1, sql2, sql3);
+
+
+        Integer userId = 16;
+        CurrencyPair currencyPair = new CurrencyPair();
+        currencyPair.setId(3);
+        OrderStatus status = OrderStatus.OPENED;
+        String all = "ALL";
+        int offset = 0;
+        int limit = 5;
+        Locale locale = Locale.ENGLISH;
+
+        List<OrderWideListDto> actual = orderDao.getMyOrdersWithState(
+                userId,
+                currencyPair,
+                null,
+                status,
+                all,
+                limit,
+                offset,
+                false,
+                "ASC",
+                null,
+                null,
+                locale
+        );
+        assertEquals(1, actual.size());
+        assertNotNull(actual.get(0).getDateCreation());
+        assertNotNull(actual.get(0).getDateModification());
+        assertNull(actual.get(0).getDateStatusModification());
+        assertNull(actual.get(0).getDateAcception());
+    }
+
+    @Test
+    public void getMyOrdersWithState_Ok_ClosedStopOrders() throws SQLException {
+        String sql1 = "INSERT INTO STOP_ORDERS " +
+                "(id, user_id, currency_pair_id, operation_type_id, stop_rate, limit_rate, amount_base, amount_convert," +
+                "commission_id, commission_fixed_amount, date_creation, date_modification, status_id) " +
+                "VALUES " +
+                "(3, 16, 3, 3, 41340.930000000, 41500.000000000, 0.002221200, 91.826473716, 8, 0.183652947, \'2018-07-04 21:50:54\', \'2018-07-04 21:50:54\', 3);";
+
+        String sql2 = "INSERT INTO CURRENCY_PAIR " +
+                "(id, name, currency1_id, currency2_id, ticker_name) " +
+                "VALUES " +
+                "(3, \'BTC/USD\', 1, 2, \'BTC/USD\');";
+
+        String sql3 = "INSERT INTO COMMISSION " +
+                "(id, operation_type, value, date) " +
+                "VALUES " +
+                "(8,3, 0.002221200, \'2018-07-04 21:50:54\');";
+
+        prepareTestData(sql1, sql2, sql3);
+
+
+        Integer userId = 16;
+        CurrencyPair currencyPair = new CurrencyPair();
+        currencyPair.setId(3);
+        OrderStatus status = OrderStatus.CLOSED;
+        String all = "ALL";
+        int offset = 0;
+        int limit = 5;
+        Locale locale = Locale.ENGLISH;
+
+        List<OrderWideListDto> actual = orderDao.getMyOrdersWithState(
+                userId,
+                currencyPair,
+                null,
+                status,
+                all,
+                limit,
+                offset,
+                false,
+                "ASC",
+                null,
+                null,
+                locale
+        );
+        assertEquals(1, actual.size());
+        assertNotNull(actual.get(0).getDateCreation());
+        assertNotNull(actual.get(0).getDateModification());
+        assertNull(actual.get(0).getDateStatusModification());
+        assertNull(actual.get(0).getDateAcception());
     }
 
     @Test

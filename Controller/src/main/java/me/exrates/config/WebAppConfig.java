@@ -2106,7 +2106,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Conditional(MonolitConditional.class)
     public EthTokenService asgServiceImpl() {
         List<String> tokensList = ImmutableList.of("0x7a3d3c4f30c46f51b814bee23d970a7c9b757a32");
-        return new EthTokenServiceImpl(tokensList, "ASG", "ASG", true, ExConvert.Unit.ETHER);
+        return new EthTokenServiceImpl(tokensList, "ASG", "ASG", false, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "vinciServiceImpl")

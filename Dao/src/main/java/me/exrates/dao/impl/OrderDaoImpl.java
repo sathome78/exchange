@@ -1035,15 +1035,15 @@ public class OrderDaoImpl implements OrderDao {
                 "      (SELECT so.id, " +
                 "             so.user_id, " +
                 "             so.operation_type_id, " +
-                "             null, " +
+                "             null                          AS exrate, " +
                 "             so.amount_base, " +
                 "             so.amount_convert, " +
                 "             so.commission_id, " +
                 "             so.commission_fixed_amount, " +
-                "             null, " +
-                "             null, " +
+                "             null                          AS user_acceptor_id, " +
+                "             null                          AS date_acception, " +
                 "             so.status_id, " +
-                "             null, " +
+                "             null                          AS status_modification_date, " +
                 "             so.currency_pair_id, " +
                 "             'STOP_LIMIT', " +
                 "             'MARKET', " +
@@ -2287,6 +2287,8 @@ public class OrderDaoImpl implements OrderDao {
             orderWideListDto.setCurrencyPairName(rs.getString("currency_pair_name"));
             orderWideListDto.setOrderBaseType(orderBaseType);
             orderWideListDto.setChildOrderId(rs.getInt("child_order_id"));
+            orderWideListDto.setDateStatusModification(getLocalDateTime(rs, "status_modification_date"));
+            orderWideListDto.setDateModification(getLocalDateTime(rs, "date_modification"));
 
             if (StringUtils.isNotEmpty(counterOrderType) && counterOrderType.equalsIgnoreCase(OrderBaseType.MARKET.name())
                     && userId == acceptorId) {
@@ -2295,11 +2297,9 @@ public class OrderDaoImpl implements OrderDao {
             if (orderBaseType == OrderBaseType.LIMIT) {
                 orderWideListDto.setExExchangeRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("exrate"), locale, 2));
                 orderWideListDto.setDateAcception(getLocalDateTime(rs, "date_acception"));
-                orderWideListDto.setDateStatusModification(getLocalDateTime(rs, "status_modification_date"));
             } else {
                 orderWideListDto.setStopRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("stop_rate"), locale, 2));
                 orderWideListDto.setLimitRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("limit_rate"), locale, 2));
-                orderWideListDto.setDateModification(getLocalDateTime(rs, "date_modification"));
             }
             orderWideListDto.setOperationType(String.join(" ", getOperationTypeBasedOnUserId(userId, acceptorId, operationType).name(), baseType));
             return orderWideListDto;
