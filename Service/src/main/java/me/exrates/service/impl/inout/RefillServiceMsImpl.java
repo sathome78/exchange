@@ -122,17 +122,13 @@ public class RefillServiceMsImpl extends RefillServiceImpl {
     public boolean checkInputRequestsLimit(int currencyId, String email) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + CHECK_INPUT_REQUESTS_LIMIT)
                 .queryParam("currency_id", currencyId);
-        try {
-            ResponseEntity<Boolean> response = template.exchange(
-                    builder.toUriString(),
-                    HttpMethod.GET,
-                    null, Boolean.class);
+        HttpEntity<?> entity = new HttpEntity<>(requestUtil.prepareHeaders(email));
+        ResponseEntity<Boolean> response = template.exchange(
+                builder.toUriString(),
+                HttpMethod.GET,
+                entity, Boolean.class);
 
-            return response.getBody();
-        }catch (Exception ex){
-            log.error(ex);
-            throw new InoutMicroserviceInternalServerException(ex.getMessage());
-        }
+        return response.getBody();
     }
 
     @Override
