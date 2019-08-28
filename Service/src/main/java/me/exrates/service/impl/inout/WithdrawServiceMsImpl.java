@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.MerchantCurrency;
+import me.exrates.model.User;
 import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawableDataDto;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -68,8 +70,9 @@ public class WithdrawServiceMsImpl extends WithdrawServiceImpl {
         return response.getBody();
     }
 
+    /*todo: add changes to microservice method*/
     @Override
-    public boolean checkOutputRequestsLimit(int merchantId, String email) {
+    public boolean checkOutputRequestsLimit(int merchantId, String email, BigDecimal newAmount) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_WITHDRAW_CHECK_OUTPUT_REQUESTS_LIMIT)
                 .queryParam("merchant_id", merchantId);
         HttpEntity<?> entity = new HttpEntity<>(requestUtil.prepareHeaders(email));
@@ -82,7 +85,7 @@ public class WithdrawServiceMsImpl extends WithdrawServiceImpl {
     }
 
     @Override
-    public void setAdditionalData(MerchantCurrency merchantCurrency) {
+    public void setAdditionalData(MerchantCurrency merchantCurrency, User user) {
         WithdrawableDataDto dto = template.getForObject(properties.getUrl() + API_WITHDRAW_GET_ADDITIONAL_SERVICE_DATA + merchantCurrency.getMerchantId(), WithdrawableDataDto.class);
         if (dto.getAdditionalTagForWithdrawAddressIsUsed()) {
             merchantCurrency.setAdditionalTagForWithdrawAddressIsUsed(true);

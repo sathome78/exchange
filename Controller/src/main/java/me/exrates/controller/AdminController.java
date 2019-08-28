@@ -26,7 +26,7 @@ import me.exrates.model.dto.AdminOrderInfoDto;
 import me.exrates.model.dto.AlertDto;
 import me.exrates.model.dto.BotTradingSettingsShortDto;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
-import me.exrates.model.dto.CandleChartItemDto;
+import me.exrates.model.dto.CandleDto;
 import me.exrates.model.dto.ComissionCountDto;
 import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.dto.CurrencyPairLimitDto;
@@ -45,7 +45,6 @@ import me.exrates.model.dto.RefillRequestBtcInfoDto;
 import me.exrates.model.dto.RefsListContainer;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
-import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.dto.UserSessionDto;
 import me.exrates.model.dto.UserTransferInfoDto;
 import me.exrates.model.dto.UserWalletSummaryDto;
@@ -81,10 +80,8 @@ import me.exrates.model.enums.ReportGroupUserRole;
 import me.exrates.model.enums.TransactionType;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserEventEnum;
-import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
-import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.form.AuthorityOptionsForm;
 import me.exrates.model.form.UserOperationAuthorityOptionsForm;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -110,6 +107,7 @@ import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
 import me.exrates.service.aidos.AdkService;
 import me.exrates.service.aidos.AdkServiceImpl;
+import me.exrates.service.chart.CandleDataProcessingService;
 import me.exrates.service.exception.NoRequestedBeansFoundException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.process.NotCreatableOrderException;
@@ -288,6 +286,10 @@ public class AdminController {
     private UsdxService usdxService;
     @Autowired
     private G2faService g2faService;
+    @Autowired
+    private CandleDataProcessingService candleDataProcessingService;
+
+
     @Autowired
     @Qualifier("ExratesSessionRegistry")
     private SessionRegistry sessionRegistry;
@@ -898,11 +900,12 @@ public class AdminController {
                                             @RequestParam(defaultValue = "0") BigDecimal minAmount,
                                             @RequestParam(defaultValue = "0") BigDecimal minAmountUSD,
                                             @RequestParam Integer maxDailyRequest,
+                                            @RequestParam(defaultValue = "0") BigDecimal maxAmount,
                                             @RequestParam(required = false) Object allRolesEdit) {
         if (nonNull(allRolesEdit)) {
-            currencyService.updateCurrencyLimit(currencyId, operationType, minAmount, minAmountUSD, maxDailyRequest);
+            currencyService.updateCurrencyLimit(currencyId, operationType, minAmount, minAmountUSD, maxAmount, maxDailyRequest);
         } else {
-            currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount, minAmountUSD, maxDailyRequest);
+            currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount, minAmountUSD, maxAmount, maxDailyRequest);
         }
         return ResponseEntity.ok().build();
     }
@@ -943,10 +946,11 @@ public class AdminController {
                                       @RequestParam BigDecimal minRate,
                                       @RequestParam BigDecimal maxRate,
                                       @RequestParam BigDecimal minAmount,
-                                      @RequestParam BigDecimal maxAmount) {
+                                      @RequestParam BigDecimal maxAmount,
+                                      @RequestParam BigDecimal minTotal) {
         validateDecimalLimitValues(minAmount, maxAmount);
         validateDecimalLimitValues(minRate, maxRate);
-        currencyService.updateCurrencyPairLimit(currencyPairId, orderType, roleName, minRate, maxRate, minAmount, maxAmount);
+        currencyService.updateCurrencyPairLimit(currencyPairId, orderType, roleName, minRate, maxRate, minAmount, maxAmount, minTotal);
     }
 
     private void validateDecimalLimitValues(BigDecimal min, BigDecimal max) {
@@ -981,19 +985,24 @@ public class AdminController {
     public ResponseEntity changeActiveBalance(@RequestParam Integer userId,
                                               @RequestParam("currency") Integer currencyId,
                                               @RequestParam BigDecimal amount,
-                                              @RequestParam(defaultValue = "manually credited") String comment,
+                                              @RequestParam String comment,
+                                              Locale locale,
                                               Principal principal) {
+        if (comment.equals(StringUtils.EMPTY)) {
+            return ResponseEntity.badRequest().body(Collections.singletonMap("errorNoty", messageSource.getMessage("comment.required", null, locale)));
+        }
+
         LOG.debug("userId = " + userId + ", currencyId = " + currencyId + ", amount = " + amount);
 
         walletService.manualBalanceChange(userId, currencyId, amount, principal.getName());
 
-        stompMessenger.sendPersonalMessageToUser(
-                userService.findEmailById(userId),
-                UserNotificationMessage.builder()
-                        .notificationType(UserNotificationType.INFORMATION)
-                        .sourceTypeEnum(WsSourceTypeEnum.SUBSCRIBE)
-                        .text(String.format("%s %s %s", amount.toPlainString(), currencyService.getCurrencyName(currencyId), comment))
-                        .build());
+        try {
+            final String newComment = String.format("%s %s %s", amount.toPlainString(), currencyService.getCurrencyName(currencyId), comment);
+
+            userService.addUserComment(GENERAL, newComment, userService.getEmailById(userId), false);
+        } catch (Exception ex) {
+            LOG.error("Comment could not be saved", ex);
+        }
         return ResponseEntity.ok().build();
     }
 
@@ -1173,7 +1182,7 @@ public class AdminController {
     @ResponseBody
     @PostMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPairs/market/post")
     public ResponseEntity<Void> updateMarketVolume(@RequestParam(value = "name") String name,
-                                                                  @RequestParam(value = "volume") String volume) {
+                                                   @RequestParam(value = "volume") String volume) {
         if (StringUtils.isEmpty(volume) && !StringUtils.isNumeric(volume)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -1232,18 +1241,20 @@ public class AdminController {
 
     @RequestMapping(value = "/2a8fy7b07dxe44/getCandleTableData", method = RequestMethod.GET)
     @ResponseBody
-    public List<CandleChartItemDto> getCandleChartData(@RequestParam("currencyPair") Integer currencyPairId,
-                                                       @RequestParam("interval") String interval,
-                                                       @RequestParam("startTime") String startTimeString) {
-        CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
-        BackDealInterval backDealInterval = new BackDealInterval(interval);
-        LocalDateTime startTime = LocalDateTime.parse(startTimeString, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        return orderService.getDataForCandleChart(currencyPair, backDealInterval, startTime);
+    public List<CandleDto> getCandleChartData(@RequestParam("currencyPair") Integer currencyPairId,
+                                              @RequestParam("interval") String interval,
+                                              @RequestParam("startTime") String startTimeString) {
+        final CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
+        final BackDealInterval backDealInterval = new BackDealInterval(interval);
+        final LocalDateTime fromDate = LocalDateTime.parse(startTimeString, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        final LocalDateTime toDate = LocalDateTime.now();
+
+        return candleDataProcessingService.getData(currencyPair.getName(), fromDate, toDate, backDealInterval);
     }
 
     private BitcoinService getBitcoinServiceByMerchantName(String merchantName) {
         IMerchantService merchantService = serviceContext.getBitcoinServiceByMerchantName(merchantName);
-        if (merchantService == null || !(merchantService instanceof BitcoinService)) {
+        if (!(merchantService instanceof BitcoinService)) {
             throw new NoRequestedBeansFoundException("Merchant name: " + merchantName);
         }
         return (BitcoinService) merchantService;

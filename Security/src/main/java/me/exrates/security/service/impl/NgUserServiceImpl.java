@@ -1,10 +1,12 @@
 package me.exrates.security.service.impl;
 
+import com.google.common.base.Preconditions;
 import me.exrates.dao.UserDao;
 import me.exrates.model.Email;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserEmailDto;
+import me.exrates.model.dto.ErrorReportDto;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.enums.TokenType;
@@ -61,6 +63,10 @@ public class NgUserServiceImpl implements NgUserService {
 
     @Value("${front-host}")
     private String host;
+    @Value("${mandrill.email}")
+    private String mandrillEmail;
+    @Value("${support.email}")
+    private String supportEmail;
 
     @Autowired
     public NgUserServiceImpl(UserDao userDao,
@@ -159,6 +165,7 @@ public class NgUserServiceImpl implements NgUserService {
 
         String emailIncome = userEmailDto.getEmail();
         User user = userDao.findByEmail(emailIncome);
+        userService.deleteTemporalTokenByUserIdAndTokenType(user.getId(), TokenType.CHANGE_PASSWORD);
         sendEmailWithToken(user,
                 TokenType.CHANGE_PASSWORD,
                 "emailsubmitResetPassword.subject",
@@ -279,6 +286,17 @@ public class NgUserServiceImpl implements NgUserService {
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
         email.setTo(user.getEmail());
         sendMailService.sendMail(email);
+    }
+
+    @Override
+    public void sendErrorReportEmail(ErrorReportDto dto) {
+        Preconditions.checkNotNull(dto);
+        sendMailService.sendMailMandrill(Email.builder()
+                .from(mandrillEmail)
+                .to(supportEmail)
+                .message(dto.toString())
+                .subject("Error report")
+                .build());
     }
 
     private String getHost() {

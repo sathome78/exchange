@@ -382,6 +382,7 @@ public class QuberaServiceImpl implements QuberaService {
                 .country(country)
                 .city(city)
                 .iban(userData.getIban())
+                .url(String.format("%s/api/private/v2/merchants/qubera/download", host))
                 .build();
     }
 
@@ -540,6 +541,11 @@ public class QuberaServiceImpl implements QuberaService {
             logger.error("Error generating pdf document {}", e);
             throw new NgDashboardException(ErrorApiTitles.QUBERA_PDF_ERROR_GENERATING);
         }
+    }
+
+    @Override
+    public QuberaUserData getUserDataByUserEmail(String email) {
+        return quberaDao.getUserDataByUserEmail(email);
     }
 
     private void addRows(PdfPTable table, QuberaPaymentInfoDto info) {

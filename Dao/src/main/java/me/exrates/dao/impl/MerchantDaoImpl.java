@@ -1,6 +1,6 @@
 package me.exrates.dao.impl;
 
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantDao;
 import me.exrates.model.Merchant;
 import me.exrates.model.MerchantCurrency;
@@ -15,6 +15,7 @@ import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.MerchantImageShortenedDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.enums.MerchantProcessType;
+import me.exrates.model.enums.MerchantVerificationType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransferTypeVoucher;
 import me.exrates.model.enums.UserRole;
@@ -46,7 +47,7 @@ import java.util.Optional;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
-@Log4j
+@Log4j2
 @Repository
 public class MerchantDaoImpl implements MerchantDao {
 
@@ -203,7 +204,7 @@ public class MerchantDaoImpl implements MerchantDao {
             blockClause = " AND MERCHANT_CURRENCY.transfer_block = 0";
         }
 
-        final String sql = "SELECT MERCHANT.id as merchant_id,MERCHANT.name,MERCHANT.description, MERCHANT.process_type, MERCHANT_CURRENCY.refill_block, MERCHANT.needVerification AS needVerification," +
+        final String sql = "SELECT MERCHANT.id as merchant_id,MERCHANT.name,MERCHANT.description, MERCHANT.process_type, MERCHANT_CURRENCY.refill_block, MERCHANT.needVerification AS needVerification, MERCHANT.type_verification AS typeVerification, " +
                 " MERCHANT_CURRENCY.min_sum, " +
                 " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, " +
                 " MERCHANT_CURRENCY.merchant_fixed_commission " +
@@ -230,6 +231,7 @@ public class MerchantDaoImpl implements MerchantDao {
                 params.put("currency_id", resultSet.getInt("currency_id"));
                 merchantCurrency.setListMerchantImage(masterJdbcTemplate.query(sqlInner, params, new BeanPropertyRowMapper<>(MerchantImage.class)));
                 merchantCurrency.setNeedVerification(resultSet.getBoolean("needVerification"));
+                merchantCurrency.setVerificationType(MerchantVerificationType.valueOf(resultSet.getString("typeVerification")));
                 merchantCurrency.setAvailableForRefill(resultSet.getInt("refill_block") == 0);
                 return merchantCurrency;
             });

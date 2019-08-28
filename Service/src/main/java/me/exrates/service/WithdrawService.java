@@ -2,6 +2,7 @@ package me.exrates.service;
 
 import me.exrates.model.ClientBank;
 import me.exrates.model.MerchantCurrency;
+import me.exrates.model.User;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -67,7 +68,7 @@ public interface WithdrawService {
 
   Map<String, String> correctAmountAndCalculateCommissionPreliminarily(Integer userId, BigDecimal amount, Integer currencyId, Integer merchantId, Locale locale, String destinationTag);
 
-  boolean checkOutputRequestsLimit(int merchantId, String email);
+  boolean checkOutputRequestsLimit(int merchantId, String email, BigDecimal newSum);
 
   List<Integer> getWithdrawalStatistic(String startDate, String endDate);
 
@@ -84,7 +85,10 @@ public interface WithdrawService {
                                                                 LocalDateTime endTime,
                                                                 List<UserRole> userRoles,
                                                                 int requesterId);
-  void setAdditionalData(MerchantCurrency merchantCurrency);
+  void setAdditionalData(MerchantCurrency merchantCurrency, User user);
 
-  BigDecimal getLeftOutputRequestsSum(int id, String email);
+  BigDecimal getLeftOutputRequestsCount(int id, String email);
+
+  @Transactional(readOnly = true)
+  BigDecimal getDailyWithdrawalSum(String email, int currencyId);
 }

@@ -2,6 +2,7 @@ package me.exrates.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.*;
+import me.exrates.model.enums.MerchantVerificationType;
 import me.exrates.model.util.BigDecimalToStringSerializer;
 
 import java.math.BigDecimal;
@@ -41,4 +42,5 @@ public class MerchantCurrency {
     private Boolean specMerchantComission;
     private Boolean availableForRefill;
     private Boolean needVerification;
+    private MerchantVerificationType verificationType;
 }

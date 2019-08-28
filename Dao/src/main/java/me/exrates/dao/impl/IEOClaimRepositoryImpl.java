@@ -1,6 +1,6 @@
 package me.exrates.dao.impl;
 
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.IEOClaimRepository;
 import me.exrates.model.IEOClaim;
 import me.exrates.model.IEOResult;
@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 @Repository
-@Log4j
+@Log4j2
 public class IEOClaimRepositoryImpl implements IEOClaimRepository {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;

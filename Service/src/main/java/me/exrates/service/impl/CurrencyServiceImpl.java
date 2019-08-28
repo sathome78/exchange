@@ -156,14 +156,14 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
-    public void updateCurrencyLimit(int currencyId, OperationType operationType, String roleName, BigDecimal minAmount, BigDecimal minAmountUSD, Integer maxDailyRequest) {
-        currencyDao.updateCurrencyLimit(currencyId, operationType, userRoleService.getRealUserRoleIdByBusinessRoleList(roleName), minAmount, minAmountUSD, maxDailyRequest);
+    public void updateCurrencyLimit(int currencyId, OperationType operationType, String roleName, BigDecimal minAmount, BigDecimal minAmountUSD, BigDecimal maxAmount, Integer maxDailyRequest) {
+        currencyDao.updateCurrencyLimit(currencyId, operationType, userRoleService.getRealUserRoleIdByBusinessRoleList(roleName), minAmount, minAmountUSD, maxAmount, maxDailyRequest);
     }
 
     @Override
-    public void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, BigDecimal minAmountUSD, Integer maxDailyRequest) {
+    public void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, BigDecimal minAmountUSD, BigDecimal maxAmount, Integer maxDailyRequest) {
 
-        currencyDao.updateCurrencyLimit(currencyId, operationType, minAmount, minAmountUSD, maxDailyRequest);
+        currencyDao.updateCurrencyLimit(currencyId, operationType, minAmount, minAmountUSD, maxAmount, maxDailyRequest);
     }
 
     @Override
@@ -171,6 +171,11 @@ public class CurrencyServiceImpl implements CurrencyService {
         return currencyDao.retrieveCurrencyLimitsForRoles(
                 userRoleService.getRealUserRoleIdByBusinessRoleList(roleName),
                 operationType);
+    }
+
+    @Override
+    public CurrencyLimit getCurrencyLimit(Integer currencyId, Integer operationType, Integer roleId) {
+        return currencyDao.getCurrencyLimit(currencyId, roleId, operationType);
     }
 
     @Transactional(readOnly = true)
@@ -350,9 +355,10 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
-    public void updateCurrencyPairLimit(Integer currencyPairId, OrderType orderType, String roleName, BigDecimal minRate, BigDecimal maxRate, BigDecimal minAmount, BigDecimal maxAmount) {
+    public void updateCurrencyPairLimit(Integer currencyPairId, OrderType orderType, String roleName,
+                                        BigDecimal minRate, BigDecimal maxRate, BigDecimal minAmount, BigDecimal maxAmount, BigDecimal minTotal) {
         currencyDao.setCurrencyPairLimit(currencyPairId, userRoleService.getRealUserRoleIdByBusinessRoleList(roleName), orderType.getType(), minRate,
-                maxRate, minAmount, maxAmount);
+                maxRate, minAmount, maxAmount, minTotal);
     }
 
     @Override
@@ -603,7 +609,7 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Override
     public List<MarketVolume> getAllMarketVolumes() {
-        if (defaultMarketVolumes != null) {
+        if (defaultMarketVolumes != null && !defaultMarketVolumes.isEmpty()) {
             return defaultMarketVolumes.entrySet().stream()
                     .map(o -> new MarketVolume(o.getKey(), o.getValue()))
                     .collect(Collectors.toList());

@@ -6,6 +6,7 @@ import me.exrates.model.PagingData;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
+import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.merchants.btc.*;
 import reactor.core.publisher.Flux;
 
@@ -80,7 +81,7 @@ public interface CoreWalletService {
 
   List<BtcTransactionHistoryDto> listTransaction(int page);
 
-  PagingData<List<BtcTransactionHistoryDto>> listTransaction(int start, int length, String searchValue);
+  PagingData<List<BtcTransactionHistoryDto>> listTransaction(DataTableParams dataTableParams);
 
   List<BtcTransactionHistoryDto> getTransactionsByPage(int page, int transactionsPerPage) throws BitcoindException, CommunicationException;
 

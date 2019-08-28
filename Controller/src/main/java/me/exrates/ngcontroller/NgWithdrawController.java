@@ -1,6 +1,8 @@
 package me.exrates.ngcontroller;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.annotation.CheckActiveUserStatus;
+import me.exrates.model.CurrencyLimit;
 import me.exrates.service.annotation.LogIp;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
@@ -69,14 +71,13 @@ import static java.util.Objects.isNull;
 import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.WITHDRAW_CURRENCY_WARNING;
 
+@Log4j2
 @RestController
 @PreAuthorize("!hasRole('ICO_MARKET_MAKER')")
 @RequestMapping(value = "/api/private/v2/balances/withdraw",
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class NgWithdrawController {
-
-    private static final Logger logger = LoggerFactory.getLogger(NgWithdrawController.class);
 
     private final CurrencyService currencyService;
     private final G2faService g2faService;
@@ -121,10 +122,10 @@ public class NgWithdrawController {
         String email = getPrincipalEmail();
         boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(email), UserOperationAuthority.OUTPUT);
         if (!accessToOperationForUser) {
-            throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, Locale.ENGLISH));
+            throw new UserOperationAccessException();
         }
-        if (!withdrawService.checkOutputRequestsLimit(requestParamsDto.getCurrency(), email)) {
-            throw new RequestLimitExceededException(messageSource.getMessage("merchants.OutputRequestsLimit", null, Locale.ENGLISH));
+        if (!withdrawService.checkOutputRequestsLimit(requestParamsDto.getCurrency(), email, requestParamsDto.getSum())) {
+            throw new RequestLimitExceededException();
         }
         if (!StringUtils.isEmpty(requestParamsDto.getDestinationTag())) {
             merchantService.checkDestinationTag(requestParamsDto.getMerchant(), requestParamsDto.getDestinationTag());
@@ -135,13 +136,13 @@ public class NgWithdrawController {
         User user = userService.findByEmail(email);
         if (g2faService.isGoogleAuthenticatorEnable(user.getId())) {
             if (!g2faService.checkGoogle2faVerifyCode(requestParamsDto.getSecurityCode(), user.getId())) {
-                throw new IncorrectPinException("Incorrect Google 2FA oauth code: " + requestParamsDto.getSecurityCode());
+                throw new IncorrectPinException();
             }
         } else {
             if (!userService.checkPin(getPrincipalEmail(), requestParamsDto.getSecurityCode(), NotificationMessageEventEnum.WITHDRAW)) {
                 Currency currency = currencyService.getById(requestParamsDto.getCurrency());
                 secureService.sendWithdrawPinCode(user, requestParamsDto.getSum().toPlainString(), currency.getName());
-                throw new IncorrectPinException("Incorrect pin: " + requestParamsDto.getSecurityCode());
+                throw new IncorrectPinException();
             }
         }
         try {
@@ -158,9 +159,8 @@ public class NgWithdrawController {
             Map<String, String> withdrawalResponse = withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, Locale.ENGLISH);
             return ResponseEntity.ok(withdrawalResponse);
         } catch (InvalidAmountException e) {
-            logger.error("Failed to create withdraw request", e);
-            String message = String.format("Failed to create withdraw request %s", e.toString());
-            throw new NgResponseException(ErrorApiTitles.FAILED_TO_CREATE_WITHDRAW_REQUEST, message);
+            log.error("Failed to create withdraw request", e);
+            throw new NgResponseException(ErrorApiTitles.FAILED_TO_CREATE_WITHDRAW_REQUEST, e.getMessage());
         }
     }
 
@@ -175,46 +175,44 @@ public class NgWithdrawController {
             OperationType operationType = OUTPUT;
 
             Currency currency = currencyService.findByName(currencyName);
-            Wallet wallet = walletService.findByUserAndCurrency(userService.findByEmail(email), currency);
+            User user = userService.findByEmail(email);
+            Wallet wallet = walletService.findByUserAndCurrency(user, currency);
             UserRole userRole = userService.getUserRoleFromSecurityContext();
 
-            BigDecimal minWithdrawSum = currencyService.retrieveMinLimitForRoleAndCurrency(userRole, operationType, currency.getId());
-            BigDecimal maxDailyRequestSum = currencyService.retrieveMaxDailyRequestForRoleAndCurrency(userRole, operationType, currency.getId());
-
+            CurrencyLimit currencyLimit = currencyService.getCurrencyLimit(currency.getId(), operationType.type, userRole.getRole());
+            BigDecimal withdrawnToday = withdrawService.getDailyWithdrawalSum(user.getEmail(), currency.getId());
             Integer scaleForCurrency = currencyService.getCurrencyScaleByCurrencyId(currency.getId()).getScaleForWithdraw();
             List<Integer> currenciesId = Collections.singletonList(currency.getId());
             List<MerchantCurrency> merchantCurrencyData = merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
 
             //check additional field and fill it
             for (MerchantCurrency merchantCurrency : merchantCurrencyData) {
-                withdrawService.setAdditionalData(merchantCurrency);
-
+                withdrawService.setAdditionalData(merchantCurrency, user);
             }
 
             List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), WITHDRAW_CURRENCY_WARNING);
 
-            BigDecimal leftRequestSum = withdrawService.getLeftOutputRequestsSum(currency.getId(), email);
-            if (leftRequestSum.compareTo(BigDecimal.ZERO) < 0) {
-                leftRequestSum = BigDecimal.ZERO;
-            }
+            BigDecimal leftRequestSum = withdrawService.getLeftOutputRequestsCount(currency.getId(), email).max(BigDecimal.ZERO);
 
             WithdrawDataDto withdrawDataDto = WithdrawDataDto
                     .builder()
                     .activeBalance(isNull(wallet) ? BigDecimal.ZERO : wallet.getActiveBalance())
                     .currenciesId(Collections.singletonList(currency.getId()))
                     .operationType(operationType)
-                    .minWithdrawSum(minWithdrawSum)
-                    .maxDailyRequestSum(maxDailyRequestSum)
+                    .minWithdrawSum(currencyLimit.getMinSum())
+                    .maxDailyRequestSum(currencyLimit.getMaxDailyRequest())
                     .leftRequestSum(leftRequestSum)
+                    .maxDailyWithdrawAmount(currencyLimit.getMaxSum())
+                    .withdrawnToday(withdrawnToday)
+                    .leftDailyWithdrawAmount((currencyLimit.getMaxSum().subtract(withdrawnToday)).max(BigDecimal.ZERO))
                     .merchantCurrencyData(merchantCurrencyData)
                     .scaleForCurrency(scaleForCurrency)
                     .warningCodeList(warningCodeList)
                     .build();
             return ResponseEntity.ok(withdrawDataDto);
         } catch (Exception ex) {
-            logger.error("outputCredits error:", ex);
-            String message = String.format("Failed output credits %s", currencyName);
-            throw new NgResponseException(ErrorApiTitles.FAILED_OUTPUT_CREDITS, message);
+            log.error("outputCredits error:", ex);
+            throw new NgResponseException(ErrorApiTitles.FAILED_OUTPUT_CREDITS, ex.getMessage());
         }
     }
 
@@ -234,9 +232,8 @@ public class NgWithdrawController {
             }
             return ResponseEntity.ok().build();
         } catch (Exception e) {
-            logger.error("Failed to send pin code on user email", e);
-            String message = "Failed to send pin code on user email";
-            throw new NgResponseException(ErrorApiTitles.FAILED_TO_SEND_PIN_CODE_ON_USER_EMAIL, message);
+            log.error("Failed to send pin code on user email", e);
+            throw new NgResponseException(ErrorApiTitles.FAILED_TO_SEND_PIN_CODE_ON_USER_EMAIL, "error.send_message_user");
         }
     }
 

@@ -12,7 +12,6 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.PagingData;
-import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
@@ -312,7 +311,7 @@ public class OrderDaoImpl implements OrderDao {
     @Override
     public boolean updateOrder(ExOrder exOrder) {
         String sql = "update EXORDERS set user_acceptor_id=:user_acceptor_id, status_id=:status_id, " +
-                " date_acception=NOW(), counter_order_type = :counterType " +
+                " date_acception=NOW(6), counter_order_type = :counterType " +
                 " where id = :id";
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("user_acceptor_id", String.valueOf(exOrder.getUserAcceptorId()));
@@ -369,77 +368,6 @@ public class OrderDaoImpl implements OrderDao {
         });
 
         return rows;
-    }
-
-    @Override
-    public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval backDealInterval) {
-        return getCandleChartData(currencyPair, backDealInterval, "NOW()");
-    }
-
-    @Override
-    public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval backDealInterval, LocalDateTime endTime) {
-        String startTimeString = endTime.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
-        String startTimeSql = String.format("STR_TO_DATE('%s', '%%Y-%%m-%%d %%H:%%i:%%s')", startTimeString);
-        return getCandleChartData(currencyPair, backDealInterval, startTimeSql);
-    }
-
-    @Override
-    public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, LocalDateTime startTime, LocalDateTime endTime, int resolutionValue, String resolutionType) {
-        String startTimeString = startTime.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
-        String endTimeString = LocalDateTime.now().format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
-        String sql = "{call GET_DATA_FOR_CANDLE_RANGE(" +
-                "STR_TO_DATE(:start_point, '%Y-%m-%d %H:%i:%s'), " +
-                "STR_TO_DATE(:end_point, '%Y-%m-%d %H:%i:%s'), " +
-                ":step_value, :step_type, :currency_pair_id)}";
-        Map<String, Object> params = new HashMap<>();
-        params.put("start_point", startTimeString);
-        params.put("end_point", endTimeString);
-        params.put("step_value", resolutionValue);
-        params.put("step_type", resolutionType);
-        params.put("currency_pair_id", currencyPair.getId());
-        return masterJdbcTemplate.execute(sql, params, ps -> {
-            ResultSet rs = ps.executeQuery();
-            List<CandleChartItemDto> list = new ArrayList<>();
-            while (rs.next()) {
-                CandleChartItemDto candleChartItemDto = new CandleChartItemDto();
-                candleChartItemDto.setBeginDate(rs.getTimestamp("pred_point"));
-                candleChartItemDto.setBeginPeriod(rs.getTimestamp("pred_point").toLocalDateTime());
-                candleChartItemDto.setEndDate(rs.getTimestamp("current_point"));
-                candleChartItemDto.setEndPeriod(rs.getTimestamp("current_point").toLocalDateTime());
-                candleChartItemDto.setOpenRate(rs.getBigDecimal("open_rate"));
-                candleChartItemDto.setCloseRate(rs.getBigDecimal("close_rate"));
-                candleChartItemDto.setLowRate(rs.getBigDecimal("low_rate"));
-                candleChartItemDto.setHighRate(rs.getBigDecimal("high_rate"));
-                candleChartItemDto.setBaseVolume(rs.getBigDecimal("base_volume"));
-                list.add(candleChartItemDto);
-            }
-            rs.close();
-            return list;
-        });
-    }
-
-    private List<CandleChartItemDto> getCandleChartData(CurrencyPair currencyPair, BackDealInterval backDealInterval, String startTimeSql) {
-        String s = "{call GET_DATA_FOR_CANDLE(" + startTimeSql + ", " + backDealInterval.getIntervalValue() + ", '" + backDealInterval.getIntervalType().name() + "', " + currencyPair.getId() + ")}";
-
-        return masterJdbcTemplate.execute(s, ps -> {
-            ResultSet rs = ps.executeQuery();
-            List<CandleChartItemDto> list = new ArrayList<>();
-            while (rs.next()) {
-                CandleChartItemDto candleChartItemDto = new CandleChartItemDto();
-                candleChartItemDto.setBeginDate(rs.getTimestamp("pred_point"));
-                candleChartItemDto.setBeginPeriod(rs.getTimestamp("pred_point").toLocalDateTime());
-                candleChartItemDto.setEndDate(rs.getTimestamp("current_point"));
-                candleChartItemDto.setEndPeriod(rs.getTimestamp("current_point").toLocalDateTime());
-                candleChartItemDto.setOpenRate(rs.getBigDecimal("open_rate"));
-                candleChartItemDto.setCloseRate(rs.getBigDecimal("close_rate"));
-                candleChartItemDto.setLowRate(rs.getBigDecimal("low_rate"));
-                candleChartItemDto.setHighRate(rs.getBigDecimal("high_rate"));
-                candleChartItemDto.setBaseVolume(rs.getBigDecimal("base_volume"));
-                list.add(candleChartItemDto);
-            }
-            rs.close();
-            return list;
-        });
     }
 
     @Override
@@ -764,7 +692,7 @@ public class OrderDaoImpl implements OrderDao {
         return slaveJdbcTemplate.query(sql, params, (rs, rowNum) -> {
             OrderAcceptedHistoryDto orderAcceptedHistoryDto = new OrderAcceptedHistoryDto();
             orderAcceptedHistoryDto.setOrderId(rs.getInt("id"));
-            orderAcceptedHistoryDto.setDateAcceptionTime(rs.getTimestamp("date_acception").toLocalDateTime().toLocalTime().format(DateTimeFormatter.ISO_LOCAL_TIME));
+            orderAcceptedHistoryDto.setDateAcceptionTime(rs.getTimestamp("date_acception").toLocalDateTime().toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm:ss")));
             orderAcceptedHistoryDto.setAcceptionTime(rs.getTimestamp("date_acception"));
             orderAcceptedHistoryDto.setRate(rs.getString("exrate"));
             orderAcceptedHistoryDto.setAmountBase(rs.getString("amount_base"));
@@ -1090,7 +1018,8 @@ public class OrderDaoImpl implements OrderDao {
                 "             o.counter_order_type, " +
                 "             cp.name                AS currency_pair_name, " +
                 "             com.value              AS commission_value, " +
-                "             o.date_creation        AS date_creation, " +
+//              "             o.date_creation        AS date_creation, " +
+                "             IF ((o.user_acceptor_id = :user_id AND o.user_id <> :user_id), o.date_acception, o.date_creation) as date_creation, " +
                 "             null                   AS child_order_id, " +
                 "             null                   AS stop_rate, " +
                 "             null                   AS limit_rate," +
@@ -1107,15 +1036,15 @@ public class OrderDaoImpl implements OrderDao {
                 "      (SELECT so.id, " +
                 "             so.user_id, " +
                 "             so.operation_type_id, " +
-                "             null, " +
+                "             null                          AS exrate, " +
                 "             so.amount_base, " +
                 "             so.amount_convert, " +
                 "             so.commission_id, " +
                 "             so.commission_fixed_amount, " +
-                "             null, " +
-                "             null, " +
+                "             null                          AS user_acceptor_id, " +
+                "             null                          AS date_acception, " +
                 "             so.status_id, " +
-                "             null, " +
+                "             null                          AS status_modification_date, " +
                 "             so.currency_pair_id, " +
                 "             'STOP_LIMIT', " +
                 "             'MARKET', " +
@@ -1246,9 +1175,7 @@ public class OrderDaoImpl implements OrderDao {
         namedParameters.put("order_ids", ordersList);
         try {
             final List<Integer> records = masterJdbcTemplate.queryForList(sql, namedParameters, Integer.class);
-            Collections.sort(records);
-            Collections.sort(ordersList);
-            return ordersList.equals(records);
+            return records.containsAll(ordersList);
         } catch (EmptyResultDataAccessException e) {
             return false;
         }
@@ -2355,10 +2282,11 @@ public class OrderDaoImpl implements OrderDao {
             orderWideListDto.setDateCreation(getLocalDateTime(rs, "date_creation"));
             orderWideListDto.setStatus(OrderStatus.convert(rs.getInt("status_id")));
             orderWideListDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
-            orderWideListDto.setDateModification(getLocalDateTime(rs, "date_modification"));
             orderWideListDto.setCurrencyPairName(rs.getString("currency_pair_name"));
             orderWideListDto.setOrderBaseType(orderBaseType);
             orderWideListDto.setChildOrderId(rs.getInt("child_order_id"));
+            orderWideListDto.setDateStatusModification(getLocalDateTime(rs, "status_modification_date"));
+            orderWideListDto.setDateModification(getLocalDateTime(rs, "date_modification"));
 
             if (StringUtils.isNotEmpty(counterOrderType) && counterOrderType.equalsIgnoreCase(OrderBaseType.MARKET.name())
                     && userId == acceptorId) {
