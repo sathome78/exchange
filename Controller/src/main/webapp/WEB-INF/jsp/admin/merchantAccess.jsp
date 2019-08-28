@@ -108,6 +108,7 @@
                                 <th><loc:message code="admin.currency.pair.id"/> </th>
                                 <th><loc:message code="title.hide.currency.pair"/> </th>
                                 <th><loc:message code="title.visibility"/></th>
+                                <th><loc:message code="title.tradeRestriction"/></th>
                                 <th><loc:message code="title.top_market_volume"/></th>
                                 <th><loc:message code="title.action"/></th>
                             </tr>

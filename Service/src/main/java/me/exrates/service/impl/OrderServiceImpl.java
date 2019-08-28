@@ -83,6 +83,7 @@ import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.ngExceptions.MarketOrderAcceptionException;
 import me.exrates.model.ngExceptions.NgOrderValidationException;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
@@ -124,6 +125,7 @@ import me.exrates.service.exception.process.OrderCreationException;
 import me.exrates.service.exception.process.WalletCreationException;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.stopOrder.StopOrderService;
+import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.util.BiTuple;
 import me.exrates.service.util.Cache;
 import me.exrates.service.util.CollectionUtil;
@@ -229,6 +231,8 @@ public class OrderServiceImpl implements OrderService {
     TransactionDescription transactionDescription;
     @Autowired
     StopOrderService stopOrderService;
+    @Autowired
+    private UserOperationService userOperationService;
 
     private List<CoinmarketApiDto> coinmarketCachedData = new CopyOnWriteArrayList<>();
     private ScheduledExecutorService coinmarketScheduler = Executors.newSingleThreadScheduledExecutor();
@@ -424,6 +428,12 @@ public class OrderServiceImpl implements OrderService {
         OrderValidationDto orderValidationDto = new OrderValidationDto();
         Map<String, Object> errors = orderValidationDto.getErrors();
         Map<String, Object[]> errorParams = orderValidationDto.getErrorParams();
+
+        checkTradingRestriction(orderCreateDto.getUserId(), orderCreateDto.getCurrencyPair(), errors);
+        if (!errors.isEmpty()) {
+            return orderValidationDto;
+        }
+
         if (orderCreateDto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             errors.put("amount_" + errors.size(), "order.fillfield");
         }
@@ -518,6 +528,11 @@ public class OrderServiceImpl implements OrderService {
         OrderValidationDto orderValidationDto = new OrderValidationDto();
         Map<String, Object> errors = orderValidationDto.getErrors();
         Map<String, Object[]> errorParams = orderValidationDto.getErrorParams();
+
+        checkTradingRestriction(orderCreateDto.getUserId(), orderCreateDto.getCurrencyPair(), errors);
+        if (!errors.isEmpty()) {
+            return orderValidationDto;
+        }
         if (orderCreateDto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             errors.put("amount_" + errors.size(), "order.fillfield");
         }
@@ -597,6 +612,13 @@ public class OrderServiceImpl implements OrderService {
             }
         }
         return orderValidationDto;
+    }
+
+    private void checkTradingRestriction(int userId, CurrencyPair currencyPair, Map<String, Object> errors) {
+        if (currencyPair.getTradeRestriction() && userOperationService.getStatusAuthorityForUserByOperation(userId, UserOperationAuthority.TRADING_RESTRICTION)) {
+            String key = "permission_" + errors.size();
+            errors.put(key, "order.tradeRestricted");
+        }
     }
 
     private OrderValidationDto validateMarketOrder(OrderCreateDto orderCreateDto) {

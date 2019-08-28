@@ -150,7 +150,14 @@ $(document).ready(function () {
             {
                 "data": "hidden",
                 "render": function (data) {
-                    return '<span>'.concat(data ? '<i class="fa fa-lock red" aria-hidden="true"></i>' : '<i class="fa fa-unlock" aria-hidden="true"></i>')
+                    return '<span>'.concat(data ? '<i class="visibility fa fa-lock red" aria-hidden="true"></i>' : '<i class="visibility fa fa-unlock" aria-hidden="true"></i>')
+                        .concat('</span>');
+                }
+            },
+            {
+                "data": "tradeRestriction",
+                "render": function (data) {
+                    return '<span>'.concat(data ? '<i class="restriction fa fa-lock red" aria-hidden="true"></i>' : '<i class="restriction fa fa-unlock" aria-hidden="true"></i>')
                         .concat('</span>');
                 }
             },
@@ -294,10 +301,17 @@ $(document).ready(function () {
         }
     });
 
-    $currencyPairsVisibilityTable.find('tbody').on('click', 'i', function () {
+    $currencyPairsVisibilityTable.find('tbody').on('click', '.visibility', function () {
         var currencyPairId = $(this).parents('tr').data('currencypairid');
         if (confirm($('#prompt-toggle-block').html())) {
             changeVisibilityForCurrencyPair(currencyPairId, this);
+        }
+    });
+
+    $currencyPairsVisibilityTable.find('tbody').on('click', '.restriction', function () {
+        var currencyPairId = $(this).parents('tr').data('currencypairid');
+        if (confirm($('#prompt-toggle-block').html())) {
+            changeTradeRestrictionForCurrencyPair(currencyPairId, this);
         }
     });
 
@@ -487,6 +501,23 @@ function changeVisibilityForCurrencyPair(currencyPairId, $element) {
             'X-CSRF-Token': $("input[name='_csrf']").val()
         },
         url: '/2a8fy7b07dxe44/merchantAccess/currencyPair/visibility/update',
+        type: 'POST',
+        data: {
+            "currencyPairId": currencyPairId
+        },
+        success: function () {
+            $($element).toggleClass('fa-lock red');
+            $($element).toggleClass('fa-unlock');
+        }
+    });
+}
+
+function changeTradeRestrictionForCurrencyPair(currencyPairId, $element) {
+    $.ajax({
+        headers: {
+            'X-CSRF-Token': $("input[name='_csrf']").val()
+        },
+        url: '/2a8fy7b07dxe44/merchantAccess/currencyPair/restriction/update',
         type: 'POST',
         data: {
             "currencyPairId": currencyPairId

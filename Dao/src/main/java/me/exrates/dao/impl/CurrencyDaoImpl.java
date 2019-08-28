@@ -81,6 +81,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         currencyPair.setIsTopMarket(rs.getBoolean("top_market"));
         currencyPair.setTopMarketVolume(rs.getObject("top_market_volume") == null ? null :
                 rs.getBigDecimal("top_market_volume"));
+        currencyPair.setTradeRestriction(rs.getBoolean("trade_restriction"));
 
         return currencyPair;
 
@@ -330,7 +331,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         if (type != null && type != CurrencyPairType.ALL) {
             typeClause = " WHERE type =:pairType ";
         }
-        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, top_market, top_market_volume, " +
+        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, top_market, top_market_volume, trade_restriction, " +
                 "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
                 "(select name from CURRENCY where id = currency2_id) as currency2_name " +
                 " FROM CURRENCY_PAIR " + typeClause +
@@ -341,7 +342,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
     @Override
     public CurrencyPair getCurrencyPairById(int currency1Id, int currency2Id) {
-        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, top_market, top_market_volume, " +
+        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, top_market, top_market_volume, trade_restriction, " +
                 "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
                 "(select name from CURRENCY where id = currency2_id) as currency2_name " +
                 " FROM CURRENCY_PAIR WHERE currency1_id = :currency1Id AND currency2_id = :currency2Id";
@@ -353,7 +354,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
     @Override
     public CurrencyPair findCurrencyPairById(int currencyPairId) {
-        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, top_market, top_market_volume, " +
+        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, top_market, top_market_volume, trade_restriction, " +
                 "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
                 "(select name from CURRENCY where id = currency2_id) as currency2_name " +
                 " FROM CURRENCY_PAIR WHERE id = :currencyPairId";
@@ -364,7 +365,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
     @Override
     public CurrencyPair getNotHiddenCurrencyPairByName(String currencyPairName) {
-        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, top_market, top_market_volume, " +
+        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, top_market, top_market_volume, trade_restriction, " +
                 "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
                 "(select name from CURRENCY where id = currency2_id) as currency2_name " +
                 " FROM CURRENCY_PAIR WHERE name = :currencyPairName AND hidden IS NOT TRUE ";
@@ -383,6 +384,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 "cp.type," +
                 "cp.top_market, " +
                 "cp.top_market_volume, " +
+                "cp.trade_restriction, " +
                 "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
                 "(select name from CURRENCY where id = currency2_id) as currency2_name " +
                 " FROM CURRENCY_PAIR cp" +
@@ -508,7 +510,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
     @Override
     public CurrencyPair findCurrencyPairByOrderId(int orderId) {
-        String sql = "SELECT CURRENCY_PAIR.id, CURRENCY_PAIR.currency1_id, CURRENCY_PAIR.currency2_id, name, type, top_market, top_market_volume, " +
+        String sql = "SELECT CURRENCY_PAIR.id, CURRENCY_PAIR.currency1_id, CURRENCY_PAIR.currency2_id, name, type, top_market, top_market_volume, CURRENCY_PAIR.trade_restriction, " +
                 "CURRENCY_PAIR.market, " +
                 "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
                 "(select name from CURRENCY where id = currency2_id) as currency2_name " +
@@ -597,7 +599,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
     @Override
     public List<CurrencyPairWithLimitsDto> findAllCurrencyPairsWithLimits(Integer roleId) {
-        String sql = "SELECT CP.id, CP.currency1_id, CP.currency2_id, CP.name, CP.market, CP.type, CP.top_market, CP.top_market_volume, " +
+        String sql = "SELECT CP.id, CP.currency1_id, CP.currency2_id, CP.name, CP.market, CP.type, CP.top_market, CP.top_market_volume, CP.trade_restriction, " +
                 "             (select name from CURRENCY where id = currency1_id) as currency1_name, " +
                 "        (select name from CURRENCY where id = currency2_id) as currency2_name, " +
                 "  LIM_SELL.min_rate AS min_rate_sell, LIM_SELL.max_rate AS max_rate_sell, LIM_SELL.min_amount AS min_amount_sell, LIM_SELL.max_amount AS max_amount_sell, " +
@@ -669,7 +671,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
     @Override
     public List<CurrencyPair> findPermitedCurrencyPairs(CurrencyPairType currencyPairType) {
-        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, top_market, top_market_volume, " +
+        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, top_market, top_market_volume, trade_restriction, " +
                 "        (select name from CURRENCY where id = currency1_id) as currency1_name, " +
                 "        (select name from CURRENCY where id = currency2_id) as currency2_name " +
                 "         FROM CURRENCY_PAIR " +
@@ -729,7 +731,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
     @Override
     public List<CurrencyPair> findAllCurrencyPair() {
-        String sql = "SELECT id, name, hidden, permitted_link, top_market_volume FROM CURRENCY_PAIR";
+        String sql = "SELECT id, name, hidden, permitted_link, top_market_volume, trade_restriction FROM CURRENCY_PAIR";
         return masterJdbcTemplate.query(sql, (rs, i) -> {
             CurrencyPair result = new CurrencyPair();
             result.setId(rs.getInt("id"));
@@ -753,7 +755,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
     @Override
     public boolean updateRestrictionCurrencyPairById(int currencyPairId) {
-        String sql = "UPDATE CURRENCY_PAIR SET hidden = !hidden WHERE id = :currency_pair_id";
+        String sql = "UPDATE CURRENCY_PAIR SET trade_restriction = !trade_restriction WHERE id = :currency_pair_id";
         Map<String, Object> params = new HashMap<>();
         params.put("currency_pair_id", currencyPairId);
         return masterJdbcTemplate.update(sql, params) > 0;

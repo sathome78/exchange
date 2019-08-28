@@ -29,7 +29,7 @@ public class StockExchangeDaoImpl implements StockExchangeDao {
 
     private final String SELECT_STOCK_EXCHANGE = "SELECT SE.id AS stock_exchange_id, SE.name AS stock_exchange_name, " +
             "SE.last_field_name, SE.buy_field_name, SE.sell_field_name, SE.high_field_name, SE.low_field_name, SE.volume_field_name, " +
-            "CURRENCY_PAIR.id, CURRENCY_PAIR.currency1_id, CURRENCY_PAIR.currency2_id, CURRENCY_PAIR.name, CURRENCY_PAIR.type, CURRENCY_PAIR.market, " +
+            "CURRENCY_PAIR.id, CURRENCY_PAIR.currency1_id, CURRENCY_PAIR.currency2_id, CURRENCY_PAIR.name, CURRENCY_PAIR.type, CURRENCY_PAIR.market, CURRENCY_PAIR.trade_restriction, " +
             "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
             "(select name from CURRENCY where id = currency2_id) as currency2_name," +
             " cur1_alias.alias AS currency1_alias, cur2_alias.alias AS currency2_alias " +

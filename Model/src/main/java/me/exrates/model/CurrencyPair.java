@@ -28,7 +28,7 @@ public class CurrencyPair implements Serializable {
     private String marketName;
     private CurrencyPairType pairType;
     private boolean hidden;
-    private boolean tradeRestriction;
+    private Boolean tradeRestriction;
     private boolean permittedLink;
     private Boolean isTopMarket;
     private BigDecimal topMarketVolume;

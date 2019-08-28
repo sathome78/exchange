@@ -10,7 +10,8 @@ public enum UserOperationAuthority {
     INPUT(1),
     OUTPUT(2),
     TRANSFER(3),
-    TRADING(4);
+    TRADING(4),
+    TRADING_RESTRICTION(5);
 
     public final int operationId;
 
