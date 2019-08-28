@@ -26,7 +26,9 @@ import me.exrates.service.events.PartiallyAcceptedOrder;
 import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.vo.CurrencyStatisticsHandler;
 import me.exrates.service.vo.MyTradesHandler;
+import me.exrates.service.vo.OpenOrdersRefreshDelayHandler;
 import me.exrates.service.vo.OrdersEventsHandler;
+import me.exrates.service.vo.PersonalOrderRefreshDelayHandler;
 import me.exrates.service.vo.TradesEventsHandler;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,10 +48,15 @@ import org.springframework.web.client.RestTemplate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
+import static java.util.Objects.nonNull;
 
 /**
  * Created by Maks on 28.08.2017.
@@ -80,6 +87,8 @@ public class OrdersEventHandleService {
     private CurrencyService currencyService;
     @Autowired
     private RabbitMqService rabbitMqService;
+    @Autowired
+    private PersonalOrderRefreshDelayHandler openOrdersRefreshHandler;
 
     private final Object handlerSync = new Object();
 
@@ -92,15 +101,6 @@ public class OrdersEventHandleService {
 
     private Map<Integer, UserPersonalOrdersHandler> personalOrdersHandlerMap = new ConcurrentHashMap<>();
 
-    public void handleOrderEventOnMessage(InputCreateOrderDto orderDto) {
-//        ExOrder order = orderDto.toExorder();
-//        onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
-//        handleAllTrades(order);
-//        handleMyTrades(order);
-//        ratesHolder.onRatesChange(order);
-//        currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
-    }
-
     @Async
     @TransactionalEventListener
     public void handleOrderEventAsync(CreateOrderEvent event) {
@@ -110,7 +110,7 @@ public class OrdersEventHandleService {
 
     @Async
     @TransactionalEventListener
-    public void handleOrderEventAsync(CancelOrderEvent event) throws JsonProcessingException {
+    public void handleOrderEventAsync(CancelOrderEvent event) {
         ExOrder exOrder = (ExOrder) event.getSource();
         onOrdersEvent(exOrder.getCurrencyPairId(), exOrder.getOperationType());
     }
@@ -119,6 +119,7 @@ public class OrdersEventHandleService {
     @TransactionalEventListener
     public void handleOrderEventAsync(OrderEvent event) throws JsonProcessingException {
         ExOrder exOrder = (ExOrder) event.getSource();
+        openOrdersRefreshHandler.onEvent(exOrder.getUserId(), exOrder.getCurrencyPair().getName());
         if (!(event instanceof PartiallyAcceptedOrder)) {
             handleOrdersDetailed(exOrder, event.getOrderEventEnum());
         }
@@ -140,6 +141,16 @@ public class OrdersEventHandleService {
             } else {
                 orderList = Collections.singletonList(((ExOrder) event.getSource()));
             }
+            CompletableFuture.runAsync(() -> {
+                List<ExOrder> orders = orderList.stream()
+                        .filter(p-> nonNull(p) && p.getStatus() == OrderStatus.CLOSED)
+                        .sorted(Comparator.comparing(ExOrder::getDateAcception))
+                        .collect(Collectors.toList());
+                orders.forEach(p->ratesHolder.onRatesChange(p));
+                if (!orders.isEmpty()) {
+                    currencyStatisticsHandler.onEvent(event.getPairId());
+                }
+            });
             handlePersonalOrders(orderList, event.getPairId());
         } catch (Exception e) {
             ExceptionUtils.printRootCauseStackTrace(e);
@@ -162,10 +173,8 @@ public class OrdersEventHandleService {
         ExOrder order = (ExOrder) event.getSource();
         handleAllTrades(order);
         handleMyTrades(order);
-        rabbitMqService.sendTradeInfo(order);
-        ratesHolder.onRatesChange(order);
-        currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
         onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
+        rabbitMqService.sendTradeInfo(order);
     }
 
     private void handleCallBack(OrderEvent event) throws JsonProcessingException {

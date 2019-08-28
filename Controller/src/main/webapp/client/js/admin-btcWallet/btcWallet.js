@@ -466,6 +466,10 @@ function updateTxHistoryTablePagination() {
 
             ],
             dom: "<'download-btn col-md-12'B>lftip",
+            "order": [[
+                0,
+                "desc"
+            ]],
             buttons: [
                 {
                     extend: 'csv',

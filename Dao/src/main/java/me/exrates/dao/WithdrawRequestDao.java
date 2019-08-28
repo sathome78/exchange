@@ -52,6 +52,8 @@ public interface WithdrawRequestDao {
 
     boolean checkOutputRequests(int currencyId, String email);
 
+    boolean checkOutputMaxSum(int currencyId, String email, BigDecimal newSum);
+
     Optional<Integer> findUserIdById(Integer requestId);
 
     Optional<Integer> getIdByHashAndMerchantId(String hash, Integer merchantId);
@@ -67,6 +69,7 @@ public interface WithdrawRequestDao {
                                                                   List<UserRole> userRoles, 
                                                                   int requesterId);
 
+    BigDecimal getDailyWithdrawalSumByCurrency(String email, Integer currencyId);
     BigDecimal getLeftOutputRequestsSum(int currencyId, String email);
 
     List<WithdrawRequestFlatDto> findByMerchantIdAndAdditionParam(int merchantId, String additionalParam);

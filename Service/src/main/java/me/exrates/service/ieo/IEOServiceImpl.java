@@ -262,7 +262,7 @@ public class IEOServiceImpl implements IEOService {
     public void createIeo(IeoDetailsCreateDto dto) {
         int makerId = userService.getIdByEmail(dto.getMakerEmail());
         int creatorId = userService.getIdByEmail(SecurityContextHolder.getContext().getAuthentication().getName());
-        currencyService.addCurrencyForIco(dto.getCurrencyName(), dto.getDescription());
+        currencyService.addCurrencyForIco(dto.getCurrencyName(), dto.getCurrencyDescription());
         currencyService.addCurrencyPairForIco(dto.getCurrencyName(), "BTC");
         ieoDetailsRepository.save(dto.toIEODetails(makerId, creatorId));
     }

@@ -133,16 +133,16 @@ public class EthTokenServiceImpl implements EthTokenService {
         currentBlockNumber = new BigInteger("0");
         pendingTransactions = refillService.getInExamineByMerchantIdAndCurrencyIdList(merchant.getId(), currency.getId());
         this.minConfirmations = ethereumCommonService.minConfirmationsRefill();
-//todo: uncomment after some changes and test
-//        scheduler.scheduleWithFixedDelay(new Runnable() {
-//            public void run() {
-//                try {
-//                    transferFundsToMainAccount();
-//                } catch (Exception e) {
-//                    log.error(e);
-//                }
-//            }
-//        }, 3, 10, TimeUnit.MINUTES);
+
+        scheduler.scheduleWithFixedDelay(new Runnable() {
+            public void run() {
+                try {
+                    transferFundsToMainAccount();
+                } catch (Exception e) {
+                    log.error(e);
+                }
+            }
+        }, 3, 10, TimeUnit.MINUTES);
     }
 
     @Override

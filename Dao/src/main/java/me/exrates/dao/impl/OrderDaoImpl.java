@@ -311,7 +311,7 @@ public class OrderDaoImpl implements OrderDao {
     @Override
     public boolean updateOrder(ExOrder exOrder) {
         String sql = "update EXORDERS set user_acceptor_id=:user_acceptor_id, status_id=:status_id, " +
-                " date_acception=NOW(), counter_order_type = :counterType " +
+                " date_acception=NOW(6), counter_order_type = :counterType " +
                 " where id = :id";
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("user_acceptor_id", String.valueOf(exOrder.getUserAcceptorId()));
@@ -692,7 +692,7 @@ public class OrderDaoImpl implements OrderDao {
         return slaveJdbcTemplate.query(sql, params, (rs, rowNum) -> {
             OrderAcceptedHistoryDto orderAcceptedHistoryDto = new OrderAcceptedHistoryDto();
             orderAcceptedHistoryDto.setOrderId(rs.getInt("id"));
-            orderAcceptedHistoryDto.setDateAcceptionTime(rs.getTimestamp("date_acception").toLocalDateTime().toLocalTime().format(DateTimeFormatter.ISO_LOCAL_TIME));
+            orderAcceptedHistoryDto.setDateAcceptionTime(rs.getTimestamp("date_acception").toLocalDateTime().toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm:ss")));
             orderAcceptedHistoryDto.setAcceptionTime(rs.getTimestamp("date_acception"));
             orderAcceptedHistoryDto.setRate(rs.getString("exrate"));
             orderAcceptedHistoryDto.setAmountBase(rs.getString("amount_base"));
@@ -1018,7 +1018,8 @@ public class OrderDaoImpl implements OrderDao {
                 "             o.counter_order_type, " +
                 "             cp.name                AS currency_pair_name, " +
                 "             com.value              AS commission_value, " +
-                "             o.date_creation        AS date_creation, " +
+//              "             o.date_creation        AS date_creation, " +
+                "             IF ((o.user_acceptor_id = :user_id AND o.user_id <> :user_id), o.date_acception, o.date_creation) as date_creation, " +
                 "             null                   AS child_order_id, " +
                 "             null                   AS stop_rate, " +
                 "             null                   AS limit_rate," +
@@ -1035,15 +1036,15 @@ public class OrderDaoImpl implements OrderDao {
                 "      (SELECT so.id, " +
                 "             so.user_id, " +
                 "             so.operation_type_id, " +
-                "             null, " +
+                "             null                          AS exrate, " +
                 "             so.amount_base, " +
                 "             so.amount_convert, " +
                 "             so.commission_id, " +
                 "             so.commission_fixed_amount, " +
-                "             null, " +
-                "             null, " +
+                "             null                          AS user_acceptor_id, " +
+                "             null                          AS date_acception, " +
                 "             so.status_id, " +
-                "             null, " +
+                "             null                          AS status_modification_date, " +
                 "             so.currency_pair_id, " +
                 "             'STOP_LIMIT', " +
                 "             'MARKET', " +
@@ -1174,9 +1175,7 @@ public class OrderDaoImpl implements OrderDao {
         namedParameters.put("order_ids", ordersList);
         try {
             final List<Integer> records = masterJdbcTemplate.queryForList(sql, namedParameters, Integer.class);
-            Collections.sort(records);
-            Collections.sort(ordersList);
-            return ordersList.equals(records);
+            return records.containsAll(ordersList);
         } catch (EmptyResultDataAccessException e) {
             return false;
         }
@@ -2280,15 +2279,14 @@ public class OrderDaoImpl implements OrderDao {
                 amountWithCommission = BigDecimalProcessing.doAction(amountWithCommission, rs.getBigDecimal("commission_fixed_amount"), ActionType.ADD);
             }
             orderWideListDto.setAmountWithCommission(BigDecimalProcessing.formatLocale(amountWithCommission, locale, 2));
-            LocalDateTime orderDate = userId == acceptorId
-                    ? getLocalDateTime(rs, "date_acception")
-                    : getLocalDateTime(rs, "date_creation");
-            orderWideListDto.setDateCreation(orderDate);
+            orderWideListDto.setDateCreation(getLocalDateTime(rs, "date_creation"));
             orderWideListDto.setStatus(OrderStatus.convert(rs.getInt("status_id")));
             orderWideListDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
             orderWideListDto.setCurrencyPairName(rs.getString("currency_pair_name"));
             orderWideListDto.setOrderBaseType(orderBaseType);
             orderWideListDto.setChildOrderId(rs.getInt("child_order_id"));
+            orderWideListDto.setDateStatusModification(getLocalDateTime(rs, "status_modification_date"));
+            orderWideListDto.setDateModification(getLocalDateTime(rs, "date_modification"));
 
             if (StringUtils.isNotEmpty(counterOrderType) && counterOrderType.equalsIgnoreCase(OrderBaseType.MARKET.name())
                     && userId == acceptorId) {
@@ -2297,11 +2295,9 @@ public class OrderDaoImpl implements OrderDao {
             if (orderBaseType == OrderBaseType.LIMIT) {
                 orderWideListDto.setExExchangeRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("exrate"), locale, 2));
                 orderWideListDto.setDateAcception(getLocalDateTime(rs, "date_acception"));
-                orderWideListDto.setDateStatusModification(getLocalDateTime(rs, "status_modification_date"));
             } else {
                 orderWideListDto.setStopRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("stop_rate"), locale, 2));
                 orderWideListDto.setLimitRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("limit_rate"), locale, 2));
-                orderWideListDto.setDateModification(getLocalDateTime(rs, "date_modification"));
             }
             orderWideListDto.setOperationType(String.join(" ", getOperationTypeBasedOnUserId(userId, acceptorId, operationType).name(), baseType));
             return orderWideListDto;
