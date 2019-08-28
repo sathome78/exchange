@@ -110,6 +110,8 @@ public interface CurrencyDao {
 
     boolean updateVisibilityCurrencyPairById(int currencyPairId);
 
+    boolean updateRestrictionCurrencyPairById(int currencyPairId);
+
     boolean updateAccessToDirectLinkCurrencyPairById(int currencyPairId);
 
     List<CurrencyReportInfoDto> getStatsByCoin(int currencyId);

@@ -140,6 +140,8 @@ public interface CurrencyService {
 
     boolean updateVisibilityCurrencyPairById(int currencyPairId);
 
+    boolean updateRestrictionForCurrencyPairById(int currencyPairId);
+
     boolean updateAccessToDirectLinkCurrencyPairById(int currencyPairId);
 
     List<CurrencyReportInfoDto> getStatsByCoin(int currencyId);

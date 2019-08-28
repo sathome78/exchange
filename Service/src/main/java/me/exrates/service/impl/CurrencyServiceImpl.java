@@ -115,8 +115,8 @@ public class CurrencyServiceImpl implements CurrencyService {
         allPairs = findAllCurrencyPair()
                 .stream().collect(Collectors.toMap(CurrencyPair::getId, Function.identity()));
 
-        defaultMarketVolumes = getAllMarketVolumes().stream()
-                .collect(Collectors.toMap(MarketVolume::getName, MarketVolume::getMarketVolume));
+//        defaultMarketVolumes = getAllMarketVolumes().stream()
+//                .collect(Collectors.toMap(MarketVolume::getName, MarketVolume::getMarketVolume));
     }
 
     @Override
@@ -451,6 +451,11 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Override
     public boolean updateVisibilityCurrencyPairById(int currencyPairId) {
         return currencyDao.updateVisibilityCurrencyPairById(currencyPairId);
+    }
+
+    @Override
+    public boolean updateRestrictionForCurrencyPairById(int currencyPairId) {
+        return currencyDao.updateRestrictionCurrencyPairById(currencyPairId);
     }
 
     @Override

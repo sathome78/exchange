@@ -735,6 +735,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
             result.setId(rs.getInt("id"));
             result.setName(rs.getString("name"));
             result.setHidden(rs.getBoolean("hidden"));
+            result.setTradeRestriction(rs.getBoolean("trade_restriction"));
             result.setPermittedLink(rs.getBoolean("permitted_link"));
             result.setTopMarketVolume(rs.getObject("top_market_volume") == null ? null :
                     rs.getBigDecimal("top_market_volume"));
@@ -744,6 +745,14 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
     @Override
     public boolean updateVisibilityCurrencyPairById(int currencyPairId) {
+        String sql = "UPDATE CURRENCY_PAIR SET hidden = !hidden WHERE id = :currency_pair_id";
+        Map<String, Object> params = new HashMap<>();
+        params.put("currency_pair_id", currencyPairId);
+        return masterJdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public boolean updateRestrictionCurrencyPairById(int currencyPairId) {
         String sql = "UPDATE CURRENCY_PAIR SET hidden = !hidden WHERE id = :currency_pair_id";
         Map<String, Object> params = new HashMap<>();
         params.put("currency_pair_id", currencyPairId);

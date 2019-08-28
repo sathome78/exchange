@@ -1199,6 +1199,13 @@ public class AdminController {
     }
 
     @ResponseBody
+    @PostMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPair/restriction/update")
+    public ResponseEntity<Void> updateRestrictionCurrencyPairById(@RequestParam("currencyPairId") int currencyPairId) {
+        currencyService.updateRestrictionForCurrencyPairById(currencyPairId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @ResponseBody
     @PostMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPair/directLink/update")
     public ResponseEntity<Void> updateAccessToDirectLinkCurrencyPairById(@RequestParam("currencyPairId") int currencyPairId) {
         currencyService.updateAccessToDirectLinkCurrencyPairById(currencyPairId);
