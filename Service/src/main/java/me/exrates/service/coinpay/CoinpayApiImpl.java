@@ -10,6 +10,10 @@ import com.google.common.collect.Maps;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.dto.merchants.coinpay.CoinPayCreateWithdrawDto;
+import me.exrates.model.dto.merchants.coinpay.CoinPayResponseDepositDto;
+import me.exrates.model.dto.merchants.coinpay.CoinPayResponseOrderDetailDto;
+import me.exrates.model.dto.merchants.coinpay.CoinPayWithdrawRequestDto;
 import me.exrates.service.exception.CoinpayException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,12 +25,12 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.math.BigDecimal;
+import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
-
-import static java.util.Objects.nonNull;
 
 @Log4j2
 @PropertySource("classpath:/merchants/coinpay.properties")
@@ -37,49 +41,24 @@ public class CoinpayApiImpl implements CoinpayApi {
     private static final String BEARER_TOKEN = "Bearer %s";
 
     private final String url;
+    private final String email;
+    private final String password;
+
 
     private final RestTemplate restTemplate;
 
     @Autowired
-    public CoinpayApiImpl(@Value("${coinpay.url}") String url) {
+    public CoinpayApiImpl(@Value("${coinpay.url}") String url,
+                          @Value("${coinpay.email}") String email,
+                          @Value("${coinpay.password}") String password) {
         this.url = url;
+        this.email = email;
+        this.password = password;
         this.restTemplate = new RestTemplate();
     }
 
     @Override
-    public boolean createUser(String email, String password, String username, String referralId) {
-        CreateUserRequest.Builder builder = CreateUserRequest.builder()
-                .email(email)
-                .password(password)
-                .username(username);
-
-        if (nonNull(referralId)) {
-            builder.referralId(referralId);
-        }
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-
-        HttpEntity<CreateUserRequest> requestEntity = new HttpEntity<>(builder.build(), headers);
-
-        ResponseEntity<CreateUserResponse> responseEntity;
-        try {
-            responseEntity = restTemplate.postForEntity(url + "/user/create", requestEntity, CreateUserResponse.class);
-            if (responseEntity.getStatusCodeValue() != 201) {
-                throw new CoinpayException("COINPAY - User creation issue");
-            }
-        } catch (Exception ex) {
-            log.warn("COINPAY - User creation issue");
-            return false;
-        }
-        final CreateUserResponse response = responseEntity.getBody();
-
-        return response.email.equals(email) && response.username.equals(username);
-    }
-
-    @Override
-    public String authorizeUser(String email, String password) {
+    public String authorizeUser() {
         AuthorizeUserRequest.Builder builder = AuthorizeUserRequest.builder()
                 .email(email)
                 .password(password);
@@ -108,30 +87,6 @@ public class CoinpayApiImpl implements CoinpayApi {
     }
 
     @Override
-    public String refreshToken(String oldToken) {
-        UpdateTokenRequest.Builder builder = UpdateTokenRequest.builder()
-                .token(oldToken);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-
-        HttpEntity<UpdateTokenRequest> requestEntity = new HttpEntity<>(builder.build(), headers);
-
-        ResponseEntity<UpdateTokenResponse> responseEntity;
-        try {
-            responseEntity = restTemplate.postForEntity(url + "/user/refresh_token", requestEntity, UpdateTokenResponse.class);
-            if (responseEntity.getStatusCodeValue() != 200) {
-                throw new CoinpayException("COINPAY - Update token issue");
-            }
-        } catch (Exception ex) {
-            log.warn("COINPAY - Update token issue");
-            return null;
-        }
-        return responseEntity.getBody().token;
-    }
-
-    @Override
     public BalanceResponse getBalancesAndWallets(String token) {
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
@@ -148,6 +103,96 @@ public class CoinpayApiImpl implements CoinpayApi {
         } catch (Exception ex) {
             log.warn("COINPAY - Get balance and wallets issue");
             return null;
+        }
+        return responseEntity.getBody();
+    }
+
+    @Override
+    public CoinPayWithdrawRequestDto createWithdrawRequest(String token, CoinPayCreateWithdrawDto request) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.set(AUTHORIZATION, String.format(BEARER_TOKEN, token));
+
+        HttpEntity<Object> requestEntity = new HttpEntity<>(request, headers);
+
+        ResponseEntity<CoinPayWithdrawRequestDto> responseEntity;
+        try {
+            responseEntity = restTemplate.exchange(url + "/api/v1/withdrawal", HttpMethod.POST, requestEntity,
+                    CoinPayWithdrawRequestDto.class);
+            if (responseEntity.getStatusCodeValue() != 200) {
+                throw new CoinpayException("COINPAY - Error while creating withdraw request");
+            }
+        } catch (Exception ex) {
+            log.error("COINPAY - Error response while create withdraw request");
+            throw new CoinpayException("COINPAY - Error while creating withdraw request");
+        }
+
+        if (!responseEntity.getBody().getStatus().equalsIgnoreCase("success")) {
+            log.error("COINPAY - Response from merchant {}", responseEntity.getBody().getStatus());
+            throw new CoinpayException("COINPAY - Error while creating withdraw request");
+        }
+        return responseEntity.getBody();
+    }
+
+    @Override
+    public String checkOrderById(String token, String orderId) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.set(AUTHORIZATION, String.format(BEARER_TOKEN, token));
+
+        HttpEntity<Object> requestEntity = new HttpEntity<>(headers);
+
+        String finalUrl = url + "api/v1/orders/details";
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(finalUrl);
+        builder.queryParam("order_id", orderId);
+        URI uri = builder.build(true).toUri();
+
+        ResponseEntity<CoinPayResponseOrderDetailDto> responseEntity;
+        try {
+            responseEntity = restTemplate.exchange(uri, HttpMethod.GET, requestEntity,
+                    CoinPayResponseOrderDetailDto.class);
+            if (responseEntity.getStatusCodeValue() != 200) {
+                throw new CoinpayException("COINPAY - Error while creating withdraw request");
+            }
+        } catch (Exception ex) {
+            log.error("COINPAY - Error response while create withdraw request");
+            throw new CoinpayException("COINPAY - Error while creating withdraw request");
+        }
+
+        return responseEntity.getBody().getStatus();
+    }
+
+    @Override
+    public CoinPayResponseDepositDto createDeposit(String token, String amount, String currency, String callbackUrl) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.set(AUTHORIZATION, String.format(BEARER_TOKEN, token));
+
+        HttpEntity<Object> requestEntity = new HttpEntity<>(headers);
+
+        String finalUrl = url + "api/v1/deposit/address";
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(finalUrl);
+        builder.queryParam("currency", currency);
+        builder.queryParam("amount", amount);
+        builder.queryParam("callback_url", callbackUrl);
+        URI uri = builder.build(true).toUri();
+
+        ResponseEntity<CoinPayResponseDepositDto> responseEntity;
+        try {
+            responseEntity = restTemplate.exchange(uri, HttpMethod.GET, requestEntity,
+                    CoinPayResponseDepositDto.class);
+            if (responseEntity.getStatusCodeValue() != 200) {
+                throw new CoinpayException("COINPAY - Error while creating withdraw request");
+            }
+        } catch (Exception ex) {
+            log.error("COINPAY - Error response while create withdraw request");
+            throw new CoinpayException("COINPAY - Error while creating withdraw request");
+        }
+        if (!responseEntity.getBody().getStatus().equalsIgnoreCase("success")) {
+            log.error("COINPAY - Error status while create deposit request");
+            throw new CoinpayException("COINPAY - Error status while create deposit request");
         }
         return responseEntity.getBody();
     }

@@ -68,4 +68,8 @@ public interface WithdrawRequestDao {
                                                                   int requesterId);
 
     BigDecimal getLeftOutputRequestsSum(int currencyId, String email);
+
+    List<WithdrawRequestFlatDto> findByMerchantIdAndAdditionParam(int merchantId, String additionalParam);
+
+    boolean updateAdditionalParamById(int requestId, String additionalParam);
 }
