@@ -98,7 +98,7 @@ public class RefillServiceMsImpl extends RefillServiceImpl {
             return response.getBody();
         }catch (Exception ex){
             log.error(ex);
-            throw new InoutMicroserviceInternalServerException("Internal Server Error. InOut service.");
+            throw new InoutMicroserviceInternalServerException(ex.getMessage());
         }
     }
 

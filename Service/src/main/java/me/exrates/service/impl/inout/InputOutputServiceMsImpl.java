@@ -68,8 +68,6 @@ public class InputOutputServiceMsImpl extends InputOutputServiceImpl {
 
             return Optional.ofNullable(response.getBody());
         }catch (Exception ex){
-            ex.getStackTrace();
-            System.out.println(ex.getMessage());
             log.error(ex);
             throw new InoutMicroserviceInternalServerException(ex.getMessage());
         }
