@@ -2345,15 +2345,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return restTemplate;
     }
 
-    @Bean("inoutRestTemplate")
-    @Conditional(MicroserviceConditional.class)
-    public RestTemplate inoutRestTemplate() {
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.setInterceptors(Collections.singletonList(new JsonMimeInterceptor()));
-
-        return restTemplate;
-    }
-
     @Bean
     public JobFactory jobFactory(ApplicationContext applicationContext) {
         QuartzJobFactory jobFactory = new QuartzJobFactory();

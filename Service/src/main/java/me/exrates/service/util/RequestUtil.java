@@ -39,9 +39,10 @@ public class RequestUtil {
 
     private HttpHeaders prepareHeaders() {
         HttpHeaders headers = new HttpHeaders();
+
         headers.add(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON_UTF8_VALUE);
         headers.add(HttpHeaders.ACCEPT, APPLICATION_JSON_UTF8_VALUE);
-//        headers.add(properties.getTokenName(), properties.getTokenValue());
+
         return headers;
     }
 }

@@ -8,14 +8,17 @@ import me.exrates.model.Merchant;
 import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.service.exception.*;
+import me.exrates.service.exception.CheckDestinationTagException;
+import me.exrates.service.exception.IncorrectCoreWalletPasswordException;
+import me.exrates.service.exception.InoutMicroserviceInternalServerException;
+import me.exrates.service.exception.NotImplimentedMethod;
+import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.properties.InOutProperties;
 import me.exrates.service.usdx.model.UsdxAccountBalance;
 import me.exrates.service.usdx.model.UsdxTransaction;
 import me.exrates.service.util.WithdrawUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.ParameterizedTypeReference;
@@ -56,10 +59,6 @@ public class LightHouseServiceMsImpl implements UsdxService {
     private WithdrawUtils withdrawUtils;
 
     @Autowired
-    @Qualifier("inoutRestTemplate")
-    private RestTemplate restTemplate;
-
-    @Autowired
     private InOutProperties properties;
     @Autowired
     private ObjectMapper mapper;
@@ -81,6 +80,7 @@ public class LightHouseServiceMsImpl implements UsdxService {
 
     @Override
     public String getMainAddress() {
+        RestTemplate restTemplate = new RestTemplate();
         return restTemplate.getForObject(properties.getUrl() + API_MERCHANT_LHT_GET_MAIN_ADDRESS, String.class);
     }
 
@@ -99,27 +99,32 @@ public class LightHouseServiceMsImpl implements UsdxService {
 
     @Override
     public Merchant getMerchant(){
+        RestTemplate restTemplate = new RestTemplate();
         return restTemplate.getForObject(properties.getUrl() + API_MERCHANT_LHT_GET_MERCHANT, Merchant.class);
     }
 
     @Override
     public Currency getCurrency(){
+        RestTemplate restTemplate = new RestTemplate();
         return restTemplate.getForObject(properties.getUrl() + API_MERCHANT_LHT_GET_CURRENCY, Currency.class);
     }
 
     @Override
     public UsdxAccountBalance getUsdxAccountBalance(){
+        RestTemplate restTemplate = new RestTemplate();
         return restTemplate.getForObject(properties.getUrl() + API_MERCHANT_LHT_GET_USDX_ACCOUNT_BALANCE, UsdxAccountBalance.class);
     }
 
     @Override
     public List<UsdxTransaction> getAllTransactions(){
+        RestTemplate restTemplate = new RestTemplate();
         return restTemplate.exchange(properties.getUrl() + API_MERCHANT_LHT_GET_TRANSACTIONS,
                 HttpMethod.GET, null, new ParameterizedTypeReference<List<UsdxTransaction>>() {}).getBody();
     }
 
     @Override
     public UsdxTransaction getTransactionByTransferId(String transferId){
+        RestTemplate restTemplate = new RestTemplate();
         return restTemplate.getForObject(properties.getUrl() + API_MERCHANT_LHT_GET_TRANSACTION_BY_TRANSFER_ID, UsdxTransaction.class);
     }
 
@@ -135,6 +140,8 @@ public class LightHouseServiceMsImpl implements UsdxService {
 
     @Override
     public UsdxTransaction sendUsdxTransactionToExternalWallet(String password, UsdxTransaction usdxTransaction){
+        RestTemplate restTemplate = new RestTemplate();
+
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_MERCHANT_LHT_CREATE_WITHDRAW_ADMIN)
                 .queryParam("password", password);
 
@@ -151,6 +158,8 @@ public class LightHouseServiceMsImpl implements UsdxService {
     }
 
     private void postWithParam(Map<String, String> params, String apiMerchantLhtUrl) {
+        RestTemplate restTemplate = new RestTemplate();
+
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + apiMerchantLhtUrl);
 
         HttpEntity<String> entity ;

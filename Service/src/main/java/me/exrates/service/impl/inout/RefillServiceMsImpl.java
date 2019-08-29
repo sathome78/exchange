@@ -27,7 +27,6 @@ import me.exrates.service.properties.InOutProperties;
 import me.exrates.service.util.RequestUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
@@ -57,13 +56,12 @@ public class RefillServiceMsImpl extends RefillServiceImpl {
     private static final String GET_ADDRESS_BY_MERCHANT_ID_AND_CURRENCY_ID_AND_USER_ID = "/api/getAddressByMerchantIdAndCurrencyIdAndUserId";
     private static final String CHECK_INPUT_REQUESTS_LIMIT = "/api/checkInputRequestsLimit";
     private static final String CREATE_REFILL_REQUEST = "/api/createRefillRequest";
-    public static final String API_MERCHANT_GET_ADDITIONAL_REFILL_FIELD_NAME = "/api/merchant/getAdditionalRefillFieldName/";
-    public static final String API_MERCHANT_GET_MIN_CONFIRMATIONS_REFILL = "/api/merchant/getMinConfirmationsRefill/";
-    public static final String API_MERCHANT_RETRIEVE_ADDRESS_AND_ADDITIONAL_PARAMS_FOR_REFILL_FOR_MERCHANT_CURRENCIES = "/api/merchant/retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies";
+    private static final String API_MERCHANT_GET_ADDITIONAL_REFILL_FIELD_NAME = "/api/merchant/getAdditionalRefillFieldName/";
+    private static final String API_MERCHANT_RETRIEVE_ADDRESS_AND_ADDITIONAL_PARAMS_FOR_REFILL_FOR_MERCHANT_CURRENCIES = "/api/merchant/retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies";
     private static final String API_MERCHANT_CALL_REFILL_IREFILLABLE = "/api/merchant/callRefillIRefillable";
+    public static final String API_MERCHANT_GET_MIN_CONFIRMATIONS_REFILL = "/api/merchant/getMinConfirmationsRefill/";
     private final InOutProperties properties;
     private final ObjectMapper objectMapper;
-    private final RestTemplate template;
     private final RequestUtil requestUtil;
     private final WalletService walletService;
     private final CompanyWalletService companyWalletService;
@@ -75,10 +73,9 @@ public class RefillServiceMsImpl extends RefillServiceImpl {
 
     private static final Logger log = LogManager.getLogger("refill");
 
-    public RefillServiceMsImpl(InOutProperties properties, ObjectMapper objectMapper, @Qualifier("inoutRestTemplate") RestTemplate template, RequestUtil requestUtil, WalletService walletService, CompanyWalletService companyWalletService, RefillRequestDao refillRequestDao, UserService userService) {
+    public RefillServiceMsImpl(InOutProperties properties, ObjectMapper objectMapper, RequestUtil requestUtil, WalletService walletService, CompanyWalletService companyWalletService, RefillRequestDao refillRequestDao, UserService userService) {
         this.properties = properties;
         this.objectMapper = objectMapper;
-        this.template = template;
         this.requestUtil = requestUtil;
         this.walletService = walletService;
         this.companyWalletService = companyWalletService;
@@ -88,10 +85,11 @@ public class RefillServiceMsImpl extends RefillServiceImpl {
 
     @Override
     public Map<String, Object> createRefillRequest(RefillRequestCreateDto requestCreateDto) {
+        RestTemplate restTemplate = new RestTemplate();
         try {
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + CREATE_REFILL_REQUEST);
             HttpEntity<?> entity = new HttpEntity<>(objectMapper.writeValueAsString(requestCreateDto), requestUtil.prepareHeaders(requestCreateDto.getUserId()));
-            ResponseEntity<Map<String, Object>> response = template.exchange(
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                     builder.toUriString(),
                     HttpMethod.POST,
                     entity, new ParameterizedTypeReference<Map<String, Object>>() {
@@ -100,18 +98,20 @@ public class RefillServiceMsImpl extends RefillServiceImpl {
             return response.getBody();
         }catch (Exception ex){
             log.error(ex);
-            throw new RuntimeException("Inout error");
+            throw new InoutMicroserviceInternalServerException("Internal Server Error. InOut service.");
         }
     }
 
     @Override
     public Optional<String> getAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId) {
+        RestTemplate restTemplate = new RestTemplate();
+
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + GET_ADDRESS_BY_MERCHANT_ID_AND_CURRENCY_ID_AND_USER_ID)
                 .queryParam("currency_id", currencyId)
                 .queryParam("merchant_id", merchantId);
 
         HttpEntity<?> entity = new HttpEntity<>(requestUtil.prepareHeaders(userId));
-        ResponseEntity<Optional<String>> response = template.exchange(
+        ResponseEntity<Optional<String>> response = restTemplate.exchange(
                 builder.toUriString(),
                 HttpMethod.GET,
                 entity, new ParameterizedTypeReference<Optional<String>>() {});
@@ -120,15 +120,23 @@ public class RefillServiceMsImpl extends RefillServiceImpl {
 
     @Override
     public boolean checkInputRequestsLimit(int currencyId, String email) {
+        RestTemplate restTemplate = new RestTemplate();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + CHECK_INPUT_REQUESTS_LIMIT)
                 .queryParam("currency_id", currencyId);
-        HttpEntity<?> entity = new HttpEntity<>(requestUtil.prepareHeaders(email));
-        ResponseEntity<Boolean> response = template.exchange(
-                builder.toUriString(),
-                HttpMethod.GET,
-                entity, Boolean.class);
+        HttpEntity<Object> entity = new HttpEntity<>(null, requestUtil.prepareHeaders(email));
 
-        return response.getBody();
+        try {
+            ResponseEntity<Boolean> response = restTemplate.exchange(
+                    builder.toUriString(),
+                    HttpMethod.GET,
+                    entity, Boolean.class);
+
+            return response.getBody();
+
+        }catch (Exception ex){
+            log.error(ex);
+            throw new InoutMicroserviceInternalServerException(ex.getMessage());
+        }
     }
 
     @Override
@@ -149,9 +157,11 @@ public class RefillServiceMsImpl extends RefillServiceImpl {
 
     @Override
     public Map<String, String> callRefillIRefillable(RefillRequestCreateDto request) {
+        RestTemplate restTemplate = new RestTemplate();
+
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_MERCHANT_CALL_REFILL_IREFILLABLE);
 
-        HttpEntity<?> entity = null;
+        HttpEntity<?> entity;
         try {
             entity = new HttpEntity<>(objectMapper.writeValueAsString(request));
         } catch (JsonProcessingException e) {
@@ -159,7 +169,7 @@ public class RefillServiceMsImpl extends RefillServiceImpl {
             throw new RuntimeException(String.format("Object mapper error. " +
                     "RefillRequestCreateDto: %s", request));
         }
-        ResponseEntity<Map<String, String>> response = template.exchange(
+        ResponseEntity<Map<String, String>> response = restTemplate.exchange(
                 builder.toUriString(),
                 HttpMethod.POST,
                 entity, new ParameterizedTypeReference<Map<String, String>>() {});
@@ -169,13 +179,15 @@ public class RefillServiceMsImpl extends RefillServiceImpl {
 
     @Override
     public List<MerchantCurrency> retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies, String userEmail) {
+        RestTemplate restTemplate = new RestTemplate();
+
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_MERCHANT_RETRIEVE_ADDRESS_AND_ADDITIONAL_PARAMS_FOR_REFILL_FOR_MERCHANT_CURRENCIES)
                 .queryParam("userEmail", userEmail);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
 
-        HttpEntity<?> entity = null;
+        HttpEntity<?> entity;
         try {
             entity = new HttpEntity<>(objectMapper.writeValueAsString(merchantCurrencies), headers);
         } catch (JsonProcessingException e) {
@@ -185,7 +197,7 @@ public class RefillServiceMsImpl extends RefillServiceImpl {
         }
 
         try {
-            ResponseEntity<List<MerchantCurrency>> response = template.exchange(
+            ResponseEntity<List<MerchantCurrency>> response = restTemplate.exchange(
                     builder.toUriString(),
                     HttpMethod.POST,
                     entity, new ParameterizedTypeReference<List<MerchantCurrency>>() {
@@ -220,29 +232,29 @@ public class RefillServiceMsImpl extends RefillServiceImpl {
     }
 
     private void fillAdressesDtos(List<RefillRequestAddressShortDto> dtos) {
-        dtos.forEach(p -> setAddressFieldName(p));
+        dtos.forEach(this::setAddressFieldName);
     }
 
     private void setAddressFieldName(RefillRequestAddressShortDto p) {
-        String additionalRefillFieldName = template.getForObject(properties.getUrl() + API_MERCHANT_GET_ADDITIONAL_REFILL_FIELD_NAME + p.getMerchantId(), String.class);
+        RestTemplate restTemplate = new RestTemplate();
+        String additionalRefillFieldName = restTemplate.getForObject(properties.getUrl() + API_MERCHANT_GET_ADDITIONAL_REFILL_FIELD_NAME + p.getMerchantId(), String.class);
         p.setAddressFieldName(additionalRefillFieldName);
     }
 
     @Override
     public List<RefillOnConfirmationDto> getOnConfirmationRefills(String email, int currencyId) {
-        Integer userId = userService.getIdByEmail(email);
+        int userId = userService.getIdByEmail(email);
         if (userId == 0) {
             return Collections.emptyList();
         }
         List<RefillOnConfirmationDto> dtos = refillRequestDao.getOnConfirmationDtos(userId, currencyId);
-        dtos.forEach(p -> {
-            setNeededConfirmations(p);
-        });
+        dtos.forEach(this::setNeededConfirmations);
         return dtos;
     }
 
     private void setNeededConfirmations(RefillOnConfirmationDto p) {
-        Integer neededConfirmations = template.getForObject(properties.getUrl() + API_MERCHANT_GET_MIN_CONFIRMATIONS_REFILL + p.getMerchantId(), Integer.class);
+        RestTemplate restTemplate = new RestTemplate();
+        Integer neededConfirmations = restTemplate.getForObject(properties.getUrl() + API_MERCHANT_GET_MIN_CONFIRMATIONS_REFILL + p.getMerchantId(), Integer.class);
         p.setNeededConfirmations(neededConfirmations);
     }
 }

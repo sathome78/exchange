@@ -10,6 +10,7 @@ import me.exrates.model.Payment;
 import me.exrates.model.User;
 import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.service.UserService;
+import me.exrates.service.exception.InoutMicroserviceInternalServerException;
 import me.exrates.service.impl.InputOutputServiceImpl;
 import me.exrates.service.properties.InOutProperties;
 import me.exrates.service.util.RequestUtil;
@@ -37,7 +38,6 @@ import static me.exrates.service.impl.inout.RefillServiceMsImpl.API_MERCHANT_GET
 public class InputOutputServiceMsImpl extends InputOutputServiceImpl {
 
     private static final String API_PREPARE_CREDITS_OPERATION = "/api/prepareCreditsOperation";
-    private final @Qualifier("inoutRestTemplate") RestTemplate template;
     private final RequestUtil requestUtil;
     private final InOutProperties properties;
     private final ObjectMapper objectMapper;
@@ -49,7 +49,7 @@ public class InputOutputServiceMsImpl extends InputOutputServiceImpl {
         setUserRecipient(locale, payment);
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_PREPARE_CREDITS_OPERATION);
-        HttpEntity<String> entity = null;
+        HttpEntity<String> entity;
         try {
             entity = new HttpEntity<>(objectMapper.writeValueAsString(payment), requestUtil.prepareHeaders(userEmail));
         } catch (JsonProcessingException e) {
@@ -58,18 +58,27 @@ public class InputOutputServiceMsImpl extends InputOutputServiceImpl {
                     "User email: %s | Locale: %s | Payment: %s", userEmail, locale, payment));
         }
 
-        ResponseEntity<CreditsOperation> response = template.exchange(
+        RestTemplate restTemplate = new RestTemplate();
+        try {
+            ResponseEntity<CreditsOperation> response = restTemplate.exchange(
                     builder.toUriString(),
                     HttpMethod.POST,
                     entity, new ParameterizedTypeReference<CreditsOperation>() {
                     });
 
-        return Optional.ofNullable(response.getBody());
+            return Optional.ofNullable(response.getBody());
+        }catch (Exception ex){
+            ex.getStackTrace();
+            System.out.println(ex.getMessage());
+            log.error(ex);
+            throw new InoutMicroserviceInternalServerException(ex.getMessage());
+        }
     }
 
     @Override
     public Integer getMinConfirmationsRefillByMerchantId(int merchantId) {
-        return template.getForObject(properties.getUrl() + API_MERCHANT_GET_MIN_CONFIRMATIONS_REFILL + merchantId, Integer.class);
+        RestTemplate restTemplate = new RestTemplate();
+        return restTemplate.getForObject(properties.getUrl() + API_MERCHANT_GET_MIN_CONFIRMATIONS_REFILL + merchantId, Integer.class);
     }
 
     private void setUserRecipient(Locale locale, Payment payment) {
