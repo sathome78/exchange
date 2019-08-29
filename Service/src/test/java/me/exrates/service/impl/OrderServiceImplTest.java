@@ -6691,6 +6691,7 @@ public class OrderServiceImplTest {
         currencyPairLimit.setMinAmount(BigDecimal.TEN);
         currencyPairLimit.setMinRate(BigDecimal.TEN);
         currencyPairLimit.setMaxRate(BigDecimal.TEN);
+        currencyPairLimit.setMinTotal(BigDecimal.ZERO);
 
         return currencyPairLimit;
     }
@@ -6711,6 +6712,7 @@ public class OrderServiceImplTest {
         orderCreateDto.setSpentWalletBalance(BigDecimal.ZERO);
         orderCreateDto.setSpentAmount(BigDecimal.ZERO);
         orderCreateDto.setSpentWalletBalance(BigDecimal.ZERO);
+        orderCreateDto.setTotal(BigDecimal.ZERO);
 
         return orderCreateDto;
     }
@@ -6718,6 +6720,7 @@ public class OrderServiceImplTest {
     private OrderCreateDto getMockOrderCreateDto(BigDecimal amount, CurrencyPairType pairType, BigDecimal exchangeRate, BigDecimal stop) {
         OrderCreateDto orderCreateDto = getMockOrderCreateDto(amount, pairType, exchangeRate);
         orderCreateDto.setStop(stop);
+        orderCreateDto.setTotal(amount.multiply(exchangeRate));
 
         return orderCreateDto;
     }
@@ -6732,6 +6735,7 @@ public class OrderServiceImplTest {
         orderCreateDto.setSpentAmount(BigDecimal.ZERO);
         orderCreateDto.setSpentWalletBalance(BigDecimal.ZERO);
         orderCreateDto.setOrderBaseType(OrderBaseType.STOP_LIMIT);
+        orderCreateDto.setTotal(BigDecimal.ZERO);
 
         return orderCreateDto;
     }

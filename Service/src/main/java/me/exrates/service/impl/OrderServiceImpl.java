@@ -503,6 +503,11 @@ public class OrderServiceImpl implements OrderService {
             if (!ifEnoughMoney) {
                 errors.put("balance_" + errors.size(), "validation.orderNotEnoughMoney");
             }
+            if (orderCreateDto.getTotal().compareTo(currencyPairLimit.getMinTotal()) < 0) {
+                String key = "total_" + errors.size();
+                errors.put(key, "order.mintotal");
+                errorParams.put(key, new Object[]{BigDecimalProcessing.formatNonePoint(currencyPairLimit.getMinTotal(), false)});
+            }
         }
         return orderValidationDto;
     }
@@ -584,6 +589,11 @@ public class OrderServiceImpl implements OrderService {
             boolean ifEnoughMoney = orderCreateDto.getSpentWalletBalance().compareTo(BigDecimal.ZERO) > 0 && orderCreateDto.getSpentAmount().compareTo(orderCreateDto.getSpentWalletBalance()) <= 0;
             if (!ifEnoughMoney) {
                 errors.put("balance_" + errors.size(), "validation.orderNotEnoughMoney");
+            }
+            if (orderCreateDto.getTotal().compareTo(currencyPairLimit.getMinTotal()) < 0) {
+                String key = "total_" + errors.size();
+                errors.put(key, "order.mintotal");
+                errorParams.put(key, new Object[]{BigDecimalProcessing.formatNonePoint(currencyPairLimit.getMinTotal(), false)});
             }
         }
         return orderValidationDto;
@@ -987,11 +997,6 @@ public class OrderServiceImpl implements OrderService {
                     BigDecimal partialAcceptResult = acceptPartially(orderCreateDto, orderForPartialAccept, processedAmount,
                             locale, acceptEventsList, orderCreationResultDto, OrderBaseType.MARKET, false);
                     orderCreationResultDto.setPartiallyAcceptedAmount(partialAcceptResult);
-                }
-                if (orderCreateDto.getOperationType() == OperationType.SELL) {
-                    acceptableOrders.add(0, orderForPartialAccept);
-                } else {
-                    acceptEventsList.add(orderForPartialAccept);
                 }
 
                 if (!acceptEventsList.isEmpty()) {

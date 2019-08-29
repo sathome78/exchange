@@ -76,7 +76,7 @@ public class BinanceServiceImpl implements BinanceService {
 
     @PostConstruct
     public void init() {
-        scheduler.scheduleAtFixedRate(this::checkRefills, 1, 1, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::checkRefills, 5, 20, TimeUnit.MINUTES);
     }
 
     @Override
