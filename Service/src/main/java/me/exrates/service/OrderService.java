@@ -400,6 +400,9 @@ public interface OrderService {
 
     List<UserOrdersDto> getUserOpenOrders(@Nullable String currencyPairName);
 
+    @Transactional(readOnly = true)
+    List<UserOrdersDto> getUserOpenOrders(@Nullable Integer currencyPairId, Integer userId);
+
     List<UserOrdersDto> getUserClosedOrders(String currencyPairName, Integer limit, Integer offset);
 
     List<UserOrdersDto> getUserCanceledOrders(String currencyPairName, Integer limit, Integer offset);
