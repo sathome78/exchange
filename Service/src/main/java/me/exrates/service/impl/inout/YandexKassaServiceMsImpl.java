@@ -3,7 +3,6 @@ package me.exrates.service.impl.inout;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.condition.MicroserviceConditional;
@@ -29,7 +28,6 @@ public class YandexKassaServiceMsImpl implements YandexKassaService {
 
     private static final String API_MERCHANT_YAKASSA_CONFIRM_PAYMENT = "/api/merchant/yakassa/confirmPayment";
     private final InOutProperties properties;
-    private final RestTemplate template;
     private final ObjectMapper mapper;
 
 
@@ -40,6 +38,7 @@ public class YandexKassaServiceMsImpl implements YandexKassaService {
 
     @Override
     public boolean confirmPayment(Map<String, String> params) {
+        RestTemplate restTemplate = new RestTemplate();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_MERCHANT_YAKASSA_CONFIRM_PAYMENT);
 
         HttpEntity<String> entity;
@@ -49,7 +48,7 @@ public class YandexKassaServiceMsImpl implements YandexKassaService {
             log.error("error confirmPayment", e);
             throw new RuntimeException(e);
         }
-        return template.exchange(
+        return restTemplate.exchange(
                 builder.toUriString(),
                 HttpMethod.POST,
                 entity, Boolean.class).getBody();

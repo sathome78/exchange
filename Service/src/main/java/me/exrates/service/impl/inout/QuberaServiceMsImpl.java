@@ -40,11 +40,11 @@ public class QuberaServiceMsImpl implements QuberaService {
     private static final String API_MERCHANTS_QUBERA_PROCESS_PAYMENT = "/api/merchant/qubera/processPayment";
     private static final String API_MERCHANTS_QUBERA_LOG_RESPONSE = "/api/merchant/qubera/logResponse";
     private final InOutProperties properties;
-    private final RestTemplate template;
     private final ObjectMapper mapper;
 
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
+        RestTemplate restTemplate = new RestTemplate();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_MERCHANTS_QUBERA_PROCESS_PAYMENT);
 
         HttpEntity<String> entity;
@@ -54,7 +54,7 @@ public class QuberaServiceMsImpl implements QuberaService {
             log.error("error quebera processPayment", e);
             throw new RuntimeException(e);
         }
-        template.exchange(
+        restTemplate.exchange(
                 builder.toUriString(),
                 HttpMethod.POST,
                 entity, String.class);
@@ -63,6 +63,7 @@ public class QuberaServiceMsImpl implements QuberaService {
 
     @Override
     public boolean logResponse(QuberaLog requestDto) {
+        RestTemplate restTemplate = new RestTemplate();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_MERCHANTS_QUBERA_LOG_RESPONSE);
 
         HttpEntity<String> entity;
@@ -72,7 +73,7 @@ public class QuberaServiceMsImpl implements QuberaService {
             log.error("error quebera logResponse", e);
             throw new RuntimeException(e);
         }
-        return template.exchange(
+        return restTemplate.exchange(
                 builder.toUriString(),
                 HttpMethod.POST,
                 entity, Boolean.class).getBody();

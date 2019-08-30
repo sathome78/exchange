@@ -2321,7 +2321,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     @Bean
     @Primary
-    @Conditional(MonolitConditional.class)
     public RestTemplate restTemplate() {
         HttpClientBuilder b = HttpClientBuilder.create();
         HttpClient client = b.build();

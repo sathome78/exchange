@@ -3,7 +3,6 @@ package me.exrates.service.impl.inout;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.dto.RefillRequestCreateDto;
@@ -29,7 +28,6 @@ public class AdvcashServiceMsImpl implements AdvcashService {
 
     private static final String API_MERCHANT_ADVCASH_PROCESS_PAYMENT = "/api/merchant/advcash/processPayment";
     private final InOutProperties properties;
-    private final RestTemplate template;
     private final ObjectMapper mapper;
 
     @Override
@@ -39,15 +37,16 @@ public class AdvcashServiceMsImpl implements AdvcashService {
 
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
+        RestTemplate restTemplate = new RestTemplate();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_MERCHANT_ADVCASH_PROCESS_PAYMENT);
-        HttpEntity<String> entity = null;
+        HttpEntity<String> entity;
         try {
             entity = new HttpEntity<>(mapper.writeValueAsString(params));
         } catch (JsonProcessingException e) {
             log.error("error processPayment", e);
             throw new RuntimeException(e);
         }
-        template.exchange(
+        restTemplate.exchange(
                 builder.toUriString(),
                 HttpMethod.POST,
                 entity, String.class);

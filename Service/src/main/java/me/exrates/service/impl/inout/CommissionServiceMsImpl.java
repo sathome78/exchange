@@ -33,7 +33,7 @@ import java.math.BigDecimal;
 @RequiredArgsConstructor
 @Conditional(MicroserviceConditional.class)
 public class CommissionServiceMsImpl extends CommissionServiceImpl {
-    public static final String API_COMMISSION_NORMALIZE_AMOUNT_AND_CALCULATE_COMMISSION = "/api/commission/normalizeAmountAndCalculateCommission";
+    private static final String API_COMMISSION_NORMALIZE_AMOUNT_AND_CALCULATE_COMMISSION = "/api/commission/normalizeAmountAndCalculateCommission";
 
     @Autowired
     UserService userService;
@@ -42,7 +42,6 @@ public class CommissionServiceMsImpl extends CommissionServiceImpl {
     MerchantServiceContext merchantServiceContext;
 
     private final InOutProperties properties;
-    private final RestTemplate template;
     private final ObjectMapper mapper;
 
     @Override
@@ -52,6 +51,7 @@ public class CommissionServiceMsImpl extends CommissionServiceImpl {
                                                                    OperationType type,
                                                                    Integer currencyId,
                                                                    Integer merchantId, String destinationTag) {
+        RestTemplate restTemplate = new RestTemplate();
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_COMMISSION_NORMALIZE_AMOUNT_AND_CALCULATE_COMMISSION);
 
@@ -67,7 +67,7 @@ public class CommissionServiceMsImpl extends CommissionServiceImpl {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
 
-        HttpEntity<?> entity = null;
+        HttpEntity<?> entity;
         try {
             entity = new HttpEntity<>(mapper.writeValueAsString(normalizeAmountDto), headers);
         } catch (JsonProcessingException e) {
@@ -76,7 +76,7 @@ public class CommissionServiceMsImpl extends CommissionServiceImpl {
         }
         ResponseEntity<CommissionDataDto> response;
         try {
-            response = template.exchange(
+            response = restTemplate.exchange(
                     builder.toUriString(),
                     HttpMethod.POST,
                     entity, new ParameterizedTypeReference<CommissionDataDto>() {});

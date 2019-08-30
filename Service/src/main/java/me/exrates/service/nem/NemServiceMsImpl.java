@@ -1,9 +1,12 @@
 package me.exrates.service.nem;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import me.exrates.model.condition.MicroserviceConditional;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.MosaicIdDto;
+import me.exrates.model.dto.NemMosaicTransferDto;
+import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.RefillRequestFlatDto;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.properties.InOutProperties;
 import org.nem.core.model.Account;
@@ -26,14 +29,13 @@ import java.util.Map;
 public class NemServiceMsImpl implements NemService {
 
     private final InOutProperties properties;
-    private final RestTemplate template;
-    private final ObjectMapper mapper;
 
     @Override
     public BigDecimal countSpecCommission(BigDecimal amount, String destinationTag, Integer merchantId) {
+        RestTemplate restTemplate = new RestTemplate();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + "/api/countSpecCommission/" + NemServiceImpl.NEM_MERCHANT);
 
-        ResponseEntity<BigDecimal> response = template.exchange(
+        ResponseEntity<BigDecimal> response = restTemplate.exchange(
                 builder.toUriString(),
                 HttpMethod.GET,
                 HttpEntity.EMPTY, new ParameterizedTypeReference<BigDecimal>() {});

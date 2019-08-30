@@ -2,7 +2,6 @@ package me.exrates.service.omni;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
@@ -46,7 +45,6 @@ public class OmniServiceMsImpl implements OmniService {
     private final CurrencyService currencyService;
     private final MerchantService merchantService;
     private final InOutProperties properties;
-    private final RestTemplate template;
     private final ObjectMapper mapper;
     private Merchant merchant;
     private Currency currency;
@@ -55,11 +53,10 @@ public class OmniServiceMsImpl implements OmniService {
     private static final String USDT_TOKEN_NAME = "USDT";
     private static final Integer USDT_PROPERTY_ID = 31;
 
-    public OmniServiceMsImpl(CurrencyService currencyService, MerchantService merchantService, InOutProperties properties, RestTemplate template, ObjectMapper mapper) {
+    public OmniServiceMsImpl(CurrencyService currencyService, MerchantService merchantService, InOutProperties properties, ObjectMapper mapper) {
         this.currencyService = currencyService;
         this.merchantService = merchantService;
         this.properties = properties;
-        this.template = template;
         this.mapper = mapper;
     }
 
@@ -101,9 +98,10 @@ public class OmniServiceMsImpl implements OmniService {
 
     @Override
     public OmniBalanceDto getUsdtBalances() {
+        RestTemplate restTemplate = new RestTemplate();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_GET_USDT_BALANCES);
 
-        ResponseEntity<OmniBalanceDto> response = template.exchange(
+        ResponseEntity<OmniBalanceDto> response = restTemplate.exchange(
                 builder.toUriString(),
                 HttpMethod.GET,
                 HttpEntity.EMPTY, new ParameterizedTypeReference<OmniBalanceDto>() {});
@@ -113,7 +111,8 @@ public class OmniServiceMsImpl implements OmniService {
 
     @Override
     public BigDecimal getBtcBalance() {
-        return template.getForObject(properties.getUrl() + API_GET_BTC_BALANCE, BigDecimal.class);
+        RestTemplate restTemplate = new RestTemplate();
+        return restTemplate.getForObject(properties.getUrl() + API_GET_BTC_BALANCE, BigDecimal.class);
     }
 
     @Override
@@ -123,9 +122,10 @@ public class OmniServiceMsImpl implements OmniService {
 
     @Override
     public List<OmniTxDto> getAllTransactions() {
+        RestTemplate restTemplate = new RestTemplate();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_GET_USDT_TRANSACTIONS);
 
-        ResponseEntity<List<OmniTxDto>> response = template.exchange(
+        ResponseEntity<List<OmniTxDto>> response = restTemplate.exchange(
                 builder.toUriString(),
                 HttpMethod.GET,
                 HttpEntity.EMPTY, new ParameterizedTypeReference<List<OmniTxDto>>() {});
@@ -135,9 +135,10 @@ public class OmniServiceMsImpl implements OmniService {
 
     @Override
     public List<RefillRequestAddressShortDto> getBlockedAddressesOmni() {
+        RestTemplate restTemplate = new RestTemplate();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_GET_BLOCKED_ADDERSSES);
 
-        ResponseEntity<List<RefillRequestAddressShortDto>> response = template.exchange(
+        ResponseEntity<List<RefillRequestAddressShortDto>> response = restTemplate.exchange(
                 builder.toUriString(),
                 HttpMethod.GET,
                 HttpEntity.EMPTY, new ParameterizedTypeReference<List<RefillRequestAddressShortDto>>() {});
@@ -147,6 +148,7 @@ public class OmniServiceMsImpl implements OmniService {
 
     @Override
     public void createRefillRequestAdmin(Map<String, String> params) {
+        RestTemplate restTemplate = new RestTemplate();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_CREATE_TRANSACTION);
 
         HttpEntity<?> entity;
@@ -156,7 +158,7 @@ public class OmniServiceMsImpl implements OmniService {
             log.error("error createRefillRequestAdmin", e);
             throw new RuntimeException(e);
         }
-        template.exchange(
+        restTemplate.exchange(
                 builder.toUriString(),
                 HttpMethod.POST,
                 entity, String.class);
@@ -185,10 +187,11 @@ public class OmniServiceMsImpl implements OmniService {
 
     @Override
     public Integer minConfirmationsRefill() {
+        RestTemplate restTemplate = new RestTemplate();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_USDT_MIN_CONFIRMATIONS_REFILL);
 
         HttpEntity<Integer> entity = new HttpEntity<Integer>(1);
-        ResponseEntity<Integer> response = template.exchange(
+        ResponseEntity<Integer> response = restTemplate.exchange(
                 builder.toUriString(),
                 HttpMethod.GET,
                 entity, Integer.class);

@@ -13,12 +13,12 @@ import org.springframework.web.client.RestTemplate;
 @Conditional(MicroserviceConditional.class)
 @RequiredArgsConstructor
 public class MerchantServiceContextMsImpl extends MerchantServiceContextImpl {
-    private final RestTemplate restTemplate;
     private final InOutProperties properties;
     private final ObjectMapper mapper;
 
     @Override
     public IMerchantService getBitcoinServiceByMerchantName(String merchantName) {
+        RestTemplate restTemplate = new RestTemplate();
         return new BitcoinServiceMsImpl(restTemplate, properties, mapper, merchantName);
     }
 }

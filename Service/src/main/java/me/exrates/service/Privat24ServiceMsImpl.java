@@ -3,7 +3,6 @@ package me.exrates.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.condition.MicroserviceConditional;
@@ -28,7 +27,6 @@ import java.util.Map;
 public class Privat24ServiceMsImpl implements Privat24Service {
     private static final String API_MERCHANT_PRIVAT_24_CONFIRM_PAYMENT = "/api/merchant/privat24/confirmPayment";
     private final InOutProperties properties;
-    private final RestTemplate template;
     private final ObjectMapper mapper;
 
     @Override
@@ -38,18 +36,19 @@ public class Privat24ServiceMsImpl implements Privat24Service {
 
     @Override
     public boolean confirmPayment(Map<String, String> params, String signature, String payment) {
+        RestTemplate restTemplate = new RestTemplate();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_MERCHANT_PRIVAT_24_CONFIRM_PAYMENT)
                 .queryParam("signature", signature)
                 .queryParam("payment", payment);
 
-        HttpEntity<String> entity = null;
+        HttpEntity<String> entity;
         try {
             entity = new HttpEntity<>(mapper.writeValueAsString(params));
         } catch (JsonProcessingException e) {
             log.error("Privat24 can't map params", e);
             throw new RuntimeException(e);
         }
-        ResponseEntity<Boolean> response = template.exchange(
+        ResponseEntity<Boolean> response = restTemplate.exchange(
                 builder.toUriString(),
                 HttpMethod.POST,
                 entity, Boolean.class);

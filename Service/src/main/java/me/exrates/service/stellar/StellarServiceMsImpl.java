@@ -1,6 +1,5 @@
 package me.exrates.service.stellar;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.dto.RefillRequestCreateDto;
@@ -26,14 +25,13 @@ import java.util.Map;
 public class StellarServiceMsImpl implements StellarService {
 
     private final InOutProperties properties;
-    private final RestTemplate template;
-    private final ObjectMapper mapper;
 
     @Override
     public BigDecimal countSpecCommission(BigDecimal amount, String destinationTag, Integer merchantId) {
+        RestTemplate restTemplate = new RestTemplate();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + "/api/countSpecCommission/" + StellarServiceImpl.XLM_MERCHANT);
 
-        ResponseEntity<BigDecimal> response = template.exchange(
+        ResponseEntity<BigDecimal> response = restTemplate.exchange(
                 builder.toUriString(),
                 HttpMethod.GET,
                 HttpEntity.EMPTY, new ParameterizedTypeReference<BigDecimal>() {});

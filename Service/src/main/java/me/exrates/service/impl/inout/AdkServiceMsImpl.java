@@ -1,12 +1,14 @@
 package me.exrates.service.impl.inout;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
-import me.exrates.model.RefillRequestAddressShortDto;
 import me.exrates.model.condition.MicroserviceConditional;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.BtcTransactionHistoryDto;
+import me.exrates.model.dto.BtcWalletInfoDto;
+import me.exrates.model.dto.RefillRequestAcceptDto;
+import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.dto.merchants.btc.BtcPaymentResultDetailedDto;
 import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
 import me.exrates.service.MerchantService;
@@ -30,10 +32,8 @@ import java.util.Map;
 @Conditional(MicroserviceConditional.class)
 @RequiredArgsConstructor
 public class AdkServiceMsImpl implements AdkService {
-    public static final String API_ADK_GET_BALANCE = "/api/adk/getBalance";
+    private static final String API_ADK_GET_BALANCE = "/api/adk/getBalance";
     private final InOutProperties properties;
-    private final RestTemplate template;
-    private final ObjectMapper mapper;
 
     @Override
     public Merchant getMerchant() {
@@ -62,9 +62,10 @@ public class AdkServiceMsImpl implements AdkService {
 
     @Override
     public String getBalance() {
+        RestTemplate restTemplate = new RestTemplate();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_ADK_GET_BALANCE);
 
-        ResponseEntity<String> response = template.exchange(
+        ResponseEntity<String> response = restTemplate.exchange(
                 builder.toUriString(),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,

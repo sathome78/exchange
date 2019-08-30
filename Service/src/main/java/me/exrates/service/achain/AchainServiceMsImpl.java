@@ -1,11 +1,9 @@
 package me.exrates.service.achain;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.model.dto.merchants.omni.OmniBalanceDto;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.properties.InOutProperties;
 import org.springframework.context.annotation.Conditional;
@@ -21,21 +19,19 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import java.math.BigDecimal;
 import java.util.Map;
 
-import static me.exrates.service.achain.AchainServiceImpl.MERCHANT_NAME;
-
 @Service
 @Conditional(MicroserviceConditional.class)
 @RequiredArgsConstructor
 public class AchainServiceMsImpl implements AchainService {
 
     private final InOutProperties properties;
-    private final RestTemplate template;
 
     @Override
     public BigDecimal countSpecCommission(BigDecimal amount, String destinationTag, Integer merchantId) {
+        RestTemplate restTemplate = new RestTemplate();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + "/api/countSpecCommission/" + AchainServiceImpl.MERCHANT_NAME);
 
-        ResponseEntity<BigDecimal> response = template.exchange(
+        ResponseEntity<BigDecimal> response = restTemplate.exchange(
                 builder.toUriString(),
                 HttpMethod.GET,
                 HttpEntity.EMPTY, new ParameterizedTypeReference<BigDecimal>() {});

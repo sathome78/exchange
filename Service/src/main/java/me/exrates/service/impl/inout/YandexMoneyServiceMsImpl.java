@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yandex.money.api.methods.RequestPayment;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
@@ -36,7 +35,6 @@ public class YandexMoneyServiceMsImpl implements YandexMoneyService {
     private static final String API_MERCHANT_GET_ACCESS_TOKEN = "/api/merchant/yamoney/getAccessToken";
     private static final String API_MERCHANT_REQUEST_PAYMENT = "/api/merchant/yamoney/requestPayment";
     private final InOutProperties properties;
-    private final RestTemplate template;
     private final ObjectMapper mapper;
 
     @Override
@@ -71,9 +69,10 @@ public class YandexMoneyServiceMsImpl implements YandexMoneyService {
 
     @Override
     public String getTemporaryAuthCode() {
+        RestTemplate restTemplate = new RestTemplate();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_MERCHANT_GET_TEMPORARY_AUTH_CODE);
 
-        return template.exchange(
+        return restTemplate.exchange(
                 builder.toUriString(),
                 HttpMethod.GET,
                 HttpEntity.EMPTY, String.class).getBody();
@@ -81,11 +80,11 @@ public class YandexMoneyServiceMsImpl implements YandexMoneyService {
 
     @Override
     public Optional<String> getAccessToken(String code) {
+        RestTemplate restTemplate = new RestTemplate();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_MERCHANT_GET_ACCESS_TOKEN)
                 .queryParam("code", code);
 
-
-        return Optional.ofNullable(template.exchange(
+        return Optional.ofNullable(restTemplate.exchange(
                 builder.toUriString(),
                 HttpMethod.GET,
                 HttpEntity.EMPTY, String.class).getBody());
@@ -93,11 +92,12 @@ public class YandexMoneyServiceMsImpl implements YandexMoneyService {
 
     @Override
     public Optional<RequestPayment> requestPayment(String token, CreditsOperation creditsOperation) {
+        RestTemplate restTemplate = new RestTemplate();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_MERCHANT_REQUEST_PAYMENT)
                 .queryParam("token", token);
 
         try {
-            return template.exchange(
+            return restTemplate.exchange(
                     builder.toUriString(),
                     HttpMethod.POST,
                     new HttpEntity<>(mapper.writeValueAsString(creditsOperation)), new ParameterizedTypeReference<Optional<RequestPayment>>(){}).getBody();
