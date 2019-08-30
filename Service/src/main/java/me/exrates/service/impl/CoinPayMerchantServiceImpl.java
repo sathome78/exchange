@@ -1,7 +1,6 @@
 package me.exrates.service.impl;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.dao.RefillRequestDao;
 import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.Email;
 import me.exrates.model.Merchant;
@@ -46,43 +45,53 @@ import java.util.concurrent.TimeUnit;
 @PropertySource({"classpath:/merchants/coinpay.properties", "classpath:/angular.properties"})
 public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
 
-    @Value("${coinpay.wallet}")
-    private String wallet;
+    private final CoinpayApi coinpayApi;
+    private final MerchantService merchantService;
+    private final RefillService refillService;
+    private final GtagService gtagService;
+    private final UserService userService;
+    private final SendMailService sendMailService;
+    private final StompMessenger stompMessenger;
+    private final WithdrawRequestDao withdrawRequestDao;
 
-    @Value("${server-host}")
+    private String profile;
     private String serverHost;
 
-    @Autowired
-    private CoinpayApi coinpayApi;
+    private ScheduledExecutorService newTxCheckerScheduler;
 
     @Autowired
-    private MerchantService merchantService;
+    public CoinPayMerchantServiceImpl(CoinpayApi coinpayApi,
+                                      MerchantService merchantService,
+                                      RefillService refillService,
+                                      GtagService gtagService,
+                                      UserService userService,
+                                      SendMailService sendMailService,
+                                      StompMessenger stompMessenger,
+                                      WithdrawRequestDao withdrawRequestDao,
+                                      @Value("${spring.profile}") String profile,
+                                      @Value("${server-host}") String serverHost) {
+        this.coinpayApi = coinpayApi;
+        this.merchantService = merchantService;
+        this.refillService = refillService;
+        this.gtagService = gtagService;
+        this.userService = userService;
+        this.sendMailService = sendMailService;
+        this.stompMessenger = stompMessenger;
+        this.withdrawRequestDao = withdrawRequestDao;
 
-    @Autowired
-    private RefillService refillService;
+        this.profile = profile;
+        this.serverHost = serverHost;
 
-    @Autowired
-    private GtagService gtagService;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private SendMailService sendMailService;
-
-    @Autowired
-    private StompMessenger stompMessenger;
-
-    @Autowired
-    private WithdrawRequestDao withdrawRequestDao;
-
-    @Autowired
-    private RefillRequestDao refillRequestDao;
-
-    private ScheduledExecutorService newTxCheckerScheduler = Executors.newSingleThreadScheduledExecutor();
+        if (!this.profile.equalsIgnoreCase("dev")) {
+            newTxCheckerScheduler = Executors.newSingleThreadScheduledExecutor();
+        }
+    }
 
     @PostConstruct
     public void checkWithdrawPayments() {
+        if (this.profile.equalsIgnoreCase("dev")) {
+            return;
+        }
         newTxCheckerScheduler.scheduleAtFixedRate(this::regularyCheckPayments, 10, 60, TimeUnit.MINUTES);
     }
 
