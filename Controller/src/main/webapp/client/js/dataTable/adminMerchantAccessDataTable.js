@@ -6,7 +6,15 @@ const TIME_UNIT_SECS = "second(s)";
 const TIME_UNIT_MINUTES = "minute(s)";
 const TIME_UNIT_HOURS = "hours(s)";
 
+var pairsRestrictions = [];
+var arrSize = 0;
+
 $(document).ready(function () {
+
+    pairsRestrictions = $('#pairs_restrictions').text().split(',');
+    arrSize = pairsRestrictions.length;
+    console.log('log ' + pairsRestrictions + ' ' + arrSize);
+
     var $merchantAccessTable = $('#merchant-options-table');
     merchantAccessTable = $($merchantAccessTable).DataTable({
         "ajax": {
@@ -157,8 +165,18 @@ $(document).ready(function () {
             {
                 "data": "tradeRestriction",
                 "render": function (data) {
-                    return '<span>'.concat(data ? '<i class="restriction fa fa-lock red" aria-hidden="true"></i>' : '<i class="restriction fa fa-unlock" aria-hidden="true"></i>')
-                        .concat('</span>');
+                    var wrapper = $('<div></div>');
+                    for (var i = 0; i < arrSize; i++) {
+                        var currentRestr = pairsRestrictions[i];
+                        if (data !== null && data.indexOf(currentRestr) > -1) {
+                            $("<div/>").attr('id','new').appendTo('body');
+                            wrapper.append('<span>' + currentRestr + ' <i data-restriction=' + currentRestr + ' class="restriction fa fa-lock red" aria-hidden="true"></i></span>');
+                        } else {
+                            wrapper.append('<span>' + currentRestr + ' <i data-restriction=' + currentRestr + ' class="restriction fa fa-unlock" aria-hidden="true"></i></span>');
+                        }
+
+                    }
+                    return wrapper.html();
                 }
             },
             {
@@ -308,10 +326,17 @@ $(document).ready(function () {
         }
     });
 
+    /*trade restriction*/
     $currencyPairsVisibilityTable.find('tbody').on('click', '.restriction', function () {
         var currencyPairId = $(this).parents('tr').data('currencypairid');
+        var restriction = $(this).data('restriction');
+        var isEnabled = $(this).hasClass( "fa-lock" );
         if (confirm($('#prompt-toggle-block').html())) {
-            changeTradeRestrictionForCurrencyPair(currencyPairId, this);
+            if (isEnabled) {
+                changeTradeRestrictionForCurrencyPair(currencyPairId, restriction, this, 'DELETE');
+            } else {
+                changeTradeRestrictionForCurrencyPair(currencyPairId, restriction, this, 'POST');
+            }
         }
     });
 
@@ -512,15 +537,16 @@ function changeVisibilityForCurrencyPair(currencyPairId, $element) {
     });
 }
 
-function changeTradeRestrictionForCurrencyPair(currencyPairId, $element) {
+function changeTradeRestrictionForCurrencyPair(currencyPairId, restriction, $element, method) {
     $.ajax({
         headers: {
             'X-CSRF-Token': $("input[name='_csrf']").val()
         },
-        url: '/2a8fy7b07dxe44/merchantAccess/currencyPair/restriction/update',
-        type: 'POST',
+        url: '/2a8fy7b07dxe44/merchantAccess/currencyPair/restriction',
+        type: method,
         data: {
-            "currencyPairId": currencyPairId
+            "currencyPairId": currencyPairId,
+            "restriction": restriction
         },
         success: function () {
             $($element).toggleClass('fa-lock red');

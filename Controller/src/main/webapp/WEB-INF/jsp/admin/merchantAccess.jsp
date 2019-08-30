@@ -100,6 +100,7 @@
                 </div>
 
                 <div id="panel3" class="tab-pane">
+                    <div hidden id="pairs_restrictions">${pairsRestrictions}</div>
                     <div class="col-sm-8 col-sm-offset-2">
 
                         <table id="currency-pairs-visibility-options-table">

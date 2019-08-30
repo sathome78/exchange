@@ -7,12 +7,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import me.exrates.model.enums.CurrencyPairType;
-import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 
-@Component
+
 @Getter
 @Setter
 @ToString
@@ -28,7 +27,6 @@ public class CurrencyPair implements Serializable {
     private String marketName;
     private CurrencyPairType pairType;
     private boolean hidden;
-    private Boolean tradeRestriction;
     private boolean permittedLink;
     private Boolean isTopMarket;
     private BigDecimal topMarketVolume;
@@ -36,6 +34,20 @@ public class CurrencyPair implements Serializable {
     public CurrencyPair(Currency currency1, Currency currency2) {
         this.currency1 = currency1;
         this.currency2 = currency2;
+    }
+
+    public CurrencyPair(CurrencyPair currencyPair) {
+        this.id = currencyPair.getId();
+        this.name = currencyPair.getName();
+        this.currency1 = currencyPair.getCurrency1();
+        this.currency2 = currencyPair.getCurrency2();
+        this.market = currencyPair.getMarket();
+        this.marketName = currencyPair.getMarketName();
+        this.pairType = currencyPair.getPairType();
+        this.hidden = currencyPair.isHidden();
+        this.permittedLink = currencyPair.isPermittedLink();
+        this.isTopMarket = currencyPair.getIsTopMarket();
+        this.topMarketVolume = currencyPair.getTopMarketVolume();
     }
 
     public CurrencyPair(String currencyPairName) {
@@ -46,4 +58,6 @@ public class CurrencyPair implements Serializable {
     public Currency getAnotherCurrency(Currency currency) {
         return currency.equals(currency1) ? currency2 : currency1;
     }
+
+
 }

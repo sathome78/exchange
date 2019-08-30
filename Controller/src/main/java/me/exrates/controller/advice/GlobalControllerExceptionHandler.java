@@ -15,7 +15,9 @@ import me.exrates.service.exception.AuthenticationNotAvailableException;
 import me.exrates.service.exception.CallBackUrlAlreadyExistException;
 import me.exrates.model.exceptions.IeoException;
 import me.exrates.service.exception.IncorrectCurrentUserException;
+import me.exrates.service.exception.NeedVerificationException;
 import me.exrates.service.exception.NoPermissionForOperationException;
+import me.exrates.service.exception.OrderCreationRestrictedException;
 import me.exrates.service.exception.OrderDeletingException;
 import me.exrates.service.exception.UserOperationAccessException;
 import me.exrates.service.exception.api.ErrorCode;
@@ -221,6 +223,20 @@ public class GlobalControllerExceptionHandler {
     @ResponseBody
     public OpenApiError jsonMappingExceptionHandler(HttpServletRequest req, HttpMessageNotReadableException exception) {
         return new OpenApiError(ErrorCode.REQUEST_NOT_READABLE, req.getRequestURL(), exception.getMessage());
+    }
+
+    @ResponseStatus(HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS)
+    @ExceptionHandler(OrderCreationRestrictedException.class)
+    @ResponseBody
+    public OpenApiError orderCreationRestrictedException(HttpServletRequest req, HttpMessageNotReadableException exception) {
+        return new OpenApiError(ErrorCode.ORDER_CREATION_RESTRICTED, req.getRequestURL(), exception.getMessage());
+    }
+
+    @ResponseStatus(HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS)
+    @ExceptionHandler(NeedVerificationException.class)
+    @ResponseBody
+    public OpenApiError orderCreationNeedVerificationException(HttpServletRequest req, HttpMessageNotReadableException exception) {
+        return new OpenApiError(ErrorCode.NEED_VERIFICATION_EXCEPTION, req.getRequestURL(), exception.getMessage());
     }
 
     @ResponseStatus(HttpStatus.UNAUTHORIZED)

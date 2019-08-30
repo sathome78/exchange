@@ -125,7 +125,6 @@ import me.exrates.service.exception.process.OrderCreationException;
 import me.exrates.service.exception.process.WalletCreationException;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.stopOrder.StopOrderService;
-import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.util.BiTuple;
 import me.exrates.service.util.Cache;
 import me.exrates.service.util.CollectionUtil;
@@ -143,13 +142,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.NoTransactionException;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
@@ -231,8 +226,6 @@ public class OrderServiceImpl implements OrderService {
     TransactionDescription transactionDescription;
     @Autowired
     StopOrderService stopOrderService;
-    @Autowired
-    private UserOperationService userOperationService;
 
     private List<CoinmarketApiDto> coinmarketCachedData = new CopyOnWriteArrayList<>();
     private ScheduledExecutorService coinmarketScheduler = Executors.newSingleThreadScheduledExecutor();
@@ -429,7 +422,6 @@ public class OrderServiceImpl implements OrderService {
         Map<String, Object> errors = orderValidationDto.getErrors();
         Map<String, Object[]> errorParams = orderValidationDto.getErrorParams();
 
-        checkTradingRestriction(orderCreateDto.getUserId(), orderCreateDto.getCurrencyPair(), errors);
         if (!errors.isEmpty()) {
             return orderValidationDto;
         }
@@ -529,7 +521,6 @@ public class OrderServiceImpl implements OrderService {
         Map<String, Object> errors = orderValidationDto.getErrors();
         Map<String, Object[]> errorParams = orderValidationDto.getErrorParams();
 
-        checkTradingRestriction(orderCreateDto.getUserId(), orderCreateDto.getCurrencyPair(), errors);
         if (!errors.isEmpty()) {
             return orderValidationDto;
         }
@@ -614,12 +605,6 @@ public class OrderServiceImpl implements OrderService {
         return orderValidationDto;
     }
 
-    private void checkTradingRestriction(int userId, CurrencyPair currencyPair, Map<String, Object> errors) {
-        if (currencyPair.getTradeRestriction() && userOperationService.getStatusAuthorityForUserByOperation(userId, UserOperationAuthority.TRADING_RESTRICTION)) {
-            String key = "permission_" + errors.size();
-            errors.put(key, "order.tradeRestricted");
-        }
-    }
 
     private OrderValidationDto validateMarketOrder(OrderCreateDto orderCreateDto) {
         OrderValidationDto orderValidationDto = new OrderValidationDto();
