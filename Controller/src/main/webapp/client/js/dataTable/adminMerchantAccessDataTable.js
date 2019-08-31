@@ -542,12 +542,8 @@ function changeTradeRestrictionForCurrencyPair(currencyPairId, restriction, $ele
         headers: {
             'X-CSRF-Token': $("input[name='_csrf']").val()
         },
-        url: '/2a8fy7b07dxe44/merchantAccess/currencyPair/restriction',
+        url: '/2a8fy7b07dxe44/merchantAccess/currencyPair/restriction?currencyPairId=' + currencyPairId + '&restriction=' + restriction,
         type: method,
-        data: {
-            "currencyPairId": currencyPairId,
-            "restriction": restriction
-        },
         success: function () {
             $($element).toggleClass('fa-lock red');
             $($element).toggleClass('fa-unlock');

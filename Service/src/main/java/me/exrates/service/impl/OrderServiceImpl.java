@@ -11,6 +11,7 @@ import me.exrates.model.Commission;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.ExOrder;
 import me.exrates.model.MarketVolume;
 import me.exrates.model.OrderWsDetailDto;
@@ -65,6 +66,7 @@ import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.BusinessUserRoleEnum;
 import me.exrates.model.enums.ChartPeriodsEnum;
 import me.exrates.model.enums.ChartTimeFramesEnum;
+import me.exrates.model.enums.CurrencyPairRestrictionsEnum;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
@@ -76,6 +78,7 @@ import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.PrecissionsEnum;
 import me.exrates.model.enums.ReferralTransactionStatusEnum;
 import me.exrates.model.enums.RefreshObjectsEnum;
+import me.exrates.model.enums.RestrictedCountrys;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.TransactionStatus;
 import me.exrates.model.enums.UserRole;
@@ -111,6 +114,8 @@ import me.exrates.service.events.OrderEvent;
 import me.exrates.service.events.PartiallyAcceptedOrder;
 import me.exrates.service.exception.AttemptToAcceptBotOrderException;
 import me.exrates.service.exception.IncorrectCurrentUserException;
+import me.exrates.service.exception.NeedVerificationException;
+import me.exrates.service.exception.OrderCreationRestrictedException;
 import me.exrates.service.exception.OrderDeletingException;
 import me.exrates.service.exception.api.OrderParamsWrongException;
 import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
@@ -368,12 +373,33 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, OrderBaseType baseType) {
+    public OrderCreateDto prepareNewOrder(CurrencyPairWithRestriction activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, OrderBaseType baseType) {
         return prepareNewOrder(activeCurrencyPair, orderType, userEmail, amount, rate, null, baseType);
     }
 
+    private OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, OrderBaseType baseType) {
+        return prepareNewOrder(new CurrencyPairWithRestriction(activeCurrencyPair), orderType, userEmail, amount, rate, null, baseType);
+    }
+
+    private OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, Integer sourceId, OrderBaseType baseType) {
+        return prepareNewOrder(new CurrencyPairWithRestriction(activeCurrencyPair), orderType, userEmail, amount, rate, sourceId, baseType);
+    }
+
     @Override
-    public OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, Integer sourceId, OrderBaseType baseType) {
+    public OrderCreateDto prepareNewOrder(CurrencyPairWithRestriction activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, Integer sourceId, OrderBaseType baseType) {
+
+        User user = userService.findByEmail(userEmail);
+
+        if (activeCurrencyPair.hasTradeRestriction()) {
+            if (activeCurrencyPair.getTradeRestriction().contains(CurrencyPairRestrictionsEnum.ESCAPE_USA) && user.isVerificationRequired()) {
+                if (Objects.isNull(user.getCountry())) {
+                    throw new NeedVerificationException("Sorry, you must pass verification to trade this pair.");
+                } else if(user.getCountry().equalsIgnoreCase(RestrictedCountrys.USA.name())) {
+                    throw new OrderCreationRestrictedException("Sorry, you are not allowed to trade this pair");
+                }
+            }
+        }
+
         Currency spendCurrency = null;
         if (orderType == OperationType.SELL) {
             spendCurrency = activeCurrencyPair.getCurrency1();
@@ -791,7 +817,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderCreateDto prepareOrderRest(OrderCreationParamsDto orderCreationParamsDto, String userEmail, Locale locale, OrderBaseType orderBaseType) {
-        CurrencyPair activeCurrencyPair = currencyService.findCurrencyPairById(orderCreationParamsDto.getCurrencyPairId());
+        CurrencyPairWithRestriction activeCurrencyPair = currencyService.findCurrencyPairByIdWithRestrictions(orderCreationParamsDto.getCurrencyPairId());
         OrderCreateDto orderCreateDto = prepareNewOrder(activeCurrencyPair, orderCreationParamsDto.getOrderType(),
                 userEmail, orderCreationParamsDto.getAmount(), orderCreationParamsDto.getRate(), orderBaseType);
         log.debug("Order prepared" + orderCreateDto);
@@ -863,7 +889,19 @@ public class OrderServiceImpl implements OrderService {
         final OperationType operationType = OperationType.of(inputOrder.getOrderType());
         String userEmail = userService.getUserEmailFromSecurityContext();
         Currency spendCurrency = null;
-        CurrencyPair activeCurrencyPair = currencyService.findCurrencyPairById(inputOrder.getCurrencyPairId());
+        CurrencyPairWithRestriction activeCurrencyPair = currencyService.findCurrencyPairByIdWithRestrictions(inputOrder.getCurrencyPairId());
+        User user = userService.findByEmail(userEmail);
+
+        if (activeCurrencyPair.hasTradeRestriction()) {
+            if (activeCurrencyPair.getTradeRestriction().contains(CurrencyPairRestrictionsEnum.ESCAPE_USA) && user.isVerificationRequired()) {
+                if (Objects.isNull(user.getCountry())) {
+                    throw new NeedVerificationException("Sorry, you must pass verification to trade this pair.");
+                } else if(user.getCountry().equalsIgnoreCase(RestrictedCountrys.USA.name())) {
+                    throw new OrderCreationRestrictedException("Sorry, you are not allowed to trade this pair");
+                }
+            }
+        }
+
         if (operationType == OperationType.SELL) {
             spendCurrency = activeCurrencyPair.getCurrency1();
         } else if (operationType == OperationType.BUY) {

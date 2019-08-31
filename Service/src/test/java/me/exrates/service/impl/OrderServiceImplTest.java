@@ -11,6 +11,7 @@ import me.exrates.model.Commission;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.ExOrder;
 import me.exrates.model.PagingData;
 import me.exrates.model.User;
@@ -472,7 +473,7 @@ public class OrderServiceImplTest {
                 any(UserRole.class))).thenReturn(getMockWalletsAndCommissionsForOrderCreationDto());
 
         OrderCreateDto orderCreateDto = orderService.prepareNewOrder(
-                new CurrencyPair("BTC/USD"),
+                new CurrencyPairWithRestriction("BTC/USD"),
                 OperationType.SELL,
                 USER_EMAIL,
                 BigDecimal.ONE,
@@ -509,7 +510,7 @@ public class OrderServiceImplTest {
                 any(UserRole.class))).thenReturn(getMockWalletsAndCommissionsForOrderCreationDto());
 
         OrderCreateDto orderCreateDto = orderService.prepareNewOrder(
-                new CurrencyPair("BTC/USD"),
+                new CurrencyPairWithRestriction("BTC/USD"),
                 OperationType.SELL,
                 USER_EMAIL,
                 BigDecimal.ONE,
@@ -544,7 +545,7 @@ public class OrderServiceImplTest {
                 any(UserRole.class))).thenReturn(getMockWalletsAndCommissionsForOrderCreationDto());
 
         OrderCreateDto orderCreateDto = orderService.prepareNewOrder(
-                new CurrencyPair("BTC/USD"),
+                new CurrencyPairWithRestriction("BTC/USD"),
                 OperationType.BUY,
                 USER_EMAIL,
                 BigDecimal.ONE,

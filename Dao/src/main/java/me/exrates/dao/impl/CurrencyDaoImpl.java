@@ -1139,7 +1139,6 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 "(select group_concat(cpr.restriction_name) from currency_pair_restriction cpr " +
                 "   where currency_pair_id = :currencyPairId ) as restrictions " +
                 " FROM CURRENCY_PAIR " +
-                " JOIN CURRENCY_PAIR_RESTRICTION CPR ON CPR.currency_pair_id = id " +
                 "WHERE id = :currencyPairId ";
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("currencyPairId", String.valueOf(currencyPairId));

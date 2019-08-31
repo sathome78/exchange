@@ -144,7 +144,7 @@ public class StopOrderServiceImpl implements StopOrderService {
 
     @Transactional
     public void proceedStopOrder(ExOrder exOrder) {
-        OrderCreateDto newOrder = orderService.prepareNewOrder(currencyService.findCurrencyPairById(
+        OrderCreateDto newOrder = orderService.prepareNewOrder(currencyService.findCurrencyPairByIdWithRestrictions(
                 exOrder.getCurrencyPair().getId()), exOrder.getOperationType(),
                 userService.getEmailById(exOrder.getUserId()), exOrder.getAmountBase(), exOrder.getExRate(), OrderBaseType.LIMIT);
         if (newOrder == null) {

@@ -3,6 +3,7 @@ package me.exrates.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.ExOrder;
 import me.exrates.model.User;
 import me.exrates.model.chart.ChartTimeFrame;
@@ -77,9 +78,9 @@ public interface OrderService {
 
     List<ExOrderStatisticsShortByPairsDto> getStatForSomeCurrencies(Set<Integer> pairsIds);
 
-    OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, OrderBaseType baseType);
+    OrderCreateDto prepareNewOrder(CurrencyPairWithRestriction activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, OrderBaseType baseType);
 
-    OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, Integer sourceId, OrderBaseType baseType);
+    OrderCreateDto prepareNewOrder(CurrencyPairWithRestriction activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, Integer sourceId, OrderBaseType baseType);
 
     OrderValidationDto validateOrder(OrderCreateDto orderCreateDto, boolean fromDemo, User user);
 

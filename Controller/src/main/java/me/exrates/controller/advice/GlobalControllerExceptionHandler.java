@@ -225,20 +225,6 @@ public class GlobalControllerExceptionHandler {
         return new OpenApiError(ErrorCode.REQUEST_NOT_READABLE, req.getRequestURL(), exception.getMessage());
     }
 
-    @ResponseStatus(HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS)
-    @ExceptionHandler(OrderCreationRestrictedException.class)
-    @ResponseBody
-    public OpenApiError orderCreationRestrictedException(HttpServletRequest req, HttpMessageNotReadableException exception) {
-        return new OpenApiError(ErrorCode.ORDER_CREATION_RESTRICTED, req.getRequestURL(), exception.getMessage());
-    }
-
-    @ResponseStatus(HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS)
-    @ExceptionHandler(NeedVerificationException.class)
-    @ResponseBody
-    public OpenApiError orderCreationNeedVerificationException(HttpServletRequest req, HttpMessageNotReadableException exception) {
-        return new OpenApiError(ErrorCode.NEED_VERIFICATION_EXCEPTION, req.getRequestURL(), exception.getMessage());
-    }
-
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler({IncorrectPasswordException.class})
     @ResponseBody

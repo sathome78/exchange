@@ -15,6 +15,10 @@ public class CurrencyPairWithRestriction extends CurrencyPair {
 
     private List<CurrencyPairRestrictionsEnum> tradeRestriction;
 
+    public CurrencyPairWithRestriction(String pairName) {
+        super(pairName);
+    }
+
     public boolean hasTradeRestriction() {
         return !CollectionUtils.isEmpty(tradeRestriction);
     }

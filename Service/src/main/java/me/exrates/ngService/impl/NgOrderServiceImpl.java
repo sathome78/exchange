@@ -28,6 +28,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.enums.RestrictedCountrys;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngExceptions.NgOrderValidationException;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
@@ -125,9 +126,9 @@ public class NgOrderServiceImpl implements NgOrderService {
         if (currencyPair.hasTradeRestriction()) {
             if (currencyPair.getTradeRestriction().contains(CurrencyPairRestrictionsEnum.ESCAPE_USA) && user.isVerificationRequired()) {
                 if (Objects.isNull(user.getCountry())) {
-                    throw new NeedVerificationException("user need verification");
-                } else if(user.getCountry().equals("USA")) {
-                    throw new OrderCreationRestrictedException("");
+                    throw new NeedVerificationException("Sorry, you must pass verification to trade this pair.");
+                } else if(user.getCountry().equalsIgnoreCase(RestrictedCountrys.USA.name())) {
+                    throw new OrderCreationRestrictedException("Sorry, you are not allowed to trade this pair");
                 }
             }
         }
