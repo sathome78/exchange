@@ -7,7 +7,6 @@ import me.exrates.model.ExOrder;
 import me.exrates.model.OrderWsDetailDto;
 import me.exrates.model.dto.CallBackLogDto;
 import me.exrates.model.dto.ExOrderWrapperDTO;
-import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderEventEnum;
 import me.exrates.model.enums.OrderStatus;
@@ -26,7 +25,6 @@ import me.exrates.service.events.PartiallyAcceptedOrder;
 import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.vo.CurrencyStatisticsHandler;
 import me.exrates.service.vo.MyTradesHandler;
-import me.exrates.service.vo.OpenOrdersRefreshDelayHandler;
 import me.exrates.service.vo.OrdersEventsHandler;
 import me.exrates.service.vo.PersonalOrderRefreshDelayHandler;
 import me.exrates.service.vo.TradesEventsHandler;
@@ -143,10 +141,10 @@ public class OrdersEventHandleService {
             }
             CompletableFuture.runAsync(() -> {
                 List<ExOrder> orders = orderList.stream()
-                        .filter(p-> nonNull(p) && p.getStatus() == OrderStatus.CLOSED)
+                        .filter(p -> nonNull(p) && p.getStatus() == OrderStatus.CLOSED)
                         .sorted(Comparator.comparing(ExOrder::getDateAcception))
                         .collect(Collectors.toList());
-                orders.forEach(p->ratesHolder.onRatesChange(p));
+                orders.forEach(p -> ratesHolder.onRatesChange(p));
                 if (!orders.isEmpty()) {
                     currencyStatisticsHandler.onEvent(event.getPairId());
                 }
@@ -171,10 +169,12 @@ public class OrdersEventHandleService {
     @TransactionalEventListener
     public void handleOrderEventAsync(AcceptOrderEvent event) {
         ExOrder order = (ExOrder) event.getSource();
+
+        CompletableFuture.runAsync(() -> rabbitMqService.sendTradeInfo(order));
+
         handleAllTrades(order);
         handleMyTrades(order);
         onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
-        rabbitMqService.sendTradeInfo(order);
     }
 
     private void handleCallBack(OrderEvent event) throws JsonProcessingException {
