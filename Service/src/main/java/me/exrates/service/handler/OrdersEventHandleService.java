@@ -147,10 +147,10 @@ public class OrdersEventHandleService {
             }
             CompletableFuture.runAsync(() -> {
                 List<ExOrder> orders = orderList.stream()
-                        .filter(p-> nonNull(p) && p.getStatus() == OrderStatus.CLOSED)
+                        .filter(p -> nonNull(p) && p.getStatus() == OrderStatus.CLOSED)
                         .sorted(Comparator.comparing(ExOrder::getDateAcception))
                         .collect(Collectors.toList());
-                orders.forEach(p->ratesHolder.onRatesChange(p));
+                orders.forEach(p -> ratesHolder.onRatesChange(p));
                 if (!orders.isEmpty()) {
                     currencyStatisticsHandler.onEvent(event.getPairId());
                 }
@@ -175,10 +175,12 @@ public class OrdersEventHandleService {
     @TransactionalEventListener
     public void handleOrderEventAsync(AcceptOrderEvent event) {
         ExOrder order = (ExOrder) event.getSource();
+
+        CompletableFuture.runAsync(() -> rabbitMqService.sendTradeInfo(order));
+
         handleAllTrades(order);
         handleMyTrades(order);
         onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
-        rabbitMqService.sendTradeInfo(order);
     }
 
     private void handleCallBack(OrderEvent event) throws JsonProcessingException {
