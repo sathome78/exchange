@@ -114,6 +114,9 @@ public class QuberaServiceImpl implements QuberaService {
     private @Value("${qubera.address}")
     String address;
 
+    private @Value("${qubera.confCode}")
+    String confCode;
+
     @Value("${server-host}")
     private String host;
 
@@ -483,7 +486,7 @@ public class QuberaServiceImpl implements QuberaService {
         }
         String docId = RandomStringUtils.random(18, true, false);
         String callBackUrl = String.format("%s/api/public/v2/kyc/webhook/%s", host, uuid);
-        RequestOnBoardingDto onBoardingDto = RequestOnBoardingDto.createOfParams(callBackUrl, email, uuid, docId);
+        RequestOnBoardingDto onBoardingDto = RequestOnBoardingDto.createOfParams(callBackUrl, email, uuid, docId, confCode);
         logger.info("Sending to create applicant " + onBoardingDto);
         OnboardingResponseDto onBoarding = kycHttpClient.createOnBoarding(onBoardingDto);
         userData.setBankVerificationStatus("Pending");
