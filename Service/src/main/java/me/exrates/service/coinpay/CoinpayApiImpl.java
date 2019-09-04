@@ -121,7 +121,7 @@ public class CoinpayApiImpl implements CoinpayApi {
 
         ResponseEntity<CoinPayWithdrawRequestDto> responseEntity;
         try {
-            responseEntity = restTemplate.exchange(url + "/api/v1/withdrawal", HttpMethod.POST, requestEntity,
+            responseEntity = restTemplate.exchange(url + "withdrawal", HttpMethod.POST, requestEntity,
                     CoinPayWithdrawRequestDto.class);
             if (responseEntity.getStatusCodeValue() != 200) {
                 throw new CoinpayException("COINPAY - Error while creating withdraw request");
@@ -147,7 +147,7 @@ public class CoinpayApiImpl implements CoinpayApi {
 
         HttpEntity<Object> requestEntity = new HttpEntity<>(headers);
 
-        String finalUrl = url + "api/v1/orders/details";
+        String finalUrl = url + "orders/details";
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(finalUrl);
         builder.queryParam("order_id", orderId);
@@ -158,11 +158,11 @@ public class CoinpayApiImpl implements CoinpayApi {
             responseEntity = restTemplate.exchange(uri, HttpMethod.GET, requestEntity,
                     CoinPayResponseOrderDetailDto.class);
             if (responseEntity.getStatusCodeValue() != 200) {
-                throw new CoinpayException("COINPAY - Error while creating withdraw request");
+                throw new CoinpayException("COINPAY - Error while check order id");
             }
         } catch (Exception ex) {
-            log.error("COINPAY - Error response while create withdraw request");
-            throw new CoinpayException("COINPAY - Error while creating withdraw request");
+            log.error("COINPAY - Exception check order {}", ex.getMessage());
+            throw new CoinpayException("COINPAY - Exception check order id");
         }
         log.info("Response from check order \n {}", toJson(requestEntity.getBody()));
         return responseEntity.getBody().getStatus();
@@ -176,7 +176,7 @@ public class CoinpayApiImpl implements CoinpayApi {
 
         HttpEntity<Object> requestEntity = new HttpEntity<>(headers);
 
-        String finalUrl = url + "api/v1/deposit/address";
+        String finalUrl = url + "deposit/address";
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(finalUrl);
         builder.queryParam("currency", currency);
@@ -189,15 +189,15 @@ public class CoinpayApiImpl implements CoinpayApi {
             responseEntity = restTemplate.exchange(uri, HttpMethod.GET, requestEntity,
                     CoinPayResponseDepositDto.class);
             if (responseEntity.getStatusCodeValue() != 200) {
-                throw new CoinpayException("COINPAY - Error while creating withdraw request");
+                throw new CoinpayException("COINPAY - Error while creating deposit request");
             }
         } catch (Exception ex) {
-            log.error("COINPAY - Error response while create withdraw request");
-            throw new CoinpayException("COINPAY - Error while creating withdraw request");
+            log.error("COINPAY - Exception create deposit {}", ex.getMessage());
+            throw new CoinpayException("COINPAY - Exception create deposit");
         }
         if (!responseEntity.getBody().getStatus().equalsIgnoreCase("success")) {
-            log.error("COINPAY - Error status while create deposit request");
-            throw new CoinpayException("COINPAY - Error status while create deposit request");
+            log.error("COINPAY - Error status while create deposit request {}", responseEntity.getBody().getStatus());
+            throw new CoinpayException("COINPAY - Error status while create deposit request " + responseEntity.getBody().getStatus());
         }
         log.info("Response from deposit: \n{}", toJson(responseEntity.getBody()));
         return responseEntity.getBody();

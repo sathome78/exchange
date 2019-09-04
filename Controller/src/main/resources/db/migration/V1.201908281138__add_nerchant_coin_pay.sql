@@ -1,5 +1,5 @@
 INSERT IGNORE INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)
-VALUES ('CoinPay', 'CoinPay', 2, 'oinPayMerchantServiceImpl', 'MERCHANT');
+VALUES ('CoinPay', 'CoinPay', 2, 'coinPayMerchantServiceImpl', 'MERCHANT');
 
 INSERT IGNORE INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, merchant_input_commission,
                                       merchant_output_commission)
