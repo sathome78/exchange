@@ -663,6 +663,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="adgroup_log" fileName="${sys:catalina.home}/logs/merchants/adgroup.log"
+                     filePattern="${sys:catalina.home}/logs/merchants/adgroup_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="omni_log" fileName="${sys:catalina.home}/logs/crypto/omni.log"
                      filePattern="${sys:catalina.home}/logs/crypto/omni_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>

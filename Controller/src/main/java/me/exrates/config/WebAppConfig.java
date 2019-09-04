@@ -2116,6 +2116,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(tokensList, "VINCI", "VINCI", false, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "acuServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService acuServiceImpl() {
+        List<String> tokensList = ImmutableList.of("0xd536bbd5414a8c2beed82a63737b9327d2fa35a6");
+        return new EthTokenServiceImpl(tokensList, "ACU", "ACU", false, ExConvert.Unit.ETHER);
+    }
+
     @Bean
     @Conditional(MonolitConditional.class)
     public BinanceCurrencyService binanceCurrencyService(){
