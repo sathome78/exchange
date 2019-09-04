@@ -10,10 +10,12 @@ import me.exrates.model.IEODetails;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.RefreshStatisticDto;
 import me.exrates.model.dto.UserNotificationMessage;
+import me.exrates.model.dto.openAPI.UserOrdersDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.PrecissionsEnum;
 import me.exrates.model.enums.RefreshObjectsEnum;
+import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.util.BiTuple;
@@ -54,6 +56,8 @@ public class StompMessengerImpl implements StompMessenger {
     private UserService userService;
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private CurrencyService currencyService;
 
 
     @Override
@@ -87,6 +91,14 @@ public class StompMessengerImpl implements StompMessenger {
         String destination = "/queue/my_orders/".concat(pairName);
         String userEmail = userService.getEmailById(userId);
         log.debug("dest {} message {}", destination, message);
+        messagingTemplate.convertAndSendToUser(userEmail, destination, message);
+    }
+
+    @Override
+    public void sendPersonalOpenOrdersToUser(Integer userId, String pairName) {
+        List<UserOrdersDto> message = orderService.getUserOpenOrders(currencyService.findCurrencyPairIdByName(pairName), userId);
+        String destination = "/queue/open_orders/".concat(OpenApiUtils.transformCurrencyPairBack(pairName));
+        String userEmail = userService.getEmailById(userId);
         messagingTemplate.convertAndSendToUser(userEmail, destination, message);
     }
 

@@ -1018,7 +1018,8 @@ public class OrderDaoImpl implements OrderDao {
                 "             o.counter_order_type, " +
                 "             cp.name                AS currency_pair_name, " +
                 "             com.value              AS commission_value, " +
-                "             o.date_creation        AS date_creation, " +
+//              "             o.date_creation        AS date_creation, " +
+                "             IF ((o.user_acceptor_id = :user_id AND o.user_id <> :user_id), o.date_acception, o.date_creation) as date_creation, " +
                 "             null                   AS child_order_id, " +
                 "             null                   AS stop_rate, " +
                 "             null                   AS limit_rate," +
@@ -1035,15 +1036,15 @@ public class OrderDaoImpl implements OrderDao {
                 "      (SELECT so.id, " +
                 "             so.user_id, " +
                 "             so.operation_type_id, " +
-                "             null, " +
+                "             null                          AS exrate, " +
                 "             so.amount_base, " +
                 "             so.amount_convert, " +
                 "             so.commission_id, " +
                 "             so.commission_fixed_amount, " +
-                "             null, " +
-                "             null, " +
+                "             null                          AS user_acceptor_id, " +
+                "             null                          AS date_acception, " +
                 "             so.status_id, " +
-                "             null, " +
+                "             null                          AS status_modification_date, " +
                 "             so.currency_pair_id, " +
                 "             'STOP_LIMIT', " +
                 "             'MARKET', " +
@@ -2287,6 +2288,8 @@ public class OrderDaoImpl implements OrderDao {
             orderWideListDto.setCurrencyPairName(rs.getString("currency_pair_name"));
             orderWideListDto.setOrderBaseType(orderBaseType);
             orderWideListDto.setChildOrderId(rs.getInt("child_order_id"));
+            orderWideListDto.setDateStatusModification(getLocalDateTime(rs, "status_modification_date"));
+            orderWideListDto.setDateModification(getLocalDateTime(rs, "date_modification"));
 
             if (StringUtils.isNotEmpty(counterOrderType) && counterOrderType.equalsIgnoreCase(OrderBaseType.MARKET.name())
                     && userId == acceptorId) {

@@ -985,7 +985,12 @@ public class AdminController {
                                               @RequestParam("currency") Integer currencyId,
                                               @RequestParam BigDecimal amount,
                                               @RequestParam String comment,
+                                              Locale locale,
                                               Principal principal) {
+        if (comment.equals(StringUtils.EMPTY)) {
+            return ResponseEntity.badRequest().body(Collections.singletonMap("errorNoty", messageSource.getMessage("comment.required", null, locale)));
+        }
+
         LOG.debug("userId = " + userId + ", currencyId = " + currencyId + ", amount = " + amount);
 
         walletService.manualBalanceChange(userId, currencyId, amount, principal.getName());
