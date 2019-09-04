@@ -3,7 +3,6 @@ package me.exrates.dao.impl;
 import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.ClientBank;
 import me.exrates.model.PagingData;
-import me.exrates.model.dto.UserSummaryOrdersDto;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestFlatAdditionalDataDto;
 import me.exrates.model.dto.WithdrawRequestFlatDto;
@@ -587,6 +586,31 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         params.put("statuses", Arrays.asList(7,8,12));
 
         return jdbcTemplate.queryForObject(sql, params, BigDecimal.class);
+    }
+
+    @Override
+    public List<WithdrawRequestFlatDto> findByMerchantIdAndAdditionParam(int merchantId, String additionalParam) {
+        String sql = "SELECT WITHDRAW_REQUEST.* " +
+                " FROM WITHDRAW_REQUEST " +
+                " WHERE WITHDRAW_REQUEST.merchant_id = :merchant_id  AND WITHDRAW_REQUEST.additional_params = :param";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("merchant_id", merchantId);
+            put("param", additionalParam);
+        }};
+        return jdbcTemplate.query(sql, params, (rs, i) -> {
+            return withdrawRequestFlatDtoRowMapper.mapRow(rs, i);
+        });
+    }
+
+    @Override
+    public boolean updateAdditionalParamById(int requestId, String additionalParam) {
+        final String sql = "UPDATE WITHDRAW_REQUEST " +
+                "  SET additional_params = :param " +
+                "  WHERE id = :id";
+        Map<String, Object> params = new HashMap<>();
+        params.put("id", requestId);
+        params.put("param", additionalParam);
+        return jdbcTemplate.update(sql, params) > 0;
     }
 
     private String getPermissionClause(Integer requesterUserId) {
