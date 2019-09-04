@@ -41,7 +41,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Service
-@Log4j2
+@Log4j2(topic = "coin_pay_log")
 @PropertySource({"classpath:/merchants/coinpay.properties", "classpath:/angular.properties"})
 public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
 
@@ -97,7 +97,7 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
-
+        log.info("Starting refill {}", request);
         String callBackUrl = serverHost + "/merchant/coinpay/payment/status/" + request.getId();
 
         String token = coinpayApi.authorizeUser();

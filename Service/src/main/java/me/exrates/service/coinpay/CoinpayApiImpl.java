@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,6 +17,7 @@ import me.exrates.model.dto.merchants.coinpay.CoinPayResponseDepositDto;
 import me.exrates.model.dto.merchants.coinpay.CoinPayResponseOrderDetailDto;
 import me.exrates.model.dto.merchants.coinpay.CoinPayWithdrawRequestDto;
 import me.exrates.service.exception.CoinpayException;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -32,7 +35,7 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
 
-@Log4j2
+@Log4j2(topic = "coin_pay_log")
 @PropertySource("classpath:/merchants/coinpay.properties")
 @Service
 public class CoinpayApiImpl implements CoinpayApi {
@@ -43,7 +46,6 @@ public class CoinpayApiImpl implements CoinpayApi {
     private final String url;
     private final String email;
     private final String password;
-
 
     private final RestTemplate restTemplate;
 
@@ -109,8 +111,10 @@ public class CoinpayApiImpl implements CoinpayApi {
 
     @Override
     public CoinPayWithdrawRequestDto createWithdrawRequest(String token, CoinPayCreateWithdrawDto request) {
+        log.info("Create request withdraw to coin pay \n{}", toJson(request));
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set(AUTHORIZATION, String.format(BEARER_TOKEN, token));
 
         HttpEntity<Object> requestEntity = new HttpEntity<>(request, headers);
@@ -131,6 +135,7 @@ public class CoinpayApiImpl implements CoinpayApi {
             log.error("COINPAY - Response from merchant {}", responseEntity.getBody().getStatus());
             throw new CoinpayException("COINPAY - Error while creating withdraw request");
         }
+        log.info("Response from withdraw \n{} ", toJson(responseEntity.getBody()));
         return responseEntity.getBody();
     }
 
@@ -147,7 +152,7 @@ public class CoinpayApiImpl implements CoinpayApi {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(finalUrl);
         builder.queryParam("order_id", orderId);
         URI uri = builder.build(true).toUri();
-
+        log.info("Send request check order to coin pay {}", uri);
         ResponseEntity<CoinPayResponseOrderDetailDto> responseEntity;
         try {
             responseEntity = restTemplate.exchange(uri, HttpMethod.GET, requestEntity,
@@ -159,7 +164,7 @@ public class CoinpayApiImpl implements CoinpayApi {
             log.error("COINPAY - Error response while create withdraw request");
             throw new CoinpayException("COINPAY - Error while creating withdraw request");
         }
-
+        log.info("Response from check order \n {}", toJson(requestEntity.getBody()));
         return responseEntity.getBody().getStatus();
     }
 
@@ -178,7 +183,7 @@ public class CoinpayApiImpl implements CoinpayApi {
         builder.queryParam("amount", amount);
         builder.queryParam("callback_url", callbackUrl);
         URI uri = builder.build(true).toUri();
-
+        log.info("Send request deposit to coin pay {}", uri);
         ResponseEntity<CoinPayResponseDepositDto> responseEntity;
         try {
             responseEntity = restTemplate.exchange(uri, HttpMethod.GET, requestEntity,
@@ -194,7 +199,19 @@ public class CoinpayApiImpl implements CoinpayApi {
             log.error("COINPAY - Error status while create deposit request");
             throw new CoinpayException("COINPAY - Error status while create deposit request");
         }
+        log.info("Response from deposit: \n{}", toJson(responseEntity.getBody()));
         return responseEntity.getBody();
+    }
+
+    @SuppressWarnings("Duplicated")
+    private String toJson(Object input) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.writeValueAsString(input);
+        } catch (JsonProcessingException e) {
+            log.error("Error create json from object");
+            return StringUtils.EMPTY;
+        }
     }
 
     @Builder(builderClassName = "Builder")
@@ -300,16 +317,6 @@ public class CoinpayApiImpl implements CoinpayApi {
         BigDecimal reserved;
     }
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-    private static class Wallet {
-
-        String address;
-        String qr;
-        String qr_file_data;
-    }
-
     //test
 //    public static void main(String[] args) {
 //        CoinpayApiImpl coinpayApi = new CoinpayApiImpl("https://coinpay.org.ua/api/v1/");
@@ -320,4 +327,14 @@ public class CoinpayApiImpl implements CoinpayApi {
 //
 //        String newToken = coinpayApi.refreshToken(token);
 //    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+    private static class Wallet {
+
+        String address;
+        String qr;
+        String qr_file_data;
+    }
 }
