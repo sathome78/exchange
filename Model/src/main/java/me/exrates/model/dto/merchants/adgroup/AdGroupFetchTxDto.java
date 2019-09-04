@@ -13,6 +13,6 @@ public class AdGroupFetchTxDto {
     @JsonProperty("tx_status")
     private String[] txStatus;
 
-    @JsonProperty("ref_id")
-    private String[] refId;
+    @JsonProperty("order_id")
+    private String[] orderId;
 }
