@@ -2270,10 +2270,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public ResponseInfoCurrencyPairDto getStatForPair(String pairName) {
-        System.out.println("pair name " + pairName);
         int cpId = currencyService.getCurrencyPairByName(pairName).getId();
         List<ExOrderStatisticsShortByPairsDto> dtos = this.getStatForSomeCurrencies(Collections.singleton(cpId));
-        dtos.forEach(System.out::println);
         if (dtos.isEmpty()) {
             return null;
         }

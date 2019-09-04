@@ -32,8 +32,7 @@ public class ResponseInfoCurrencyPairDto {
         this.currencyRate = dto.getLastOrderRate();
         this.percentChange = dto.getPercentChange();
         this.lastCurrencyRate = dto.getLastOrderRate();
-        BigDecimal subtract = BigDecimalProcessing.doAction(dto.getLastOrderRate(), dto.getPredLastOrderRate(), ActionType.SUBTRACT);
-        this.changedValue = BigDecimalProcessing.normalize(subtract).toPlainString();
+        this.changedValue = dto.getValueChange();
         this.volume24h = dto.getVolume();
         this.rateHigh = dto.getHigh24hr();
         this.rateLow = dto.getLow24hr();
