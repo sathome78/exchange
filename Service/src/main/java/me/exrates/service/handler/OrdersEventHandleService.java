@@ -119,10 +119,10 @@ public class OrdersEventHandleService {
     @TransactionalEventListener
     public void handleOrderEventAsync(OrderEvent event) throws JsonProcessingException {
         ExOrder exOrder = (ExOrder) event.getSource();
-        openOrdersRefreshHandler.onEvent(exOrder.getUserId(), exOrder.getCurrencyPair().getName());
         if (!(event instanceof PartiallyAcceptedOrder)) {
             handleOrdersDetailed(exOrder, event.getOrderEventEnum());
         }
+//        openOrdersRefreshHandler.onEvent(exOrder.getUserId(), exOrder.getCurrencyPair().getName());
         if (!DEV_MODE) {
             handleCallBack(event);
             if (exOrder.getUserAcceptorId() != 0) {
