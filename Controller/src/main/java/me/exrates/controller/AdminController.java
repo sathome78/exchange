@@ -60,6 +60,7 @@ import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.merchants.btc.BtcAdminPaymentResponseDto;
 import me.exrates.model.dto.merchants.btc.BtcAdminPreparedTxDto;
 import me.exrates.model.dto.merchants.btc.BtcPreparedTransactionDto;
+import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
 import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
 import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.merchants.omni.OmniTxDto;
@@ -1312,6 +1313,12 @@ public class AdminController {
         return getBitcoinServiceByMerchantName(merchantName).listAllTransactions();
     }
 
+    @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transaction/{transactionHash}", method = RequestMethod.GET)
+    @ResponseBody
+    public BtcTransactionDto getBtcTransactionByHash(@PathVariable String merchantName, @PathVariable String transactionHash) {
+        return getBitcoinServiceByMerchantName(merchantName).getTransactionByHash(transactionHash);
+    }
+
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transactions/pagination", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public DataTable<List<BtcTransactionHistoryDto>> getAllTransactionByCoinLikeBitcoin(@PathVariable String merchantName, @RequestParam Map<String, String> tableParams) throws BitcoindException, CommunicationException {
@@ -1322,12 +1329,6 @@ public class AdminController {
     @ResponseBody
     public List<BtcTransactionHistoryDto> getBtcTransactionByPage(@PathVariable String merchantName, @RequestParam("page") int page) {
         return getBitcoinServiceByMerchantName(merchantName).listTransactions(page);
-    }
-
-    @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/findTransactions", method = GET)
-    @ResponseBody
-    public List<BtcTransactionHistoryDto> findTransactions(@PathVariable String merchantName, @RequestParam("value") String value) throws BitcoindException, CommunicationException {
-        return getBitcoinServiceByMerchantName(merchantName).findTransactions(value);
     }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/omniWallet/getUsdtTransactions", method = RequestMethod.GET)
