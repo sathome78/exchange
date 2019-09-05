@@ -15,6 +15,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <%@include file='links_scripts.jsp'%>
     <script type="text/javascript" src="<c:url value='/client/js/order/comissionsCount.js'/>"></script>
+
+    <c:set var="admin_manualBalanceChange" value="<%=AdminAuthority.MANUAL_BALANCE_CHANGE%>"/>
+
 </head>
 
 <body>
@@ -25,8 +28,46 @@
         <div class="row">
             <div class="col-md-6 col-md-offset-2 content admin-container">
                 <div class="text-center">
-                    <h4 class="modal-title"><loc:message code="ordersearch.title"/></h4>
+                    <h4 class="modal-title"><loc:message code="admin.commissionsCount"/></h4>
                 </div>
+
+                <sec:authorize access="(hasAuthority('${admin_manualBalanceChange}'))">
+                    <hr/>
+                    <div class="text-center"><h4><loc:message code="admin.manualBalanceChange.title"/></h4>
+                    </div>
+                    <div class="col-md-12">
+                        <form id="commission_withdraw_form" action="/2a8fy7b07dxe44/withdrawCommission/submit"
+                              method="post">
+                            <div class="form-item form-group">
+                                <label for="currency"><loc:message code="mywallets.currency"/> </label>
+                                <select id="currency" name="currency" class="form-control">
+                                    <c:forEach items="${currencies}" var="currency">
+                                        <option value="${currency.id}">${currency.name}</option>
+                                    </c:forEach>
+                                </select>
+                            </div>
+                            <div class="form-item form-group">
+                                <label for="amount"><loc:message code="dashboard.amount"/> </label>
+                                <input id="amount" name="amount" type="number" step="any" class="form-control"/>
+                            </div>
+                            <div class="form-item form-group">
+                                <label for="amount"><loc:message code="admin.email"/> </label>
+                                <input id="email" name="email" type="email" step="any" class="form-control"/>
+                            </div>
+                            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+                            <div class="form-item form-group">
+                                <label for="comment"><loc:message code="mywallets.comment"/> </label>
+                                <textarea id="comment" name="comment"
+                                          class="form-control"
+                                          placeholder="Enter your comment..." required="required"></textarea>
+                            </div>
+
+                            <button id="commission_withdraw_submit" type="button" class="blue-box"><loc:message
+                                    code="admin.submit"/></button>
+                        </form>
+                    </div>
+
+                </sec:authorize>
 
                 <form id="dates-form-info" class="form_full_height_width">
 
@@ -67,6 +108,8 @@
                             <th><loc:message code="comission.orders"/></th>
                             <th><loc:message code="referral.payments"/></th>
                             <th><loc:message code="comission.total"/></th>
+                            <th><loc:message code="comission.withdrawed_to_users"/></th>
+                            <th><loc:message code="companywallet.commission_balance"/></th>
                         </tr>
                         </thead>
                     </table>

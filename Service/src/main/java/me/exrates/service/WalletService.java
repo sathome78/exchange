@@ -117,6 +117,9 @@ public interface WalletService {
 
     WalletsForOrderCancelDto getWalletForOrderByOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType);
 
+    @Transactional
+    void withdrawcommissionToUser(Integer userId, Integer currencyId, BigDecimal amount, String adminEmail);
+
     @Transactional(rollbackFor = Exception.class)
     TransferDto transferCostsToUser(Integer fromUserWalletId, Integer userId, BigDecimal amount, BigDecimal comission,
                                     Locale locale, int sourceId);

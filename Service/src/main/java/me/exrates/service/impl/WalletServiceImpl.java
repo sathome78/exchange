@@ -49,6 +49,7 @@ import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.CacheData;
+import me.exrates.model.vo.TransactionDescription;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.CommissionService;
 import me.exrates.service.CompanyWalletService;
@@ -62,6 +63,7 @@ import me.exrates.service.api.WalletsApi;
 import me.exrates.service.exception.BalanceChangeException;
 import me.exrates.service.exception.ForbiddenOperationException;
 import me.exrates.service.exception.InvalidAmountException;
+import me.exrates.service.exception.RefillRequestRevokeException;
 import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import me.exrates.service.util.Cache;
 import org.apache.commons.lang3.StringUtils;
@@ -97,6 +99,9 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
+import static me.exrates.model.enums.OperationType.INPUT;
+import static me.exrates.model.enums.WalletTransferStatus.SUCCESS;
+import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
 @Log4j2
 @Service
@@ -405,6 +410,38 @@ public class WalletServiceImpl implements WalletService {
 
             CompanyWallet companyWallet = companyWalletService.findByCurrency(currencyService.getById(wallet.getCurrencyId()));
             companyWalletService.deposit(companyWallet, BigDecimal.ZERO, commissionAmount);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void withdrawcommissionToUser(Integer userId, Integer currencyId, BigDecimal amount, String adminEmail) {
+        if (amount.compareTo(ZERO) <= 0) {
+            throw new InvalidAmountException();
+        }
+
+        int userWalletId = getWalletId(userId, currencyId);
+        WalletOperationData walletOperationData = new WalletOperationData();
+        walletOperationData.setOperationType(INPUT);
+        walletOperationData.setWalletId(userWalletId);
+        walletOperationData.setAmount(amount);
+        walletOperationData.setBalanceType(ACTIVE);
+        walletOperationData.setCommission(null);
+        walletOperationData.setCommissionAmount(ZERO);
+        walletOperationData.setSourceType(TransactionSourceType.ACCRUAL);
+        walletOperationData.setSourceId(null);
+        String description = "Withdraw commission to user";
+        walletOperationData.setDescription(description);
+        WalletTransferStatus walletTransferStatus = walletBalanceChange(walletOperationData);
+        if (walletTransferStatus != SUCCESS) {
+            throw new BalanceChangeException(walletTransferStatus.name());
+        }
+
+        CompanyWallet companyWallet = companyWalletService.findByCurrency(currencyService.getById(currencyId));
+        companyWalletService.substractCommissionBalanceById(companyWallet.getId(), amount);
+        companyWallet = companyWalletService.findByCurrency(currencyService.getById(currencyId));
+        if (companyWallet.getCommissionBalance().compareTo(ZERO) <= 0) {
+            throw new BalanceChangeException("commission is not enought for operation");
         }
     }
 

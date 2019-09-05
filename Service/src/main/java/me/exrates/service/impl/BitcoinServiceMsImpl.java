@@ -101,6 +101,11 @@ public class BitcoinServiceMsImpl implements BitcoinService {
                 HttpEntity.EMPTY, new ParameterizedTypeReference<List<BtcTransactionHistoryDto>>() {}, merchantName).getBody();
     }
 
+    @Override
+    public BtcTransactionDto getTransactionByHash(String transactionHash) {
+        throw new NotImplimentedMethod("Not implemented");
+    }
+
   @Override
   public List<BtcTransactionHistoryDto> listTransactions(int page) {
         throw new NotImplimentedMethod("Not implemented");
