@@ -2279,7 +2279,10 @@ public class OrderDaoImpl implements OrderDao {
                 amountWithCommission = BigDecimalProcessing.doAction(amountWithCommission, rs.getBigDecimal("commission_fixed_amount"), ActionType.ADD);
             }
             orderWideListDto.setAmountWithCommission(BigDecimalProcessing.formatLocale(amountWithCommission, locale, 2));
-            orderWideListDto.setDateCreation(getLocalDateTime(rs, "date_creation"));
+            LocalDateTime orderDate = userId == acceptorId
+                    ? getLocalDateTime(rs, "date_acception")
+                    : getLocalDateTime(rs, "date_creation");
+            orderWideListDto.setDateCreation(orderDate);
             orderWideListDto.setStatus(OrderStatus.convert(rs.getInt("status_id")));
             orderWideListDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
             orderWideListDto.setCurrencyPairName(rs.getString("currency_pair_name"));
@@ -2295,9 +2298,11 @@ public class OrderDaoImpl implements OrderDao {
             if (orderBaseType == OrderBaseType.LIMIT) {
                 orderWideListDto.setExExchangeRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("exrate"), locale, 2));
                 orderWideListDto.setDateAcception(getLocalDateTime(rs, "date_acception"));
+                orderWideListDto.setDateStatusModification(getLocalDateTime(rs, "status_modification_date"));
             } else {
                 orderWideListDto.setStopRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("stop_rate"), locale, 2));
                 orderWideListDto.setLimitRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("limit_rate"), locale, 2));
+                orderWideListDto.setDateModification(getLocalDateTime(rs, "date_modification"));
             }
             orderWideListDto.setOperationType(String.join(" ", getOperationTypeBasedOnUserId(userId, acceptorId, operationType).name(), baseType));
             return orderWideListDto;

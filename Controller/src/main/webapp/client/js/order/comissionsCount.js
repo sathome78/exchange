@@ -2,6 +2,25 @@ var dataTable;
 
 $(document).ready(function () {
 
+    $('#commission_withdraw_submit').on('click', function (e) {
+        e.preventDefault();
+        var formData = $('#commission_withdraw_form').serialize();
+        $.ajax({
+            url: '/2a8fy7b07dxe44/withdrawCommission/submit',
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            type: 'POST',
+            data: formData,
+            success: function (e) {
+                successNoty('Success');
+                updateDataTable();
+            },
+            error: function (e) {
+            }
+        })
+    });
+
     $.datetimepicker.setDateFormatter({
         parseDate: function (date, format) {
             var d = moment(date, format);
@@ -14,9 +33,10 @@ $(document).ready(function () {
     });
 
     var date = new Date();
-    date.setMonth(date.getMonth()-1);
+    date.setMonth(date.getMonth() - 1);
     var date2 = new Date();
-    date2.setMonth(date2.getMonth()-2);
+    date2.setDate(date.getDate() - 7);
+    date2.setMonth(date.getMonth());
 
     $('#datetimepicker_start').datetimepicker({
         format: "YYYY-MM-DD_HH-mm-ss",
@@ -93,6 +113,12 @@ function updateDataTable() {
                 },
                 {
                     "data": "total"
+                },
+                {
+                    "data": "totalWithdrawed"
+                },
+                {
+                    "data": "commissionBalance"
                 }
             ]
         });
