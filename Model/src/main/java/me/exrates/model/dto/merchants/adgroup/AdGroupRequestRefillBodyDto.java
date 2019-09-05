@@ -12,7 +12,7 @@ public class AdGroupRequestRefillBodyDto {
 
     private BigDecimal amount;
 
-    private Integer tel;
+    private Long tel;
 
     private String platform;
 

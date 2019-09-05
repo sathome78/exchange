@@ -66,6 +66,7 @@ public class AdGroupHttpClient {
             log.error(errorString + " {}", responseEntity);
             throw new NgDashboardException(ErrorApiTitles.AD_GROUP_HTTP_CLIENT_RESPONSE_NOT_200);
         }
+        log.info("Response: {}", toJson(responseEntity.getBody()));
         return responseEntity.getBody();
     }
 
@@ -97,6 +98,7 @@ public class AdGroupHttpClient {
             log.error(errorString + " {}", responseEntity);
             throw new NgDashboardException(ErrorApiTitles.AD_GROUP_HTTP_CLIENT_RESPONSE_NOT_200);
         }
+        log.info("Response : {}", toJson(responseEntity.getBody()));
         return responseEntity.getBody();
     }
 
@@ -129,6 +131,7 @@ public class AdGroupHttpClient {
             log.error(errorString + " {}", responseEntity);
             throw new NgDashboardException(ErrorApiTitles.AD_GROUP_HTTP_CLIENT_RESPONSE_NOT_200);
         }
+        log.info("Response: {}", responseEntity.getBody());
         return responseEntity.getBody();
     }
 

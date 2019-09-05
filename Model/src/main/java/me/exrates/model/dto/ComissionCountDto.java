@@ -14,6 +14,8 @@ public class ComissionCountDto {
     private BigDecimal tradeComission;
     private BigDecimal referralPayments;
     private BigDecimal total;
+    private BigDecimal totalWithdrawed;
+    private BigDecimal commissionBalance;
 
     public void countTotal() {
         this.total = withdrawComission.add(refillComission).add(transferComission).add(tradeComission).subtract(referralPayments);

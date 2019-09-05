@@ -229,15 +229,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Value("${mail_ses.password}")
     String mailSesPassword;
 
-    @Value("${mail_ses.host}")
+    @Value("${mail_send_grid.host}")
     String mailSendGridHost;
-    @Value("${mail_ses.port}")
+    @Value("${mail_send_grid.port}")
     String mailSendGridPort;
-    @Value("${mail_ses.protocol}")
+    @Value("${mail_send_grid.protocol}")
     String mailSendGridProtocol;
-    @Value("${mail_ses.user}")
+    @Value("${mail_send_grid.user}")
     String mailSendGridUser;
-    @Value("${mail_ses.password}")
+    @Value("${mail_send_grid.password}")
     String mailSendGridPassword;
 
     @Value("${angular.allowed.origins}")
@@ -2114,6 +2114,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public EthTokenService vinciServiceImpl() {
         List<String> tokensList = ImmutableList.of("0x3db99ab08006aefcc9600972eca8c202396b4300");
         return new EthTokenServiceImpl(tokensList, "VINCI", "VINCI", false, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "acuServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService acuServiceImpl() {
+        List<String> tokensList = ImmutableList.of("0xd536bbd5414a8c2beed82a63737b9327d2fa35a6");
+        return new EthTokenServiceImpl(tokensList, "ACU", "ACU", false, ExConvert.Unit.ETHER);
     }
 
     @Bean

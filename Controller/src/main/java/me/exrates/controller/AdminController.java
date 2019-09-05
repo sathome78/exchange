@@ -60,6 +60,7 @@ import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.merchants.btc.BtcAdminPaymentResponseDto;
 import me.exrates.model.dto.merchants.btc.BtcAdminPreparedTxDto;
 import me.exrates.model.dto.merchants.btc.BtcPreparedTransactionDto;
+import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
 import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
 import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.merchants.omni.OmniTxDto;
@@ -1312,6 +1313,12 @@ public class AdminController {
         return getBitcoinServiceByMerchantName(merchantName).listAllTransactions();
     }
 
+    @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transaction/{transactionHash}", method = RequestMethod.GET)
+    @ResponseBody
+    public BtcTransactionDto getBtcTransactionByHash(@PathVariable String merchantName, @PathVariable String transactionHash) {
+        return getBitcoinServiceByMerchantName(merchantName).getTransactionByHash(transactionHash);
+    }
+
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transactions/pagination", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public DataTable<List<BtcTransactionHistoryDto>> getAllTransactionByCoinLikeBitcoin(@PathVariable String merchantName, @RequestParam Map<String, String> tableParams) throws BitcoindException, CommunicationException {
@@ -1322,12 +1329,6 @@ public class AdminController {
     @ResponseBody
     public List<BtcTransactionHistoryDto> getBtcTransactionByPage(@PathVariable String merchantName, @RequestParam("page") int page) {
         return getBitcoinServiceByMerchantName(merchantName).listTransactions(page);
-    }
-
-    @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/findTransactions", method = GET)
-    @ResponseBody
-    public List<BtcTransactionHistoryDto> findTransactions(@PathVariable String merchantName, @RequestParam("value") String value) throws BitcoindException, CommunicationException {
-        return getBitcoinServiceByMerchantName(merchantName).findTransactions(value);
     }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/omniWallet/getUsdtTransactions", method = RequestMethod.GET)
@@ -1934,7 +1935,11 @@ public class AdminController {
     }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/comission_count", method = GET)
-    public String comissionCount() {
+    public String comissionCount(Model model) {
+        model.addAttribute("currencies", currencyService.findAllCurrenciesWithHidden()
+                .stream()
+                .sorted(Comparator.comparing(Currency::getName))
+                .collect(Collectors.toList()));
         return "admin/comissionCount";
     }
 
@@ -1945,5 +1950,32 @@ public class AdminController {
                                                         @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd_HH-mm-ss") LocalDateTime to) {
         return commissionService.getComissionsCount(from, to);
     }
+
+
+    @AdminLoggable
+    @PostMapping(value = "/2a8fy7b07dxe44/withdrawCommission/submit")
+    @ResponseBody
+    public ResponseEntity withdrawCommissionToUser(@RequestParam String email,
+                                              @RequestParam("currency") Integer currencyId,
+                                              @RequestParam BigDecimal amount,
+                                              @RequestParam String comment,
+                                              Locale locale,
+                                              Principal principal) {
+
+
+        LOG.debug(" withdraw commission to user email = " + email + ", currencyId = " + currencyId + ", amount = " + amount);
+
+        Integer userId = userService.getIdByEmail(email);
+
+        walletService.withdrawcommissionToUser(userId, currencyId, amount, principal.getName());
+
+        if (!StringUtils.isEmpty(comment)) {
+            final String newComment = String.format("%s %s %s", amount.toPlainString(), currencyService.getCurrencyName(currencyId), comment);
+            userService.addUserComment(GENERAL, newComment, userService.getEmailById(userId), false);
+        }
+
+        return ResponseEntity.ok().build();
+    }
+
 
 }
