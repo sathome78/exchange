@@ -119,12 +119,15 @@ public class OrdersEventHandleService {
     @TransactionalEventListener
     public void handleOrderEventAsync(OrderEvent event) throws JsonProcessingException {
         ExOrder exOrder = (ExOrder) event.getSource();
-        CompletableFuture.runAsync(() -> {
-            if (!(event instanceof PartiallyAcceptedOrder)) {
+
+        if (!(event instanceof PartiallyAcceptedOrder)) {
+            CompletableFuture.runAsync(() -> {
                 handleOrdersDetailed(exOrder, event.getOrderEventEnum());
-            }
-        });
+            });
+        }
+
         CompletableFuture.runAsync(() -> openOrdersRefreshHandler.onEvent(exOrder.getUserId(), exOrder.getCurrencyPair().getName()));
+
         if (!DEV_MODE) {
             handleCallBack(event);
             if (exOrder.getUserAcceptorId() != 0) {
@@ -290,7 +293,7 @@ public class OrdersEventHandleService {
     @Async
     void handleOrdersDetailed(ExOrder exOrder, OrderEventEnum orderEvent) {
         try {
-            String pairName = ratesHolder.getOne(exOrder.getCurrencyPairId()).getCurrencyPairName().replace("/", "_").toLowerCase();
+            String pairName = currencyService.getById(exOrder.getCurrencyPairId()).getName().replace("/", "_").toLowerCase();
             OrdersReFreshHandler handler = mapOrders
                     .computeIfAbsent(exOrder.getCurrencyPairId(), k -> new OrdersReFreshHandler(stompMessenger, objectMapper, pairName));
             handler.addOrderToQueue(new OrderWsDetailDto(exOrder, orderEvent));
