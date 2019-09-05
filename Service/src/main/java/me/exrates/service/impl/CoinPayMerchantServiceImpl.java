@@ -1,12 +1,14 @@
 package me.exrates.service.impl;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.dao.RefillRequestDao;
 import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.Email;
 import me.exrates.model.Merchant;
 import me.exrates.model.User;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.dto.WithdrawRequestFlatDto;
@@ -35,6 +37,7 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -53,6 +56,7 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
     private final SendMailService sendMailService;
     private final StompMessenger stompMessenger;
     private final WithdrawRequestDao withdrawRequestDao;
+    private final RefillRequestDao refillRequestDao;
 
     private String profile;
     private String serverHost;
@@ -68,6 +72,7 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
                                       SendMailService sendMailService,
                                       StompMessenger stompMessenger,
                                       WithdrawRequestDao withdrawRequestDao,
+                                      RefillRequestDao refillRequestDao,
                                       @Value("${spring.profile}") String profile,
                                       @Value("${server-host}") String serverHost) {
         this.coinpayApi = coinpayApi;
@@ -78,6 +83,7 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
         this.sendMailService = sendMailService;
         this.stompMessenger = stompMessenger;
         this.withdrawRequestDao = withdrawRequestDao;
+        this.refillRequestDao = refillRequestDao;
 
         this.profile = profile;
         this.serverHost = serverHost;
@@ -119,11 +125,15 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
         Merchant merchant = merchantService.findById(Integer.parseInt(params.get("merchantId")));
         int requestId = Integer.parseInt(params.get("id"));
 
-        String paymentAmount = params.getOrDefault("amount", "0");
+        Optional<RefillRequestFlatDto> flat = refillRequestDao.getFlatById(requestId);
+        if (!flat.isPresent()) {
+            return;
+        }
+
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .requestId(requestId)
                 .merchantId(merchant.getId())
-                .amount(new BigDecimal(paymentAmount))
+                .amount(flat.get().getAmount())
                 .address(StringUtils.EMPTY)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
@@ -131,7 +141,7 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
 
         final String gaTag = refillService.getUserGAByRequestId(requestId);
         log.info("Process of sending data to Google Analytics...");
-        gtagService.sendGtagEvents(paymentAmount, "UAH", gaTag);
+        gtagService.sendGtagEvents(flat.get().getAmount().toPlainString(), "UAH", gaTag);
     }
 
     @Override
