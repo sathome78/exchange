@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import com.neemre.btcdcli4j.core.BitcoindException;
 import com.neemre.btcdcli4j.core.CommunicationException;
+import com.neemre.btcdcli4j.core.domain.Transaction;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
@@ -25,6 +26,7 @@ import me.exrates.model.dto.merchants.btc.BtcPaymentResultDetailedDto;
 import me.exrates.model.dto.merchants.btc.BtcPaymentResultDto;
 import me.exrates.model.dto.merchants.btc.BtcPreparedTransactionDto;
 import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
+import me.exrates.model.dto.merchants.btc.BtcTxPaymentDto;
 import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.BitcoinService;
@@ -462,6 +464,11 @@ public class BitcoinServiceImpl implements BitcoinService {
     @Override
     public List<BtcTransactionHistoryDto> listAllTransactions() {
         return bitcoinWalletService.listAllTransactions();
+    }
+
+    @Override
+    public BtcTransactionDto getTransactionByHash(String transactionHash) {
+        return bitcoinWalletService.getTransaction(transactionHash);
     }
 
   @Override

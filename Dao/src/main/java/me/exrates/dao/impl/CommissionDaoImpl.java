@@ -247,7 +247,9 @@ public class CommissionDaoImpl implements CommissionDao {
                 "       SUM(IF(TX.source_type='REFILL', TX.commission_amount, 0)) as refill, " +
                 "       SUM(IF(TX.source_type='USER_TRANSFER', TX.commission_amount, 0)) as transfer, " +
                 "       SUM(IF(TX.source_type='ORDER', TX.commission_amount, 0)) as trade, " +
-                "       SUM(IF(TX.source_type='REFERRAL', TX.amount, 0)) as referral " +
+                "       SUM(IF(TX.source_type='REFERRAL', TX.amount, 0)) as referral, " +
+                "       SUM(IF(TX.source_type='ACCRUAL', TX.amount, 0)) as total_withdrawed, " +
+                "       (SELECT commission_balance FROM COMPANY_WALLET WHERE currency_id = TX.currency_id) as commission_balance " +
                 "FROM TRANSACTION TX " +
                 "JOIN CURRENCY C ON C.id = TX.currency_id " +
                 "WHERE TX.datetime between :start_date and :end_date " +
@@ -264,6 +266,8 @@ public class CommissionDaoImpl implements CommissionDao {
             dto.setRefillComission(resultSet.getBigDecimal("refill"));
             dto.setReferralPayments(resultSet.getBigDecimal("referral"));
             dto.setName(resultSet.getString("name"));
+            dto.setCommissionBalance(resultSet.getBigDecimal("commission_balance"));
+            dto.setTotalWithdrawed(resultSet.getBigDecimal("total_withdrawed"));
             dto.countTotal();
             return dto;
         });

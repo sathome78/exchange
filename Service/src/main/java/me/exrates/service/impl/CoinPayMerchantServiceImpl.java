@@ -107,10 +107,10 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
                 request.getCurrencyName(),
                 callBackUrl);
 
-        Properties properties = new Properties() {{
-            put("qr", response.getQr());
-        }};
-
+        Properties properties = new Properties();
+        if (StringUtils.isNoneEmpty(response.getQr())) {
+            properties.put("qr", response.getQr());
+        }
         return generateFullUrlMap(response.getAddr(), "GET", properties);
     }
 

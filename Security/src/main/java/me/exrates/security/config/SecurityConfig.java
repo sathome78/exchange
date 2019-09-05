@@ -158,7 +158,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers("/2a8fy7b07dxe44/addUser", "/2a8fy7b07dxe44/addUser/submit").hasAuthority(UserRole.ADMINISTRATOR.name())
             .antMatchers("/2a8fy7b07dxe44/merchantAccess/autoWithdrawParams").hasAuthority(UserRole.ADMINISTRATOR.name())
             .antMatchers("/2a8fy7b07dxe44/editAuthorities/submit").hasAuthority(MANAGE_ACCESS.name())
-            .antMatchers("/2a8fy7b07dxe44/changeActiveBalance/submit").hasAuthority(AdminAuthority.MANUAL_BALANCE_CHANGE.name())
+            .antMatchers("/2a8fy7b07dxe44/changeActiveBalance/submit", "/2a8fy7b07dxe44/withdrawCommission/submit").hasAuthority(AdminAuthority.MANUAL_BALANCE_CHANGE.name())
             .antMatchers(POST,"/2a8fy7b07dxe44/order/accept", "/2a8fy7b07dxe44/order/acceptMany").hasAnyAuthority(UserRole.BOT_TRADER.name(), UserRole.TRADER.name(),
             UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), AdminAuthority.DELETE_ORDER.name())
             .antMatchers("/2a8fy7b07dxe44/orderdelete", "/2a8fy7b07dxe44/order/deleteMany", "/2a8fy7b07dxe44/searchorders", "/2a8fy7b07dxe44/orderinfo",
@@ -186,7 +186,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers("/2a8fy7b07dxe44/ieo/**").hasAnyAuthority(UserRole.ADMINISTRATOR.name())
             /*... ADMIN */
             .antMatchers("/2a8fy7b07dxe44/**",
-            "/2a8fy7b07dxe44").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.FIN_OPERATOR.name())
+                    "/2a8fy7b07dxe44").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.FIN_OPERATOR.name())
             /*... ADMIN */
             .antMatchers("/companywallet").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.FIN_OPERATOR.name())
             .antMatchers("/merchants/bitcoin/payment/accept", "/merchants/invoice/payment/accept").hasAuthority(AdminAuthority.PROCESS_INVOICE.name())
