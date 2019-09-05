@@ -119,9 +119,7 @@ public class OrdersEventHandleService {
         ExOrder exOrder = (ExOrder) event.getSource();
 
         if (!(event instanceof PartiallyAcceptedOrder)) {
-            CompletableFuture.runAsync(() -> {
-                handleOrdersDetailed(exOrder, event.getOrderEventEnum());
-            });
+            CompletableFuture.runAsync(() -> handleOrdersDetailed(exOrder, event.getOrderEventEnum()));
         }
 
         CompletableFuture.runAsync(() -> openOrdersRefreshHandler.onEvent(exOrder.getUserId(), exOrder.getCurrencyPair().getName()));
