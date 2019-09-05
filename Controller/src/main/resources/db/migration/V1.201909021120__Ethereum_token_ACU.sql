@@ -1,7 +1,7 @@
 INSERT IGNORE INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`, `tokens_parrent_id`)
-VALUES ('Token Aitheon', 'ACU', 2, 'ethereumServiceImpl', 'CRYPTO', 16);
+VALUES ('Aitheon', 'ACU', 2, 'ethereumServiceImpl', 'CRYPTO', 16);
 INSERT IGNORE INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
-VALUES ('ACU', 'Token Aitheon', 0, 8, 8, 8);
+VALUES ('ACU', 'Aitheon', 0, 8, 8, 8);
 
 INSERT IGNORE INTO COMPANY_WALLET_EXTERNAL(currency_id) VALUES ((SELECT id from CURRENCY WHERE name='ACU'));
 

@@ -243,7 +243,7 @@ public class CryptocurrencyConfig {
     @Bean(name = "qrkServiceImpl")
     public BitcoinService qrkService() {
         return new BitcoinServiceImpl("merchants/qrk_wallet.properties",
-                "QRK", "QRK", 30, 20, false, false);
+                "QRK", "QRK", 100, 20, false, false);
     }
 
     @Bean(name = "cmkServiceImpl")

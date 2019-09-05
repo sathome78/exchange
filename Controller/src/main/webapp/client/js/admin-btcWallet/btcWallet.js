@@ -36,6 +36,81 @@ $(function () {
         updateTxHistoryTablePagination();
     });
 
+    $('#btc_get_transaction').click(function () {
+        $('#input-get-transaction-by-hash').val('');
+
+        clearDetailOfTransaction();
+
+        $('#btc-get-transaction-modal').modal();
+    });
+
+    $('#submit-get-transaction-btn').click(function () {
+        clearDetailOfTransaction();
+
+        var url = urlBase + 'transaction/' + $('#input-get-transaction-by-hash').val();
+        $.ajax({
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            url: url,
+            type: 'GET',
+            success: function(res) {
+                $("#btc_trans_time").prop("hidden", false);
+                $("#label-btc_trans_time").prop("hidden", false);
+
+                $("#btc_trans_hash").prop("hidden", false);
+                $("#label-btc_trans_hash").prop("hidden", false);
+
+                $("#btc_trans_address").prop("hidden", false);
+                $("#label-btc_trans_address").prop("hidden", false);
+
+                $("#btc_trans_block_hash").prop("hidden", false);
+                $("#label-btc_trans_block_hash").prop("hidden", false);
+
+                $("#btc_trans_amount").prop("hidden", false);
+                $("#label-btc_trans_amount").prop("hidden", false);
+
+                $("#btc_trans_fee_amount").prop("hidden", false);
+                $("#label-btc_trans_fee_amount").prop("hidden", false);
+
+                $("#btc_trans_confirmation").prop("hidden", false);
+                $("#label-btc_trans_confirmation").prop("hidden", false);
+
+                $("#btc_trans_comment").prop("hidden", false);
+                $("#label-btc_trans_comment").prop("hidden", false);
+
+                $("#btc_trans_time").val(res.timeReceived);
+                $("#btc_trans_hash").val(res.txId);
+                $("#btc_trans_address").val(res.to);
+                $("#btc_trans_block_hash").val(res.blockhash);
+                $("#btc_trans_amount").val(res.amount);
+                $("#btc_trans_fee_amount").val(res.fee);
+                $("#btc_trans_confirmation").val(res.confirmations);
+                $("#btc_trans_comment").val(res.comment);
+
+                var i;
+                for (i = 0; i < res.details.length; i++) {
+                    var rowElement = document.createElement('tr');
+                    var tdAddress = document.createElement('td'); tdAddress.innerHTML = res.details[i].address;
+                    var tdCategory = document.createElement('td'); tdCategory.innerHTML = res.details[i].category;
+                    var tdAmount = document.createElement('td'); tdAmount.innerHTML = res.details[i].amount;
+                    var tdFee = document.createElement('td'); tdFee.innerHTML = res.details[i].fee;
+
+                    rowElement.appendChild(tdAddress);
+                    rowElement.appendChild(tdCategory);
+                    rowElement.appendChild(tdAmount);
+                    rowElement.appendChild(tdFee);
+
+                    var table = document.getElementById('btcTxDetailInfoTable');
+                    table.appendChild(rowElement);
+                }
+
+                alert(res.txId);
+                console.log(res);
+            }
+        });
+    });
+
     $('#send-btc-form').on('click', '.remove-payment', function (e) {
         e.preventDefault();
         $(this).parents('.btcWalletPayment').remove();
@@ -624,5 +699,38 @@ function prepareRawTx() {
             }
         }
     })
+}
+
+function clearDetailOfTransaction() {
+    $("#btc_trans_time").prop("hidden", true);
+    $("#label-btc_trans_time").prop("hidden", true);
+
+    $("#btc_trans_hash").prop("hidden", true);
+    $("#label-btc_trans_hash").prop("hidden", true);
+
+    $("#btc_trans_address").prop("hidden", true);
+    $("#label-btc_trans_address").prop("hidden", true);
+
+    $("#btc_trans_block_hash").prop("hidden", true);
+    $("#label-btc_trans_block_hash").prop("hidden", true);
+
+    $("#btc_trans_amount").prop("hidden", true);
+    $("#label-btc_trans_amount").prop("hidden", true);
+
+    $("#btc_trans_fee_amount").prop("hidden", true);
+    $("#label-btc_trans_fee_amount").prop("hidden", true);
+
+    $("#btc_trans_confirmation").prop("hidden", true);
+    $("#label-btc_trans_confirmation").prop("hidden", true);
+
+    $("#btc_trans_comment").prop("hidden", true);
+    $("#label-btc_trans_comment").prop("hidden", true);
+
+    var tableHeaderRowCount = 1;
+    var table = document.getElementById('btcTxDetailInfoTable');
+    var rowCount = table.rows.length;
+    for (var i = tableHeaderRowCount; i < rowCount; i++) {
+        table.deleteRow(tableHeaderRowCount);
+    }
 }
 
