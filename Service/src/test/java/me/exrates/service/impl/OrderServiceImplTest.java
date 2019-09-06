@@ -6761,6 +6761,7 @@ public class OrderServiceImplTest {
         dto.setHidden(Boolean.FALSE);
         dto.setLastUpdateCache("2019-04-03 14:52:14");
         dto.setTopMarket(true);
+        dto.setValueChange("0");
 
         return dto;
     }
