@@ -13,6 +13,7 @@ import me.exrates.model.dto.OrderBookWrapperDto;
 import me.exrates.model.dto.OrdersListWrapper;
 import me.exrates.model.dto.WsMessageObject;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
+import me.exrates.model.dto.openAPI.UserOrdersDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.PrecissionsEnum;
@@ -107,7 +108,7 @@ public class WsController {
     }
 
     @SubscribeMapping("/queue/trade_orders/f/{currencyId}")
-    public List<OrdersListWrapper> subscribeOrdersFiltered(@DestinationVariable Integer currencyId, Principal principal) throws IOException, EncodeException {
+    public List<OrdersListWrapper> subscribeOrdersFiltered(@DestinationVariable Integer currencyId, Principal principal) throws IOException {
         UserRole role = userService.getUserRoleFromDB(principal.getName());
         return initOrders(currencyId, role);
     }
@@ -116,6 +117,11 @@ public class WsController {
     public String subscribeTrades(@DestinationVariable Integer currencyPairId, SimpMessageHeaderAccessor headerAccessor) throws Exception {
         Principal principal = headerAccessor.getUser();
         return orderService.getAllAndMyTradesForInit(currencyPairId, principal);
+    }
+
+    @SubscribeMapping("/queue/open_orders/{pairName}")
+    public List<UserOrdersDto> subscribeTrades(@DestinationVariable String pairName) {
+        return orderService.getUserOpenOrders(OpenApiUtils.transformCurrencyPair(pairName));
     }
 
     @SubscribeMapping("/all_trades/{pairName}")

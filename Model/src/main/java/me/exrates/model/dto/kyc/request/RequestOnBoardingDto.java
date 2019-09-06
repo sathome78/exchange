@@ -7,11 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import me.exrates.model.dto.kyc.DocTypeEnum;
-import me.exrates.model.exceptions.KycException;
 import org.apache.commons.lang3.RandomStringUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -28,8 +25,8 @@ public class RequestOnBoardingDto {
     private ContactData contactData;
     private ResultHandler resultHandler;
 
-    public static RequestOnBoardingDto createOfParams(String callBackUrl, String email, String uid, String docId) {
-        InterfaceSetting interfaceSetting = new InterfaceSetting("configCISDemo", "EN");
+    public static RequestOnBoardingDto createOfParams(String callBackUrl, String email, String uid, String docId, String confCode) {
+        InterfaceSetting interfaceSetting = new InterfaceSetting(confCode, "EN");
         ResultHandler resultHandler = new ResultHandler(callBackUrl, new CisConf("creacard-qubera", uid, true));
         ContactData contactData = new ContactData("EMAIL", email);
         List<DocumentToCapture> documentsToCapture = Arrays.asList(

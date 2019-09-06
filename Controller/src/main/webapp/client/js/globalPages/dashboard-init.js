@@ -20,6 +20,7 @@ var eventsSubscrition;
 var alertsSubscription;
 var currencyPairStatisticSubscription;
 var personalSubscription;
+var openOrdersSubscription;
 var connectedPS = false;
 var currentCurrencyPairId;
 var currentPairName;
@@ -65,6 +66,7 @@ function subscribeAll() {
     if (connectedPS && subscribedCurrencyPairId != currentCurrencyPairId) {
         subscribeTrades();
         subscribeForMyTrades();
+        subscribeForMyOpenOrders();
     }
 }
 
@@ -105,6 +107,20 @@ function subscribeForMyTrades() {
         messageBody.forEach(function(object){
             initTrades(JSON.parse(object), currentCurrencyPairId);
         });
+    }, headers);
+}
+
+/*example of endpoint subscribe, for testing purposes*/
+function subscribeForMyOpenOrders() {
+    if (openOrdersSubscription !== undefined) {
+        openOrdersSubscription.unsubscribe();
+    }
+    var headers = {};
+    var addr = "/user/queue/open_orders/" + currentPairName.replace('/', '_').toLowerCase();
+    console.log(addr);
+    openOrdersSubscription = client.subscribe(addr, function(message) {
+        var messageBody = JSON.parse(message.body);
+        console.log(messageBody);
     }, headers);
 }
 

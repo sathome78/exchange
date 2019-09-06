@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import com.neemre.btcdcli4j.core.BitcoindException;
 import com.neemre.btcdcli4j.core.CommunicationException;
+import com.neemre.btcdcli4j.core.domain.Transaction;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
@@ -25,6 +26,7 @@ import me.exrates.model.dto.merchants.btc.BtcPaymentResultDetailedDto;
 import me.exrates.model.dto.merchants.btc.BtcPaymentResultDto;
 import me.exrates.model.dto.merchants.btc.BtcPreparedTransactionDto;
 import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
+import me.exrates.model.dto.merchants.btc.BtcTxPaymentDto;
 import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.BitcoinService;
@@ -52,9 +54,7 @@ import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -466,6 +466,11 @@ public class BitcoinServiceImpl implements BitcoinService {
         return bitcoinWalletService.listAllTransactions();
     }
 
+    @Override
+    public BtcTransactionDto getTransactionByHash(String transactionHash) {
+        return bitcoinWalletService.getTransaction(transactionHash);
+    }
+
   @Override
   public List<BtcTransactionHistoryDto> listTransactions(int page) {
     return bitcoinWalletService.listTransaction(page);
@@ -474,63 +479,15 @@ public class BitcoinServiceImpl implements BitcoinService {
   @Override
   public DataTable<List<BtcTransactionHistoryDto>> listTransactions(Map<String, String> tableParams) throws BitcoindException, CommunicationException{
       DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(tableParams);
-
-      Integer length = dataTableParams.getLength() == 0 ? 10 : dataTableParams.getLength();
-
-      PagingData<List<BtcTransactionHistoryDto>> searchResult = bitcoinWalletService.listTransaction(dataTableParams.getStart(),
-              length, dataTableParams.getSearchValue());
+      PagingData<List<BtcTransactionHistoryDto>> searchResult = bitcoinWalletService.listTransaction(dataTableParams);
 
       DataTable<List<BtcTransactionHistoryDto>> output = new DataTable<>();
-      output.setData(sortListTransactionByColumn(searchResult.getData(), dataTableParams.getOrderColumnName(), dataTableParams.getOrderDirection()));
+      output.setData(searchResult.getData());
       output.setRecordsTotal(searchResult.getTotal());
       output.setRecordsFiltered(searchResult.getFiltered());
 
     return output;
   }
-
-  private List<BtcTransactionHistoryDto> sortListTransactionByColumn(List<BtcTransactionHistoryDto> list, String orderColumn,
-                                                                     DataTableParams.OrderDirection orderDirection){
-      Map<String, String> attributes = new HashMap<>();
-      for(Field field : BtcTransactionHistoryDto.class.getDeclaredFields()) {
-          attributes.put(field.getName(), field.getGenericType().getTypeName());
-      }
-
-      if(attributes.get(orderColumn) != null){
-          list.sort((trans1, trans2) -> getValueForSort(orderColumn, orderDirection, attributes.get(orderColumn), trans1, trans2));
-      }
-
-      return list;
-  }
-
-    private Integer getValueForSort(String orderColumn, DataTableParams.OrderDirection orderDirection, String nameOfTypeOrderColumn,
-                                           BtcTransactionHistoryDto trans1, BtcTransactionHistoryDto trans2) {
-        Object valueOfAttributeOfTrans1 = trans1.getAttributeValueByName(orderColumn);
-        Object valueOfAttributeOfTrans2 = trans2.getAttributeValueByName(orderColumn);
-
-        if(orderDirection.equals(DataTableParams.OrderDirection.ASC)) {
-            return getValueForSortWithUnboxingAndDefaultComparator(nameOfTypeOrderColumn, valueOfAttributeOfTrans1, valueOfAttributeOfTrans2);
-
-        } else if(orderDirection.equals(DataTableParams.OrderDirection.DESC)) {
-            return getValueForSortWithUnboxingAndDefaultComparator(nameOfTypeOrderColumn, valueOfAttributeOfTrans2, valueOfAttributeOfTrans1);
-        }
-        return null;
-    }
-
-    private Integer getValueForSortWithUnboxingAndDefaultComparator(String nameOfTypeOrderColumn, Object value1, Object value2) {
-        if (nameOfTypeOrderColumn.equals(String.class.getName())) {
-            return ((String) value1).compareTo(((String) value2));
-
-        } else if (nameOfTypeOrderColumn.equals(Integer.class.getName())) {
-            return ((Integer) value1).compareTo(((Integer) value2));
-
-        } else if (nameOfTypeOrderColumn.equals(Long.class.getName())) {
-            return ((Long) value1).compareTo(((Long) value2));
-
-        } else if (nameOfTypeOrderColumn.equals(LocalDateTime.class.getName())) {
-            return ((LocalDateTime) value1).compareTo(((LocalDateTime) value2));
-        }
-        return null;
-    }
 
     @Override
   public BigDecimal estimateFee() {

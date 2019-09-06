@@ -69,7 +69,10 @@ public interface WithdrawRequestDao {
                                                                   List<UserRole> userRoles, 
                                                                   int requesterId);
 
+    BigDecimal getDailyWithdrawalSumByCurrency(String email, Integer currencyId);
     BigDecimal getLeftOutputRequestsCount(int currencyId, String email);
 
-    BigDecimal getDailyWithdrawalSumByCurrency(String email, Integer currencyId);
+    List<WithdrawRequestFlatDto> findByMerchantIdAndAdditionParam(int merchantId, String additionalParam);
+
+    boolean updateAdditionalParamById(int requestId, String additionalParam);
 }
