@@ -43,6 +43,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.ReportGroupUserRole;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WalletTransferStatus;
+import me.exrates.model.enums.invoice.FreecoinsStatusEnum;
 import me.exrates.model.enums.invoice.IeoStatusEnum;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
@@ -69,7 +70,9 @@ import me.exrates.service.util.Cache;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -104,6 +107,7 @@ import static me.exrates.model.enums.WalletTransferStatus.SUCCESS;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
 @Log4j2
+@PropertySource(value = {"classpath:/freecoins.properties"})
 @Service
 @Transactional
 public class WalletServiceImpl implements WalletService {
@@ -111,6 +115,9 @@ public class WalletServiceImpl implements WalletService {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S");
 
     private static final int decimalPlaces = 9;
+
+    @Value("${free-coins.balance-holder.email}")
+    private String holderEmail;
 
     @Autowired
     private WalletDao walletDao;
@@ -203,7 +210,7 @@ public class WalletServiceImpl implements WalletService {
 
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
-    public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(CacheData cacheData, String email, Locale locale, CurrencyPairType type) {
+    public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(CacheData cacheData, String email, CurrencyPairType type) {
         List<CurrencyPair> pairList = currencyService.getAllCurrencyPairs(type);
         Set<Integer> currencies = pairList
                 .stream()
@@ -213,7 +220,7 @@ public class WalletServiceImpl implements WalletService {
                 .stream()
                 .map(p -> p.getCurrency1().getId())
                 .collect(Collectors.toSet()));
-        return walletDao.getAllWalletsForUserAndCurrenciesReduced(email, locale, currencies);
+        return walletDao.getAllWalletsForUserAndCurrenciesReduced(email, currencies);
     }
 
     @Override
@@ -877,18 +884,151 @@ public class WalletServiceImpl implements WalletService {
                 && walletDao.update(userIeoWallet);
         log.info("PerformIeoTransfer(), claimID {}, result update wallet {}", ieoClaim.getId(), updateResult);
         if (updateResult) {
-            writeTransActionsAsync(ieoClaim, makerBtcInitialAmount, makerBtcWallet,
+            writeTransactionsAsync(ieoClaim, makerBtcInitialAmount, makerBtcWallet,
                     userIeoInitialAmount, userIeoWallet, userBtcWallet, IeoStatusEnum.PROCESSED_BY_CLAIM);
         }
         return updateResult;
     }
 
-    private void writeTransActionsAsync(IEOClaim ieoClaim, BigDecimal makerBtcInitialAmount, Wallet makerBtcWallet,
+    private void writeTransactionsAsync(IEOClaim ieoClaim, BigDecimal makerBtcInitialAmount, Wallet makerBtcWallet,
                                         BigDecimal userIeoInitialAmount, Wallet userIeoWallet, Wallet userMainWallet, IeoStatusEnum statusEnum) {
         Transaction makerBtcTransaction = prepareTransaction(makerBtcInitialAmount, ieoClaim.getPriceInBtc(), makerBtcWallet, ieoClaim, statusEnum);
         Transaction userBtcTransaction = prepareUserBtcTransaction(userMainWallet, ieoClaim, statusEnum);
         Transaction userIeoTransaction = prepareTransaction(userIeoInitialAmount, ieoClaim.getAmount(), userIeoWallet, ieoClaim, statusEnum);
         transactionService.save(ImmutableList.of(makerBtcTransaction, userBtcTransaction, userIeoTransaction));
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public boolean performFreecoinsGiveawayProcess(String currencyName, BigDecimal amount, String creatorEmail) {
+        Currency currency = currencyService.findByName(currencyName);
+
+        final int creatorId = userService.getIdByEmail(creatorEmail);
+        Wallet creatorWallet = walletDao.findByUserAndCurrency(creatorId, currency.getId());
+        if (isNull(creatorWallet)) {
+            throw new WalletNotFoundException(String.format("Wallet did not find by user: %s and currency: %s", creatorEmail, currencyName));
+        }
+        BigDecimal activeBalance = creatorWallet.getActiveBalance();
+        if (isNull(activeBalance) || activeBalance.compareTo(amount) < 0) {
+            throw new NotEnoughUserWalletMoneyException(String.format("Required amount of coins: %s larger then active balance %s", amount.toPlainString(), activeBalance.toPlainString()));
+        }
+
+        final int holderId = userService.getIdByEmail(holderEmail);
+        Wallet holderWallet = walletDao.findByUserAndCurrency(holderId, currency.getId());
+        if (isNull(holderWallet)) {
+            holderWallet = walletDao.createWallet(holderId, currency.getId());
+        }
+
+        creatorWallet.setActiveBalance(activeBalance.subtract(amount));
+        holderWallet.setActiveBalance(holderWallet.getActiveBalance().add(amount));
+
+        boolean updateResult = walletDao.update(creatorWallet)
+                && walletDao.update(holderWallet);
+
+        log.debug("The result of updating wallets is: {}", updateResult);
+
+        if (updateResult) {
+            prepareTransactionsAndSave(currency, amount, creatorWallet, holderWallet);
+        }
+        return updateResult;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public boolean performFreecoinsGiveawayRevokeProcess(String currencyName, BigDecimal revokeAmount, String creatorEmail) {
+        Currency currency = currencyService.findByName(currencyName);
+
+        final int holderId = userService.getIdByEmail(holderEmail);
+        Wallet holderWallet = walletDao.findByUserAndCurrency(holderId, currency.getId());
+        if (isNull(holderWallet)) {
+            throw new WalletNotFoundException(String.format("Wallet did not find by user: %s and currency: %s", holderEmail, currencyName));
+        }
+        BigDecimal activeBalance = holderWallet.getActiveBalance();
+        if (isNull(activeBalance) || activeBalance.compareTo(revokeAmount) < 0) {
+            throw new NotEnoughUserWalletMoneyException(String.format("Required amount of coins: %s larger then active balance %s", revokeAmount.toPlainString(), activeBalance.toPlainString()));
+        }
+
+        final int creatorId = userService.getIdByEmail(creatorEmail);
+        Wallet creatorWallet = walletDao.findByUserAndCurrency(creatorId, currency.getId());
+        if (isNull(creatorWallet)) {
+            creatorWallet = walletDao.createWallet(creatorId, currency.getId());
+        }
+
+        holderWallet.setActiveBalance(activeBalance.subtract(revokeAmount));
+        creatorWallet.setActiveBalance(creatorWallet.getActiveBalance().add(revokeAmount));
+
+        boolean updateResult = walletDao.update(holderWallet)
+                && walletDao.update(creatorWallet);
+
+        log.debug("The result of updating wallets is: {}", updateResult);
+
+        if (updateResult) {
+            prepareTransactionsAndSave(currency, revokeAmount, holderWallet, creatorWallet);
+        }
+        return updateResult;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public boolean performFreecoinsReceiveProcess(String currencyName, BigDecimal partialAmount, String receiverEmail) {
+        Currency currency = currencyService.findByName(currencyName);
+
+        final int holderId = userService.getIdByEmail(holderEmail);
+        Wallet holderWallet = walletDao.findByUserAndCurrency(holderId, currency.getId());
+        if (isNull(holderWallet)) {
+            throw new WalletNotFoundException(String.format("Wallet did not find by user: %s and currency: %s", holderEmail, currencyName));
+        }
+        BigDecimal activeBalance = holderWallet.getActiveBalance();
+        if (isNull(activeBalance) || activeBalance.compareTo(partialAmount) < 0) {
+            throw new NotEnoughUserWalletMoneyException(String.format("Required amount of coins: %s larger then active balance %s", partialAmount.toPlainString(), activeBalance.toPlainString()));
+        }
+
+        final int receiverId = userService.getIdByEmail(receiverEmail);
+        Wallet receiverWallet = walletDao.findByUserAndCurrency(receiverId, currency.getId());
+        if (isNull(receiverWallet)) {
+            receiverWallet = walletDao.createWallet(receiverId, currency.getId());
+        }
+
+        holderWallet.setActiveBalance(activeBalance.subtract(partialAmount));
+        receiverWallet.setActiveBalance(receiverWallet.getActiveBalance().add(partialAmount));
+
+        boolean updateResult = walletDao.update(holderWallet)
+                && walletDao.update(receiverWallet);
+
+        log.debug("The result of updating wallets is: {}", updateResult);
+
+        if (updateResult) {
+            prepareTransactionsAndSave(currency, partialAmount, holderWallet, receiverWallet);
+        }
+        return updateResult;
+    }
+
+    private void prepareTransactionsAndSave(Currency currency, BigDecimal amount, Wallet firstWallet, Wallet secondWallet) {
+        Transaction firstTransaction = prepareTransaction(currency, amount, firstWallet, OperationType.OUTPUT);
+        Transaction secondTransaction = prepareTransaction(currency, amount, secondWallet, OperationType.INPUT);
+
+        ImmutableList.of(firstTransaction, secondTransaction).forEach(transaction -> transactionService.save(transaction));
+    }
+
+    private Transaction prepareTransaction(Currency currency, BigDecimal amount, Wallet wallet, OperationType operationType) {
+        final String description = String.format("FREE_COIN_TRANSFER: %s %s %s", operationType.name(), amount.toPlainString(), currency.getName());
+
+        return Transaction
+                .builder()
+                .userWallet(wallet)
+                .amount(amount)
+                .commissionAmount(BigDecimal.ZERO)
+                .operationType(operationType)
+                .currency(currency)
+                .datetime(LocalDateTime.now())
+                .activeBalanceBefore(operationType == OperationType.OUTPUT
+                        ? wallet.getActiveBalance().add(amount)
+                        : wallet.getActiveBalance().subtract(amount))
+                .reservedBalanceBefore(wallet.getReservedBalance())
+                .sourceType(TransactionSourceType.FREE_COINS_TRANSFER)
+                .invoiceStatus(FreecoinsStatusEnum.CREATED_BY_USER)
+                .description(description)
+                .build();
     }
 
     @Override
@@ -938,7 +1078,7 @@ public class WalletServiceImpl implements WalletService {
 
             ieoClaimRepository.updateStatusIEOClaim(ieoClaim.getId(), IEOResult.IEOResultStatus.REVOKED);
 
-            CompletableFuture.runAsync(() -> writeTransActionsAsync(ieoClaim, makerBtcActiveBalance, makerWallet,
+            CompletableFuture.runAsync(() -> writeTransactionsAsync(ieoClaim, makerBtcActiveBalance, makerWallet,
                     userIeoWalletActiveBalance, userWallet, userMainWallet, IeoStatusEnum.REVOKED_BY_IEO_FAILURE));
         }
         return updateResult;
@@ -981,6 +1121,11 @@ public class WalletServiceImpl implements WalletService {
         return walletDao.getActiveBalanceAndBlockByWalletId(walletId);
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public BigDecimal getActiveBalanceByUserAndCurrency(String email, Integer currencyId) {
+        return walletDao.getActiveBalanceByUserAndCurrency(email, currencyId);
+    }
 
     private Transaction prepareTransaction(BigDecimal initialAmount, BigDecimal amount, Wallet wallet, IEOClaim ieoClaim, InvoiceStatus status) {
         Currency currency = currencyService.findById(wallet.getCurrencyId());
