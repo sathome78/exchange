@@ -11,24 +11,15 @@ import me.exrates.dao.KYCSettingsDao;
 import me.exrates.dao.UserVerificationInfoDao;
 import me.exrates.model.Email;
 import me.exrates.model.User;
-import me.exrates.model.UserVerificationInfo;
 import me.exrates.model.constants.Constants;
 import me.exrates.model.dto.UserNotificationMessage;
-import me.exrates.model.dto.kyc.CreateApplicantDto;
-import me.exrates.model.dto.kyc.DocTypeEnum;
 import me.exrates.model.dto.kyc.EventStatus;
-import me.exrates.model.dto.kyc.IdentityDataKyc;
 import me.exrates.model.dto.kyc.IdentityDataRequest;
-import me.exrates.model.dto.kyc.KycCountryDto;
-import me.exrates.model.dto.kyc.PersonKycDto;
-import me.exrates.model.dto.kyc.ResponseCreateApplicantDto;
-import me.exrates.model.dto.kyc.request.RequestOnBoardingDto;
 import me.exrates.model.dto.kyc.responces.KycResponseStatusDto;
 import me.exrates.model.dto.kyc.responces.KycStatusResponseDto;
 import me.exrates.model.dto.kyc.responces.OnboardingResponseDto;
 import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.WsSourceTypeEnum;
-import me.exrates.model.exceptions.KycException;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.service.KYCService;
 import me.exrates.service.SendMailService;
@@ -36,7 +27,6 @@ import me.exrates.service.UserService;
 import me.exrates.service.exception.ShuftiProException;
 import me.exrates.service.kyc.http.KycHttpClient;
 import me.exrates.service.stomp.StompMessenger;
-import me.exrates.service.util.DateUtils;
 import me.exrates.service.util.ShuftiProUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -52,10 +42,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import javax.validation.Valid;
-import java.util.Collections;
-import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -80,7 +67,6 @@ public class KYCServiceImpl implements KYCService {
     private final String redirectUrl;
     private final int digitsNumber;
     private final String verificationMode;
-    private final String smsText;
     private final String emailSubject;
     private final String emailMessagePattern;
 
@@ -105,7 +91,6 @@ public class KYCServiceImpl implements KYCService {
                           @Value("${shufti-pro.redirect-url}") String redirectUrl,
                           @Value("${shufti-pro.reference-digits-number}") int digitsNumber,
                           @Value("${shufti-pro.verification-mode}") String verificationMode,
-                          @Value("${shufti-pro.phone.sms-text}") String smsText,
                           @Value("${shufti-pro.email.subject}") String emailSubject,
                           @Value("${shufti-pro.email.message-pattern}") String emailMessagePattern,
                           @Value("#{'${shufti-pro.document.supported-types}'.split(',')}") List<String> documentSupportedTypes,
@@ -123,7 +108,6 @@ public class KYCServiceImpl implements KYCService {
         this.redirectUrl = redirectUrl;
         this.digitsNumber = digitsNumber;
         this.verificationMode = verificationMode;
-        this.smsText = smsText;
         this.emailSubject = emailSubject;
         this.emailMessagePattern = emailMessagePattern;
         this.documentSupportedTypes = documentSupportedTypes;
@@ -191,9 +175,6 @@ public class KYCServiceImpl implements KYCService {
                         .supportedTypes(documentSupportedTypes)
                         .name(StringUtils.EMPTY)
                         .dob(StringUtils.EMPTY)
-                        .build())
-                .phone(Phone.builder()
-                        .text(smsText)
                         .build());
 
         if (StringUtils.isNotEmpty(redirectUrl)) {
