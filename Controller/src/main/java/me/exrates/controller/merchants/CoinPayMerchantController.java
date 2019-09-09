@@ -44,7 +44,7 @@ public class CoinPayMerchantController {
         }
     }
 
-    @RequestMapping(value = "/payment/status/withdraw/{id}", method = RequestMethod.GET)
+    @RequestMapping(value = "/payment/status/withdraw/{id}", method = RequestMethod.POST)
     public ResponseEntity<Void> statusPaymentWithdraw(@PathVariable("id") String id,
                                                       @RequestBody Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         final ResponseEntity<Void> responseOK = new ResponseEntity<>(OK);
