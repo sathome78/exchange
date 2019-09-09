@@ -16,6 +16,7 @@ import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.ngExceptions.NgResponseException;
+import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.UserService;
@@ -263,13 +264,13 @@ public class NgFreecoinsController {
         boolean googleAuthenticatorEnabled = g2faService.isGoogleAuthenticatorEnable(userId);
         if (googleAuthenticatorEnabled) {
             if (!g2faService.checkGoogle2faVerifyCode(pin, userId)) {
-                final String message = String.format("Invalid google 2fa authorization code from user %s", email);
-                throw new NgResponseException(ErrorApiTitles.VERIFY_GOOGLE2FA_FAILED, message);
+                final String message = String.format("Incorrect pin: %s", pin);
+                throw new IncorrectPinException(message);
             }
         } else {
             if (!userService.checkPin(email, pin, NotificationMessageEventEnum.FREE_COINS)) {
-                final String message = String.format("Invalid google 2fa authorization code from user %s", email);
-                throw new NgResponseException(ErrorApiTitles.VERIFY_GOOGLE2FA_FAILED, message);
+                final String message = String.format("Incorrect pin: %s", pin);
+                throw new IncorrectPinException(message);
             }
         }
     }
