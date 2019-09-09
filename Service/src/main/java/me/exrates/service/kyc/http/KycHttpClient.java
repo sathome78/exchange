@@ -19,6 +19,7 @@ import me.exrates.model.dto.qubera.QuberaRequestPaymentShortDto;
 import me.exrates.model.dto.qubera.ResponseConfirmDto;
 import me.exrates.model.dto.qubera.ResponsePaymentDto;
 import me.exrates.model.dto.qubera.responses.ExternalPaymentResponseDto;
+import me.exrates.model.dto.qubera.responses.ResponseVerificationStatusDto;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -251,7 +252,7 @@ public class KycHttpClient {
 
     public ExternalPaymentResponseDto createExternalPayment(QuberaRequestPaymentShortDto externalPaymentDto) {
         log.info("createExternalPayment(), {}", toJson(externalPaymentDto));
-        String finalUrl = uriApi + "payment/v2/external/short";
+        String finalUrl = uriApi + "/payment/v2/external/short";
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
@@ -315,6 +316,37 @@ public class KycHttpClient {
                 log.info("Exception read value  {} to map {}", responseEntity.getBody(), e);
             }
             return responseConfirmDto != null && responseConfirmDto.getResult().equalsIgnoreCase("ok");
+        }
+    }
+
+    public ResponseVerificationStatusDto getCurrentStatusKyc(String fileUuid) {
+        log.info("getCurrentStatusKyc(), {}", fileUuid);
+        String finalUrl = String.format("%s/verification/cis/file/%s", uriApi, fileUuid);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+        headers.set("apiKey", apiKey);
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(finalUrl);
+        URI uri = builder.build(true).toUri();
+
+        HttpEntity<?> request = new HttpEntity<>(headers);
+        ResponseEntity<ResponseVerificationStatusDto> responseEntity;
+        try {
+            responseEntity =
+                    template.exchange(uri, HttpMethod.GET, request, ResponseVerificationStatusDto.class);
+        } catch (Exception e) {
+            log.error("Error check verification {}", fileUuid);
+            throw new NgDashboardException(ErrorApiTitles.QUBERA_CHECK_VERIFICATION_ERROR);
+        }
+
+        if (!responseEntity.getStatusCode().is2xxSuccessful()) {
+            log.error("Response not 200 while check verification status", responseEntity.getBody());
+            throw new NgDashboardException(
+                    ErrorApiTitles.QUBERA_CHECK_VERIFICATION_ERROR);
+        } else {
+            log.info("Response verification status {}", toJson(responseEntity.getBody()));
+            return responseEntity.getBody();
         }
     }
 

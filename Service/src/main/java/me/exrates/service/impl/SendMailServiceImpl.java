@@ -90,10 +90,10 @@ public class SendMailServiceImpl implements SendMailService {
         email.setFrom(noReplyExrateMe);
         SUPPORT_MAIL_EXECUTORS.execute(() -> {
             try {
-                sendMail(email, mandrillMailSender);
+                sendMail(email, supportMailSender);
             } catch (Exception ex) {
                 log.error(ex);
-                sendMail(email, sesMailSender);
+                sendMail(email, sendGridMailSender);
             }
         });
     }

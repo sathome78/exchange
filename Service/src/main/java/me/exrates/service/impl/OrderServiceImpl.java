@@ -2583,9 +2583,13 @@ public class OrderServiceImpl implements OrderService {
             row.createCell(6, CellType.STRING).setCellValue(isLimitOrder
                     ? StringUtils.EMPTY
                     : getValue(order.getStopRate()));
-            row.createCell(7, CellType.STRING).setCellValue(getValue(order.getAmountBase()));
+            row.createCell(7, CellType.STRING).setCellValue(nonNull(order.getAmountBase())
+                    ? getValue(new BigDecimal(order.getAmountBase()))
+                    : getValue(order.getAmountBase()));
             row.createCell(8, CellType.STRING).setCellValue(getValue(order.getCommissionValue()));
-            row.createCell(9, CellType.STRING).setCellValue(getValue(order.getAmountWithCommission()));
+            row.createCell(9, CellType.STRING).setCellValue(nonNull(order.getAmountWithCommission())
+                    ? getValue(new BigDecimal(order.getAmountWithCommission()))
+                    : getValue(order.getAmountWithCommission()));
             row.createCell(10, CellType.STRING).setCellValue(getValue(order.getStatus()));
         }
 
@@ -2654,6 +2658,9 @@ public class OrderServiceImpl implements OrderService {
         } else if (value instanceof LocalDateTime) {
             LocalDateTime localDateTime = (LocalDateTime) value;
             return DATE_TIME_FORMATTER.format(localDateTime);
+        } else if (value instanceof BigDecimal) {
+            BigDecimal decimal = (BigDecimal) value;
+            return decimal.setScale(8, RoundingMode.HALF_UP).toPlainString();
         }
         return String.valueOf(value);
     }

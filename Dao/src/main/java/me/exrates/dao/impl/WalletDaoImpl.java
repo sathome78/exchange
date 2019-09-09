@@ -91,20 +91,20 @@ public class WalletDaoImpl implements WalletDao {
     @Qualifier(value = "slaveTemplate")
     private NamedParameterJdbcTemplate slaveJdbcTemplate;
 
-    protected final RowMapper<Wallet> walletRowMapper = (resultSet, i) -> {
+    private final RowMapper<Wallet> walletRowMapper = (rs, i) -> {
 
         final Wallet userWallet = new Wallet();
-        userWallet.setId(resultSet.getInt("id"));
-        userWallet.setName(resultSet.getString("name"));
-        userWallet.setCurrencyId(resultSet.getInt("currency_id"));
-        userWallet.setUser(userDao.getUserById(resultSet.getInt("user_id")));
-        userWallet.setActiveBalance(resultSet.getBigDecimal("active_balance"));
-        userWallet.setReservedBalance(resultSet.getBigDecimal("reserved_balance"));
+        userWallet.setId(rs.getInt("id"));
+        userWallet.setName(rs.getString("name"));
+        userWallet.setCurrencyId(rs.getInt("currency_id"));
+        userWallet.setUser(userDao.getUserById(rs.getInt("user_id")));
+        userWallet.setActiveBalance(rs.getBigDecimal("active_balance"));
+        userWallet.setReservedBalance(rs.getBigDecimal("reserved_balance"));
 
         return userWallet;
     };
 
-    protected final RowMapper<Wallet> ieoWalletRowMapper = (resultSet, i) -> {
+    private final RowMapper<Wallet> ieoWalletRowMapper = (resultSet, i) -> {
 
         final Wallet userWallet = new Wallet();
         userWallet.setId(resultSet.getInt("id"));
@@ -217,18 +217,22 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public List<Wallet> findAllForNotHiddenCurByUser(int userId) {
-        final String sql = "SELECT WALLET.id,WALLET.currency_id,WALLET.user_id,WALLET.active_balance, WALLET.reserved_balance, CURRENCY.name as name FROM WALLET" +
-                "  INNER JOIN CURRENCY On WALLET.currency_id = CURRENCY.id and WALLET.user_id = :userId " +
-                " WHERE CURRENCY.hidden != 1 ";
-        final Map<String, Integer> params = new HashMap<String, Integer>() {
-            {
-                put("userId", userId);
-            }
-        };
-        ArrayList<Wallet> result = (ArrayList<Wallet>) slaveJdbcTemplate.query(sql, params,
-                walletRowMapper);
+        final String sql = "SELECT " +
+                "w.id, " +
+                "w.currency_id, " +
+                "w.user_id, " +
+                "w.active_balance, " +
+                "w.reserved_balance, " +
+                "cur.name as name " +
+                "FROM WALLET w " +
+                "INNER JOIN CURRENCY cur On cur.id = w.currency_id and w.user_id = :userId " +
+                "WHERE cur.hidden != 1 ";
 
-        return result;
+        final Map<String, Integer> params = new HashMap<String, Integer>() {{
+            put("userId", userId);
+        }};
+
+        return slaveJdbcTemplate.query(sql, params, walletRowMapper);
     }
 
     @Override
@@ -271,7 +275,7 @@ public class WalletDaoImpl implements WalletDao {
     }
 
     @Override
-    public List<MyWalletsStatisticsDto> getAllWalletsForUserAndCurrenciesReduced(String email, Locale locale, Set<Integer> currencyIds) {
+    public List<MyWalletsStatisticsDto> getAllWalletsForUserAndCurrenciesReduced(String email, Set<Integer> currencyIds) {
         final String sql =
                 " SELECT CURRENCY.name, CURRENCY.description, WALLET.active_balance, (WALLET.reserved_balance + WALLET.active_balance) as total_balance " +
                         " FROM USER " +
@@ -1681,6 +1685,25 @@ public class WalletDaoImpl implements WalletDao {
         try {
             return jdbcTemplate.queryForObject(sql, params, BigDecimal.class);
         } catch (DataAccessException e) {
+            return BigDecimal.ZERO;
+        }
+    }
+
+    @Override
+    public BigDecimal getActiveBalanceByUserAndCurrency(String email, Integer currencyId) {
+        final String sql = "SELECT w.active_balance " +
+                "FROM WALLET w " +
+                "JOIN USER u ON u.id = w.user_id " +
+                "JOIN CURRENCY cur ON cur.id = w.currency_id " +
+                "WHERE u.email = :email AND cur.id = :currency_id AND cur.hidden IS NOT TRUE";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("email", email);
+        params.put("currency_id", currencyId);
+
+        try {
+            return jdbcTemplate.queryForObject(sql, params, BigDecimal.class);
+        } catch (Exception ex) {
             return BigDecimal.ZERO;
         }
     }

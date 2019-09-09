@@ -152,41 +152,9 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
 
     public static final String NODE_TOKEN = "TEMPO_TOKEN";
-
-    @Value("${db.properties.file}")
-    private String dbPropertiesFile;
-
-    @Value("${db.properties.outer.file}")
-    private Boolean isOuterFile;
-
-    private
-    @Value("${upload.userFilesDir}")
-    String userFilesDir;
-    private
-    @Value("${upload.userFilesLogicalDir}")
-    String userFilesLogicalDir;
-    private
-    @Value("${news.locationDir}")
-    String newsLocationDir;
-    private
-    @Value("${news.urlPath}")
-    String newsUrlPath;
-
+    private final InOutProperties inOutProperties;
     @Value("${news.ext.locationDir}")
     String newsExtLocationDir;
-    @Value("${news.newstopic.urlPath}")
-    private String newstopicUrlPath;
-    @Value("${news.materialsView.urlPath}")
-    private String materialsViewUrlPath;
-    @Value("${news.webinar.urlPath}")
-    private String webinarUrlPath;
-    @Value("${news.event.urlPath}")
-    private String eventUrlPath;
-    @Value("${news.feastDay.urlPath}")
-    private String feastDayUrlPath;
-    @Value("${news.page.urlPath}")
-    private String pageUrlPath;
-
     @Value("${mail_support.host}")
     String mailSupportHost;
     @Value("${mail_support.port}")
@@ -217,7 +185,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     String mailInfoUser;
     @Value("${mail_info.password}")
     String mailInfoPassword;
-
     @Value("${mail_ses.host}")
     String mailSesHost;
     @Value("${mail_ses.port}")
@@ -228,7 +195,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     String mailSesUser;
     @Value("${mail_ses.password}")
     String mailSesPassword;
-
     @Value("${mail_send_grid.host}")
     String mailSendGridHost;
     @Value("${mail_send_grid.port}")
@@ -239,16 +205,40 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     String mailSendGridUser;
     @Value("${mail_send_grid.password}")
     String mailSendGridPassword;
-
+    @Value("${db.properties.file}")
+    private String dbPropertiesFile;
+    @Value("${db.properties.outer.file}")
+    private Boolean isOuterFile;
+    private
+    @Value("${upload.userFilesDir}")
+    String userFilesDir;
+    private
+    @Value("${upload.userFilesLogicalDir}")
+    String userFilesLogicalDir;
+    private
+    @Value("${news.locationDir}")
+    String newsLocationDir;
+    private
+    @Value("${news.urlPath}")
+    String newsUrlPath;
+    @Value("${news.newstopic.urlPath}")
+    private String newstopicUrlPath;
+    @Value("${news.materialsView.urlPath}")
+    private String materialsViewUrlPath;
+    @Value("${news.webinar.urlPath}")
+    private String webinarUrlPath;
+    @Value("${news.event.urlPath}")
+    private String eventUrlPath;
+    @Value("${news.feastDay.urlPath}")
+    private String feastDayUrlPath;
+    @Value("${news.page.urlPath}")
+    private String pageUrlPath;
     @Value("${angular.allowed.origins}")
     private String[] angularAllowedOrigins;
-
     @Value("${angular.allowed.methods}")
     private String[] angularAllowedMethods;
-
     @Value("${angular.allowed.headers}")
     private String[] angularAllowedHeaders;
-
     @Value("${twitter.appId}")
     private String twitterConsumerKey;
     @Value("${twitter.appSecret}")
@@ -257,19 +247,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     private String twitterAccessToken;
     @Value("${twitter.accessTokenSecret}")
     private String twitterAccessTokenSecret;
-
     @Value("${geetest.captchaId}")
     private String gtCaptchaId;
     @Value("${geetest.privateKey}")
     private String gtPrivateKey;
     @Value("${geetest.newFailback}")
     private String gtNewFailback;
-
     @Value("${qiwi.client.id}")
     private String qiwiClientId;
     @Value("${qiwi.client.secret}")
     private String qiwiClientSecret;
-
     private String dbMasterUser;
     private String dbMasterPassword;
     private String dbMasterUrl;
@@ -282,11 +269,17 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     private String dbSlaveForReportsPassword;
     private String dbSlaveForReportsUrl;
     private String dbSlaveForReportsClassname;
-
-    private final InOutProperties inOutProperties;
+    /***stellarAssets****/
+    private @Value("${stellar.slt.emitter}")
+    String SLT_EMMITER;
 
     public WebAppConfig(InOutProperties inOutProperties) {
         this.inOutProperties = inOutProperties;
+    }
+
+    @Bean
+    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
+        return new PropertySourcesPlaceholderConfigurer();
     }
 
     @PostConstruct
@@ -316,12 +309,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         dbSlaveForReportsPassword = properties.getProperty("db.slave.password");
         dbSlaveForReportsUrl = properties.getProperty("db.slave.url");
         dbSlaveForReportsClassname = properties.getProperty("db.slave.classname");
-    }
-
-
-    @Bean
-    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
-        return new PropertySourcesPlaceholderConfigurer();
     }
 
     /*@Bean(name = "dataSource")*/
@@ -515,7 +502,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         mailSenderImpl.setPassword(mailSupportPassword);
         final Properties javaMailProps = new Properties();
         javaMailProps.put("mail.smtp.auth", true);
-        javaMailProps.put("mail.smtp.starttls.enable", true);
+        javaMailProps.put("mail.smtp.starttls.enable", false);
         javaMailProps.put("mail.smtp.ssl.trust", mailSupportHost);
         mailSenderImpl.setJavaMailProperties(javaMailProps);
         return mailSenderImpl;
@@ -613,17 +600,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return handlers;
     }
 
-    @Bean(name = "multipartResolver")
-    public StandardServletMultipartResolver resolver() {
-        return new StandardServletMultipartResolver();
-    }
-
 
     /*@Bean
     public StoreSessionListener storeSessionListener() {
         return new StoreSessionListenerImpl();
     }*/
 
+    @Bean(name = "multipartResolver")
+    public StandardServletMultipartResolver resolver() {
+        return new StandardServletMultipartResolver();
+    }
 
     @Bean
     public LoggingAspect loggingAspect() {
@@ -714,13 +700,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "NTY", "NTY", 40);
     }
 
-    @Bean(name = "etherincServiceImpl")
-    @Conditional(MonolitConditional.class)
-    public EthereumCommonService etherincService() {
-        return new EthereumCommonServiceImpl("merchants/eti.properties",
-                "ETI", "ETI", 50);
-    }
-
 //    @Bean(name = "eosServiceImpl")
 //    @Conditional(MonolitConditional.class)
 //    public EthTokenService EosService() {
@@ -731,6 +710,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 //                "EOS",
 //                "EOS", true, ExConvert.Unit.ETHER);
 //    }
+
+    @Bean(name = "etherincServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthereumCommonService etherincService() {
+        return new EthereumCommonServiceImpl("merchants/eti.properties",
+                "ETI", "ETI", 50);
+    }
 
     @Bean(name = "repServiceImpl")
     @Conditional(MonolitConditional.class)
@@ -809,7 +795,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "GOS", true, ExConvert.Unit.MWEI);
     }
 
-
     @Bean(name = "bptnServiceImpl")
     @Conditional(MonolitConditional.class)
     public EthTokenService BptnRentService() {
@@ -831,7 +816,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "NBC",
                 "NBC", true, ExConvert.Unit.ETHER);
     }
-
 
     @Bean(name = "taxiServiceImpl")
     @Conditional(MonolitConditional.class)
@@ -910,7 +894,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "COBC", true, ExConvert.Unit.ETHER);
     }
 
-
     @Bean(name = "bcsServiceImpl")
     @Conditional(MonolitConditional.class)
     public EthTokenService bcsService() {
@@ -954,7 +937,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "PROFIT",
                 "PROFIT", false, ExConvert.Unit.ETHER);
     }
-
 
     @Bean(name = "ormeServiceImpl")
     @Conditional(MonolitConditional.class)
@@ -1154,8 +1136,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "MTC", true, ExConvert.Unit.ETHER);
     }
 
-
-
     @Bean(name = "hstServiceImpl")
     @Conditional(MonolitConditional.class)
     public EthTokenService hstService() {
@@ -1188,7 +1168,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "CEEK",
                 "CEEK", false, ExConvert.Unit.ETHER);
     }
-
 
     @Bean(name = "anyServiceImpl")
     @Conditional(MonolitConditional.class)
@@ -1818,17 +1797,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "POA", false, ExConvert.Unit.ETHER);
     }
 
-    @Bean(name = "mcoServiceImpl")
-    @Conditional(MonolitConditional.class)
-    public EthTokenService mcoService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0xb63b606ac810a52cca15e44bb630fd42d8d1d83d");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "MCO",
-                "MCO", true, ExConvert.Unit.AIWEI);
-    }
-
 //    @Bean(name = "zilServiceImpl")
 //    @Conditional(MonolitConditional.class)
 //    public EthTokenService zilService() {
@@ -1839,6 +1807,17 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 //                "ZIL",
 //                "ZIL", true, ExConvert.Unit.SZABO);
 //    }
+
+    @Bean(name = "mcoServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService mcoService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xb63b606ac810a52cca15e44bb630fd42d8d1d83d");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "MCO",
+                "MCO", true, ExConvert.Unit.AIWEI);
+    }
 
     @Bean(name = "manaServiceImpl")
     @Conditional(MonolitConditional.class)
@@ -2125,13 +2104,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     @Bean
     @Conditional(MonolitConditional.class)
-    public BinanceCurrencyService binanceCurrencyService(){
+    public BinanceCurrencyService binanceCurrencyService() {
         return new BinanceCurrencyServiceImpl("merchants/binance.properties");
     }
 
     @Bean(name = "binanceServiceImpl")
     @Conditional(MonolitConditional.class)
-    public BinanceService binanceService(){
+    public BinanceService binanceService() {
         return new BinanceServiceImpl("merchants/binance.properties", "BinanceBlockchain", 40);
     }
 
@@ -2144,10 +2123,8 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "arnServiceImpl")
     @Conditional(MonolitConditional.class)
     public BinTokenService arnService() {
-        return new BinTokenServiceImpl("merchants/binance.properties", "ARN","ARN");
+        return new BinTokenServiceImpl("merchants/binance.properties", "ARN", "ARN");
     }
-
-
 
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
@@ -2288,10 +2265,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 new Supply(1000000000L),
                 0);
     }
-
-    /***stellarAssets****/
-    private @Value("${stellar.slt.emitter}")
-    String SLT_EMMITER;
 
     @Bean(name = "sltStellarService")
     @Conditional(MonolitConditional.class)

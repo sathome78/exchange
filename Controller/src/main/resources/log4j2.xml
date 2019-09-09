@@ -744,6 +744,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="free-coins" fileName="${sys:catalina.home}/logs/free-coins/free-coins.log"
+                     filePattern="${sys:catalina.home}/logs/free-coins/free-coins%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="ordersTxLogger" fileName="${sys:catalina.home}/logs/orders/tx_log.log"
                      filePattern="${sys:catalina.home}/logs/orders/tx_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
@@ -1082,6 +1091,9 @@
         </logger>
         <logger name="inout" level="ALL" additivity="false">
             <AppenderRef ref="inout"/>
+        </logger>
+        <logger name="free-coins" level="ALL" additivity="false">
+            <AppenderRef ref="free-coins"/>
         </logger>
         <Root level="INFO">
             <AppenderRef ref="Console"/>
