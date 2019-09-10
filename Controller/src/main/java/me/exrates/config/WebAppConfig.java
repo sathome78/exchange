@@ -32,7 +32,6 @@ import me.exrates.service.ethereum.EthTokenServiceImpl;
 import me.exrates.service.ethereum.EthereumCommonService;
 import me.exrates.service.ethereum.EthereumCommonServiceImpl;
 import me.exrates.service.ethereum.ExConvert;
-import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.handler.RestResponseErrorHandler;
 import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.impl.HCXPServiceImpl;
@@ -2390,10 +2389,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 twitterAccessTokenSecret);
     }
 
-    @Bean
-    public GeetestLib geetest() {
-        return new GeetestLib(gtCaptchaId, gtPrivateKey, Boolean.valueOf(gtNewFailback));
-    }
 
     @Bean
     public Client client() {
