@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -30,9 +32,10 @@ public class ChartApi {
     private final RestTemplate restTemplate;
 
     @Autowired
-    public ChartApi(@Value("${api.chart.url}") String url) {
+    public ChartApi(@Value("${api.chart.url}") String url,
+                    @Value("${api.chart.timeout:10000}") int timeout) {
         this.url = url;
-        this.restTemplate = new RestTemplate();
+        this.restTemplate = new RestTemplate(getClientHttpRequestFactory(timeout));
     }
 
     public List<CandleDto> getCandlesDataByRange(String pairName,
@@ -86,6 +89,15 @@ public class ChartApi {
             return null;
         }
         return responseEntity.getBody();
+    }
+
+    private ClientHttpRequestFactory getClientHttpRequestFactory(int timeout) {
+        HttpComponentsClientHttpRequestFactory httpRequestFactory = new HttpComponentsClientHttpRequestFactory();
+        httpRequestFactory.setConnectTimeout(timeout);
+        httpRequestFactory.setConnectionRequestTimeout(timeout);
+        httpRequestFactory.setReadTimeout(timeout);
+
+        return httpRequestFactory;
     }
 
     private String buildQueryParams(String pairName, LocalDateTime from, LocalDateTime to, BackDealInterval interval) {
