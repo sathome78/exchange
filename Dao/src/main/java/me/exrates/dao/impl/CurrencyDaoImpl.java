@@ -7,6 +7,7 @@ import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.MarketVolume;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyReportInfoDto;
@@ -17,6 +18,7 @@ import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
+import me.exrates.model.enums.CurrencyPairRestrictionsEnum;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.Market;
 import me.exrates.model.enums.MerchantProcessType;
@@ -26,6 +28,7 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.util.BigDecimalProcessing;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
@@ -750,6 +753,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         return masterJdbcTemplate.update(sql, params) > 0;
     }
 
+
     @Override
     public boolean updateAccessToDirectLinkCurrencyPairById(int currencyPairId) {
         String sql = "UPDATE CURRENCY_PAIR SET permitted_link = !permitted_link WHERE id = :currency_pair_id";
@@ -1125,5 +1129,78 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 .maxDailyRequest(rs.getInt("max_daily_request"))
                 .recalculateToUsd(rs.getBoolean("recalculate_to_usd"))
                 .build());
+    }
+
+    @Override
+    public CurrencyPairWithRestriction findCurrencyPairWithRestrictionRestrictions(Integer currencyPairId) {
+        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, top_market, top_market_volume, " +
+                "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
+                "(select name from CURRENCY where id = currency2_id) as currency2_name, " +
+                "(select group_concat(cpr.restriction_name) from currency_pair_restriction cpr " +
+                "   where currency_pair_id = :currencyPairId ) as restrictions " +
+                " FROM CURRENCY_PAIR " +
+                "WHERE id = :currencyPairId ";
+        Map<String, String> namedParameters = new HashMap<>();
+        namedParameters.put("currencyPairId", String.valueOf(currencyPairId));
+        return slaveJdbcTemplate.queryForObject(sql, namedParameters, (rs, rowNum) -> {
+            CurrencyPairWithRestriction pair = new CurrencyPairWithRestriction(currencyPairRowMapper.mapRow(rs, rowNum));
+            String restrictions = rs.getString("restrictions");
+            if (!StringUtils.isEmpty(restrictions)) {
+                pair.setTradeRestriction(Arrays.stream(restrictions.split(","))
+                        .map(CurrencyPairRestrictionsEnum::valueOf)
+                        .collect(Collectors.toList()));
+            }
+            return pair;
+        });
+    }
+
+    @Override
+    public void insertCurrencyPairRestriction(Integer currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum) {
+        final String sql = "INSERT INTO CURRENCY_PAIR_RESTRICTION (currency_pair_id, restriction_name) values (:id, :name)";
+        MapSqlParameterSource parameters = new MapSqlParameterSource()
+            .addValue("id", currencyPairId)
+            .addValue("name", restrictionsEnum.name());
+
+        int result = masterJdbcTemplate.update(sql, parameters);
+        if (result <= 0) {
+            throw new RuntimeException("error, cant add new restriction " + currencyPairId + " " + restrictionsEnum);
+        }
+    }
+
+    @Override
+    public void deleteCurrencyPairRestriction(Integer currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum) {
+        final String sql = "DELETE FROM CURRENCY_PAIR_RESTRICTION WHERE restriction_name = :name and currency_pair_id = :id ";
+        MapSqlParameterSource parameters = new MapSqlParameterSource()
+                .addValue("id", currencyPairId)
+                .addValue("name", restrictionsEnum.name());
+
+        int result = masterJdbcTemplate.update(sql, parameters);
+        if (result <= 0) {
+            throw new RuntimeException("error, cant remove restriction " + currencyPairId + " " + restrictionsEnum);
+        }
+    }
+
+    @Override
+    public List<CurrencyPairWithRestriction> findAllCurrencyPairWithRestrictions() {
+        String sql = "SELECT id, name, hidden, permitted_link, top_market_volume, " +
+                "(select group_concat(cpr.restriction_name) from currency_pair_restriction cpr " +
+                "   where currency_pair_id = id ) as restrictions " +
+                "FROM CURRENCY_PAIR";
+        return masterJdbcTemplate.query(sql, (rs, i) -> {
+            CurrencyPairWithRestriction result = new CurrencyPairWithRestriction();
+            result.setId(rs.getInt("id"));
+            result.setName(rs.getString("name"));
+            result.setHidden(rs.getBoolean("hidden"));
+            result.setPermittedLink(rs.getBoolean("permitted_link"));
+            result.setTopMarketVolume(rs.getObject("top_market_volume") == null ? null :
+                    rs.getBigDecimal("top_market_volume"));
+            String restrictions = rs.getString("restrictions");
+            if (!StringUtils.isEmpty(restrictions)) {
+                result.setTradeRestriction(Arrays.stream(restrictions.split(","))
+                        .map(CurrencyPairRestrictionsEnum::valueOf)
+                        .collect(Collectors.toList()));
+            }
+            return result;
+        });
     }
 }

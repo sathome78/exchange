@@ -17,6 +17,7 @@ import me.exrates.model.Comment;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.MarketVolume;
 import me.exrates.model.Merchant;
 import me.exrates.model.RefillRequestAddressShortDto;
@@ -69,6 +70,7 @@ import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.AlertType;
 import me.exrates.model.enums.BusinessUserRoleEnum;
+import me.exrates.model.enums.CurrencyPairRestrictionsEnum;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.NotificationEvent;
@@ -151,6 +153,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -706,6 +709,7 @@ public class AdminController {
             /*todo: Temporary commented for security reasons*/
             /*updateUserDto.setPassword(user.getPassword());*/
             updateUserDto.setPhone(user.getPhone());
+            updateUserDto.setVerificationRequired(user.isVerificationRequired());
             /*todo: Temporary commented for security reasons*/
             if (currentUserRole == ADMINISTRATOR) {
                 //Add to easy change user role to USER or VIP_USER !!! Not other
@@ -1098,8 +1102,11 @@ public class AdminController {
     }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess", method = RequestMethod.GET)
-    public ModelAndView merchantAccess() {
-        return new ModelAndView("admin/merchantAccess");
+    public String merchantAccess(Model model) {
+        model.addAttribute("pairsRestrictions", Arrays.stream(CurrencyPairRestrictionsEnum.values())
+                                                                   .map(Enum::name)
+                                                                   .collect(Collectors.joining(",")));
+        return "admin/merchantAccess";
     }
 
     @AdminLoggable
@@ -1156,8 +1163,8 @@ public class AdminController {
 
     @ResponseBody
     @GetMapping(value = "/2a8fy7b07dxe44/merchantAccess/getCurrencyPairs")
-    public List<CurrencyPair> getCurrencyPairs() {
-        return currencyService.findAllCurrencyPair();
+    public List<CurrencyPairWithRestriction> getCurrencyPairs() {
+        return currencyService.findAllCurrencyPairWithRestrictions();
     }
 
     @ResponseBody
@@ -1196,6 +1203,22 @@ public class AdminController {
     @PostMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPair/visibility/update")
     public ResponseEntity<Void> updateVisibilityCurrencyPairById(@RequestParam("currencyPairId") int currencyPairId) {
         currencyService.updateVisibilityCurrencyPairById(currencyPairId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @ResponseBody
+    @PostMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPair/restriction")
+    public ResponseEntity<Void> addRestrictionCurrencyPairById(@RequestParam("currencyPairId") int currencyPairId,
+                                                               @RequestParam("restriction") CurrencyPairRestrictionsEnum restrictionsEnum) {
+        currencyService.addRestrictionForCurrencyPairById(currencyPairId, restrictionsEnum);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @ResponseBody
+    @DeleteMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPair/restriction")
+    public ResponseEntity<Void> deleteRestrictionCurrencyPairById(@RequestParam("currencyPairId") int currencyPairId,
+                                                               @RequestParam("restriction") CurrencyPairRestrictionsEnum restrictionsEnum) {
+        currencyService.deleteRestrictionForCurrencyPairById(currencyPairId, restrictionsEnum);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

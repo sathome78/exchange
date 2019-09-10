@@ -3,6 +3,8 @@ package me.exrates.service;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 
+import java.util.Map;
+
 public interface CoinPayMerchantService extends IRefillable, IWithdrawable {
     @Override
     default Boolean createdRefillRequestRecordNeeded() {
@@ -36,6 +38,8 @@ public interface CoinPayMerchantService extends IRefillable, IWithdrawable {
 
     @Override
     default Boolean withdrawTransferringConfirmNeeded() {
-        return false;
+        return true;
     }
+
+    void withdrawProcessCallBack(String referenceId, Map<String, String> params);
 }

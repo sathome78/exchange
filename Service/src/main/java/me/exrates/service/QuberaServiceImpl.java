@@ -425,11 +425,12 @@ public class QuberaServiceImpl implements QuberaService {
         if (quberaUserData.getBankVerificationStatus().equalsIgnoreCase("None")) {
             ResponseVerificationStatusDto statusKyc =
                     kycHttpClient.getCurrentStatusKyc(quberaUserData.getReference());
-            String responseStatus = statusKyc.getLastAnalysisStatus();
-            quberaUserData.setBankVerificationStatus(responseStatus);
-            quberaDao.updateUserData(quberaUserData);
+            if (statusKyc.getLastAnalysisStatus() != null) {
+                String responseStatus = statusKyc.getLastAnalysisStatus();
+                quberaUserData.setBankVerificationStatus(responseStatus);
+                quberaDao.updateUserData(quberaUserData);
+            }
         }
-
         return quberaUserData.getBankVerificationStatus();
     }
 

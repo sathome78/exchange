@@ -23,6 +23,7 @@ import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
+import me.exrates.service.WithdrawService;
 import me.exrates.service.coinpay.CoinpayApi;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.stomp.StompMessenger;
@@ -32,16 +33,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.UUID;
 
 @Service
 @Log4j2(topic = "coin_pay_log")
@@ -57,11 +54,9 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
     private final StompMessenger stompMessenger;
     private final WithdrawRequestDao withdrawRequestDao;
     private final RefillRequestDao refillRequestDao;
+    private final WithdrawService withdrawService;
 
-    private String profile;
     private String serverHost;
-
-    private ScheduledExecutorService newTxCheckerScheduler;
 
     @Autowired
     public CoinPayMerchantServiceImpl(CoinpayApi coinpayApi,
@@ -73,7 +68,7 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
                                       StompMessenger stompMessenger,
                                       WithdrawRequestDao withdrawRequestDao,
                                       RefillRequestDao refillRequestDao,
-                                      @Value("${spring.profile}") String profile,
+                                      WithdrawService withdrawService,
                                       @Value("${server-host}") String serverHost) {
         this.coinpayApi = coinpayApi;
         this.merchantService = merchantService;
@@ -84,22 +79,10 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
         this.stompMessenger = stompMessenger;
         this.withdrawRequestDao = withdrawRequestDao;
         this.refillRequestDao = refillRequestDao;
-
-        this.profile = profile;
+        this.withdrawService = withdrawService;
         this.serverHost = serverHost;
-
-        if (!this.profile.equalsIgnoreCase("dev")) {
-            newTxCheckerScheduler = Executors.newSingleThreadScheduledExecutor();
-        }
     }
 
-    @PostConstruct
-    public void checkWithdrawPayments() {
-        if (this.profile.equalsIgnoreCase("dev")) {
-            return;
-        }
-        newTxCheckerScheduler.scheduleAtFixedRate(this::regularyCheckPayments, 10, 60, TimeUnit.MINUTES);
-    }
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
@@ -130,12 +113,21 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
             return;
         }
 
+        if (!params.containsKey("status")) {
+            return;
+        }
+
+        if (!params.get("status").equalsIgnoreCase("CLOSED")) {
+            refillService.declineMerchantRefillRequest(requestId);
+        }
+
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .requestId(requestId)
                 .merchantId(merchant.getId())
                 .amount(flat.get().getAmount())
                 .address(StringUtils.EMPTY)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
+                .merchantTransactionId(params.get("tr_hash"))
                 .build();
         refillService.acceptRefillRequest(requestAcceptDto);
 
@@ -150,19 +142,22 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
         String token = coinpayApi.authorizeUser();
         String amount = withdrawMerchantOperationDto.getAmount();
         String currencyName = withdrawMerchantOperationDto.getCurrency();
+        String uuid = UUID.randomUUID().toString();
+        String callBackUrl = serverHost + "/merchant/coinpay/payment/status/withdraw/" + uuid;
 
         CoinPayCreateWithdrawDto request = CoinPayCreateWithdrawDto.builder()
                 .amount(new BigDecimal(amount))
                 .currency(currencyName)
                 .walletTo(withdrawMerchantOperationDto.getDestinationTag())
                 .withdrawalType(CoinPayCreateWithdrawDto.WithdrawalType.GATEWAY)
+                .callBack(callBackUrl)
                 .build();
 
         CoinPayWithdrawRequestDto response = coinpayApi.createWithdrawRequest(token, request);
 
         Map<String, String> result = new HashMap<>();
         result.put("hash", response.getOrderId());
-        result.put("params", "PENDING");
+        result.put("params", uuid);
         return result;
     }
 
@@ -171,20 +166,18 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
         return false;
     }
 
-    private void regularyCheckPayments() {
+    @Override
+    public void withdrawProcessCallBack(String uuid, Map<String, String> params) {
         Merchant merchant = merchantService.findByName("CoinPay");
-        List<WithdrawRequestFlatDto> pendingRequests = withdrawRequestDao.findByMerchantIdAndAdditionParam(merchant.getId(), "PENDING");
-        if (pendingRequests.isEmpty()) {
+        WithdrawRequestFlatDto request = withdrawRequestDao.findByMerchantIdAndAdditionParam(merchant.getId(), uuid);
+        if (request == null || !params.containsKey("status")) {
             return;
         }
 
-        String token = coinpayApi.authorizeUser();
-        for (WithdrawRequestFlatDto request : pendingRequests) {
-            String orderId = request.getTransactionHash();
-            String status = coinpayApi.checkOrderById(token, orderId);
-            if (status.equalsIgnoreCase("success")) {
-                withdrawRequestDao.updateAdditionalParamById(request.getId(), status);
-            }
+        if (params.get("status").equalsIgnoreCase("CLOSED")) {
+            withdrawService.finalizePostWithdrawalRequest(request.getId());
+        } else {
+            withdrawService.rejectToReview(request.getId());
         }
     }
 

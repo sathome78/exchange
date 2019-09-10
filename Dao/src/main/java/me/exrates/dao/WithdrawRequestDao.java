@@ -64,15 +64,18 @@ public interface WithdrawRequestDao {
 
     WithdrawRequestInfoDto findWithdrawInfo(Integer id);
 
-    List<WithdrawRequestFlatForReportDto> findAllByPeriodAndRoles(LocalDateTime startTime, 
-                                                                  LocalDateTime endTime, 
-                                                                  List<UserRole> userRoles, 
+    List<WithdrawRequestFlatForReportDto> findAllByPeriodAndRoles(LocalDateTime startTime,
+                                                                  LocalDateTime endTime,
+                                                                  List<UserRole> userRoles,
                                                                   int requesterId);
 
     BigDecimal getDailyWithdrawalSumByCurrency(String email, Integer currencyId);
+
     BigDecimal getLeftOutputRequestsCount(int currencyId, String email);
 
-    List<WithdrawRequestFlatDto> findByMerchantIdAndAdditionParam(int merchantId, String additionalParam);
+    List<WithdrawRequestFlatDto> findListByMerchantIdAndAdditionParam(int merchantId, String additionalParam);
+
+    WithdrawRequestFlatDto findByMerchantIdAndAdditionParam(int merchantId, String additionalParam);
 
     boolean updateAdditionalParamById(int requestId, String additionalParam);
 }

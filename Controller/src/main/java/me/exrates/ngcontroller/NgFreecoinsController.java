@@ -4,8 +4,8 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.User;
 import me.exrates.model.constants.ErrorApiTitles;
-import me.exrates.model.dto.freecoins.FreecoinsSettingsDto;
 import me.exrates.model.dto.UserNotificationMessage;
+import me.exrates.model.dto.freecoins.FreecoinsSettingsDto;
 import me.exrates.model.dto.freecoins.GiveawayClaimRequest;
 import me.exrates.model.dto.freecoins.GiveawayResultDto;
 import me.exrates.model.dto.freecoins.GiveawayStatus;
@@ -16,6 +16,7 @@ import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.ngExceptions.NgResponseException;
+import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.UserService;
@@ -105,14 +106,16 @@ public class NgFreecoinsController {
             GiveawayResultDto giveawayResultDto = freeCoinsService.processGiveaway(request.getCurrencyName(), request.getAmount(),
                     request.getPartialAmount(), request.isSingle(), request.getTimeRange(), creatorEmail);
 
-            String text = giveawayResultDto.getStatus() == GiveawayStatus.CREATED
+            boolean created = giveawayResultDto.getStatus() == GiveawayStatus.CREATED;
+
+            String text = created
                     ? "Free coins giveaway process was created"
                     : "Free coins giveaway process was failed";
-            sendPersonalMessageToUser(creatorEmail, text);
+            sendPersonalMessageToUser(creatorEmail, text, created);
 
             return ResponseEntity.status(HttpStatus.CREATED).body(giveawayResultDto);
         } catch (Exception ex) {
-            sendPersonalMessageToUser(creatorEmail, "Free coins giveaway process was failed");
+            sendPersonalMessageToUser(creatorEmail, "Free coins giveaway process was failed", false);
 
             final String message = "Free coins giveaway process was failed";
             throw new NgResponseException(ErrorApiTitles.FREE_COINS_GIVE_AWAY_PROCESS_FAILED, message);
@@ -132,13 +135,13 @@ public class NgFreecoinsController {
             boolean revoked = freeCoinsService.processRevokeGiveaway(giveawayId, revokeToUser, creatorEmail);
 
             if (revokeToUser) {
-                sendPersonalMessageToUser(creatorEmail, "Free coins giveaway revoke process was ended, funds was returned");
+                sendPersonalMessageToUser(creatorEmail, "Free coins giveaway revoke process was ended, funds was returned", true);
             }
 
             return ResponseEntity.ok(revoked);
         } catch (Exception ex) {
             if (revokeToUser) {
-                sendPersonalMessageToUser(creatorEmail, "Free coins giveaway revoke process was failed");
+                sendPersonalMessageToUser(creatorEmail, "Free coins giveaway revoke process was failed", false);
             }
 
             final String message = "Free coins giveaway revoke process was failed";
@@ -158,13 +161,13 @@ public class NgFreecoinsController {
         try {
             ReceiveResultDto receiveResultDto = freeCoinsService.processReceive(giveawayId, receiverEmail);
 
-            sendPersonalMessageToUser(receiverEmail, "Free coins receive process was created");
+            sendPersonalMessageToUser(receiverEmail, "Free coins was received", true);
 
             return ResponseEntity.ok(receiveResultDto);
         } catch (Exception ex) {
-            sendPersonalMessageToUser(receiverEmail, "Free coins receive process was failed");
+            sendPersonalMessageToUser(receiverEmail, "Free coins was not received", false);
 
-            final String message = "Free coins receive process was failed";
+            final String message = "Free coins was not received";
             throw new NgResponseException(ErrorApiTitles.FREE_COINS_RECEIVE_PROCESS_FAILED, message);
         }
     }
@@ -261,20 +264,22 @@ public class NgFreecoinsController {
         boolean googleAuthenticatorEnabled = g2faService.isGoogleAuthenticatorEnable(userId);
         if (googleAuthenticatorEnabled) {
             if (!g2faService.checkGoogle2faVerifyCode(pin, userId)) {
-                final String message = String.format("Invalid google 2fa authorization code from user %s", email);
-                throw new NgResponseException(ErrorApiTitles.VERIFY_GOOGLE2FA_FAILED, message);
+                final String message = String.format("Incorrect pin: %s", pin);
+                throw new IncorrectPinException(message);
             }
         } else {
             if (!userService.checkPin(email, pin, NotificationMessageEventEnum.FREE_COINS)) {
-                final String message = String.format("Invalid google 2fa authorization code from user %s", email);
-                throw new NgResponseException(ErrorApiTitles.VERIFY_GOOGLE2FA_FAILED, message);
+                final String message = String.format("Incorrect pin: %s", pin);
+                throw new IncorrectPinException(message);
             }
         }
     }
 
-    private void sendPersonalMessageToUser(String creatorEmail, String text) {
+    private void sendPersonalMessageToUser(String creatorEmail, String text, Boolean success) {
         UserNotificationMessage notificationMessage = new UserNotificationMessage();
-        notificationMessage.setNotificationType(UserNotificationType.INFORMATION);
+        notificationMessage.setNotificationType(success
+                ? UserNotificationType.SUCCESS
+                : UserNotificationType.WARNING);
         notificationMessage.setSourceTypeEnum(WsSourceTypeEnum.FREE_COINS);
         notificationMessage.setText(text);
 

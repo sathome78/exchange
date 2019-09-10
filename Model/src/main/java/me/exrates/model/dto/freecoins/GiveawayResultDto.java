@@ -18,6 +18,8 @@ public class GiveawayResultDto {
     private int id;
     @JsonProperty("currency_name")
     private String currencyName;
+    @JsonProperty("currency_description")
+    private String currencyDescription;
     private BigDecimal amount;
     @JsonProperty("partial_amount")
     private BigDecimal partialAmount;

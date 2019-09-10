@@ -56,9 +56,10 @@ public class FreecoinsRepositoryImpl implements FreecoinsRepository {
 
     @Override
     public GiveawayResultDto getClaim(int id) {
-        final String sql = "SELECT fcc.id, fcc.currency_name, fcc.amount, fcc.partial_amount, fcc.total_quantity, " +
-                "fcc.single, fcc.time_range, fcc.creator_email, fcc.status " +
+        final String sql = "SELECT fcc.id, fcc.currency_name, cur.description AS currency_description, fcc.amount, " +
+                "fcc.partial_amount, fcc.total_quantity, fcc.single, fcc.time_range, fcc.creator_email, fcc.status " +
                 "FROM FREE_COINS_CLAIM fcc " +
+                "JOIN CURRENCY cur ON cur.name = fcc.currency_name " +
                 "WHERE fcc.id = :id";
 
         Map<String, Object> params = new HashMap<>();
@@ -73,9 +74,10 @@ public class FreecoinsRepositoryImpl implements FreecoinsRepository {
 
     @Override
     public List<GiveawayResultDto> getAllCreatedClaims() {
-        final String sql = "SELECT fcc.id, fcc.currency_name, fcc.amount, fcc.partial_amount, fcc.total_quantity, " +
-                "fcc.single, fcc.time_range, fcc.creator_email, fcc.status " +
+        final String sql = "SELECT fcc.id, fcc.currency_name, cur.description AS currency_description, fcc.amount, " +
+                "fcc.partial_amount, fcc.total_quantity, fcc.single, fcc.time_range, fcc.creator_email, fcc.status " +
                 "FROM FREE_COINS_CLAIM fcc " +
+                "JOIN CURRENCY cur ON cur.name = fcc.currency_name " +
                 "WHERE fcc.status = :status AND fcc.total_quantity <> 0";
 
         Map<String, Object> params = new HashMap<>();
@@ -193,6 +195,7 @@ public class FreecoinsRepositoryImpl implements FreecoinsRepository {
         return (rs, i) -> GiveawayResultDto.builder()
                 .id(rs.getInt("id"))
                 .currencyName(rs.getString("currency_name"))
+                .currencyDescription(rs.getString("currency_description"))
                 .amount(rs.getBigDecimal("amount"))
                 .partialAmount(rs.getBigDecimal("partial_amount"))
                 .totalQuantity(rs.getInt("total_quantity"))

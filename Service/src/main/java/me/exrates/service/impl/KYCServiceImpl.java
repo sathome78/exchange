@@ -7,17 +7,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
-import me.exrates.dao.KYCSettingsDao;
-import me.exrates.dao.UserVerificationInfoDao;
 import me.exrates.model.Email;
-import me.exrates.model.User;
 import me.exrates.model.constants.Constants;
 import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.dto.kyc.EventStatus;
-import me.exrates.model.dto.kyc.IdentityDataRequest;
 import me.exrates.model.dto.kyc.responces.KycResponseStatusDto;
-import me.exrates.model.dto.kyc.responces.KycStatusResponseDto;
-import me.exrates.model.dto.kyc.responces.OnboardingResponseDto;
 import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.ngExceptions.NgDashboardException;
@@ -31,12 +25,16 @@ import me.exrates.service.util.ShuftiProUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.support.BasicAuthorizationInterceptor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -77,8 +75,6 @@ public class KYCServiceImpl implements KYCService {
     private final UserService userService;
     private final SendMailService sendMailService;
     private final KycHttpClient kycHttpClient;
-    private final UserVerificationInfoDao userVerificationInfoDao;
-    private final KYCSettingsDao kycSettingsDao;
     private final StompMessenger stompMessenger;
 
     @Value("${server-host}")
@@ -99,8 +95,6 @@ public class KYCServiceImpl implements KYCService {
                           UserService userService,
                           SendMailService sendMailService,
                           KycHttpClient kycHttpClient,
-                          UserVerificationInfoDao userVerificationInfoDao,
-                          KYCSettingsDao kycSettingsDao,
                           StompMessenger stompMessenger) {
         this.verificationUrl = verificationUrl;
         this.statusUrl = statusUrl;
@@ -115,10 +109,9 @@ public class KYCServiceImpl implements KYCService {
         this.userService = userService;
         this.sendMailService = sendMailService;
         this.kycHttpClient = kycHttpClient;
-        this.userVerificationInfoDao = userVerificationInfoDao;
-        this.kycSettingsDao = kycSettingsDao;
         this.stompMessenger = stompMessenger;
         this.restTemplate = new RestTemplate();
+        this.restTemplate.setRequestFactory(sslFactory());
         this.restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(username, password));
     }
 
@@ -301,58 +294,6 @@ public class KYCServiceImpl implements KYCService {
         }
     }
 
-    @Override
-    public OnboardingResponseDto startKyCProcessing(IdentityDataRequest identityDataRequest, String email) {
-//        User user = userService.findByEmail(email);
-//        if (user.getKycStatus().equalsIgnoreCase("success")) {
-//            throw new KycException("Already passed KYC");
-//        }
-//        Date dateOfBirth = DateUtils.getDateFromStringForKyc(identityDataRequest.getBirthYear(), identityDataRequest.getBirthMonth(),
-//                identityDataRequest.getBirthDay());
-//        //start create applicant
-//        String uuid = UUID.randomUUID().toString();
-//        userService.updatePrivateDataAndKycReference(user.getEmail(),
-//                uuid,
-//                identityDataRequest.getCountryCode(),
-//                identityDataRequest.getFirstName(),
-//                identityDataRequest.getLastName(),
-//                dateOfBirth);
-//        PersonKycDto personKycDto = new PersonKycDto(Collections.singletonList(IdentityDataKyc.of(identityDataRequest)));
-//        CreateApplicantDto createApplicantDto = new CreateApplicantDto(uuid, personKycDto);
-//
-//        ResponseCreateApplicantDto response = kycHttpClient.createApplicant(createApplicantDto);
-//
-//        if (!response.getState().equalsIgnoreCase("INITIAL")) {
-//            throw new KycException("Error while start processing KYC, state " + response.getState()
-//                    + " uid " + response.getUid() + " lastReportStatus " + response.getLastReportStatus());
-//        }
-//        String docId = RandomStringUtils.random(18, true, false);
-//
-//        String callBackUrl = String.format("%s/api/public/v2/kyc/webhook/%s", host, uuid);
-//
-//        RequestOnBoardingDto onBoardingDto = RequestOnBoardingDto.createOfParams(callBackUrl, email, uuid, docId);
-//        userVerificationInfoDao.saveUserVerificationDoc(new UserVerificationInfo(user.getId(), DocTypeEnum.P, docId));
-//        log.info("Sending to create applicant {}", onBoardingDto);
-//        OnboardingResponseDto onBoarding = kycHttpClient.createOnBoarding(onBoardingDto);
-//        userService.updateVerificationStatus(user.getEmail(), "Pending");
-//        return onBoarding;
-        return null;
-    }
-
-    @Override
-    public boolean updateUserVerificationInfo(User user, KycStatusResponseDto kycStatusResponseDto) {
-        return userService.updateVerificationStatus(user.getEmail(), kycStatusResponseDto.getStatus());
-//        return kycDao.updateUserVerification(user.getId(), kycStatusResponseDto);
-    }
-
-    @Override
-    public void processingCallBack(String referenceId, KycStatusResponseDto kycStatusResponseDto) {
-//        User user = userService.findByKycReferenceId(referenceId);
-//        updateUserVerificationInfo(user, kycStatusResponseDto);
-//        sendPersonalMessage(kycStatusResponseDto, user);
-//        sendStatusNotification(user.getEmail(), kycStatusResponseDto.getStatus());
-    }
-
     private void sendPersonalMessage(String userEmail, String verificationLink) {
         UserNotificationMessage message = UserNotificationMessage.builder()
                 .notificationType(UserNotificationType.INFORMATION)
@@ -391,6 +332,15 @@ public class KYCServiceImpl implements KYCService {
         if (!isMerchantSignatureSame) {
             throw new ShuftiProException("Merchant signature is not the same with generated");
         }
+    }
+
+    private HttpComponentsClientHttpRequestFactory sslFactory() {
+        CloseableHttpClient httpClient = HttpClients.custom()
+                .setSSLHostnameVerifier(new NoopHostnameVerifier())
+                .build();
+        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+        requestFactory.setHttpClient(httpClient);
+        return requestFactory;
     }
 
     @Builder(builderClassName = "Builder")

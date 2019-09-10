@@ -25,6 +25,7 @@ public class CoinPayCreateWithdrawDto {
     private String currency;
     @JsonProperty("wallet_to")
     private String walletTo;
+    private String callBack;
 
 
     public enum WithdrawalType {
