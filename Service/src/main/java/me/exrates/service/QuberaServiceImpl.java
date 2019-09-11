@@ -425,8 +425,8 @@ public class QuberaServiceImpl implements QuberaService {
         if (quberaUserData.getBankVerificationStatus().equalsIgnoreCase("None")) {
             ResponseVerificationStatusDto statusKyc =
                     kycHttpClient.getCurrentStatusKyc(quberaUserData.getReference());
-            if (statusKyc.getLastAnalysisStatus() != null) {
-                String responseStatus = statusKyc.getLastAnalysisStatus();
+            if (StringUtils.isNoneEmpty(statusKyc.getLastReportStatus())) {
+                String responseStatus = statusKyc.getLastReportStatus();
                 quberaUserData.setBankVerificationStatus(responseStatus);
                 quberaDao.updateUserData(quberaUserData);
             }
@@ -442,7 +442,7 @@ public class QuberaServiceImpl implements QuberaService {
         }
 
         ResponseVerificationStatusDto statusResponse = kycHttpClient.getCurrentStatusKyc(referenceId);
-        String eventStatus = statusResponse.getLastAnalysisStatus();
+        String eventStatus = statusResponse.getLastReportStatus();
         User user = userService.getUserById(quberaUserData.getUserId());
         quberaUserData.setBankVerificationStatus(eventStatus);
         quberaDao.updateUserData(quberaUserData);
@@ -703,6 +703,7 @@ public class QuberaServiceImpl implements QuberaService {
             case ERROR:
                 result = String.format(generalMessage, "ERROR") + ", try again";
                 break;
+            case OBSOLETE:
             case WARN:
                 result = String.format(generalMessage, "WARN") + ", try again";
                 break;
@@ -719,14 +720,15 @@ public class QuberaServiceImpl implements QuberaService {
             case OK:
                 type = UserNotificationType.SUCCESS;
                 break;
-            case ERROR:
-                type = UserNotificationType.ERROR;
-                break;
             case NONE:
                 type = UserNotificationType.INFORMATION;
                 break;
+            case OBSOLETE:
             case WARN:
                 type = UserNotificationType.WARNING;
+                break;
+            case ERROR:
+                type = UserNotificationType.ERROR;
                 break;
             default:
                 throw new KycException(ErrorApiTitles.QUBERA_UNKNOWN_KYC_STATUS);

@@ -1136,7 +1136,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         String sql = "SELECT id, currency1_id, currency2_id, name, market, type, top_market, top_market_volume, " +
                 "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
                 "(select name from CURRENCY where id = currency2_id) as currency2_name, " +
-                "(select group_concat(cpr.restriction_name) from currency_pair_restriction cpr " +
+                "(select group_concat(cpr.restriction_name) from CURRENCY_PAIR_RESTRICTION cpr " +
                 "   where currency_pair_id = :currencyPairId ) as restrictions " +
                 " FROM CURRENCY_PAIR " +
                 "WHERE id = :currencyPairId ";
@@ -1183,7 +1183,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     @Override
     public List<CurrencyPairWithRestriction> findAllCurrencyPairWithRestrictions() {
         String sql = "SELECT id, name, hidden, permitted_link, top_market_volume, " +
-                "(select group_concat(cpr.restriction_name) from currency_pair_restriction cpr " +
+                "(select group_concat(cpr.restriction_name) from CURRENCY_PAIR_RESTRICTION cpr " +
                 "   where currency_pair_id = id ) as restrictions " +
                 "FROM CURRENCY_PAIR";
         return masterJdbcTemplate.query(sql, (rs, i) -> {

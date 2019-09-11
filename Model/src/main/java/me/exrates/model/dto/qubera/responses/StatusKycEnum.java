@@ -9,7 +9,8 @@ public enum StatusKycEnum {
     OK("OK"),
     NONE("NONE"),
     ERROR("ERROR"),
-    WARN("WARN");
+    WARN("WARN"),
+    OBSOLETE("OBSOLETE");
 
     private String status;
 
