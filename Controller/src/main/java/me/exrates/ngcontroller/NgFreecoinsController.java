@@ -253,7 +253,7 @@ public class NgFreecoinsController {
             }
             return ResponseEntity.ok().build();
         } catch (Exception ex) {
-            final String message = "Failed to send pin code on user email";
+            final String message = "Failed to send pin code on user email. Reason: " + ex.getMessage();
             throw new NgResponseException(ErrorApiTitles.FAILED_TO_SEND_PIN_CODE_ON_USER_EMAIL, message);
         }
     }
