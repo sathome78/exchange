@@ -247,7 +247,7 @@ public class QuberaServiceImpl implements QuberaService {
             }
         }
 
-        if (!userData.getBankVerificationStatus().equalsIgnoreCase("success")) {
+        if (!userData.getBankVerificationStatus().equalsIgnoreCase("OK")) {
             throw new NgDashboardException(ErrorApiTitles.KYC_NOT_PROCESSING);
         }
 

@@ -12,6 +12,7 @@ import me.exrates.model.dto.OrderBookWrapperDto;
 import me.exrates.model.dto.OrdersListWrapper;
 import me.exrates.model.dto.WsMessageObject;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
+import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.dto.openAPI.UserOrdersDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderType;
@@ -109,8 +110,8 @@ public class WsController {
     }
 
     @SubscribeMapping("/queue/open_orders/{pairName}")
-    public List<UserOrdersDto> subscribeTrades(@DestinationVariable String pairName) {
-        return orderService.getUserOpenOrders(OpenApiUtils.transformCurrencyPair(pairName));
+    public List<OrderWideListDto> subscribeTrades(@DestinationVariable String pairName, Principal principal) {
+        return orderService.getMyOpenOrdersWithState(OpenApiUtils.transformCurrencyPair(pairName), principal.getName());
     }
 
     @SubscribeMapping("/all_trades/{pairName}")

@@ -314,20 +314,27 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         if (isZero(low24hr) || lastOrderRate.compareTo(high24hr) < 0) {
             data.setLow24hr(lastOrderRate.toPlainString());
         }
-        data.setPercentChange(calculatePercentChange(data));
+        calculatePercentChange(data);
     }
 
-    private String calculatePercentChange(ExOrderStatisticsShortByPairsDto statistic) {
+    private void calculatePercentChange(ExOrderStatisticsShortByPairsDto statistic) {
         BigDecimal lastOrderRate = statistic.getLastOrderRate() == null ? BigDecimal.ZERO : new BigDecimal(statistic.getLastOrderRate());
         BigDecimal lastOrderRate24hr = nonNull(statistic.getLastOrderRate24hr())
                 ? new BigDecimal(statistic.getLastOrderRate24hr())
                 : BigDecimal.ZERO;
 
         BigDecimal percentChange = BigDecimal.ZERO;
+        BigDecimal valueChange = BigDecimal.ZERO;
         if (BigDecimalProcessing.moreThanZero(lastOrderRate) && BigDecimalProcessing.moreThanZero(lastOrderRate24hr)) {
             percentChange = BigDecimalProcessing.doAction(lastOrderRate24hr, lastOrderRate, ActionType.PERCENT_GROWTH);
+            valueChange = BigDecimalProcessing.doAction(lastOrderRate24hr, lastOrderRate, ActionType.SUBTRACT);
         }
-        return percentChange.toPlainString();
+        if (BigDecimalProcessing.moreThanZero(lastOrderRate) && lastOrderRate24hr.compareTo(BigDecimal.ZERO) == 0) {
+            percentChange = new BigDecimal(100);
+            valueChange = lastOrderRate;
+        }
+        statistic.setPercentChange(percentChange.toPlainString());
+        statistic.setValueChange(valueChange.toPlainString());
     }
 
     private String calculatePriceInUsd(ExOrderStatisticsShortByPairsDto item) {

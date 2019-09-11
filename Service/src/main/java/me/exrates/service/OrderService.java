@@ -429,6 +429,10 @@ public interface OrderService {
                                          @Null Integer limit,
                                          @Null Integer offset);
 
+    List<OrderWideListDto> getMyOpenOrdersWithState(String pairName, String userEmail);
+
+    List<OrderWideListDto> getMyOpenOrdersWithState(String pairName, int userId);
+
     Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, String currencyName,
                                                                   OrderStatus orderStatus, String scope, Integer limit,
                                                                   Integer offset, Boolean hideCanceled, String sortByCreated,
