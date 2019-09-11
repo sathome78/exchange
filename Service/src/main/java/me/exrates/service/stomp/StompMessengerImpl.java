@@ -10,6 +10,7 @@ import me.exrates.model.IEODetails;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.RefreshStatisticDto;
 import me.exrates.model.dto.UserNotificationMessage;
+import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.dto.openAPI.UserOrdersDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderType;
@@ -96,7 +97,7 @@ public class StompMessengerImpl implements StompMessenger {
 
     @Override
     public void sendPersonalOpenOrdersToUser(Integer userId, String pairName) {
-        List<UserOrdersDto> message = orderService.getUserOpenOrders(currencyService.findCurrencyPairIdByName(pairName), userId);
+        List<OrderWideListDto> message = orderService.getMyOpenOrdersWithState(pairName, userId);
         String destination = "/queue/open_orders/".concat(OpenApiUtils.transformCurrencyPairBack(pairName));
         String userEmail = userService.getEmailById(userId);
         messagingTemplate.convertAndSendToUser(userEmail, destination, message);

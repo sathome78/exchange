@@ -29,6 +29,10 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
+import me.exrates.service.exception.NeedVerificationException;
+import me.exrates.service.exception.OrderCreationRestrictedException;
+import me.exrates.service.exception.api.ErrorCode;
+import me.exrates.service.exception.api.OpenApiError;
 import me.exrates.service.exception.process.OrderAcceptionException;
 import me.exrates.service.exception.process.OrderCancellingException;
 import me.exrates.service.stopOrder.StopOrderService;
@@ -42,6 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -417,6 +422,20 @@ public class NgDashboardController {
     @PutMapping("/policy/{name}")
     public ResponseModel<Boolean> addPolicyToUser(@PathVariable String name) {
         return new ResponseModel<>(userService.addPolicyToUser(getPrincipalEmail(), name));
+    }
+
+    @ResponseStatus(HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS)
+    @ExceptionHandler(OrderCreationRestrictedException.class)
+    @ResponseBody
+    public OpenApiError orderCreationRestrictedException(HttpServletRequest req, Exception exception) {
+        return new OpenApiError(ErrorCode.ORDER_CREATION_RESTRICTED, req.getRequestURL(), exception.getMessage());
+    }
+
+    @ResponseStatus(HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS)
+    @ExceptionHandler(NeedVerificationException.class)
+    @ResponseBody
+    public OpenApiError orderCreationNeedVerificationException(HttpServletRequest req, Exception exception) {
+        return new OpenApiError(ErrorCode.NEED_VERIFICATION_EXCEPTION, req.getRequestURL(), exception.getMessage());
     }
 
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)

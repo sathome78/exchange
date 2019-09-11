@@ -14,4 +14,6 @@ public class UserEmailDto {
     private String email;
     @Email(message = "Parent email should be valid", regexp = EMAIL_PATTERN)
     private String parentEmail;
+    @NotNull
+    private Boolean isUsa;
 }

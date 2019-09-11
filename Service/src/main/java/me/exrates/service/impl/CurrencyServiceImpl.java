@@ -6,6 +6,7 @@ import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.MarketVolume;
 import me.exrates.model.User;
 import me.exrates.model.dto.CurrencyPairLimitDto;
@@ -17,6 +18,7 @@ import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
+import me.exrates.model.enums.CurrencyPairRestrictionsEnum;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.Market;
 import me.exrates.model.enums.MerchantProcessType;
@@ -49,6 +51,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -447,6 +450,11 @@ public class CurrencyServiceImpl implements CurrencyService {
         return currencyDao.findAllCurrencyPair();
     }
 
+    @Override
+    public List<CurrencyPairWithRestriction> findAllCurrencyPairWithRestrictions() {
+        return currencyDao.findAllCurrencyPairWithRestrictions();
+    }
+
     @CheckCurrencyPairVisibility
     @Override
     public boolean updateVisibilityCurrencyPairById(int currencyPairId) {
@@ -622,5 +630,21 @@ public class CurrencyServiceImpl implements CurrencyService {
         defaultMarketVolumes.remove(name);
         defaultMarketVolumes.put(name, volume);
         return currencyDao.updateDefaultMarketVolume(name, volume);
+    }
+
+    @Override
+    public CurrencyPairWithRestriction findCurrencyPairByIdWithRestrictions(Integer currencyPairId) {
+        return currencyDao.findCurrencyPairWithRestrictionRestrictions(currencyPairId);
+    }
+
+
+    @Override
+    public void addRestrictionForCurrencyPairById(int currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum) {
+        currencyDao.insertCurrencyPairRestriction(currencyPairId, restrictionsEnum);
+    }
+
+    @Override
+    public void deleteRestrictionForCurrencyPairById(int currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum) {
+        currencyDao.deleteCurrencyPairRestriction(currencyPairId, restrictionsEnum);
     }
 }

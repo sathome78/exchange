@@ -11,6 +11,7 @@ import me.exrates.model.Commission;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.ExOrder;
 import me.exrates.model.PagingData;
 import me.exrates.model.User;
@@ -105,6 +106,7 @@ import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.util.BiTuple;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.json.JSONArray;
 import org.junit.Before;
@@ -472,7 +474,7 @@ public class OrderServiceImplTest {
                 any(UserRole.class))).thenReturn(getMockWalletsAndCommissionsForOrderCreationDto());
 
         OrderCreateDto orderCreateDto = orderService.prepareNewOrder(
-                new CurrencyPair("BTC/USD"),
+                new CurrencyPairWithRestriction("BTC/USD"),
                 OperationType.SELL,
                 USER_EMAIL,
                 BigDecimal.ONE,
@@ -509,7 +511,7 @@ public class OrderServiceImplTest {
                 any(UserRole.class))).thenReturn(getMockWalletsAndCommissionsForOrderCreationDto());
 
         OrderCreateDto orderCreateDto = orderService.prepareNewOrder(
-                new CurrencyPair("BTC/USD"),
+                new CurrencyPairWithRestriction("BTC/USD"),
                 OperationType.SELL,
                 USER_EMAIL,
                 BigDecimal.ONE,
@@ -544,7 +546,7 @@ public class OrderServiceImplTest {
                 any(UserRole.class))).thenReturn(getMockWalletsAndCommissionsForOrderCreationDto());
 
         OrderCreateDto orderCreateDto = orderService.prepareNewOrder(
-                new CurrencyPair("BTC/USD"),
+                new CurrencyPairWithRestriction("BTC/USD"),
                 OperationType.BUY,
                 USER_EMAIL,
                 BigDecimal.ONE,
@@ -1857,7 +1859,7 @@ public class OrderServiceImplTest {
         dto.setAmount(BigDecimal.TEN);
         dto.setRate(BigDecimal.ONE);
         when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
-        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(new CurrencyPair("BTC/USD"));
+        when(currencyService.findCurrencyPairByIdWithRestrictions(anyInt())).thenReturn(new CurrencyPairWithRestriction("BTC/USD"));
         when(orderDao.getWalletAndCommission(
                 anyString(),
                 any(Currency.class),
@@ -1871,7 +1873,7 @@ public class OrderServiceImplTest {
             assertTrue(e instanceof InsufficientCostsInWalletException);
             assertEquals("Failed as user has insufficient funds for this operation!", e.getMessage());
         }
-        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+        verify(currencyService, atLeastOnce()).findCurrencyPairByIdWithRestrictions(anyInt());
         verify(orderDao, atLeastOnce()).getWalletAndCommission(
                 anyString(),
                 any(Currency.class),
@@ -1892,7 +1894,7 @@ public class OrderServiceImplTest {
         mockCurrencyPairLimitDto.setMinAmount(BigDecimal.ZERO);
         mockCurrencyPairLimitDto.setMinRate(BigDecimal.ZERO);
         when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("1"));
-        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(new CurrencyPair("BTC/USD"));
+        when(currencyService.findCurrencyPairByIdWithRestrictions(anyInt())).thenReturn(new CurrencyPairWithRestriction("BTC/USD"));
         when(orderDao.getWalletAndCommission(
                 anyString(),
                 any(Currency.class),
@@ -1913,7 +1915,7 @@ public class OrderServiceImplTest {
         assertEquals(dto.getAmount(), orderCreateDto.getAmount());
         assertEquals(dto.getRate(), orderCreateDto.getExchangeRate());
 
-        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+        verify(currencyService, atLeastOnce()).findCurrencyPairByIdWithRestrictions(anyInt());
         verify(orderDao, atLeastOnce()).getWalletAndCommission(
                 anyString(),
                 any(Currency.class),
@@ -2914,7 +2916,7 @@ public class OrderServiceImplTest {
     public void testPrepareMarketOrder() {
         InputCreateOrderDto inputOrder = getTestInputCreateOrderDto();
         when(userService.getUserEmailFromSecurityContext()).thenReturn("test@test.com");
-        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(new CurrencyPair("BTC/USD"));
+        when(currencyService.findCurrencyPairByIdWithRestrictions(anyInt())).thenReturn(new CurrencyPairWithRestriction("BTC/USD"));
         when(userService.getUserRoleFromDB(anyString())).thenReturn(UserRole.USER);
         when(orderDao.getWalletAndCommission(anyString(), any(Currency.class), any(OperationType.class), any(UserRole.class)))
                 .thenReturn(new WalletsAndCommissionsForOrderCreationDto());
@@ -6761,6 +6763,7 @@ public class OrderServiceImplTest {
         dto.setHidden(Boolean.FALSE);
         dto.setLastUpdateCache("2019-04-03 14:52:14");
         dto.setTopMarket(true);
+        dto.setValueChange("0");
 
         return dto;
     }

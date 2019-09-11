@@ -41,6 +41,7 @@ public class User implements Serializable {
     @JsonDeserialize(using = LocalDateDeserializer.class)
     private LocalDate birthDay;
     private String publicId;
+    private boolean verificationRequired;
 
     public User() {
     }
@@ -203,6 +204,14 @@ public class User implements Serializable {
 
     public void setBirthDay(LocalDate birthDay) {
         this.birthDay = birthDay;
+    }
+
+    public boolean isVerificationRequired() {
+        return verificationRequired;
+    }
+
+    public void setVerificationRequired(boolean verificationRequired) {
+        this.verificationRequired = verificationRequired;
     }
 
     @Override
