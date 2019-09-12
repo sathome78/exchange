@@ -3,6 +3,7 @@ package me.exrates.service;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.MarketVolume;
 import me.exrates.model.User;
 import me.exrates.model.dto.CurrencyPairLimitDto;
@@ -14,6 +15,7 @@ import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
+import me.exrates.model.enums.CurrencyPairRestrictionsEnum;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
@@ -138,6 +140,8 @@ public interface CurrencyService {
 
     List<CurrencyPair> findAllCurrencyPair();
 
+    List<CurrencyPairWithRestriction> findAllCurrencyPairWithRestrictions();
+
     boolean updateVisibilityCurrencyPairById(int currencyPairId);
 
     boolean updateAccessToDirectLinkCurrencyPairById(int currencyPairId);
@@ -179,4 +183,10 @@ public interface CurrencyService {
     List<MarketVolume> getAllMarketVolumes();
 
     boolean updateDefaultMarketVolume(String name, BigDecimal volume);
+
+    CurrencyPairWithRestriction findCurrencyPairByIdWithRestrictions(Integer currencyPairId);
+
+    void addRestrictionForCurrencyPairById(int currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum);
+
+    void deleteRestrictionForCurrencyPairById(int currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum);
 }

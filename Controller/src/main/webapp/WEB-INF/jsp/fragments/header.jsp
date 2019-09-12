@@ -12,6 +12,7 @@
 <script src="<c:url value="/client/js/notifications/notifications.js"/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/login.js'/>"></script>
+<script src="https://www.google.com/recaptcha/api.js" type="text/javascript"></script>
 <link href="https://fonts.googleapis.com/css?family=Montserrat:500,700" rel="stylesheet">
 
 <c:set var="path" value="${fn:replace(pageContext.request.requestURI, '/WEB-INF/jsp', '')}"/>
@@ -163,10 +164,9 @@
                     <div class="field__pwd-show / js-show-pwd"></div>
                     <input id="auth_pass" class="field__input / js-pwd" type="password" name="password" placeholder="Password" required>
                 </div>
-
-                <input id="log_geetest_challenge" type="hidden" name="geetest_challenge">
-                <input id="log_geetest_validate" type="hidden" name="geetest_validate">
-                <input id="log_geetest_seccode" type="hidden" name="geetest_seccode">
+                <br>
+                <div class="g-recaptcha" data-callback="capResultChecLogin" data-expired-callback="capExpiredLogin"
+                     data-sitekey="${captchaProperties.get("captcha.key")}"></div>
 
                 <div class="field field--btn__new">
                     <input id="login_submit" class="btn__new btn__new--form" value="Authorise me" readonly disabled>
@@ -194,6 +194,7 @@
             <form id="pwd_restore_form" class="form" method="post">
                 <div class="field">
                     <div class="field__label">Email</div>
+                    <input type="hidden"  class="csrfC" name="_csrf" value="${_csrf.token}"/>
                     <c:choose>
                         <c:when test="${not empty recoveryError}">
                             <input id="email_pwd_restore" class="field__input" type="email" name="email" placeholder="Email" value="${userEmail}" required>
@@ -212,7 +213,9 @@
                         <loc:message code="ip.ban.message.incorrectAttemptsExceeded"/>
                     </div>
                 </div>
-
+                <br>
+                <div class="g-recaptcha" data-callback="capResultChecRestore" data-expired-callback="capExpiredRestore"
+                     data-sitekey="${captchaProperties.get("captcha.key")}"></div>
                 <div class="field field--btn__new">
                     <input id="pwd_restore_submit" class="btn__new btn__new--form" type="submit" value="Reset password" disabled>
                 </div>
@@ -277,7 +280,7 @@
             <div class="popup__caption">Registration</div>
 
             <form id="create_me" class="form" method="post">
-                <input id="csrfC" type="hidden"  class="csrfC" name="_csrf"/>
+                <input type="hidden"  class="csrfC" name="_csrf" value="${_csrf.token}"/>
                 <input id="userParentEmail" name="parentEmail" hidden value='${parentEmail}'>
 
                 <div class="field">
@@ -298,6 +301,10 @@
                     <div id="reg__email_reequired" class='field__error' style="display:none">
                         <loc:message code="register.emailIsRequired"/>
                     </div>
+
+                    <br>
+                    <div class="g-recaptcha" data-callback="capResultChecReg" data-expired-callback="capExpiredReg"
+                         data-sitekey="${captchaProperties.get("captcha.key")}"></div>
                 </div>
 
                 <div class="field field--btn__new">

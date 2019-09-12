@@ -22,7 +22,8 @@ public enum TransactionSourceType {
   STOP_ORDER(10),
   REFILL(11),
   NOTIFICATIONS(12),
-  IEO(13);
+  IEO(13),
+  FREE_COINS_TRANSFER(14);
 
   private final int code;
 

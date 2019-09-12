@@ -6,6 +6,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.invoice.FreecoinsStatusEnum;
 import me.exrates.model.enums.invoice.IeoStatusEnum;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
@@ -77,6 +78,8 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
       this.status = TransferStatusEnum.convert(statusId);
     } else if (sourceType == IEO) {
       this.status = IeoStatusEnum.convert(statusId);
+    } else if (sourceType == FREE_COINS_TRANSFER) {
+      this.status = FreecoinsStatusEnum.convert(statusId);
     }
   }
 

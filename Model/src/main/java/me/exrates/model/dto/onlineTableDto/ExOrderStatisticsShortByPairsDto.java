@@ -27,6 +27,7 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
     private String lastOrderRate;
     private String predLastOrderRate;
     private String percentChange;
+    private String valueChange;
     private String market;
     private String priceInUSD;
     private CurrencyPairType type;

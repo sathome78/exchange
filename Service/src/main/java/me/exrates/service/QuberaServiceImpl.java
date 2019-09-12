@@ -25,7 +25,6 @@ import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.dto.kyc.CreateApplicantDto;
-import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.model.dto.kyc.IdentityDataKyc;
 import me.exrates.model.dto.kyc.IdentityDataRequest;
 import me.exrates.model.dto.kyc.PersonKycDto;
@@ -42,6 +41,8 @@ import me.exrates.model.dto.qubera.QuberaPaymentToMasterDto;
 import me.exrates.model.dto.qubera.QuberaRequestPaymentShortDto;
 import me.exrates.model.dto.qubera.ResponsePaymentDto;
 import me.exrates.model.dto.qubera.responses.ExternalPaymentResponseDto;
+import me.exrates.model.dto.qubera.responses.ResponseVerificationStatusDto;
+import me.exrates.model.dto.qubera.responses.StatusKycEnum;
 import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.exceptions.KycException;
@@ -113,6 +114,9 @@ public class QuberaServiceImpl implements QuberaService {
 
     private @Value("${qubera.address}")
     String address;
+
+    private @Value("${qubera.confCode}")
+    String confCode;
 
     @Value("${server-host}")
     private String host;
@@ -243,7 +247,7 @@ public class QuberaServiceImpl implements QuberaService {
             }
         }
 
-        if (!userData.getBankVerificationStatus().equalsIgnoreCase("success")) {
+        if (!userData.getBankVerificationStatus().equalsIgnoreCase("OK")) {
             throw new NgDashboardException(ErrorApiTitles.KYC_NOT_PROCESSING);
         }
 
@@ -414,35 +418,47 @@ public class QuberaServiceImpl implements QuberaService {
     @Override
     public String getUserVerificationStatus(String email) {
         QuberaUserData quberaUserData = quberaDao.getUserDataByUserEmail(email);
-        return quberaUserData == null ? "none" : quberaUserData.getBankVerificationStatus();
+        if (quberaUserData == null || quberaUserData.getBankVerificationStatus() == null) {
+            return null;
+        }
+
+        if (quberaUserData.getBankVerificationStatus().equalsIgnoreCase("None")) {
+            ResponseVerificationStatusDto statusKyc =
+                    kycHttpClient.getCurrentStatusKyc(quberaUserData.getReference());
+            if (StringUtils.isNoneEmpty(statusKyc.getLastReportStatus())) {
+                String responseStatus = statusKyc.getLastReportStatus();
+                quberaUserData.setBankVerificationStatus(responseStatus);
+                quberaDao.updateUserData(quberaUserData);
+            }
+        }
+        return quberaUserData.getBankVerificationStatus();
     }
 
     @Override
     public void processingCallBack(String referenceId, KycStatusResponseDto kycStatusResponseDto) {
         QuberaUserData quberaUserData = quberaDao.getUserDataByReference(referenceId);
+        if (quberaUserData == null) {
+            return;
+        }
+
+        ResponseVerificationStatusDto statusResponse = kycHttpClient.getCurrentStatusKyc(referenceId);
+        String eventStatus = statusResponse.getLastReportStatus();
         User user = userService.getUserById(quberaUserData.getUserId());
-        quberaUserData.setBankVerificationStatus(kycStatusResponseDto.getStatus());
+        quberaUserData.setBankVerificationStatus(eventStatus);
         quberaDao.updateUserData(quberaUserData);
         sendPersonalMessage(kycStatusResponseDto, user);
-        String eventStatus = kycStatusResponseDto.getStatus();
         logger.info(String.format("SEND TO EMAIL %s, STATUS %s", user.getEmail(), eventStatus));
 
+        String msg = defineMessageByStatusKys(eventStatus);
         Email email = Email.builder()
                 .to(user.getEmail())
                 .subject("Notification of bank verification process")
-                .message(String.format("Dear user, your current bank verification status is %s", eventStatus))
+                .message(msg)
                 .build();
 
         sendMailService.sendMail(email);
-        UserNotificationType type;
-        String msg = String.format("Dear user, your current bank verification status is %s", eventStatus);
-        if (eventStatus.equalsIgnoreCase("SUCCESS")
-                || eventStatus.equalsIgnoreCase(EventStatus.ACCEPTED.name())) {
-            type = UserNotificationType.SUCCESS;
-        } else {
-            type = UserNotificationType.ERROR;
-        }
-        final UserNotificationMessage message = new UserNotificationMessage(WsSourceTypeEnum.KYC, type, msg);
+        UserNotificationType typeNotification = getTypeNotificationByStatusKys(eventStatus);
+        final UserNotificationMessage message = new UserNotificationMessage(WsSourceTypeEnum.KYC, typeNotification, msg);
         stompMessenger.sendPersonalMessageToUser(user.getEmail(), message);
     }
 
@@ -483,10 +499,10 @@ public class QuberaServiceImpl implements QuberaService {
         }
         String docId = RandomStringUtils.random(18, true, false);
         String callBackUrl = String.format("%s/api/public/v2/kyc/webhook/%s", host, uuid);
-        RequestOnBoardingDto onBoardingDto = RequestOnBoardingDto.createOfParams(callBackUrl, email, uuid, docId);
+        RequestOnBoardingDto onBoardingDto = RequestOnBoardingDto.createOfParams(callBackUrl, email, uuid, docId, confCode);
         logger.info("Sending to create applicant " + onBoardingDto);
         OnboardingResponseDto onBoarding = kycHttpClient.createOnBoarding(onBoardingDto);
-        userData.setBankVerificationStatus("Pending");
+        userData.setBankVerificationStatus("None");
         quberaDao.updateUserData(userData);
         return onBoarding;
     }
@@ -674,5 +690,49 @@ public class QuberaServiceImpl implements QuberaService {
             message.setText(text);
         }
         stompMessenger.sendPersonalMessageToUser(user.getEmail(), message);
+    }
+
+    private String defineMessageByStatusKys(String statusKyc) {
+        StatusKycEnum status = StatusKycEnum.of(statusKyc);
+        String generalMessage = "Dear user, your current bank verification status is %s";
+        String result = null;
+        switch (status) {
+            case OK:
+                result = String.format(generalMessage, "SUCCESS");
+                break;
+            case ERROR:
+                result = String.format(generalMessage, "ERROR") + ", try again";
+                break;
+            case OBSOLETE:
+            case WARN:
+                result = String.format(generalMessage, "WARN") + ", try again";
+                break;
+            case NONE:
+                result = "Dear user, your documents have not been uploaded yet.";
+        }
+        return result;
+    }
+
+    private UserNotificationType getTypeNotificationByStatusKys(String statusString) {
+        StatusKycEnum status = StatusKycEnum.of(statusString);
+        UserNotificationType type;
+        switch (status) {
+            case OK:
+                type = UserNotificationType.SUCCESS;
+                break;
+            case NONE:
+                type = UserNotificationType.INFORMATION;
+                break;
+            case OBSOLETE:
+            case WARN:
+                type = UserNotificationType.WARNING;
+                break;
+            case ERROR:
+                type = UserNotificationType.ERROR;
+                break;
+            default:
+                throw new KycException(ErrorApiTitles.QUBERA_UNKNOWN_KYC_STATUS);
+        }
+        return type;
     }
 }

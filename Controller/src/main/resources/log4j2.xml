@@ -663,6 +663,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="adgroup_log" fileName="${sys:catalina.home}/logs/merchants/adgroup.log"
+                     filePattern="${sys:catalina.home}/logs/merchants/adgroup_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="omni_log" fileName="${sys:catalina.home}/logs/crypto/omni.log"
                      filePattern="${sys:catalina.home}/logs/crypto/omni_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
@@ -717,8 +726,26 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="coin_pay_log" fileName="${sys:catalina.home}/logs/merchants/coin_pay_log.log"
+                     filePattern="${sys:catalina.home}/logs/merchants/coin_pay_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="inout" fileName="${sys:catalina.home}/logs/inout/inout.log"
                      filePattern="${sys:catalina.home}/logs/inout/inout%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="free-coins" fileName="${sys:catalina.home}/logs/free-coins/free-coins.log"
+                     filePattern="${sys:catalina.home}/logs/free-coins/free-coins%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -1064,6 +1091,9 @@
         </logger>
         <logger name="inout" level="ALL" additivity="false">
             <AppenderRef ref="inout"/>
+        </logger>
+        <logger name="free-coins" level="ALL" additivity="false">
+            <AppenderRef ref="free-coins"/>
         </logger>
         <Root level="INFO">
             <AppenderRef ref="Console"/>

@@ -17,6 +17,7 @@ import me.exrates.model.Comment;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.MarketVolume;
 import me.exrates.model.Merchant;
 import me.exrates.model.RefillRequestAddressShortDto;
@@ -60,6 +61,7 @@ import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.merchants.btc.BtcAdminPaymentResponseDto;
 import me.exrates.model.dto.merchants.btc.BtcAdminPreparedTxDto;
 import me.exrates.model.dto.merchants.btc.BtcPreparedTransactionDto;
+import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
 import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
 import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.merchants.omni.OmniTxDto;
@@ -68,6 +70,7 @@ import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.AlertType;
 import me.exrates.model.enums.BusinessUserRoleEnum;
+import me.exrates.model.enums.CurrencyPairRestrictionsEnum;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.NotificationEvent;
@@ -150,6 +153,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -705,6 +709,7 @@ public class AdminController {
             /*todo: Temporary commented for security reasons*/
             /*updateUserDto.setPassword(user.getPassword());*/
             updateUserDto.setPhone(user.getPhone());
+            updateUserDto.setVerificationRequired(user.isVerificationRequired());
             /*todo: Temporary commented for security reasons*/
             if (currentUserRole == ADMINISTRATOR) {
                 //Add to easy change user role to USER or VIP_USER !!! Not other
@@ -985,7 +990,12 @@ public class AdminController {
                                               @RequestParam("currency") Integer currencyId,
                                               @RequestParam BigDecimal amount,
                                               @RequestParam String comment,
+                                              Locale locale,
                                               Principal principal) {
+        if (comment.equals(StringUtils.EMPTY)) {
+            return ResponseEntity.badRequest().body(Collections.singletonMap("errorNoty", messageSource.getMessage("comment.required", null, locale)));
+        }
+
         LOG.debug("userId = " + userId + ", currencyId = " + currencyId + ", amount = " + amount);
 
         walletService.manualBalanceChange(userId, currencyId, amount, principal.getName());
@@ -1092,8 +1102,11 @@ public class AdminController {
     }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess", method = RequestMethod.GET)
-    public ModelAndView merchantAccess() {
-        return new ModelAndView("admin/merchantAccess");
+    public String merchantAccess(Model model) {
+        model.addAttribute("pairsRestrictions", Arrays.stream(CurrencyPairRestrictionsEnum.values())
+                                                                   .map(Enum::name)
+                                                                   .collect(Collectors.joining(",")));
+        return "admin/merchantAccess";
     }
 
     @AdminLoggable
@@ -1150,8 +1163,8 @@ public class AdminController {
 
     @ResponseBody
     @GetMapping(value = "/2a8fy7b07dxe44/merchantAccess/getCurrencyPairs")
-    public List<CurrencyPair> getCurrencyPairs() {
-        return currencyService.findAllCurrencyPair();
+    public List<CurrencyPairWithRestriction> getCurrencyPairs() {
+        return currencyService.findAllCurrencyPairWithRestrictions();
     }
 
     @ResponseBody
@@ -1190,6 +1203,22 @@ public class AdminController {
     @PostMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPair/visibility/update")
     public ResponseEntity<Void> updateVisibilityCurrencyPairById(@RequestParam("currencyPairId") int currencyPairId) {
         currencyService.updateVisibilityCurrencyPairById(currencyPairId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @ResponseBody
+    @PostMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPair/restriction")
+    public ResponseEntity<Void> addRestrictionCurrencyPairById(@RequestParam("currencyPairId") int currencyPairId,
+                                                               @RequestParam("restriction") CurrencyPairRestrictionsEnum restrictionsEnum) {
+        currencyService.addRestrictionForCurrencyPairById(currencyPairId, restrictionsEnum);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @ResponseBody
+    @DeleteMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPair/restriction")
+    public ResponseEntity<Void> deleteRestrictionCurrencyPairById(@RequestParam("currencyPairId") int currencyPairId,
+                                                               @RequestParam("restriction") CurrencyPairRestrictionsEnum restrictionsEnum) {
+        currencyService.deleteRestrictionForCurrencyPairById(currencyPairId, restrictionsEnum);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -1307,6 +1336,12 @@ public class AdminController {
         return getBitcoinServiceByMerchantName(merchantName).listAllTransactions();
     }
 
+    @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transaction/{transactionHash}", method = RequestMethod.GET)
+    @ResponseBody
+    public BtcTransactionDto getBtcTransactionByHash(@PathVariable String merchantName, @PathVariable String transactionHash) {
+        return getBitcoinServiceByMerchantName(merchantName).getTransactionByHash(transactionHash);
+    }
+
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transactions/pagination", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public DataTable<List<BtcTransactionHistoryDto>> getAllTransactionByCoinLikeBitcoin(@PathVariable String merchantName, @RequestParam Map<String, String> tableParams) throws BitcoindException, CommunicationException {
@@ -1317,12 +1352,6 @@ public class AdminController {
     @ResponseBody
     public List<BtcTransactionHistoryDto> getBtcTransactionByPage(@PathVariable String merchantName, @RequestParam("page") int page) {
         return getBitcoinServiceByMerchantName(merchantName).listTransactions(page);
-    }
-
-    @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/findTransactions", method = GET)
-    @ResponseBody
-    public List<BtcTransactionHistoryDto> findTransactions(@PathVariable String merchantName, @RequestParam("value") String value) throws BitcoindException, CommunicationException {
-        return getBitcoinServiceByMerchantName(merchantName).findTransactions(value);
     }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/omniWallet/getUsdtTransactions", method = RequestMethod.GET)
@@ -1929,7 +1958,11 @@ public class AdminController {
     }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/comission_count", method = GET)
-    public String comissionCount() {
+    public String comissionCount(Model model) {
+        model.addAttribute("currencies", currencyService.findAllCurrenciesWithHidden()
+                .stream()
+                .sorted(Comparator.comparing(Currency::getName))
+                .collect(Collectors.toList()));
         return "admin/comissionCount";
     }
 
@@ -1940,5 +1973,32 @@ public class AdminController {
                                                         @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd_HH-mm-ss") LocalDateTime to) {
         return commissionService.getComissionsCount(from, to);
     }
+
+
+    @AdminLoggable
+    @PostMapping(value = "/2a8fy7b07dxe44/withdrawCommission/submit")
+    @ResponseBody
+    public ResponseEntity withdrawCommissionToUser(@RequestParam String email,
+                                              @RequestParam("currency") Integer currencyId,
+                                              @RequestParam BigDecimal amount,
+                                              @RequestParam String comment,
+                                              Locale locale,
+                                              Principal principal) {
+
+
+        LOG.debug(" withdraw commission to user email = " + email + ", currencyId = " + currencyId + ", amount = " + amount);
+
+        Integer userId = userService.getIdByEmail(email);
+
+        walletService.withdrawcommissionToUser(userId, currencyId, amount, principal.getName());
+
+        if (!StringUtils.isEmpty(comment)) {
+            final String newComment = String.format("%s %s %s", amount.toPlainString(), currencyService.getCurrencyName(currencyId), comment);
+            userService.addUserComment(GENERAL, newComment, userService.getEmailById(userId), false);
+        }
+
+        return ResponseEntity.ok().build();
+    }
+
 
 }

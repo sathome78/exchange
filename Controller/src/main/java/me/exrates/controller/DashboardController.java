@@ -2,13 +2,14 @@ package me.exrates.controller;
 
 import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.validator.RegisterFormValidation;
+import me.exrates.security.filter.NotVerifiedCaptchaError;
+import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.TemporalTokenService;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.*;
-import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.session.UserSessionService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -17,9 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
@@ -85,7 +83,7 @@ public class DashboardController {
     private MerchantService merchantService;
 
     @Autowired
-    private GeetestLib geetest;
+    private VerifyReCaptchaSec verifyReCaptchaSec;
 
     @RequestMapping(value = {"/dashboard/locale"})
     @ResponseBody
@@ -152,28 +150,11 @@ public class DashboardController {
 
     @RequestMapping(value = "/forgotPassword/submit", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity forgotPasswordSubmit(@ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request, RedirectAttributes attr) {
-        String challenge = request.getParameter(GeetestLib.fn_geetest_challenge);
-        String validate = request.getParameter(GeetestLib.fn_geetest_validate);
-        String seccode = request.getParameter(GeetestLib.fn_geetest_seccode);
+    public ResponseEntity forgotPasswordSubmit(@ModelAttribute User user, BindingResult result, HttpServletRequest request) {
 
-        int gt_server_status_code = (Integer) request.getSession().getAttribute(geetest.gtServerStatusSessionKey);
-        String userid = (String) request.getSession().getAttribute("userid");
+        String recapchaResponse = request.getParameter("g-recaptcha-response");
 
-        HashMap<String, String> param = new HashMap<>();
-        param.put("user_id", userid);
-
-        int gtResult = 0;
-        if (gt_server_status_code == 1) {
-            gtResult = geetest.enhencedValidateRequest(challenge, validate, seccode, param);
-            LOG.info(gtResult);
-        } else {
-            LOG.error("failback:use your own server captcha validate");
-            gtResult = geetest.failbackValidateRequest(challenge, validate, seccode);
-            LOG.error(gtResult);
-        }
-
-        if (gtResult == 1) {
+        if (verifyReCaptchaSec.verify(recapchaResponse)) {
             registerFormValidation.validateEmail(user, result, localeResolver.resolveLocale(request));
             if (result.hasErrors()) {
                 //TODO
@@ -190,8 +171,8 @@ public class DashboardController {
             body.put("email", email);
             return ResponseEntity.ok(body);
         } else {
-            //TODO
-            throw new RuntimeException("Geetest error");
+            String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
+            throw new NotVerifiedCaptchaError(correctCapchaRequired);
         }
     }
 
