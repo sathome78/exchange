@@ -190,7 +190,7 @@ public class UserDaoImpl implements UserDao {
     }
 
     public boolean create(User user) {
-        String sqlUser = "insert into USER(pub_id, nickname,email,password,phone,status,roleid,need_verification ) " +
+        String sqlUser = "insert into USER(pub_id, nickname, email, password, phone, status, roleid, verification_required ) " +
                 "values(SUBSTRING(MD5(:email), 1, 20), :nickname, :email, :password, :phone, :status, :roleid, :need_verification)";
         String sqlWallet = "INSERT INTO WALLET (currency_id, user_id) select id, :user_id from CURRENCY;";
         String sqlNotificationOptions = "INSERT INTO NOTIFICATION_OPTIONS(notification_event_id, user_id, send_notification, send_email) " +
@@ -488,7 +488,7 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public User getCommonReferralRoot() {
-        final String sql = "SELECT USER.id, nickname, email, password, finpassword, regdate, phone, status, USER_ROLE.name as role_name, USER.pub_id, USER.need_verification " +
+        final String sql = "SELECT USER.id, nickname, email, password, finpassword, regdate, phone, status, USER_ROLE.name as role_name, USER.pub_id, USER.verification_required " +
                 "FROM COMMON_REFERRAL_ROOT INNER JOIN USER ON COMMON_REFERRAL_ROOT.user_id = USER.id INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LIMIT 1";
         final List<User> result = masterTemplate.query(sql, getUserRowMapper());
         if (result.isEmpty()) {
