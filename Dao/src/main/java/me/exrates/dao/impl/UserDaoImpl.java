@@ -661,8 +661,9 @@ public class UserDaoImpl implements UserDao {
         if (user.getFinpassword() != null && !user.getFinpassword().isEmpty()) {
             fieldsStr.append("finpassword = '" + passwordEncoder.encode(user.getFinpassword())).append("',");
         }
-        fieldsStr.append("verification_required = " + user.isVerificationRequired()).append(",");
-
+        if (user.isVerificationRequired() != null) {
+            fieldsStr.append("verification_required = " + user.isVerificationRequired()).append(",");
+        }
         if (fieldsStr.toString().trim().length() == 0) {
             return true;
         }
