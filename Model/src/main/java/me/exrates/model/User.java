@@ -206,7 +206,7 @@ public class User implements Serializable {
         this.birthDay = birthDay;
     }
 
-    public Boolean isVerificationRequired() {
+    public Boolean getVerificationRequired() {
         return verificationRequired;
     }
 

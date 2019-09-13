@@ -200,7 +200,7 @@ public class UserDaoImpl implements UserDao {
         Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("email", user.getEmail());
         namedParameters.put("nickname", user.getNickname());
-        namedParameters.put("need_verification", user.isVerificationRequired());
+        namedParameters.put("need_verification", user.getVerificationRequired());
         if (user.getPassword() != null) {
             BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
             String hashedPassword = passwordEncoder.encode(user.getPassword());
