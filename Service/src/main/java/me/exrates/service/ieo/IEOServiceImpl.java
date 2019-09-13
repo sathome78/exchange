@@ -39,6 +39,7 @@ import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -266,7 +267,8 @@ public class IEOServiceImpl implements IEOService {
         int creatorId = userService.getIdByEmail(SecurityContextHolder.getContext().getAuthentication().getName());
         currencyService.addCurrencyForIco(dto.getCurrencyName(), dto.getCurrencyDescription());
         currencyService.addCurrencyPairForIco(dto.getCurrencyName(), "BTC");
-        ieoDetailsRepository.save(dto.toIEODetails(makerId, creatorId));
+        IEODetails ieo = ieoDetailsRepository.save(dto.toIEODetails(makerId, creatorId));
+        ieoDetailsRepository.insertIeoPolicy(ieo.getId(), dto.getLicenseAgreement());
     }
 
     @Override
@@ -515,7 +517,23 @@ public class IEOServiceImpl implements IEOService {
 
     @Override
     public String getIeoPolicy(int ieoId) {
-        return ieoDetailsRepository.getIeoPolicy(ieoId);
+        try {
+            return ieoDetailsRepository.getIeoPolicy(ieoId);
+        } catch (DataAccessException e) {
+            return StringUtils.EMPTY;
+        }
+    }
+
+    @Synchronized
+    @Transactional
+    @Override
+    public void updateIeoPolicy(Integer ieoId, String text) {
+        try {
+            ieoDetailsRepository.getIeoPolicy(ieoId);
+            ieoDetailsRepository.updateIeoPolicy(ieoId, text);
+        } catch (EmptyResultDataAccessException e) {
+            ieoDetailsRepository.insertIeoPolicy(ieoId, text);
+        }
     }
 
     private Collection<IEODetails> prepareMarketMakerIeos(User user) {

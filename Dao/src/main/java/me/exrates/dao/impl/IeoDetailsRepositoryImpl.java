@@ -236,13 +236,34 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
     @Override
     public String getIeoPolicy(int ieoId) {
         final String sql = " SELECT agreement FROM IEO_AGREEMENT_TEXT "
-                + "          WHERE ieo_id = :user_id AND ieo_id = :ieo_id ";
+                + "          WHERE ieo_id = :ieo_id ";
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("ieo_id", ieoId);
-        try {
-            return jdbcTemplate.queryForObject(sql, params, String.class);
-        } catch (DataAccessException e) {
-            return StringUtils.EMPTY;
+        return jdbcTemplate.queryForObject(sql, params, String.class);
+    }
+
+    @Override
+    public void updateIeoPolicy(int ieoId, String text) {
+        final String sql = "UPDATE IEO_AGREEMENT_TEXT SET agreement = :text "
+                + "         WHERE ieo_id = :ieo_id ";
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("ieo_id", ieoId);
+        params.addValue("text", text);
+        if (jdbcTemplate.update(sql, params) <= 0) {
+            throw new RuntimeException("Agreement not updated");
+        }
+    }
+
+    @Override
+    public void insertIeoPolicy(int ieoId, String text) {
+        final String sql = "INSERT INTO IEO_AGREEMENT_TEXT "
+                + "         (ieo_id, agreement)"
+                + "         VALUES(:ieo_id, :text)";
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("ieo_id", ieoId);
+        params.addValue("text", text);
+        if (jdbcTemplate.update(sql, params) <= 0) {
+            throw new RuntimeException("Agreement not saved");
         }
     }
 

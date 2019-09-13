@@ -84,8 +84,6 @@ public class NgIEOController {
     @GetMapping(value = "/policy/{ieoId}")
     @ResponseBody
     public ResponseModel<?> getUserAgreement(@PathVariable int ieoId) {
-        String email = getPrincipalEmail();
-        final int userId = userService.getIdByEmail(email);
         return new ResponseModel<>(ieoService.getIeoPolicy(ieoId));
     }
 

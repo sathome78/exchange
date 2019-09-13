@@ -43,4 +43,8 @@ public interface IeoDetailsRepository {
     void insertUserAgreeWithPolicy(int userId, int ieoId);
 
     String getIeoPolicy(int ieoId);
+
+    void updateIeoPolicy(int ieoId, String text);
+
+    void insertIeoPolicy(int ieoId, String text);
 }

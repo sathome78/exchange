@@ -47,4 +47,6 @@ public interface IEOService {
     void setUserAgreeWithPolicy(int userId, int ieoId);
 
     String getIeoPolicy(int ieoId);
+
+    void updateIeoPolicy(Integer id, String text);
 }
