@@ -42,6 +42,7 @@ public class IeoDetailsUpdateDto {
     private LocalDateTime startDate;
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime endDate;
+    private String licenseAgreement;
 
     private String content;
     private Boolean testIeo;
@@ -64,6 +65,7 @@ public class IeoDetailsUpdateDto {
           .content(content)
           .testIeo(testIeo)
           .logo(logo)
+          .licenseAgreement(licenseAgreement)
           .build();
  }
 

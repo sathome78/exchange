@@ -5,6 +5,7 @@ import me.exrates.dao.IeoDetailsRepository;
 import me.exrates.model.IEODetails;
 import me.exrates.model.enums.IEODetailsStatus;
 import org.apache.commons.compress.utils.Lists;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
@@ -195,6 +196,54 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
         params.addValue("status", status.name());
         return jdbcTemplate.update(sql, params) > 0;
 
+    }
+
+    @Override
+    public boolean isUserAgreeWithPolicy(int userId, int ieoId) {
+        final String sql = " SELECT is_agree FROM IEO_USER_AGREEMENT "
+                + "          WHERE user_id = :user_id AND ieo_id = :ieo_id ";
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("ieo_id", ieoId);
+        params.addValue("user_id", userId);
+        return jdbcTemplate.queryForObject(sql, params, Boolean.class);
+    }
+
+    @Override
+    public void setUserAgreeWithPolicy(int userId, int ieoId) {
+        final String sql = "UPDATE IEO_USER_AGREEMENT SET is_agree = TRUE "
+                + "         WHERE user_id = :user_id AND ieo_id = :ieo_id ";
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("ieo_id", ieoId);
+        params.addValue("user_id", userId);
+        if (jdbcTemplate.update(sql, params) <= 0) {
+            throw new RuntimeException("Agree not updated");
+        }
+    }
+
+    @Override
+    public void insertUserAgreeWithPolicy(int userId, int ieoId) {
+        final String sql = "INSERT INTO IEO_USER_AGREEMENT "
+                + "         (user_id, ieo_id)"
+                + "         VALUES(:user_id, :ieo_id)";
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("ieo_id", ieoId);
+        params.addValue("user_id", userId);
+        if (jdbcTemplate.update(sql, params) <= 0) {
+            throw new RuntimeException("Agree not updated");
+        }
+    }
+
+    @Override
+    public String getIeoPolicy(int ieoId) {
+        final String sql = " SELECT agreement FROM IEO_AGREEMENT_TEXT "
+                + "          WHERE ieo_id = :user_id AND ieo_id = :ieo_id ";
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("ieo_id", ieoId);
+        try {
+            return jdbcTemplate.queryForObject(sql, params, String.class);
+        } catch (DataAccessException e) {
+            return StringUtils.EMPTY;
+        }
     }
 
     private RowMapper<IEODetails> ieoDetailsRowMapper() {
