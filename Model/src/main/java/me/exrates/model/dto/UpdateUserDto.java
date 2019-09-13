@@ -16,7 +16,7 @@ public class UpdateUserDto {
 	private String password;
 	private String finpassword;
 	private UserRole role;
-	private boolean verificationRequired;
+	private Boolean verificationRequired;
 
 	/*constructors*/
 	public UpdateUserDto(int id) {
@@ -81,11 +81,11 @@ public class UpdateUserDto {
 		this.role = role;
 	}
 
-	public boolean isVerificationRequired() {
+	public Boolean isVerificationRequired() {
 		return verificationRequired;
 	}
 
-	public void setVerificationRequired(boolean verificationRequired) {
+	public void setVerificationRequired(Boolean verificationRequired) {
 		this.verificationRequired = verificationRequired;
 	}
 }
