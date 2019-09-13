@@ -110,6 +110,7 @@ import java.util.stream.Collectors;
 import static me.exrates.model.enums.ActionType.ADD;
 import static me.exrates.model.enums.ActionType.SUBTRACT;
 import static me.exrates.model.enums.OperationType.INPUT;
+import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_ACCEPTED;
 import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_DECLINE;
 import static me.exrates.model.enums.WalletTransferStatus.SUCCESS;
@@ -1415,5 +1416,18 @@ public class RefillServiceImpl implements RefillService {
     @Override
     public boolean changeRefillRequestStatusToOnPending(int id) {
         return refillRequestDao.changeRefillRequestStatusToOnPending(id);
+    }
+
+    @Override
+    public Map<String, String> correctAmountAndCalculateCommissionPreliminarily(Integer userId, BigDecimal amount,
+                                                                                Integer currencyId, Integer merchantId,
+                                                                                Locale locale, String destinationTag) {
+        OperationType operationType = INPUT;
+        BigDecimal addition = currencyService.computeRandomizedAddition(currencyId, operationType);
+        amount = amount.add(addition);
+        merchantService.checkAmountForMinSum(merchantId, currencyId, amount);
+        Map<String, String> result = commissionService.computeCommissionAndMapAllToString(userId, amount, operationType, currencyId, merchantId, locale, destinationTag);
+        result.put("addition", addition.toString());
+        return result;
     }
 }
