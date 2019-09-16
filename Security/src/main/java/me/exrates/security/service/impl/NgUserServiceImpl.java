@@ -1,17 +1,22 @@
 package me.exrates.security.service.impl;
 
+import com.google.common.base.Preconditions;
 import me.exrates.dao.UserDao;
 import me.exrates.model.Email;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserEmailDto;
+import me.exrates.model.dto.ErrorReportDto;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.enums.TokenType;
+import me.exrates.model.enums.UserEventEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngModel.PasswordCreateDto;
+import me.exrates.model.userOperation.UserOperationAuthorityOption;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.security.service.NgUserService;
@@ -19,8 +24,9 @@ import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.TemporalTokenService;
 import me.exrates.service.UserService;
+import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.util.IpUtils;
-import me.exrates.service.util.RestApiUtils;
+import me.exrates.service.util.RestApiUtilComponent;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,6 +43,8 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
+import static me.exrates.service.util.RestUtil.getUrlFromRequest;
+
 @Service
 @PropertySource(value = {"classpath:/angular.properties"})
 public class NgUserServiceImpl implements NgUserService {
@@ -51,12 +59,18 @@ public class NgUserServiceImpl implements NgUserService {
     private final IpBlockingService ipBlockingService;
     private final TemporalTokenService temporalTokenService;
     private final HttpServletRequest request;
+    private final RestApiUtilComponent restApiUtilComponent;
+    private final UserOperationService userOperationService;
 
     @Value("${dev.mode}")
     private boolean DEV_MODE;
 
     @Value("${front-host}")
     private String host;
+    @Value("${mandrill.email}")
+    private String mandrillEmail;
+    @Value("${support.email}")
+    private String supportEmail;
 
     @Autowired
     public NgUserServiceImpl(UserDao userDao,
@@ -67,7 +81,8 @@ public class NgUserServiceImpl implements NgUserService {
                              ReferralService referralService,
                              IpBlockingService ipBlockingService,
                              TemporalTokenService temporalTokenService,
-                             HttpServletRequest request) {
+                             HttpServletRequest request,
+                             RestApiUtilComponent restApiUtilComponent, UserOperationService userOperationService) {
         this.userDao = userDao;
         this.userService = userService;
         this.messageSource = messageSource;
@@ -77,6 +92,8 @@ public class NgUserServiceImpl implements NgUserService {
         this.ipBlockingService = ipBlockingService;
         this.temporalTokenService = temporalTokenService;
         this.request = request;
+        this.restApiUtilComponent = restApiUtilComponent;
+        this.userOperationService = userOperationService;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -90,19 +107,24 @@ public class NgUserServiceImpl implements NgUserService {
         user.setEmail(userEmailDto.getEmail());
         if (!StringUtils.isEmpty(userEmailDto.getParentEmail())) user.setParentEmail(userEmailDto.getParentEmail());
         user.setIp(IpUtils.getClientIpAddress(request));
+        user.setVerificationRequired(userEmailDto.getIsUsa());
 
         if (!(userDao.create(user) && userDao.insertIp(user.getEmail(), user.getIp()))) {
             return false;
         }
 
         int idUser = userDao.getIdByEmail(userEmailDto.getEmail());
-        user.setId(idUser);
 
+        user.setId(idUser);
+        userService.logIP(idUser, user.getIp(), UserEventEnum.REGISTER, getUrlFromRequest(request));
         sendEmailWithToken(user,
                 TokenType.REGISTRATION,
                 "emailsubmitregister.subject",
                 "emailsubmitregister.text",
-                Locale.ENGLISH, getHost(), "final-registration/token?t=");
+                Locale.ENGLISH, getHost(),
+                "final-registration/token?t=",
+                userEmailDto.getIsUsa()
+        );
 
 
         return true;
@@ -118,7 +140,7 @@ public class NgUserServiceImpl implements NgUserService {
             throw new NgDashboardException("User not found", 1001);
         }
 
-        String password = RestApiUtils.decodePassword(passwordCreateDto.getPassword());
+        String password = restApiUtilComponent.decodePassword(passwordCreateDto.getPassword());
         user.setUserStatus(UserStatus.ACTIVE);
         UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
         updateUserDto.setEmail(user.getEmail());
@@ -153,12 +175,14 @@ public class NgUserServiceImpl implements NgUserService {
 
         String emailIncome = userEmailDto.getEmail();
         User user = userDao.findByEmail(emailIncome);
+        userService.deleteTemporalTokenByUserIdAndTokenType(user.getId(), TokenType.CHANGE_PASSWORD);
         sendEmailWithToken(user,
                 TokenType.CHANGE_PASSWORD,
                 "emailsubmitResetPassword.subject",
                 "emailsubmitResetPassword.text",
                 Locale.ENGLISH, getHost(),
-                "recovery-password?t=");
+                "recovery-password?t=",
+                false);
 
         return true;
     }
@@ -172,7 +196,7 @@ public class NgUserServiceImpl implements NgUserService {
             return false;
         }
 
-        String password = RestApiUtils.decodePassword(passwordCreateDto.getPassword());
+        String password = restApiUtilComponent.decodePassword(passwordCreateDto.getPassword());
         UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
         updateUserDto.setEmail(user.getEmail());
         updateUserDto.setPassword(password);
@@ -203,7 +227,7 @@ public class NgUserServiceImpl implements NgUserService {
                 "If this was not you, please change your password and contact us.");
         email.setSubject("Notification of disable 2FA");
 
-        sendMailService.sendMailMandrill(email);
+        sendMailService.sendMail(email);
     }
 
     @Override
@@ -217,7 +241,7 @@ public class NgUserServiceImpl implements NgUserService {
                 "If this was not you, please change your password and contact us.");
         email.setSubject("Notification of enable 2FA");
 
-        sendMailService.sendMailMandrill(email);
+        sendMailService.sendMail(email);
     }
 
     @Override
@@ -229,10 +253,18 @@ public class NgUserServiceImpl implements NgUserService {
                 TokenType.REGISTRATION,
                 "emailsubmitregister.subject",
                 "emailsubmitregister.text",
-                Locale.ENGLISH, getHost(), "final-registration/token?t=");
+                Locale.ENGLISH, getHost(), "final-registration/token?t=",
+                user.getVerificationRequired());
 
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public String getUserPublicId() {
+        final String userEmail = userService.getUserEmailFromSecurityContext();
+
+        return userDao.getUserPublicId(userEmail);
+    }
 
     @Transactional(rollbackFor = Exception.class)
     public void sendEmailWithToken(User user,
@@ -241,7 +273,8 @@ public class NgUserServiceImpl implements NgUserService {
                                    String emailText,
                                    Locale locale,
                                    String host,
-                                   String confirmationUrl) {
+                                   String confirmationUrl,
+                                   Boolean needVerification) {
         TemporalToken token = new TemporalToken();
         token.setUserId(user.getId());
         token.setValue(UUID.randomUUID().toString());
@@ -254,7 +287,7 @@ public class NgUserServiceImpl implements NgUserService {
 
         Email email = new Email();
 
-        confirmationUrl = confirmationUrl + token.getValue();
+        confirmationUrl = confirmationUrl + token.getValue() + "&needVerification=" + needVerification;
 
         email.setMessage(
                 messageSource.getMessage(emailText, null, locale) +
@@ -265,7 +298,18 @@ public class NgUserServiceImpl implements NgUserService {
 
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
         email.setTo(user.getEmail());
-        sendMailService.sendMailMandrill(email);
+        sendMailService.sendMail(email);
+    }
+
+    @Override
+    public void sendErrorReportEmail(ErrorReportDto dto) {
+        Preconditions.checkNotNull(dto);
+        sendMailService.sendMailMandrill(Email.builder()
+                .from(mandrillEmail)
+                .to(supportEmail)
+                .message(dto.toString())
+                .subject("Error report")
+                .build());
     }
 
     private String getHost() {

@@ -13,8 +13,6 @@ import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestFlatAdditionalDataDto;
 import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.RefillRequestFlatForReportDto;
-import me.exrates.model.condition.MonolitConditional;
-import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.filterData.RefillFilterData;
@@ -30,9 +28,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -44,7 +40,14 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static java.util.Collections.singletonMap;
 import static java.util.Objects.isNull;
@@ -99,6 +102,20 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         return refillRequestFlatDto;
     };
 
+    private static RowMapper<RefillRequestFlatDto> refillRequestFlatDtoRowMapperShort = (rs, idx) -> {
+        RefillRequestFlatDto refillRequestFlatDto = new RefillRequestFlatDto();
+        refillRequestFlatDto.setId(rs.getInt("id"));
+        refillRequestFlatDto.setAmount(rs.getBigDecimal("amount"));
+        refillRequestFlatDto.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
+        refillRequestFlatDto.setStatus(RefillStatusEnum.convert(rs.getInt("status_id")));
+        refillRequestFlatDto.setCurrencyId(rs.getInt("currency_id"));
+        refillRequestFlatDto.setMerchantId(rs.getInt("merchant_id"));
+        refillRequestFlatDto.setMerchantTransactionId(rs.getString("merchant_transaction_id"));
+        refillRequestFlatDto.setRemark(rs.getString("remark"), "");
+        refillRequestFlatDto.setAdminHolderId(rs.getInt("admin_holder_id"));
+        return refillRequestFlatDto;
+    };
+
     private static RowMapper<InvoiceBank> invoiceBankRowMapper = (rs, rowNum) -> {
         InvoiceBank bank = new InvoiceBank();
         bank.setId(rs.getInt("id"));
@@ -129,9 +146,6 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         }
         return refillRequestAddressDto;
     };
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
 
     @Autowired
     @Qualifier(value = "masterTemplate")
@@ -394,7 +408,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
                 "  date_creation, status_modification_date, merchant_transaction_id) " +
                 " VALUES " +
                 " (:amount, :status_id, :currency_id, :user_id, :commission_id, :merchant_id, " +
-                " NOW(), NOW())";
+                " NOW(), NOW(), :merchant_transaction_id)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("amount", request.getAmount())
@@ -405,7 +419,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
                 .addValue("merchant_id", request.getMerchantId())
                 .addValue("merchant_transaction_id", request.getMerchantTransactionId());
         namedParameterJdbcTemplate.update(sql, params, keyHolder);
-        return  Optional.of((int) keyHolder.getKey().longValue());
+        return Optional.of((int) keyHolder.getKey().longValue());
     }
 
 
@@ -535,6 +549,20 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         namedParameterJdbcTemplate.update(addAddressSql, params);
         refillRequestAddressId = request.getId();
         return refillRequestAddressId;
+    }
+
+    @Override
+    public String getPrivKeyByAddress(String address) {
+        final String sql = "SELECT RRA.priv_key " +
+                " FROM REFILL_REQUEST_ADDRESS RRA " +
+                " WHERE RRA.address = :address AND is_valid = 1";
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("address", address);
+        try {
+            return namedParameterJdbcTemplate.queryForObject(sql, params, String.class);
+        } catch (EmptyResultDataAccessException e) {
+            return "";
+        }
     }
 
     @Override
@@ -686,7 +714,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
             Integer currencyId,
             Integer intervalHours,
             List<Integer> statusIdList) {
-        LocalDateTime nowDate = jdbcTemplate.queryForObject("SELECT NOW()", LocalDateTime.class);
+        LocalDateTime nowDate = namedParameterJdbcTemplate.queryForObject("SELECT NOW()", Collections.emptyMap(), LocalDateTime.class);
         String sql =
                 " SELECT COUNT(*) " +
                         " FROM REFILL_REQUEST " +
@@ -1250,10 +1278,13 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         List<RefillRequestAddressShortDto> addresses = namedParameterJdbcTemplate.query(sqlMain, params, (rs, i) -> {
             RefillRequestAddressShortDto dto = new RefillRequestAddressShortDto();
             dto.setUserEmail(rs.getString("email"));
+            dto.setUserId(rs.getInt("user_id"));
             dto.setAddress(rs.getString("address"));
             dto.setCurrencyName(rs.getString("currency_name"));
+            dto.setCurrencyId(rs.getInt("currency_id"));
             dto.setGenerationDate(rs.getTimestamp("date_generation").toLocalDateTime());
             dto.setMerchantId(rs.getInt("merchant_id"));
+            dto.setNeedTransfer(rs.getBoolean("need_transfer"));
             return dto;
         });
         Integer totalQuantity = namedParameterJdbcTemplate.queryForObject(sqlCount, params, Integer.class);
@@ -1268,8 +1299,8 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     public List<Integer> getUnconfirmedTxsCurrencyIdsForTokens(int parentTokenId) {
         String sql = "SELECT RR.currency_id FROM REFILL_REQUEST RR " +
                 " JOIN MERCHANT M ON M.id=RR.merchant_id " +
-                " WHERE M.tokens_parrent_id = ? AND RR.status_id = 6";
-        return jdbcTemplate.queryForList(sql, Integer.class, parentTokenId);
+                " WHERE M.tokens_parrent_id = :parent_id AND RR.status_id = 6";
+        return namedParameterJdbcTemplate.queryForList(sql, Collections.singletonMap("parent_id", parentTokenId), Integer.class);
     }
 
     @Override
@@ -1474,5 +1505,70 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
             return 0;
         }
     }
-}
 
+    @Override
+    public boolean changeRefillRequestStatusToOnPending(int id) {
+        final Map<String, Object> params = new HashMap<>();
+        params.put("id", id);
+        params.put("status_id", RefillStatusEnum.ON_PENDING.getCode());
+
+        String sql = "SELECT status_id FROM REFILL_REQUEST WHERE id = :id FOR UPDATE";
+
+        Integer statusIdForUpdate;
+        try {
+            statusIdForUpdate = namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class);
+        } catch (DataAccessException ex) {
+            log.debug("Refill request ({}) is blocked or not found", id, ex);
+            return false;
+        }
+
+        if (RefillStatusEnum.convert(statusIdForUpdate) == RefillStatusEnum.CREATED_BY_FACT) {
+            sql = "UPDATE REFILL_REQUEST " +
+                    "SET status_id = :status_id " +
+                    "WHERE id = :id";
+
+            return namedParameterJdbcTemplate.update(sql, params) > 0;
+        }
+        log.debug("Refill request ({}) status has not been updated. Cause: wrong status for update", id);
+        return false;
+    }
+
+    @Override
+    public boolean setPropertyNeedTransfer(int userId, int currencyId, int merchantId, String address, Boolean needTransfer) {
+        String sql = "UPDATE REFILL_REQUEST_ADDRESS " +
+                "SET need_transfer = :need_transfer " +
+                "WHERE user_id = :user_id AND currency_id = :currency_id AND merchant_id = :merchant_id AND address = :address";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("user_id", userId);
+        params.put("currency_id", currencyId);
+        params.put("merchant_id", merchantId);
+        params.put("address", address);
+        params.put("need_transfer", needTransfer);
+
+        return namedParameterJdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public boolean setRemarkAndTransactionIdById(String remark, String transaction, int id) {
+        String sql = "UPDATE REFILL_REQUEST SET merchant_transaction_id = :transaction, remark = :remark WHERE id = :id";
+        Map<String, Object> params = new HashMap<>();
+        params.put("transaction", transaction);
+        params.put("remark", remark);
+        params.put("id", id);
+        return namedParameterJdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public List<RefillRequestFlatDto> getByMerchantIdAndRemark(int merchantId, String remark) {
+        String sql = "SELECT  REFILL_REQUEST.* " +
+                " FROM REFILL_REQUEST WHERE REFILL_REQUEST.merchant_id = :merchant_id " +
+                "       AND REFILL_REQUEST.remark = :remark ";
+
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("merchant_id", merchantId);
+            put("remark", remark);
+        }};
+        return namedParameterJdbcTemplate.query(sql, params, refillRequestFlatDtoRowMapperShort);
+    }
+}

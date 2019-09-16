@@ -1,0 +1,1 @@
+ALTER TABLE IEO_RESULT ADD CONSTRAINT ieo_claim_unique UNIQUE KEY(claim_id);

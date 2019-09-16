@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.validation.Valid;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -56,6 +57,20 @@ public class AdminIeoController {
     @RequestMapping(value = "/2a8fy7b07dxe44/ieo", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public ResponseEntity createIeo(@RequestBody @Valid IeoDetailsCreateDto dto) {
+        if (LocalDateTime.now().isAfter(dto.getEndDate())) {
+            String messageError = "Date endIEO is not after current time";
+            log.error(messageError + " {}", dto.getEndDate());
+            throw new RuntimeException(messageError);
+        }
+
+        if (dto.getAvailableBalance().compareTo(dto.getAmount()) > 0) {
+            String messageError = String.format("Error: Available amount %s more than amount %s",
+                    dto.getAvailableBalance().toPlainString(),
+                    dto.getAmount().toPlainString());
+            log.error(messageError);
+            throw new RuntimeException(messageError);
+        }
+
         ieoService.createIeo(dto);
         return new ResponseEntity(null, HttpStatus.CREATED);
     }

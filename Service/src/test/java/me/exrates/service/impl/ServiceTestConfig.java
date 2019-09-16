@@ -44,7 +44,6 @@ import me.exrates.service.UserTransferService;
 import me.exrates.service.WalletService;
 import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.api.WalletsApi;
-import me.exrates.service.cache.ChartsCacheManager;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.merchantStrategy.IMerchantService;
@@ -69,6 +68,7 @@ import me.exrates.service.stopOrder.StopOrderServiceImpl;
 import me.exrates.service.stopOrder.StopOrdersHolder;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.BigDecimalConverter;
+import me.exrates.service.util.RestApiUtilComponent;
 import me.exrates.service.util.WithdrawUtils;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
@@ -170,6 +170,16 @@ public class ServiceTestConfig {
 
     @Bean("InfoMailSender")
     public JavaMailSender infoMailSender() {
+        return Mockito.mock(JavaMailSender.class);
+    }
+
+    @Bean("SesMailSender")
+    public JavaMailSender sesMailSender() {
+        return Mockito.mock(JavaMailSender.class);
+    }
+
+    @Bean("SendGridMailSender")
+    public JavaMailSender sendGridMailSender() {
         return Mockito.mock(JavaMailSender.class);
     }
 
@@ -396,11 +406,6 @@ public class ServiceTestConfig {
     }
 
     @Bean
-    public ChartsCacheManager chartsCacheManager() {
-        return new ChartsCacheManager();
-    }
-
-    @Bean
     public StompMessenger stompMessenger() {
         return new StompMessengerImpl();
     }
@@ -483,5 +488,10 @@ public class ServiceTestConfig {
     @Bean
     public UserSettingsDao userSettingsDao() {
         return Mockito.mock(UserSettingsDao.class);
+    }
+
+    @Bean
+    public RestApiUtilComponent restApiUtils() {
+        return Mockito.mock(RestApiUtilComponent.class);
     }
 }

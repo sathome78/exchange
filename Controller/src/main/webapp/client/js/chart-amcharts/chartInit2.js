@@ -42,7 +42,7 @@ function ChartAmchartsClass2(currencyPair) {
 
     function initChartWidget(currencyPair) {
         var host = location.protocol + '//' + location.host + '/dashboard';
-        datafeed = new Datafeeds.UDFCompatibleDatafeed(host, 20000);
+        datafeed = new Datafeeds.UDFCompatibleDatafeed(host, 10000);
         var lang = $("#language").text().toLowerCase().trim();
 
         var widget = window.tvWidget = new TradingView.widget({
@@ -65,7 +65,7 @@ function ChartAmchartsClass2(currencyPair) {
                 {text: "2m", resolution: "D"},
                 {text: "7d", resolution: "60"},
                 {text: "5d", resolution: "30"},
-                {text: "3d", resolution: "30"},
+                {text: "3d", resolution: "30"}
             ]
 
         });

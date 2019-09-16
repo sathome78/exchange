@@ -25,7 +25,7 @@ public class DataTableParams {
     private List<String> columns = Collections.EMPTY_LIST;
 
 
-    enum OrderDirection {
+    public enum OrderDirection {
         ASC, DESC
     }
 
@@ -42,6 +42,14 @@ public class DataTableParams {
 
     public int getLength() {
         return length;
+    }
+
+    public int getOrderColumn(){
+        return orderColumn;
+    }
+
+    public OrderDirection getOrderDirection() {
+        return orderDirection;
     }
 
     public String getSearchValue() {
@@ -62,7 +70,6 @@ public class DataTableParams {
         dataTableParams.searchValue = requestParams.getOrDefault("search[value]", "");
         List<String> columnNames = requestParams.entrySet().stream()
                 .filter(entry -> entry.getKey().matches("^columns(.+)name\\]$"))
-                .sorted(Comparator.comparing(Map.Entry::getKey))
                 .map(Map.Entry::getValue)
                 .collect(Collectors.toList());
 
@@ -93,6 +100,13 @@ public class DataTableParams {
             return "";
         }
         return new StringJoiner(" ").add("ORDER BY").add(columns.get(orderColumn)).add(orderDirection.name()).toString();
+    }
+
+    public String getOrderColumnName(){
+        if (columns.isEmpty() || orderColumn >= columns.size()) {
+            return "";
+        }
+        return columns.get(orderColumn);
     }
     
     public String getSearchClause() {

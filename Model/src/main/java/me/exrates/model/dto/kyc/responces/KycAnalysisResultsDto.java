@@ -1,5 +1,6 @@
 package me.exrates.model.dto.kyc.responces;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,6 +16,7 @@ public class KycAnalysisResultsDto {
 
     private String code;
     private String[] expectedDocTypes;
+    @JsonIgnore
     private String[] listCapturedDocs;
     private KycAnalysisDataDto analysisData;
 }

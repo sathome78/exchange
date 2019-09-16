@@ -4,7 +4,6 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.MerchantSpecParamDto;
-import org.glassfish.jersey.media.sse.EventSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Conditional;
@@ -13,15 +12,15 @@ import org.springframework.stereotype.Component;
 import org.stellar.sdk.AssetTypeNative;
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Server;
+import org.stellar.sdk.requests.EventListener;
 import org.stellar.sdk.requests.PaymentsRequestBuilder;
 import org.stellar.sdk.responses.TransactionResponse;
+import org.stellar.sdk.responses.operations.OperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
+import shadow.com.google.common.base.Optional;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Created by maks on 06.06.2017.
@@ -49,43 +48,48 @@ public class StellarReceivePaymentsService {
     private KeyPair account;
     private static final String LAST_PAGING_TOKEN_PARAM = "LastPagingToken";
     private static final String MERCHANT_NAME = "Stellar";
-    private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-
-    private EventSource eventSource;
 
 
     @PostConstruct
     public void init() {
         server = new Server(SEVER_URL);
         account = KeyPair.fromAccountId(ACCOUNT_NAME);
-        scheduler.scheduleAtFixedRate(this::checkEventSource, 20, 120, TimeUnit.SECONDS);
+        checkIncomePayment();
     }
 
     private void checkIncomePayment() {
-        PaymentsRequestBuilder paymentsRequest = server.payments().forAccount(account);
+        PaymentsRequestBuilder paymentsRequest = server.payments().forAccount(account.getAccountId());
         String lastToken = loadLastPagingToken();
         log.debug("lastToken {}", lastToken);
         if (lastToken != null) {
             paymentsRequest.cursor(lastToken);
         }
-        eventSource = paymentsRequest.stream(payment -> {
-            savePagingToken(payment.getPagingToken());
-            // The payments stream includes both sent and received payments. We only
-            // want to process received payments here.
-            if (payment instanceof PaymentOperationResponse) {
-                if (((PaymentOperationResponse) payment).getTo().getAccountId().equals(ACCOUNT_NAME)) {
-                    PaymentOperationResponse response = ((PaymentOperationResponse) payment);
-                    log.debug(response.getAsset().getType());
-                    if (response.getAsset().equals(new AssetTypeNative())) {
-                       processPayment(response, "XLM", MERCHANT_NAME);
-                    } else {
-                        log.debug("asset {}", response.getAsset().toString());
-                        StellarAsset asset = asssetsContext.getStellarAssetByAssetObject(response.getAsset());
-                        if (asset != null) {
-                            processPayment(response, asset.getCurrencyName(), asset.getMerchantName());
+        paymentsRequest.stream(new EventListener<OperationResponse>() {
+            @Override
+            public void onEvent(OperationResponse payment) {
+                savePagingToken(payment.getPagingToken());
+                // The payments stream includes both sent and received payments. We only
+                // want to process received payments here.
+                if (payment instanceof PaymentOperationResponse) {
+                    if (((PaymentOperationResponse) payment).getTo().equals(ACCOUNT_NAME)) {
+                        PaymentOperationResponse response = ((PaymentOperationResponse) payment);
+                        log.debug(response.getAsset().getType());
+                        if (response.getAsset().equals(new AssetTypeNative())) {
+                            CompletableFuture.runAsync(() -> processPayment(response, "XLM", MERCHANT_NAME));
+                        } else {
+                            log.debug("asset {}", response.getAsset().toString());
+                            StellarAsset asset = asssetsContext.getStellarAssetByAssetObject(response.getAsset());
+                            if (asset != null) {
+                                CompletableFuture.runAsync(() -> processPayment(response, asset.getCurrencyName(), asset.getMerchantName()));
+                            }
                         }
                     }
                 }
+            }
+
+            @Override
+            public void onFailure(Optional<Throwable> optional, Optional<Integer> optional1) {
+                log.error("error {} {}", optional.orNull(), optional1.orNull());
             }
         });
     }
@@ -93,7 +97,7 @@ public class StellarReceivePaymentsService {
     private void processPayment(PaymentOperationResponse response, String currencyName, String merchant) {
         TransactionResponse transactionResponse = null;
         try {
-            transactionResponse = stellarTransactionService.getTxByURI(SEVER_URL, response.getLinks().getTransaction().getUri());
+            transactionResponse = stellarTransactionService.getTxByHash(response.getTransactionHash());
         } catch (Exception e) {
             log.error("error getting transaction {}", e);
         }
@@ -103,7 +107,7 @@ public class StellarReceivePaymentsService {
         log.debug("transaction {} {} saved ", currencyName, transactionResponse.getHash());
     }
 
-    private void checkEventSource() {
+   /* private void checkEventSource() {
         log.debug("start check");
         if (eventSource == null) {
             log.debug("es == null");
@@ -118,7 +122,7 @@ public class StellarReceivePaymentsService {
             eventSource = null;
             checkIncomePayment();
         }
-    }
+    }*/
 
 
     private void savePagingToken(String pagingToken) {
@@ -128,13 +132,5 @@ public class StellarReceivePaymentsService {
     private String loadLastPagingToken() {
         MerchantSpecParamDto specParamsDto = specParamsDao.getByMerchantNameAndParamName(MERCHANT_NAME, LAST_PAGING_TOKEN_PARAM);
         return specParamsDto == null ? null : specParamsDto.getParamValue();
-    }
-
-    @PreDestroy
-    public void shutdown() {
-        if (eventSource != null && eventSource.isOpen()) {
-            eventSource.close();
-        }
-        scheduler.shutdown();
     }
 }

@@ -29,7 +29,6 @@ import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -92,7 +91,7 @@ public class NgDownloadController {
                     dateTimeTo,
                     locale);
 
-            reportDto = orderService.getOrderExcelFile(orders, orderStatus);
+            reportDto = orderService.getOrderExcelFile(orders);
 
             final byte[] content = reportDto.getContent();
             final String fileName = reportDto.getFileName();

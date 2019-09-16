@@ -52,7 +52,7 @@ public interface WalletService {
      */
     List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(CacheData cacheData, String email, Locale locale);
 
-    List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(CacheData cacheData, String email, Locale locale, CurrencyPairType type);
+    List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(CacheData cacheData, String email, CurrencyPairType type);
 
     int getWalletId(int userId, int currencyId);
 
@@ -117,6 +117,9 @@ public interface WalletService {
 
     WalletsForOrderCancelDto getWalletForOrderByOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType);
 
+    @Transactional
+    void withdrawcommissionToUser(Integer userId, Integer currencyId, BigDecimal amount, String adminEmail);
+
     @Transactional(rollbackFor = Exception.class)
     TransferDto transferCostsToUser(Integer fromUserWalletId, Integer userId, BigDecimal amount, BigDecimal comission,
                                     Locale locale, int sourceId);
@@ -176,6 +179,12 @@ public interface WalletService {
 
     boolean performIeoTransfer(IEOClaim ieoClaim);
 
+    boolean performFreecoinsGiveawayProcess(String currencyName, BigDecimal amount, String creatorEmail);
+
+    boolean performFreecoinsGiveawayRevokeProcess(String currencyName, BigDecimal revokeAmount, String creatorEmail);
+
+    boolean performFreecoinsReceiveProcess(String currencyName, BigDecimal partialAmount, String receiverEmail);
+
     BigDecimal getAvailableAmountInBtcLocked(int id, int currencyId);
 
     Map<String, String> findUserCurrencyBalances(User user);
@@ -185,4 +194,9 @@ public interface WalletService {
     boolean performIeoRollbackTransfer(IEOClaim ieoClaim);
 
     boolean moveBalanceFromIeoReservedToActive(int userId, String currencyName);
+
+    BigDecimal getActiveBalanceAndBlockByWalletId(Integer walletId);
+
+    BigDecimal getActiveBalanceByUserAndCurrency(String email, Integer currencyId);
+
 }

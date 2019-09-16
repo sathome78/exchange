@@ -122,7 +122,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
  * @author ValkSam
  */
 @Log4j2
-@PropertySource(value = {"classpath:/mobile.properties", "classpath:session.properties"})
+@PropertySource(value = {"classpath:session.properties"})
 @RestController
 public class OnlineRestController {
     private static final Logger LOGGER = LogManager.getLogger(OnlineRestController.class);
@@ -265,7 +265,7 @@ public class OnlineRestController {
         String cacheKey = "myWalletsStatistic" + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-        List<MyWalletsStatisticsDto> resultWallet = walletService.getAllWalletsForUserReduced(cacheData, email, localeResolver.resolveLocale(request), type);
+        List<MyWalletsStatisticsDto> resultWallet = walletService.getAllWalletsForUserReduced(cacheData, email, type);
         Map<String, Object> map = new HashMap<>();
         map.put("mapWallets", resultWallet);
 

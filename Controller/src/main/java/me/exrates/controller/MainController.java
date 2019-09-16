@@ -8,11 +8,7 @@ import me.exrates.model.User;
 import me.exrates.model.UserEmailDto;
 import me.exrates.model.dto.QRCodeDto;
 import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.enums.OrderHistoryPeriod;
-import me.exrates.model.enums.OrderType;
-import me.exrates.model.enums.TokenType;
-import me.exrates.model.enums.UserRole;
-import me.exrates.model.enums.UserStatus;
+import me.exrates.model.enums.*;
 import me.exrates.model.form.FeedbackMessageForm;
 import me.exrates.model.vo.openApiDoc.OpenApiMethodDoc;
 import me.exrates.model.vo.openApiDoc.OpenApiMethodGroup;
@@ -20,13 +16,14 @@ import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.PinCodeCheckNeedException;
 import me.exrates.security.exception.UnconfirmedUserException;
+import me.exrates.security.filter.NotVerifiedCaptchaError;
+import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.QRCodeService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.AbsentFinPasswordException;
 import me.exrates.service.exception.NotConfirmedFinPasswordException;
 import me.exrates.service.exception.WrongFinPasswordException;
-import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -73,6 +70,7 @@ import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
+import static me.exrates.service.util.RestUtil.getUrlFromRequest;
 
 @Controller
 @PropertySource(value = {"classpath:about_us.properties", "classpath:/captcha.properties"})
@@ -103,7 +101,7 @@ public class MainController {
     @Autowired
     private ReferralService referralService;
     @Autowired
-    private GeetestLib geetest;
+    private VerifyReCaptchaSec verifyReCaptchaSec;
     @Autowired
     private QRCodeService qrCodeService;
 
@@ -169,29 +167,14 @@ public class MainController {
                                         @RequestParam(required = false) String source,
                                         BindingResult result,
                                         HttpServletRequest request) {
-        String challenge = request.getParameter(GeetestLib.fn_geetest_challenge);
-        String validate = request.getParameter(GeetestLib.fn_geetest_validate);
-        String seccode = request.getParameter(GeetestLib.fn_geetest_seccode);
+
         User user = new User();
         user.setEmail(userEmailDto.getEmail());
         user.setParentEmail(userEmailDto.getParentEmail());
-        int gt_server_status_code = (Integer) request.getSession().getAttribute(geetest.gtServerStatusSessionKey);
-        String userid = (String) request.getSession().getAttribute("userid");
+        user.setVerificationRequired(false);
+        String recapchaResponse = request.getParameter("g-recaptcha-response");
 
-        HashMap<String, String> param = new HashMap<>();
-        param.put("user_id", userid);
-
-        int gtResult = 0;
-        if (gt_server_status_code == 1) {
-            gtResult = geetest.enhencedValidateRequest(challenge, validate, seccode, param);
-            logger.info(gtResult);
-        } else {
-            logger.error("failback:use your own server captcha validate");
-            gtResult = geetest.failbackValidateRequest(challenge, validate, seccode);
-            logger.error(gtResult);
-        }
-
-        if (gtResult == 1) {
+        if (verifyReCaptchaSec.verify(recapchaResponse)) {
             registerFormValidation.validate(null, user.getEmail(), null, result, localeResolver.resolveLocale(request));
             user.setPhone("");
             if (result.hasErrors()) {
@@ -199,7 +182,7 @@ public class MainController {
             } else {
                 boolean flag = false;
                 try {
-                    String ip = IpUtils.getClientIpAddress(request, 100);
+                    String ip = IpUtils.getIpForDbLog(request);
                     if (ip == null) {
                         ip = request.getRemoteHost();
                     }
@@ -216,12 +199,15 @@ public class MainController {
                 }
                 if (flag) {
                     final int child = userService.getIdByEmail(user.getEmail());
-                    final int parent = userService.getIdByEmail(user.getParentEmail());
-                    if (child > 0 && parent > 0) {
-                        referralService.bindChildAndParent(child, parent);
-                        logger.info("*** Referal graph | Child: " + user.getEmail() + " && Parent: " + user.getParentEmail());
+                    try {
+                        final int parent = userService.getIdByEmail(user.getParentEmail());
+                        if (child > 0 && parent > 0) {
+                            referralService.bindChildAndParent(child, parent);
+                            logger.info("*** Referal graph | Child: " + user.getEmail() + " && Parent: " + user.getParentEmail());
+                        }
+                    } catch (Exception e) {
+                        logger.error("error get refferal for " + child);
                     }
-
                     String successNoty = null;
                     try {
                         successNoty = URLEncoder.encode(messageSource.getMessage("register.sendletter", null,
@@ -233,6 +219,7 @@ public class MainController {
                     Map<String, Object> body = new HashMap<>();
                     body.put("result", successNoty);
                     body.put("user", user);
+                    userService.logIP(child, user.getIp(), UserEventEnum.REGISTER, getUrlFromRequest(request));
                     return ResponseEntity.ok(body);
 
                 } else {
@@ -241,7 +228,8 @@ public class MainController {
             }
         } else {
             //TODO
-            throw new RuntimeException("Geetest error");
+            String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
+            throw new NotVerifiedCaptchaError(correctCapchaRequired);
         }
     }
 
@@ -311,13 +299,6 @@ public class MainController {
         return model;
     }
 
-    @RequestMapping("/personalpage")
-    public ModelAndView gotoPersonalPage(@ModelAttribute User user, Principal principal) {
-        String host = request.getRemoteHost();
-        String email = principal.getName();
-        String userIP = userService.logIP(email, host);
-        return new ModelAndView("personalpage", "userIP", userIP);
-    }
 
     @RequestMapping(value = "/login", method = RequestMethod.GET)
     public ModelAndView login(HttpSession httpSession, Principal principal,

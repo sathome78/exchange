@@ -2,6 +2,7 @@ package me.exrates.model;
 
 import lombok.*;
 import me.exrates.model.enums.MerchantProcessType;
+import me.exrates.model.enums.MerchantVerificationType;
 
 import java.io.Serializable;
 
@@ -22,6 +23,7 @@ public class Merchant implements Serializable {
     private Boolean additionalTagForWithdrawAddressIsUsed;
     private Integer tokensParrentId;
     private Boolean needVerification;
+    private MerchantVerificationType verificationType;
 
 
     public Merchant(int id) {

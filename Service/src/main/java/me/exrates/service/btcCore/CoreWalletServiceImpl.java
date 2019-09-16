@@ -1,6 +1,5 @@
 package me.exrates.service.btcCore;
 
-import com.google.common.collect.ImmutableList;
 import com.neemre.btcdcli4j.core.BitcoindException;
 import com.neemre.btcdcli4j.core.Commands;
 import com.neemre.btcdcli4j.core.CommunicationException;
@@ -25,6 +24,7 @@ import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
+import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.merchants.btc.BtcBlockDto;
 import me.exrates.model.dto.merchants.btc.BtcPaymentFlatDto;
 import me.exrates.model.dto.merchants.btc.BtcPaymentResultDto;
@@ -76,6 +76,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -104,6 +105,8 @@ public class CoreWalletServiceImpl implements CoreWalletService {
     private Boolean supportSubtractFee;
     private Boolean supportReferenceLine;
 
+    private Boolean useSendManyForWithdraw;
+
     private Map<String, ScheduledFuture<?>> unlockingTasks = new ConcurrentHashMap<>();
 
     private ScheduledExecutorService outputUnlockingExecutor = Executors.newSingleThreadScheduledExecutor();
@@ -112,7 +115,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
 
 
     @Override
-    public void initCoreClient(String nodePropertySource, Properties passPropertySource, boolean supportInstantSend, boolean supportSubtractFee, boolean supportReferenceLine) {
+    public void initCoreClient(String nodePropertySource, Properties passPropertySource, boolean supportInstantSend, boolean supportSubtractFee, boolean supportReferenceLine, boolean useSendManyForWithdraw) {
         try {
             PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
             CloseableHttpClient httpProvider = HttpClients.custom().setConnectionManager(cm)
@@ -126,6 +129,8 @@ public class CoreWalletServiceImpl implements CoreWalletService {
             this.supportInstantSend = supportInstantSend;
             this.supportSubtractFee = supportSubtractFee;
             this.supportReferenceLine = supportReferenceLine;
+
+            this.useSendManyForWithdraw = useSendManyForWithdraw;
         } catch (Exception e) {
             log.error("Could not initialize BTCD client of config {}. Reason: {} ", nodePropertySource, e.getMessage());
             log.error(ExceptionUtils.getStackTrace(e));
@@ -424,12 +429,16 @@ public class CoreWalletServiceImpl implements CoreWalletService {
             String result;
             synchronized (SENDING_LOCK) {
                 unlockWallet(walletPassword, 10);
-                Map<String, BigDecimal> payments = new HashMap<>();
-                payments.put(address, amount);
-                if (supportReferenceLine) {
-                    result = btcdClient.sendMany("", payments, "", MIN_CONFIRMATIONS_FOR_SPENDING);
+                if(useSendManyForWithdraw) {
+                    Map<String, BigDecimal> payments = new HashMap<>();
+                    payments.put(address, amount);
+                    if (supportReferenceLine) {
+                        result = btcdClient.sendMany("", payments, "", MIN_CONFIRMATIONS_FOR_SPENDING);
+                    } else {
+                        result = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING);
+                    }
                 } else {
-                    result = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING);
+                    result = btcdClient.sendToAddress(address, amount);
                 }
                 lockWallet();
             }
@@ -491,19 +500,28 @@ public class CoreWalletServiceImpl implements CoreWalletService {
             if (subtractFeeFromAmount) {
                 subtractFeeAddresses = new ArrayList<>(payments.keySet());
             }
-            String txId;
+            String txId = null;
             synchronized (SENDING_LOCK) {
-                if (supportInstantSend) {
-                    txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING, false,
-                            "", subtractFeeAddresses);
-                } else if (supportReferenceLine) {
-                    txId = btcdClient.sendMany("", payments, "", MIN_CONFIRMATIONS_FOR_SPENDING);
-                } else {
-                    if (supportSubtractFee) {
-                        txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING,
+                if (useSendManyForWithdraw) {
+                    if (supportInstantSend) {
+                        txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING, false,
                                 "", subtractFeeAddresses);
+                    } else if (supportReferenceLine) {
+                        txId = btcdClient.sendMany("", payments, "", MIN_CONFIRMATIONS_FOR_SPENDING);
                     } else {
-                        txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING, "");
+                        if (supportSubtractFee) {
+                            txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING,
+                                    "", subtractFeeAddresses);
+                        } else {
+                            txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING, "");
+                        }
+                    }
+                } else {
+                    for (Map.Entry<String, BigDecimal> payment : payments.entrySet()) {
+                        String address = payment.getKey();
+                        BigDecimal amount = payment.getValue();
+
+                        txId = btcdClient.sendToAddress(address, amount);
                     }
                 }
             }
@@ -684,21 +702,38 @@ public class CoreWalletServiceImpl implements CoreWalletService {
     }
 
     @Override
-    public PagingData<List<BtcTransactionHistoryDto>> listTransaction(int start, int length, String searchValue) {
+    public PagingData<List<BtcTransactionHistoryDto>> listTransaction(DataTableParams dataTableParams) {
+        PagingData<List<BtcTransactionHistoryDto>> result = new PagingData<>();
+        int start = dataTableParams.getStart();
+        int length = dataTableParams.getLength() == 0 ? 10 : dataTableParams.getLength();
+        String searchValue = dataTableParams.getSearchValue();
+        String orderColumn = dataTableParams.getOrderColumnName();
+        DataTableParams.OrderDirection orderDirection = dataTableParams.getOrderDirection();
         try {
-            PagingData<List<BtcTransactionHistoryDto>> result = new PagingData<>();
-
-            int recordsTotal = getWalletInfo().getTransactionCount() != null ? getWalletInfo().getTransactionCount() : calculateTransactionCount();
-            List<BtcTransactionHistoryDto> data = getTransactionsForPagination(start, length);
-
-            if (!(StringUtils.isEmpty(searchValue))) {
-                recordsTotal = findTransactions(searchValue).size();
-                data = findTransactions(searchValue);
+            final Integer transactionCount = getWalletInfo().getTransactionCount() != null
+                    ? getWalletInfo().getTransactionCount()
+                    : calculateTransactionCount();
+            int recordsTotal = transactionCount > 10000
+                    ? 10000
+                    : transactionCount;
+            if (orderDirection == DataTableParams.OrderDirection.DESC && orderColumn.equals("time")){
+               result.setData(getTransactionsForPagination(start, length));
+            } else {
+                List<BtcTransactionHistoryDto> dataAll = getTransactionsForPagination(0, recordsTotal);
+                if (StringUtils.isNotEmpty(searchValue)) {
+                    dataAll = dataAll
+                            .stream()
+                            .filter(historyDtoPredicate(searchValue))
+                            .collect(Collectors.toList());
+                    recordsTotal = dataAll.size();
+                }
+                dataAll.sort(BtcTransactionHistoryDto.getComparator(orderColumn, orderDirection));
+                int end = recordsTotal < (start + length) ? recordsTotal : start + length;
+                result.setData(dataAll.subList(start, end));
             }
-            result.setData(data);
+
             result.setTotal(recordsTotal);
             result.setFiltered(recordsTotal);
-
             return result;
         } catch (BitcoindException | CommunicationException e) {
             log.error(e);
@@ -706,8 +741,12 @@ public class CoreWalletServiceImpl implements CoreWalletService {
         }
     }
 
-    ;
-
+    private Predicate<BtcTransactionHistoryDto> historyDtoPredicate(String value) {
+        return e ->
+                (StringUtils.equals(e.getAddress(), value))
+                        || StringUtils.equals(e.getBlockhash(), value)
+                        || StringUtils.equals(e.getTxId(), value);
+    }
 
     @Override
     public List<BtcTransactionHistoryDto> getTransactionsByPage(int page, int transactionsPerPage) throws BitcoindException, CommunicationException {
@@ -718,8 +757,10 @@ public class CoreWalletServiceImpl implements CoreWalletService {
             //Fix for coin with specific 'listtransactions' method without first params
             payments = listTransactionsForSpecificBtcCoins(transactionsPerPage, page * transactionsPerPage);
         }
-        return ImmutableList.copyOf(payments.stream()
-                .map(this::setBtcTransactionHistoryDto).collect(Collectors.toList())).reverse();
+        List<BtcTransactionHistoryDto> resultList = payments.stream().map(this::setBtcTransactionHistoryDto).collect(Collectors.toList());
+        Collections.reverse(resultList);
+
+        return resultList;
     }
 
     @Override
@@ -731,8 +772,10 @@ public class CoreWalletServiceImpl implements CoreWalletService {
             //Fix for coin with specific 'listtransactions' method without first params
             payments = listTransactionsForSpecificBtcCoins(length, start);
         }
-        return ImmutableList.copyOf(payments.stream()
-                .map(this::setBtcTransactionHistoryDto).collect(Collectors.toList())).reverse();
+        List<BtcTransactionHistoryDto> resultList = payments.stream().map(this::setBtcTransactionHistoryDto).collect(Collectors.toList());
+        Collections.reverse(resultList);
+
+        return resultList;
     }
 
     private List<Payment> listTransactionsForSpecificBtcCoins(Integer account, Integer count) throws BitcoindException, CommunicationException {
@@ -781,15 +824,13 @@ public class CoreWalletServiceImpl implements CoreWalletService {
         return result;
     }
 
-    private int calculateTransactionCount() throws BitcoindException, CommunicationException {
 
+    private int calculateTransactionCount() throws BitcoindException, CommunicationException {
         List<BtcTransactionHistoryDto> transactions;
         int transactionCount = 0;
-
         for (int i = 0; (transactions = getTransactionsByPage(i, TRANSACTIONS_PER_PAGE_FOR_SEARCH)).size() > 0; i++) {
             transactionCount += transactions.size();
         }
-
         return transactionCount;
     }
 

@@ -119,7 +119,7 @@ public class NotificationServiceImpl implements NotificationService {
         email.setSubject(titleMessage);
         email.setMessage(message);
         email.setTo(user.getEmail());
-        sendMailService.sendMailMandrill(email);
+        sendMailService.sendMail(email);
     }
 
 

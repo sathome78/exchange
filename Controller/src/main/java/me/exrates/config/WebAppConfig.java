@@ -1,20 +1,16 @@
 package me.exrates.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.SSMGetter;
 import me.exrates.aspect.LoggingAspect;
 import me.exrates.config.ext.JsonMimeInterceptor;
-import me.exrates.config.ext.LogableErrorHandler;
 import me.exrates.controller.filter.LoggingFilter;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.controller.interceptor.MDCInterceptor;
 import me.exrates.controller.interceptor.SecurityInterceptor;
-import me.exrates.controller.interceptor.TokenInterceptor;
 import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.converter.CurrencyPairConverter;
@@ -25,12 +21,17 @@ import me.exrates.service.BitcoinService;
 import me.exrates.service.MoneroService;
 import me.exrates.service.NamedParameterJdbcTemplateWrapper;
 import me.exrates.service.achain.AchainContract;
+import me.exrates.service.binance.BinTokenService;
+import me.exrates.service.binance.BinTokenServiceImpl;
+import me.exrates.service.binance.BinanceCurrencyService;
+import me.exrates.service.binance.BinanceCurrencyServiceImpl;
+import me.exrates.service.binance.BinanceService;
+import me.exrates.service.binance.BinanceServiceImpl;
 import me.exrates.service.ethereum.EthTokenService;
 import me.exrates.service.ethereum.EthTokenServiceImpl;
 import me.exrates.service.ethereum.EthereumCommonService;
 import me.exrates.service.ethereum.EthereumCommonServiceImpl;
 import me.exrates.service.ethereum.ExConvert;
-import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.handler.RestResponseErrorHandler;
 import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.impl.HCXPServiceImpl;
@@ -39,17 +40,14 @@ import me.exrates.service.job.QuartzJobFactory;
 import me.exrates.service.nem.XemMosaicService;
 import me.exrates.service.nem.XemMosaicServiceImpl;
 import me.exrates.service.properties.InOutProperties;
-import me.exrates.service.properties.SsmProperties;
 import me.exrates.service.qtum.QtumTokenService;
 import me.exrates.service.qtum.QtumTokenServiceImpl;
 import me.exrates.service.stellar.StellarAsset;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.apache.http.Header;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.message.BasicHeader;
 import org.flywaydb.core.Flyway;
 import org.nem.core.model.primitive.Supply;
 import org.quartz.Scheduler;
@@ -153,41 +151,9 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
 
     public static final String NODE_TOKEN = "TEMPO_TOKEN";
-
-    @Value("${db.properties.file}")
-    private String dbPropertiesFile;
-
-    @Value("${db.properties.outer.file}")
-    private Boolean isOuterFile;
-
-    private
-    @Value("${upload.userFilesDir}")
-    String userFilesDir;
-    private
-    @Value("${upload.userFilesLogicalDir}")
-    String userFilesLogicalDir;
-    private
-    @Value("${news.locationDir}")
-    String newsLocationDir;
-    private
-    @Value("${news.urlPath}")
-    String newsUrlPath;
-
+    private final InOutProperties inOutProperties;
     @Value("${news.ext.locationDir}")
     String newsExtLocationDir;
-    @Value("${news.newstopic.urlPath}")
-    private String newstopicUrlPath;
-    @Value("${news.materialsView.urlPath}")
-    private String materialsViewUrlPath;
-    @Value("${news.webinar.urlPath}")
-    private String webinarUrlPath;
-    @Value("${news.event.urlPath}")
-    private String eventUrlPath;
-    @Value("${news.feastDay.urlPath}")
-    private String feastDayUrlPath;
-    @Value("${news.page.urlPath}")
-    private String pageUrlPath;
-
     @Value("${mail_support.host}")
     String mailSupportHost;
     @Value("${mail_support.port}")
@@ -218,16 +184,60 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     String mailInfoUser;
     @Value("${mail_info.password}")
     String mailInfoPassword;
-
+    @Value("${mail_ses.host}")
+    String mailSesHost;
+    @Value("${mail_ses.port}")
+    String mailSesPort;
+    @Value("${mail_ses.protocol}")
+    String mailSesProtocol;
+    @Value("${mail_ses.user}")
+    String mailSesUser;
+    @Value("${mail_ses.password}")
+    String mailSesPassword;
+    @Value("${mail_send_grid.host}")
+    String mailSendGridHost;
+    @Value("${mail_send_grid.port}")
+    String mailSendGridPort;
+    @Value("${mail_send_grid.protocol}")
+    String mailSendGridProtocol;
+    @Value("${mail_send_grid.user}")
+    String mailSendGridUser;
+    @Value("${mail_send_grid.password}")
+    String mailSendGridPassword;
+    @Value("${db.properties.file}")
+    private String dbPropertiesFile;
+    @Value("${db.properties.outer.file}")
+    private Boolean isOuterFile;
+    private
+    @Value("${upload.userFilesDir}")
+    String userFilesDir;
+    private
+    @Value("${upload.userFilesLogicalDir}")
+    String userFilesLogicalDir;
+    private
+    @Value("${news.locationDir}")
+    String newsLocationDir;
+    private
+    @Value("${news.urlPath}")
+    String newsUrlPath;
+    @Value("${news.newstopic.urlPath}")
+    private String newstopicUrlPath;
+    @Value("${news.materialsView.urlPath}")
+    private String materialsViewUrlPath;
+    @Value("${news.webinar.urlPath}")
+    private String webinarUrlPath;
+    @Value("${news.event.urlPath}")
+    private String eventUrlPath;
+    @Value("${news.feastDay.urlPath}")
+    private String feastDayUrlPath;
+    @Value("${news.page.urlPath}")
+    private String pageUrlPath;
     @Value("${angular.allowed.origins}")
     private String[] angularAllowedOrigins;
-
     @Value("${angular.allowed.methods}")
     private String[] angularAllowedMethods;
-
     @Value("${angular.allowed.headers}")
     private String[] angularAllowedHeaders;
-
     @Value("${twitter.appId}")
     private String twitterConsumerKey;
     @Value("${twitter.appSecret}")
@@ -236,19 +246,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     private String twitterAccessToken;
     @Value("${twitter.accessTokenSecret}")
     private String twitterAccessTokenSecret;
-
     @Value("${geetest.captchaId}")
     private String gtCaptchaId;
     @Value("${geetest.privateKey}")
     private String gtPrivateKey;
     @Value("${geetest.newFailback}")
     private String gtNewFailback;
-
     @Value("${qiwi.client.id}")
     private String qiwiClientId;
     @Value("${qiwi.client.secret}")
     private String qiwiClientSecret;
-
     private String dbMasterUser;
     private String dbMasterPassword;
     private String dbMasterUrl;
@@ -261,13 +268,17 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     private String dbSlaveForReportsPassword;
     private String dbSlaveForReportsUrl;
     private String dbSlaveForReportsClassname;
+    /***stellarAssets****/
+    private @Value("${stellar.slt.emitter}")
+    String SLT_EMMITER;
 
-    private final InOutProperties inOutProperties;
-    private final String inoutTokenValue;
-
-    public WebAppConfig(SSMGetter ssmGetter, SsmProperties ssmProperties, InOutProperties inOutProperties) {
-        this.inoutTokenValue = ssmGetter.lookup(ssmProperties.getInoutTokenPath());
+    public WebAppConfig(InOutProperties inOutProperties) {
         this.inOutProperties = inOutProperties;
+    }
+
+    @Bean
+    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
+        return new PropertySourcesPlaceholderConfigurer();
     }
 
     @PostConstruct
@@ -297,12 +308,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         dbSlaveForReportsPassword = properties.getProperty("db.slave.password");
         dbSlaveForReportsUrl = properties.getProperty("db.slave.url");
         dbSlaveForReportsClassname = properties.getProperty("db.slave.classname");
-    }
-
-
-    @Bean
-    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
-        return new PropertySourcesPlaceholderConfigurer();
     }
 
     /*@Bean(name = "dataSource")*/
@@ -373,7 +378,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @DependsOn("slaveForReportsDataSource")
     @Bean(name = "slaveForReportsTemplate")
     public NamedParameterJdbcTemplate slaveForReportsTemplate(@Qualifier("slaveForReportsDataSource") DataSource dataSource) {
-        return new NamedParameterJdbcTemplate(dataSource);
+        return new NamedParameterJdbcTemplateWrapper(dataSource);
     }
 
     @Primary
@@ -475,13 +480,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         registry.addInterceptor(new MDCInterceptor());
     }
 
-    private void addTokenInterceptor(InterceptorRegistry registry) {
-
-        log.info("Password from ssm with path = " + inoutTokenValue + " is " + inoutTokenValue.charAt(0) + "***" + inoutTokenValue.charAt(inoutTokenValue.length() - 1));
-        registry.addInterceptor(new TokenInterceptor(inoutTokenValue)).addPathPatterns("/inout/**");
-    }
-
-
     @Override
     public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
         configurer.setDefaultTimeout(120_000L);
@@ -503,9 +501,39 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         mailSenderImpl.setPassword(mailSupportPassword);
         final Properties javaMailProps = new Properties();
         javaMailProps.put("mail.smtp.auth", true);
-        javaMailProps.put("mail.smtp.starttls.enable", true);
+        javaMailProps.put("mail.smtp.starttls.enable", false);
         javaMailProps.put("mail.smtp.ssl.trust", mailSupportHost);
         mailSenderImpl.setJavaMailProperties(javaMailProps);
+        return mailSenderImpl;
+    }
+
+    @Bean(name = "SesMailSender")
+    public JavaMailSenderImpl sesMailSenderImpl() {
+        final JavaMailSenderImpl mailSenderImpl = new JavaMailSenderImpl();
+        mailSenderImpl.setHost(mailSesHost);
+        mailSenderImpl.setPort(Integer.parseInt(mailSesPort));
+        mailSenderImpl.setProtocol(mailSesProtocol);
+        mailSenderImpl.setUsername(mailSesUser);
+        mailSenderImpl.setPassword(mailSesPassword);
+        final Properties javaMailProps = mailSenderImpl.getJavaMailProperties();
+        javaMailProps.put("mail.smtp.auth", true);
+        javaMailProps.put("mail.smtp.starttls.enable", true);
+        javaMailProps.put("mail.smtp.ssl.trust", mailSesHost);
+        return mailSenderImpl;
+    }
+
+    @Bean(name = "SendGridMailSender")
+    public JavaMailSenderImpl javaSendGridMailSenderImpl() {
+        final JavaMailSenderImpl mailSenderImpl = new JavaMailSenderImpl();
+        mailSenderImpl.setHost(mailSendGridHost);
+        mailSenderImpl.setPort(Integer.parseInt(mailSendGridPort));
+        mailSenderImpl.setProtocol(mailSendGridProtocol);
+        mailSenderImpl.setUsername(mailSendGridUser);
+        mailSenderImpl.setPassword(mailSendGridPassword);
+        final Properties javaMailProps = new Properties();
+        javaMailProps.put("mail.smtp.auth", true);
+        javaMailProps.put("mail.smtp.starttls.enable", false);
+        javaMailProps.put("mail.smtp.ssl.trust", mailSendGridHost);
         return mailSenderImpl;
     }
 
@@ -571,17 +599,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return handlers;
     }
 
-    @Bean(name = "multipartResolver")
-    public StandardServletMultipartResolver resolver() {
-        return new StandardServletMultipartResolver();
-    }
-
 
     /*@Bean
     public StoreSessionListener storeSessionListener() {
         return new StoreSessionListenerImpl();
     }*/
 
+    @Bean(name = "multipartResolver")
+    public StandardServletMultipartResolver resolver() {
+        return new StandardServletMultipartResolver();
+    }
 
     @Bean
     public LoggingAspect loggingAspect() {
@@ -641,7 +668,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Conditional(MonolitConditional.class)
     public EthereumCommonService cloService() {
         return new EthereumCommonServiceImpl("merchants/callisto.properties",
-                "CLO", "CLO", 40);
+                "CLO", "CLO", 300);
     }
 
     @Bean(name = "b2gServiceImpl")
@@ -672,13 +699,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "NTY", "NTY", 40);
     }
 
-    @Bean(name = "etherincServiceImpl")
-    @Conditional(MonolitConditional.class)
-    public EthereumCommonService etherincService() {
-        return new EthereumCommonServiceImpl("merchants/eti.properties",
-                "ETI", "ETI", 50);
-    }
-
 //    @Bean(name = "eosServiceImpl")
 //    @Conditional(MonolitConditional.class)
 //    public EthTokenService EosService() {
@@ -689,6 +709,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 //                "EOS",
 //                "EOS", true, ExConvert.Unit.ETHER);
 //    }
+
+    @Bean(name = "etherincServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthereumCommonService etherincService() {
+        return new EthereumCommonServiceImpl("merchants/eti.properties",
+                "ETI", "ETI", 50);
+    }
 
     @Bean(name = "repServiceImpl")
     @Conditional(MonolitConditional.class)
@@ -721,17 +748,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 tokensList,
                 "OmiseGo",
                 "OMG", true, ExConvert.Unit.ETHER);
-    }
-
-    @Bean(name = "bnbServiceImpl")
-    @Conditional(MonolitConditional.class)
-    public EthTokenService BnbService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0xb8c77482e45f1f44de1745f52c74426c631bdd52");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "BinanceCoin",
-                "BNB", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "atlServiceImpl")
@@ -778,7 +794,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "GOS", true, ExConvert.Unit.MWEI);
     }
 
-
     @Bean(name = "bptnServiceImpl")
     @Conditional(MonolitConditional.class)
     public EthTokenService BptnRentService() {
@@ -800,7 +815,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "NBC",
                 "NBC", true, ExConvert.Unit.ETHER);
     }
-
 
     @Bean(name = "taxiServiceImpl")
     @Conditional(MonolitConditional.class)
@@ -879,7 +893,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "COBC", true, ExConvert.Unit.ETHER);
     }
 
-
     @Bean(name = "bcsServiceImpl")
     @Conditional(MonolitConditional.class)
     public EthTokenService bcsService() {
@@ -923,7 +936,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "PROFIT",
                 "PROFIT", false, ExConvert.Unit.ETHER);
     }
-
 
     @Bean(name = "ormeServiceImpl")
     @Conditional(MonolitConditional.class)
@@ -1123,17 +1135,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "MTC", true, ExConvert.Unit.ETHER);
     }
 
-    @Bean(name = "arnServiceImpl")
-    @Conditional(MonolitConditional.class)
-    public EthTokenService arnService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0xba5f11b16b155792cf3b2e6880e8706859a8aeb6");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "ARN",
-                "ARN", true, ExConvert.Unit.AIWEI);
-    }
-
     @Bean(name = "hstServiceImpl")
     @Conditional(MonolitConditional.class)
     public EthTokenService hstService() {
@@ -1166,7 +1167,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "CEEK",
                 "CEEK", false, ExConvert.Unit.ETHER);
     }
-
 
     @Bean(name = "anyServiceImpl")
     @Conditional(MonolitConditional.class)
@@ -1447,7 +1447,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Conditional(MonolitConditional.class)
     public EthTokenService crbtService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x2cf618c19041d9db330d8222b860a624021f30fb");
+        tokensList.add("0x6b7734c5ecc51116b806e2ea6decbb3b97f4f92e");
         return new EthTokenServiceImpl(
                 tokensList,
                 "CRBT",
@@ -1796,6 +1796,17 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "POA", false, ExConvert.Unit.ETHER);
     }
 
+//    @Bean(name = "zilServiceImpl")
+//    @Conditional(MonolitConditional.class)
+//    public EthTokenService zilService() {
+//        List<String> tokensList = new ArrayList<>();
+//        tokensList.add("0x05f4a42e251f2d52b8ed15e9fedaacfcef1fad27");
+//        return new EthTokenServiceImpl(
+//                tokensList,
+//                "ZIL",
+//                "ZIL", true, ExConvert.Unit.SZABO);
+//    }
+
     @Bean(name = "mcoServiceImpl")
     @Conditional(MonolitConditional.class)
     public EthTokenService mcoService() {
@@ -1805,17 +1816,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 tokensList,
                 "MCO",
                 "MCO", true, ExConvert.Unit.AIWEI);
-    }
-
-    @Bean(name = "zilServiceImpl")
-    @Conditional(MonolitConditional.class)
-    public EthTokenService zilService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x05f4a42e251f2d52b8ed15e9fedaacfcef1fad27");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "ZIL",
-                "ZIL", true, ExConvert.Unit.SZABO);
     }
 
     @Bean(name = "manaServiceImpl")
@@ -1928,124 +1928,208 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(tokensList, "PLTC", "PLTC", true, ExConvert.Unit.ETHER);
     }
 
-	@Bean(name = "vrbsServiceImpl")
-	@Conditional(MonolitConditional.class)
-    public EthTokenService vrbsServiceImpl(){
-		List<String> tokensList = new ArrayList<>();
-		tokensList.add("0x0e08b02d89ca66cf157c6658c02933ef0bc38cb6");
-		return new EthTokenServiceImpl(tokensList, "VRBS","VRBS", false, ExConvert.Unit.ETHER);
-	}
+    @Bean(name = "vrbsServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService vrbsServiceImpl() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x0e08b02d89ca66cf157c6658c02933ef0bc38cb6");
+        return new EthTokenServiceImpl(tokensList, "VRBS", "VRBS", false, ExConvert.Unit.ETHER);
+    }
 
-	@Bean(name = "zubeServiceImpl")
-	@Conditional(MonolitConditional.class)
-    public EthTokenService zubeServiceImpl(){
-		List<String> tokensList = new ArrayList<>();
-		tokensList.add("0xc5e017450346e4f9a2e477519d65affcfc90586a");
-		return new EthTokenServiceImpl(tokensList, "ZUBE","ZUBE", true, ExConvert.Unit.ETHER);
-	}
+    @Bean(name = "zubeServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService zubeServiceImpl() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xc5e017450346e4f9a2e477519d65affcfc90586a");
+        return new EthTokenServiceImpl(tokensList, "ZUBE", "ZUBE", true, ExConvert.Unit.ETHER);
+    }
 
-	@Bean(name = "elcServiceImpl")
-	@Conditional(MonolitConditional.class)
-    public EthTokenService elcServiceImpl(){
-		List<String> tokensList = new ArrayList<>();
-		tokensList.add("0x2ab2ffaa942851922a50fd640893f5c42b82474e");
-		return new EthTokenServiceImpl(tokensList, "ELC","ELC", false, ExConvert.Unit.AIWEI);
-	}
+    @Bean(name = "elcServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService elcServiceImpl() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x2ab2ffaa942851922a50fd640893f5c42b82474e");
+        return new EthTokenServiceImpl(tokensList, "ELC", "ELC", false, ExConvert.Unit.AIWEI);
+    }
 
     @Bean(name = "tttServiceImpl")
     @Conditional(MonolitConditional.class)
-    public EthTokenService tttServiceImpl(){
+    public EthTokenService tttServiceImpl() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x317572aabc73d59fc55f923750d1c51680fd28b4");
-        return new EthTokenServiceImpl(tokensList, "TTT","TTT", false, ExConvert.Unit.AIWEI);
+        return new EthTokenServiceImpl(tokensList, "TTT", "TTT", false, ExConvert.Unit.AIWEI);
     }
 
     @Bean(name = "rebServiceImpl")
     @Conditional(MonolitConditional.class)
-    public EthTokenService rebServiceImpl(){
+    public EthTokenService rebServiceImpl() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x61383ac89988b498df5363050ff07fe5c52ecdda");
-        return new EthTokenServiceImpl(tokensList, "REB","REB", true, ExConvert.Unit.ETHER);
+        return new EthTokenServiceImpl(tokensList, "REB", "REB", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "rvcServiceImpl")
     @Conditional(MonolitConditional.class)
-    public EthTokenService rvcServiceImpl(){
+    public EthTokenService rvcServiceImpl() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0xa3ebd756729904ba2a39289751d96d9b2eac793b");
-        return new EthTokenServiceImpl(tokensList, "RVC","RVC", false, ExConvert.Unit.ETHER);
+        return new EthTokenServiceImpl(tokensList, "RVC", "RVC", false, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "bioServiceImpl")
     @Conditional(MonolitConditional.class)
-    public EthTokenService bioServiceImpl(){
+    public EthTokenService bioServiceImpl() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0xf18432ef894ef4b2a5726f933718f5a8cf9ff831");
-        return new EthTokenServiceImpl(tokensList, "BIO","BIO", false, ExConvert.Unit.AIWEI);
+        return new EthTokenServiceImpl(tokensList, "BIO", "BIO", false, ExConvert.Unit.AIWEI);
     }
 
     @Bean(name = "vraServiceImpl")
     @Conditional(MonolitConditional.class)
-    public EthTokenService vraServiceImpl(){
+    public EthTokenService vraServiceImpl() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0xdf1d6405df92d981a2fb3ce68f6a03bac6c0e41f");
-        return new EthTokenServiceImpl(tokensList, "VRA","VRA", true, ExConvert.Unit.ETHER);
+        return new EthTokenServiceImpl(tokensList, "VRA", "VRA", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "katServiceImpl")
     @Conditional(MonolitConditional.class)
-    public EthTokenService katServiceImpl(){
+    public EthTokenService katServiceImpl() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0xa858bc1b71a895ee83b92f149616f9b3f6afa0fb");
-        return new EthTokenServiceImpl(tokensList, "KAT","KAT", true, ExConvert.Unit.ETHER);
+        return new EthTokenServiceImpl(tokensList, "KAT", "KAT", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "etaServiceImpl")
     @Conditional(MonolitConditional.class)
-    public EthTokenService etaServiceImpl(){
+    public EthTokenService etaServiceImpl() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x9195e00402abe385f2d00a32af40b271f2e87925");
-        return new EthTokenServiceImpl(tokensList, "ETA","ETA", true, ExConvert.Unit.ETHER);
+        return new EthTokenServiceImpl(tokensList, "ETA", "ETA", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "brcServiceImpl")
     @Conditional(MonolitConditional.class)
-    public EthTokenService brcServiceImpl(){
+    public EthTokenService brcServiceImpl() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x21ab6c9fac80c59d401b37cb43f81ea9dde7fe34");
-        return new EthTokenServiceImpl(tokensList, "BRC","BRC", true, ExConvert.Unit.AIWEI);
+        return new EthTokenServiceImpl(tokensList, "BRC", "BRC", true, ExConvert.Unit.AIWEI);
     }
 
     @Bean(name = "gnyServiceImpl")
     @Conditional(MonolitConditional.class)
-    public EthTokenService gnyServiceImpl(){
+    public EthTokenService gnyServiceImpl() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x247551f2eb3362e222c742e9c788b8957d9bc87e");
-        return new EthTokenServiceImpl(tokensList, "GNY","GNY", true, ExConvert.Unit.ETHER);
+        return new EthTokenServiceImpl(tokensList, "GNY", "GNY", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "novaServiceImpl")
     @Conditional(MonolitConditional.class)
-    public EthTokenService novaServiceImpl(){
+    public EthTokenService novaServiceImpl() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x72fbc0fc1446f5accc1b083f0852a7ef70a8ec9f");
-        return new EthTokenServiceImpl(tokensList, "NOVA","NOVA", true, ExConvert.Unit.ETHER);
+        return new EthTokenServiceImpl(tokensList, "NOVA", "NOVA", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "fstServiceImpl")
     @Conditional(MonolitConditional.class)
-    public EthTokenService fstServiceImpl(){
+    public EthTokenService fstServiceImpl() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0xa1a6f16d26aa53aec17e4001fd8cb6e6d5b17ff7");
-        return new EthTokenServiceImpl(tokensList, "FST","FST", true, ExConvert.Unit.MWEI);
+        return new EthTokenServiceImpl(tokensList, "FST", "FST", true, ExConvert.Unit.MWEI);
     }
 
     @Bean(name = "rvtServiceImpl")
     @Conditional(MonolitConditional.class)
-    public EthTokenService rvtServiceImpl(){
+    public EthTokenService rvtServiceImpl() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x4eef32781db07a9b7d9d36bb9ba81fa08af9d3ab");
-        return new EthTokenServiceImpl(tokensList, "RVT","RVT", true, ExConvert.Unit.ETHER);
+        return new EthTokenServiceImpl(tokensList, "RVT", "RVT", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "linaServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService linaServiceImpl() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xc05d14442a510de4d3d71a3d316585aa0ce32b50");
+        return new EthTokenServiceImpl(tokensList, "LINA", "LINA", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "gapiServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService gapiServiceImpl() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x1ac8bd74065e11c07c0fa3687c0dcfb86af76d46");
+        return new EthTokenServiceImpl(tokensList, "GAPI", "GAPI", false, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "embrServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService embrServiceImpl() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x07f74c8480ccfee0d4f803e9bdde8383748b40de");
+        return new EthTokenServiceImpl(tokensList, "EMBR", "EMBR", true, ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "usdtServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService usdtServiceImpl() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xdac17f958d2ee523a2206206994597c13d831ec7");
+        return new EthTokenServiceImpl(tokensList, "USDT", "USDT", true, ExConvert.Unit.MWEI);
+    }
+
+    @Bean(name = "asgServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService asgServiceImpl() {
+        List<String> tokensList = ImmutableList.of("0x7a3d3c4f30c46f51b814bee23d970a7c9b757a32");
+        return new EthTokenServiceImpl(tokensList, "ASG", "ASG", false, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "vinciServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService vinciServiceImpl() {
+        List<String> tokensList = ImmutableList.of("0x3db99ab08006aefcc9600972eca8c202396b4300");
+        return new EthTokenServiceImpl(tokensList, "VINCI", "VINCI", false, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "acuServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService acuServiceImpl() {
+        List<String> tokensList = ImmutableList.of("0xd536bbd5414a8c2beed82a63737b9327d2fa35a6");
+        return new EthTokenServiceImpl(tokensList, "ACU", "ACU", false, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "mexcServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService mexcServiceImpl() {
+        List<String> tokensList = ImmutableList.of("0x7de2d123042994737105802d2abd0a10a7bde276");
+        return new EthTokenServiceImpl(tokensList, "MEXC", "MEXC", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean
+    @Conditional(MonolitConditional.class)
+    public BinanceCurrencyService binanceCurrencyService() {
+        return new BinanceCurrencyServiceImpl("merchants/binance.properties");
+    }
+
+    @Bean(name = "binanceServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public BinanceService binanceService() {
+        return new BinanceServiceImpl("merchants/binance.properties", "BinanceBlockchain", 40);
+    }
+
+    @Bean(name = "bnbServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public BinTokenService bnbService() {
+        return new BinTokenServiceImpl("merchants/binance.properties", "BinanceCoin", "BNB");
+    }
+
+    @Bean(name = "arnServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public BinTokenService arnService() {
+        return new BinTokenServiceImpl("merchants/binance.properties", "ARN", "ARN");
     }
 
     //    Qtum tokens:
@@ -2188,10 +2272,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 0);
     }
 
-    /***stellarAssets****/
-    private @Value("${stellar.slt.emitter}")
-    String SLT_EMMITER;
-
     @Bean(name = "sltStellarService")
     @Conditional(MonolitConditional.class)
     public StellarAsset sltStellarService() {
@@ -2253,18 +2333,10 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     @Bean("inoutRestTemplate")
     @Conditional(MicroserviceConditional.class)
-    public RestTemplate inoutRestTemplate(LogableErrorHandler errorHandler) {
+    public RestTemplate inoutRestTemplate() {
         RestTemplate restTemplate = new RestTemplate();
-        HttpClientBuilder b = HttpClientBuilder.create();
-        List<Header> headers = Lists.newArrayList();
-        headers.add(new BasicHeader(inOutProperties.getTokenName(), inOutProperties.getTokenValue()));
-        b.setDefaultHeaders(headers);
-        HttpClient client = b.build();
-        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-        requestFactory.setHttpClient(client);
-        restTemplate.setRequestFactory(requestFactory);
-        restTemplate.setErrorHandler(errorHandler);
         restTemplate.setInterceptors(Collections.singletonList(new JsonMimeInterceptor()));
+
         return restTemplate;
     }
 
@@ -2324,10 +2396,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 twitterAccessTokenSecret);
     }
 
-    @Bean
-    public GeetestLib geetest() {
-        return new GeetestLib(gtCaptchaId, gtPrivateKey, Boolean.valueOf(gtNewFailback));
-    }
 
     @Bean
     public Client client() {
@@ -2335,5 +2403,4 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         build.register(new LoggingFilter());
         return build;
     }
-
 }

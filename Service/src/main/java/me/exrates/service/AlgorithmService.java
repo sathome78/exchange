@@ -28,4 +28,8 @@ public interface AlgorithmService {
     BigDecimal fromSatoshi(String amount);
 
     BigDecimal toBigDecimal(String value);
+
+    String encodeByKey(String code, String txt);
+
+    String decodeByKey(String code, String text);
 }

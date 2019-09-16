@@ -46,6 +46,7 @@
                             <th></th>
                             <th></th>
                             <th></th>
+                            <th></th>
                             <th><span id="summary-in-usd"></span></th>
                             <th><span id="summary-in-btc"></span></th>
                             <th></th>

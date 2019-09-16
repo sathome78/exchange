@@ -1,18 +1,23 @@
 package me.exrates.service.impl;
 
 
+import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.UserDao;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.AdminAuthorityOption;
 import me.exrates.model.Comment;
 import me.exrates.model.Email;
+import me.exrates.model.PagingData;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
 import me.exrates.model.dto.CallbackURL;
+import me.exrates.model.dto.IpLogDto;
 import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserBalancesDto;
@@ -22,8 +27,11 @@ import me.exrates.model.dto.UserIpReportDto;
 import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.UsersInfoDto;
 import me.exrates.model.dto.api.RateDto;
+import me.exrates.model.dto.dataTable.DataTable;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.AdminIpLogsFilterData;
 import me.exrates.model.dto.ieo.IeoUserStatus;
-import me.exrates.model.dto.kyc.VerificationStep;
+import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.NotificationMessageEventEnum;
@@ -31,6 +39,7 @@ import me.exrates.model.enums.NotificationTypeEnum;
 import me.exrates.model.enums.PolicyEnum;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserCommentTopicEnum;
+import me.exrates.model.enums.UserEventEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
@@ -51,7 +60,6 @@ import me.exrates.service.exception.ResetPasswordExpirationException;
 import me.exrates.service.exception.TokenNotFoundException;
 import me.exrates.service.exception.UnRegisteredUserDeleteException;
 import me.exrates.service.exception.UserCommentNotFoundException;
-import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.service.exception.WrongFinPasswordException;
 import me.exrates.service.exception.api.UniqueEmailConstraintException;
 import me.exrates.service.exception.api.UniqueNicknameConstraintException;
@@ -59,7 +67,7 @@ import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.session.UserSessionService;
 import me.exrates.service.token.TokenScheduler;
-import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,7 +82,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -95,65 +102,14 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.joining;
 
 @Log4j2
 @Service
 public class UserServiceImpl implements UserService {
 
-    @Autowired
-    private UserDao userDao;
-
-    @Autowired
-    private UserSessionService userSessionService;
-
-    @Autowired
-    private SendMailService sendMailService;
-
-    @Autowired
-    private MessageSource messageSource;
-
-    @Autowired
-    private NotificationService notificationService;
-
-    @Autowired
-    private HttpServletRequest request;
-
-    @Autowired
-    private TokenScheduler tokenScheduler;
-
-    @Autowired
-    private ReferralService referralService;
-
-    @Autowired
-    private NotificationsSettingsService settingsService;
-
-    @Autowired
-    private G2faService g2faService;
-
-    @Autowired
-    private ExchangeApi exchangeApi;
-
-    @Autowired
-    private UserSettingService userSettingService;
-
-    BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
-    public static String QR_PREFIX = "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=";
-    public static String APP_NAME = "Exrates";
-
-    private final int USER_FILES_THRESHOLD = 3;
-
-    private final int USER_2FA_NOTIFY_DAYS = 6;
-
-    private final Set<String> USER_ROLES = Stream.of(UserRole.values())
-            .map(UserRole::name)
-            .collect(Collectors.toSet());
-    private final UserRole ROLE_DEFAULT_COMMISSION = UserRole.USER;
-
     private static final Logger LOGGER = LogManager.getLogger(UserServiceImpl.class);
-
     private final static List<String> LOCALES_LIST = new ArrayList<String>() {{
         add("EN");
         add("RU");
@@ -161,7 +117,39 @@ public class UserServiceImpl implements UserService {
         add("ID");
         add("AR");
     }};
-
+    public static String QR_PREFIX = "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=";
+    public static String APP_NAME = "Exrates";
+    private final int USER_FILES_THRESHOLD = 3;
+    private final int USER_2FA_NOTIFY_DAYS = 6;
+    private final Set<String> USER_ROLES = Stream.of(UserRole.values())
+            .map(UserRole::name)
+            .collect(Collectors.toSet());
+    private final UserRole ROLE_DEFAULT_COMMISSION = UserRole.USER;
+    BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    @Autowired
+    private UserDao userDao;
+    @Autowired
+    private UserSessionService userSessionService;
+    @Autowired
+    private SendMailService sendMailService;
+    @Autowired
+    private MessageSource messageSource;
+    @Autowired
+    private NotificationService notificationService;
+    @Autowired
+    private HttpServletRequest request;
+    @Autowired
+    private TokenScheduler tokenScheduler;
+    @Autowired
+    private ReferralService referralService;
+    @Autowired
+    private NotificationsSettingsService settingsService;
+    @Autowired
+    private G2faService g2faService;
+    @Autowired
+    private ExchangeApi exchangeApi;
+    @Autowired
+    private UserSettingService userSettingService;
     private Cache<String, UsersInfoDto> usersInfoCache = CacheBuilder.newBuilder()
             .expireAfterWrite(5, TimeUnit.MINUTES)
             .build();
@@ -342,14 +330,10 @@ public class UserServiceImpl implements UserService {
         return userDao.userExistByEmail(email);
     }
 
-    public String logIP(String email, String host) {
-        int id = userDao.getIdByEmail(email);
-        String userIP = userDao.getIP(id);
-        if (userIP == null) {
-            userDao.setIP(id, host);
-        }
-        userDao.addIPToLog(id, host);
-        return userIP;
+    @Override
+    public void logIP(Integer id, String ip, UserEventEnum eventEnum, String url) {
+        Preconditions.checkState(nonNull(id) && !StringUtils.isEmpty(ip));
+        userDao.addIpToLog(id, ip, eventEnum, url);
     }
 
     private String generateRegistrationToken() {
@@ -467,15 +451,9 @@ public class UserServiceImpl implements UserService {
                         "'>" + messageSource.getMessage("admin.ref", null, locale) + "</a>"
         );
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
-
         email.setTo(user.getEmail());
-        if (tokenType.equals(TokenType.REGISTRATION)
-                || tokenType.equals(TokenType.CHANGE_PASSWORD)
-                || tokenType.equals(TokenType.CHANGE_FIN_PASSWORD)) {
-            sendMailService.sendMailMandrill(email);
-        } else {
-            sendMailService.sendMail(email);
-        }
+        sendMailService.sendMail(email);
+
     }
 
     @Override
@@ -484,7 +462,7 @@ public class UserServiceImpl implements UserService {
         email.setTo(user.getEmail());
         email.setMessage(messageSource.getMessage(emailText, new Object[]{user.getIp()}, locale));
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
-        sendMailService.sendInfoMail(email);
+        sendMailService.sendMail(email);
     }
 
     public boolean createTemporalToken(TemporalToken token) {
@@ -659,28 +637,27 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean addUserComment(UserCommentTopicEnum topic, String newComment, String email, boolean sendMessage) {
+        Function<String, User> userFunction = this::findByEmail;
 
-        User user = findByEmail(email);
-        User creator;
         Comment comment = new Comment();
         comment.setMessageSent(sendMessage);
-        comment.setUser(user);
+        comment.setUser(userFunction.apply(email));
         comment.setComment(newComment);
         comment.setUserCommentTopic(topic);
+
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            creator = findByEmail(auth.getName());
-            comment.setCreator(creator);
+
+            comment.setCreator(userFunction.apply(auth.getName()));
         } catch (Exception e) {
             LOGGER.error(e);
         }
         boolean success = userDao.addUserComment(comment);
 
         if (comment.isMessageSent()) {
-            notificationService.notifyUser(user.getId(), NotificationEvent.ADMIN, "admin.subjectCommentTitle",
+            notificationService.notifyUser(getIdByEmail(email), NotificationEvent.ADMIN, "admin.subjectCommentTitle",
                     "admin.subjectCommentMessage", new Object[]{": " + newComment});
         }
-
         return success;
     }
 
@@ -925,20 +902,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public int updateVerificationStep(String userEmail) {
-        return userDao.updateVerificationStep(userEmail);
-    }
-
-    @Override
-    public VerificationStep getVerificationStep() {
-        final int verificationStep = userDao.getVerificationStep(getUserEmailFromSecurityContext());
-
-        return VerificationStep.of(verificationStep);
-    }
-
-    @Override
-    public int updateReferenceId(String referenceId) {
-        return userDao.updateReferenceId(referenceId, getUserEmailFromSecurityContext());
+    public int updateReferenceIdAndStatus(String referenceId, EventStatus status) {
+        return userDao.updateReferenceIdAndStatus(referenceId, status, getUserEmailFromSecurityContext());
     }
 
     @Override
@@ -958,7 +923,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String findEmailById(int id) {
-        return null;
+        return userDao.getEmailById(id);
     }
 
     @Override
@@ -1073,8 +1038,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean updateKycStatusByEmail(String email, String status) {
-        return userDao.updateKycStatusByEmail(email, status);
+    public boolean updateVerificationStatus(String email, String status) {
+        return userDao.updateVerificationStatus(email, status);
+    }
+
+    @Override
+    public boolean updateKycStatus(String status) {
+        return userDao.updateVerificationStatus(getUserEmailFromSecurityContext(), status);
     }
 
     @Override
@@ -1116,4 +1086,23 @@ public class UserServiceImpl implements UserService {
         return userDao.getPubIdByEmail(email);
     }
 
+    @Override
+    public DataTable<List<IpLogDto>> getIpAdressesTable(AdminIpLogsFilterData adminOrderFilterData, DataTableParams dataTableParams) {
+        PagingData<List<IpLogDto>> searchResult = userDao.getIpLogPage(adminOrderFilterData, dataTableParams);
+        DataTable<List<IpLogDto>> output = new DataTable<>();
+        output.setData(searchResult.getData());
+        output.setRecordsTotal(searchResult.getTotal());
+        output.setRecordsFiltered(searchResult.getFiltered());
+        return output;
+    }
+
+    @Override
+    public boolean updateCountryCode(String countryCode) {
+        return userDao.updateCountryCode(countryCode, getUserEmailFromSecurityContext());
+    }
+
+    @Override
+    public void deleteTemporalTokenByUserIdAndTokenType(int userId, TokenType tokenType) {
+        userDao.deleteTemporalTokenByUserIdAndTokenType(userId, tokenType);
+    }
 }

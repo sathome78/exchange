@@ -166,4 +166,14 @@ public interface RefillRequestDao {
     List<RefillOnConfirmationDto> getOnConfirmationDtos(Integer userId, int currencyId);
 
     Integer findFlatByUserIdAndMerchantIdAndCurrencyId(int userId, int merchantId, int currencyId);
+
+    String getPrivKeyByAddress(String address);
+
+    boolean changeRefillRequestStatusToOnPending(int id);
+
+    boolean setPropertyNeedTransfer(int userId, int currencyId, int merchantId, String address, Boolean needTransfer);
+
+    boolean setRemarkAndTransactionIdById(String remark, String transaction, int id);
+
+    List<RefillRequestFlatDto> getByMerchantIdAndRemark(int merchantId, String remark);
 }

@@ -3,6 +3,8 @@ package me.exrates.dao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairWithRestriction;
+import me.exrates.model.MarketVolume;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyReportInfoDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
@@ -12,6 +14,7 @@ import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
+import me.exrates.model.enums.CurrencyPairRestrictionsEnum;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.Market;
 import me.exrates.model.enums.MerchantProcessType;
@@ -48,9 +51,9 @@ public interface CurrencyDao {
 
     BigDecimal retrieveMaxDailyRequestForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId);
 
-    void updateCurrencyLimit(int currencyId, OperationType operationType, List<Integer> roleIds, BigDecimal minAmount, BigDecimal minAmountUSD, Integer maxDailyRequest);
+    void updateCurrencyLimit(int currencyId, OperationType operationType, List<Integer> roleIds, BigDecimal minAmount, BigDecimal minAmountUSD, BigDecimal maxAmount, Integer maxDailyRequest);
 
-    void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, BigDecimal minAmountUSD, Integer maxDailyRequest);
+    void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, BigDecimal minAmountUSD, BigDecimal maxAmount, Integer maxDailyRequest);
 
     List<CurrencyPair> getAllCurrencyPairs(CurrencyPairType type);
 
@@ -79,7 +82,7 @@ public interface CurrencyDao {
     List<CurrencyPairLimitDto> findLimitsForRolesByType(List<Integer> roleIds, Integer orderTypeId);
 
     void setCurrencyPairLimit(Integer currencyPairId, List<Integer> roleIds, Integer orderTypeId,
-                              BigDecimal minRate, BigDecimal maxRate, BigDecimal minAmount, BigDecimal maxAmount);
+                              BigDecimal minRate, BigDecimal maxRate, BigDecimal minAmount, BigDecimal maxAmount, BigDecimal minTotal);
 
     List<CurrencyPairWithLimitsDto> findAllCurrencyPairsWithLimits(Integer roleId);
 
@@ -142,4 +145,21 @@ public interface CurrencyDao {
     List<BalanceDto> getCurrencyBalances();
 
     boolean updateCurrencyPair(CurrencyPair currencyPair);
+
+    boolean updateCurrencyPairVolume(Integer currencyPairId, BigDecimal volume);
+
+    List<MarketVolume> getAllMarketVolumes();
+
+    boolean updateDefaultMarketVolume(String name, BigDecimal marketVolume);
+
+    CurrencyLimit getCurrencyLimit(Integer currencyId, Integer currencyLimit, Integer operationType);
+
+
+    CurrencyPairWithRestriction findCurrencyPairWithRestrictionRestrictions(Integer currencyPairId);
+
+    void insertCurrencyPairRestriction(Integer currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum);
+
+    void deleteCurrencyPairRestriction(Integer currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum);
+
+    List<CurrencyPairWithRestriction> findAllCurrencyPairWithRestrictions();
 }

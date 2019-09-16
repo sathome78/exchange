@@ -3,7 +3,6 @@ package me.exrates.dao.impl;
 import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.ClientBank;
 import me.exrates.model.PagingData;
-import me.exrates.model.dto.UserSummaryOrdersDto;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestFlatAdditionalDataDto;
 import me.exrates.model.dto.WithdrawRequestFlatDto;
@@ -32,6 +31,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -382,6 +382,26 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     }
 
     @Override
+    public boolean checkOutputMaxSum(int currencyId, String email, BigDecimal newSum) {
+        String sql = "SELECT " +
+                " ((SELECT IFNULL(SUM(WR.amount), 0) FROM WITHDRAW_REQUEST WR " +
+                " JOIN USER ON(USER.id = WR.user_id) " +
+                " WHERE USER.email = :email and WR.currency_id = :currency_id and WR.status_id NOT IN (:statuses) and WR.date_creation > CURDATE()) + :newSum) " +
+                "< " +
+                "(SELECT IFNULL(CL.max_sum, 999999999999)  FROM CURRENCY_LIMIT CL  " +
+                " JOIN USER ON (USER.roleid = CL.user_role_id) " +
+                " WHERE USER.email = :email AND operation_type_id = 2 AND currency_id = :currency_id) ";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("currency_id", currencyId);
+        params.put("email", email);
+        params.put("statuses", Arrays.asList(7,8,12));
+        params.put("newSum", newSum);
+
+        return jdbcTemplate.queryForObject(sql, params, Integer.class) == 1;
+    }
+
+    @Override
     public Optional<Integer> findUserIdById(Integer requestId) {
         String sql = "SELECT WR.user_id " +
                 " FROM WITHDRAW_REQUEST WR " +
@@ -537,7 +557,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     }
 
     @Override
-    public BigDecimal getLeftOutputRequestsSum(int currencyId, String email) {
+    public BigDecimal getLeftOutputRequestsCount(int currencyId, String email) {
         String sql = "SELECT " +
                 "(SELECT CURRENCY_LIMIT.max_daily_request FROM CURRENCY_LIMIT  " +
                 " JOIN USER ON (USER.roleid = CURRENCY_LIMIT.user_role_id)" +
@@ -554,6 +574,59 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         return jdbcTemplate.queryForObject(sql, params, BigDecimal.class);
     }
 
+    @Override
+    public BigDecimal getDailyWithdrawalSumByCurrency(String email, Integer currencyId) {
+        final String sql = "SELECT IFNULL(SUM(WR.amount), 0) " +
+                "           FROM WITHDRAW_REQUEST WR " +
+                "           JOIN USER U ON U.id = WR.user_id " +
+                "           WHERE U.email = :email and WR.currency_id = :currency_id and WR.status_id NOT IN (:statuses) and WR.date_creation > CURDATE()";
+        Map<String, Object> params = new HashMap<>();
+        params.put("currency_id", currencyId);
+        params.put("email", email);
+        params.put("statuses", Arrays.asList(7,8,12));
+
+        return jdbcTemplate.queryForObject(sql, params, BigDecimal.class);
+    }
+
+    @Override
+    public List<WithdrawRequestFlatDto> findListByMerchantIdAndAdditionParam(int merchantId, String additionalParam) {
+        String sql = "SELECT WITHDRAW_REQUEST.* " +
+                " FROM WITHDRAW_REQUEST " +
+                " WHERE WITHDRAW_REQUEST.merchant_id = :merchant_id  AND WITHDRAW_REQUEST.additional_params = :param";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("merchant_id", merchantId);
+            put("param", additionalParam);
+        }};
+        return jdbcTemplate.query(sql, params, (rs, i) -> {
+            return withdrawRequestFlatDtoRowMapper.mapRow(rs, i);
+        });
+    }
+
+    @Override
+    public WithdrawRequestFlatDto findByMerchantIdAndAdditionParam(int merchantId, String additionalParam) {
+        String sql = "SELECT WITHDRAW_REQUEST.* " +
+                " FROM WITHDRAW_REQUEST " +
+                " WHERE WITHDRAW_REQUEST.merchant_id = :merchant_id  AND WITHDRAW_REQUEST.additional_params = :param";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("merchant_id", merchantId);
+            put("param", additionalParam);
+        }};
+        return jdbcTemplate.queryForObject(sql, params, (rs, i) -> {
+            return withdrawRequestFlatDtoRowMapper.mapRow(rs, i);
+        });
+    }
+
+    @Override
+    public boolean updateAdditionalParamById(int requestId, String additionalParam) {
+        final String sql = "UPDATE WITHDRAW_REQUEST " +
+                "  SET additional_params = :param " +
+                "  WHERE id = :id";
+        Map<String, Object> params = new HashMap<>();
+        params.put("id", requestId);
+        params.put("param", additionalParam);
+        return jdbcTemplate.update(sql, params) > 0;
+    }
+
     private String getPermissionClause(Integer requesterUserId) {
         if (requesterUserId == null) {
             return " LEFT JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON (IOP.user_id = -1) ";
@@ -563,6 +636,5 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
                 "	  			AND (IOP.user_id=:requester_user_id) " +
                 "	  			AND (IOP.operation_direction=:operation_direction) ";
     }
-
 }
 

@@ -16,6 +16,7 @@ import me.exrates.security.service.SecureService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.UserService;
 import me.exrates.service.notifications.G2faService;
+import me.exrates.service.util.RestApiUtilComponent;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -74,6 +75,8 @@ public class NgUserControllerTest extends AngularApiCommonTest {
     private PasswordEncoder passwordEncoder;
     @Mock
     UserDetails userDetails;
+    @Mock
+    RestApiUtilComponent restApiUtilComponent;
 
     @InjectMocks
     NgUserController ngUserController;
@@ -96,6 +99,7 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         when(userDetailsService.loadUserByUsername(anyString())).thenReturn(userDetails);
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(Boolean.TRUE);
         when(g2faService.isGoogleAuthenticatorEnable(anyInt())).thenReturn(Boolean.TRUE);
+        when(restApiUtilComponent.decodePassword(anyString())).thenReturn("password");
 
         try {
             mockMvc.perform(post(BASE_URL + "/authenticate")
@@ -115,6 +119,7 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         verify(userService, times(1)).updateGaTag(anyString(), anyString());
         verify(userDetailsService, times(1)).loadUserByUsername(anyString());
         verify(passwordEncoder, times(1)).matches(anyString(), anyString());
+        verify(restApiUtilComponent, times(1)).decodePassword(anyString());
     }
 
     @Test
@@ -126,6 +131,7 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(Boolean.TRUE);
         when(g2faService.isGoogleAuthenticatorEnable(anyInt())).thenReturn(Boolean.TRUE);
         when(g2faService.checkGoogle2faVerifyCode(anyString(), anyInt())).thenReturn(Boolean.FALSE);
+        when(restApiUtilComponent.decodePassword(anyString())).thenReturn("password");
 
         try {
             mockMvc.perform(post(BASE_URL + "/authenticate")
@@ -147,6 +153,7 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         verify(passwordEncoder, times(1)).matches(anyString(), anyString());
         verify(g2faService, times(1)).isGoogleAuthenticatorEnable(anyInt());
         verify(g2faService, times(1)).checkGoogle2faVerifyCode(anyString(), anyInt());
+        verify(restApiUtilComponent, times(1)).decodePassword(anyString());
     }
 
     @Test
@@ -163,6 +170,7 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         when(userService.checkPin(anyString(), anyString(), anyObject())).thenReturn(Boolean.FALSE);
         when(secureService.sendLoginPincode(anyObject(), anyObject(), anyString()))
                 .thenReturn(new NotificationResultDto("TEST_MSG_SOURCE", arguments));
+        when(restApiUtilComponent.decodePassword(anyString())).thenReturn("password");
 
         try {
             mockMvc.perform(post(BASE_URL + "/authenticate")
@@ -184,6 +192,7 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         verify(passwordEncoder, times(1)).matches(anyString(), anyString());
         verify(g2faService, times(1)).isGoogleAuthenticatorEnable(anyInt());
         verify(userService, times(1)).checkPin(anyString(), anyString(), anyObject());
+        verify(restApiUtilComponent, times(1)).decodePassword(anyString());
     }
 
     @Test
@@ -204,6 +213,7 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         when(userService.getPreferedLang(anyInt())).thenReturn("USA");
         when(userService.getAvatarPath(anyInt())).thenReturn("TEST_AVATAR_LOGICAL_PATH");
         when(referralService.generateReferral(anyString())).thenReturn("TEST_REFERRAL_REFERENCE");
+        when(restApiUtilComponent.decodePassword(anyString())).thenReturn("password");
 
         mockMvc.perform(post(BASE_URL + "/authenticate")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -227,6 +237,7 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         verify(userService, times(1)).getPreferedLang(anyInt());
         verify(userService, times(1)).getAvatarPath(anyInt());
         verify(referralService, times(1)).generateReferral(anyString());
+        verify(restApiUtilComponent, times(1)).decodePassword(anyString());
     }
 
     @Test
@@ -326,6 +337,7 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         when(userDetailsService.loadUserByUsername(anyString())).thenReturn(userDetails);
         when(userDetails.getPassword()).thenReturn("TEST_PASSWORD");
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(Boolean.FALSE);
+        when(restApiUtilComponent.decodePassword(anyString())).thenReturn("password");
 
         try {
             mockMvc.perform(post(BASE_URL + "/authenticate")
@@ -346,6 +358,7 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         verify(userService, times(1)).updateGaTag(anyString(), anyString());
         verify(userDetailsService, times(1)).loadUserByUsername(anyString());
         verify(passwordEncoder, times(1)).matches(anyString(), anyString());
+        verify(restApiUtilComponent, times(1)).decodePassword(anyString());
     }
 
     @Test
@@ -357,6 +370,7 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(Boolean.TRUE);
         when(g2faService.isGoogleAuthenticatorEnable(anyInt())).thenReturn(Boolean.FALSE);
         when(userService.checkPin(anyString(), anyString(), anyObject())).thenReturn(Boolean.TRUE);
+        when(restApiUtilComponent.decodePassword(anyString())).thenReturn("password");
 
         AuthTokenDto tokenDto = new AuthTokenDto();
         tokenDto.setToken("TEST_TOKEN");
@@ -379,6 +393,7 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         verify(passwordEncoder, times(1)).matches(anyString(), anyString());
         verify(userService, times(1)).checkPin(anyString(), anyString(), anyObject());
         verify(authTokenService, times(1)).retrieveTokenNg(any(UserAuthenticationDto.class));
+        verify(restApiUtilComponent, times(1)).decodePassword(anyString());
     }
 
     @Test
@@ -555,6 +570,19 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         verify(ngUserService, times(1)).validateTempToken(anyString());
     }
 
+    @Test
+    public void getUserPublicId_isOk() throws Exception {
+        when(ngUserService.getUserPublicId()).thenReturn("publicId");
+
+        mockMvc.perform(get(BASE_URL + "/publicId")
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data", is("publicId")))
+                .andExpect(jsonPath("$.error", is(nullValue())));
+
+        verify(ngUserService, times(1)).getUserPublicId();
+    }
+
     private User getMockUser(UserStatus active) {
         User user = new User();
         user.setId(1);
@@ -579,6 +607,7 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         UserEmailDto userEmailDto = new UserEmailDto();
         userEmailDto.setEmail("testemail@gmail.com");
         userEmailDto.setParentEmail("testparentemail@gmail.com");
+        userEmailDto.setIsUsa(false);
         return userEmailDto;
     }
 

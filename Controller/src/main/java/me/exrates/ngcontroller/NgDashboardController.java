@@ -2,6 +2,7 @@ package me.exrates.ngcontroller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.controller.exception.OrdersValidationErrorInfo;
 import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
@@ -17,6 +18,7 @@ import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.exceptions.RabbitMqException;
 import me.exrates.model.ngExceptions.NgDashboardException;
+import me.exrates.model.ngExceptions.NgOrderValidationException;
 import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.model.ngUtil.PagedResult;
@@ -27,6 +29,10 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
+import me.exrates.service.exception.NeedVerificationException;
+import me.exrates.service.exception.OrderCreationRestrictedException;
+import me.exrates.service.exception.api.ErrorCode;
+import me.exrates.service.exception.api.OpenApiError;
 import me.exrates.service.exception.process.OrderAcceptionException;
 import me.exrates.service.exception.process.OrderCancellingException;
 import me.exrates.service.stopOrder.StopOrderService;
@@ -40,6 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -110,15 +117,21 @@ public class NgDashboardController {
     @PostMapping("/order")
     @CheckUserAuthority(authority = UserOperationAuthority.TRADING)
     public ResponseEntity createOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
-        OrderCreateDto prepareNewOrder = ngOrderService.prepareOrder(inputOrder);
-
+        OrderBaseType baseType = OrderBaseType.valueOf(inputOrder.getBaseType());
         String result;
-        switch (prepareNewOrder.getOrderBaseType()) {
+        switch (baseType) {
+            case MARKET: {
+                OrderCreateDto newOrder = orderService.prepareMarketOrder(inputOrder);
+                result = orderService.createMarketOrder(newOrder);
+                break;
+            }
             case STOP_LIMIT: {
+                OrderCreateDto prepareNewOrder = ngOrderService.prepareOrder(inputOrder);
                 result = stopOrderService.create(prepareNewOrder, OrderActionEnum.CREATE, null);
                 break;
             }
             default: {
+                OrderCreateDto prepareNewOrder = ngOrderService.prepareOrder(inputOrder);
                 result = orderService.createOrder(prepareNewOrder, OrderActionEnum.CREATE, null);
             }
         }
@@ -240,21 +253,21 @@ public class NgDashboardController {
             @RequestParam(required = false, name = "hideCanceled", defaultValue = "false") Boolean hideCanceled,
             @RequestParam(required = false, name = "dateFrom") String dateFrom,
             @RequestParam(required = false, name = "dateTo") String dateTo,
+            @RequestParam(required = false, name = "limited", defaultValue = "false") Boolean limited,
             HttpServletRequest request) {
-        Integer userId = userService.getIdByEmail(getPrincipalEmail());
-        Locale locale = localeResolver.resolveLocale(request);
-        OrderStatus orderStatus = OrderStatus.valueOf(status);
-        LocalDateTime dateTimeFrom = DateUtils.convert(dateFrom, false);
-        LocalDateTime dateTimeTo = DateUtils.convert(dateTo, true);
+        final Integer userId = userService.getIdByEmail(getPrincipalEmail());
+        final Locale locale = localeResolver.resolveLocale(request);
+        final OrderStatus orderStatus = OrderStatus.valueOf(status);
+        final LocalDateTime dateTimeFrom = DateUtils.convert(dateFrom, false);
+        final LocalDateTime dateTimeTo = DateUtils.convert(dateTo, true);
 
-        Integer offset = (page - 1) * limit;
+        final Integer offset = (page - 1) * limit;
 
         CurrencyPair currencyPair = null;
         if (currencyPairId > 0) {
             currencyPair = currencyService.findCurrencyPairById(currencyPairId);
         } else if (currencyPairId == 0 && StringUtils.isNotBlank(currencyPairName)) {
-            currencyPair = new CurrencyPair(currencyPairName);
-            currencyPair.setId(currencyPairId);
+            currencyPair = currencyService.getCurrencyPairByName(currencyPairName);
         }
         try {
             Pair<Integer, List<OrderWideListDto>> ordersTuple = orderService.getMyOrdersWithStateMap(
@@ -269,6 +282,7 @@ public class NgDashboardController {
                     sortByCreated,
                     dateTimeFrom,
                     dateTimeTo,
+                    limited,
                     locale);
 
             PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
@@ -304,16 +318,15 @@ public class NgDashboardController {
             @RequestParam(required = false, defaultValue = "15") Integer limit,
             @RequestParam(required = false, defaultValue = "0") Integer offset,
             HttpServletRequest request) {
-        Integer userId = userService.getIdByEmail(getPrincipalEmail());
-        Locale locale = localeResolver.resolveLocale(request);
-        OrderStatus orderStatus = OrderStatus.valueOf(status);
+        final Integer userId = userService.getIdByEmail(getPrincipalEmail());
+        final Locale locale = localeResolver.resolveLocale(request);
+        final OrderStatus orderStatus = OrderStatus.valueOf(status);
 
         CurrencyPair currencyPair = null;
         if (currencyPairId > 0) {
             currencyPair = currencyService.findCurrencyPairById(currencyPairId);
         } else if (currencyPairId == 0 && StringUtils.isNotBlank(currencyPairName)) {
-            currencyPair = new CurrencyPair(currencyPairName);
-            currencyPair.setId(currencyPairId);
+            currencyPair = currencyService.getCurrencyPairByName(currencyPairName);
         }
         try {
             Pair<Integer, List<OrderWideListDto>> ordersTuple = orderService.getMyOrdersWithStateMap(
@@ -328,6 +341,7 @@ public class NgDashboardController {
                     "DESC",
                     null,
                     null,
+                    true,
                     locale);
 
             PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
@@ -410,11 +424,33 @@ public class NgDashboardController {
         return new ResponseModel<>(userService.addPolicyToUser(getPrincipalEmail(), name));
     }
 
+    @ResponseStatus(HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS)
+    @ExceptionHandler(OrderCreationRestrictedException.class)
+    @ResponseBody
+    public OpenApiError orderCreationRestrictedException(HttpServletRequest req, Exception exception) {
+        return new OpenApiError(ErrorCode.ORDER_CREATION_RESTRICTED, req.getRequestURL(), exception.getMessage());
+    }
+
+    @ResponseStatus(HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS)
+    @ExceptionHandler(NeedVerificationException.class)
+    @ResponseBody
+    public OpenApiError orderCreationNeedVerificationException(HttpServletRequest req, Exception exception) {
+        return new OpenApiError(ErrorCode.NEED_VERIFICATION_EXCEPTION, req.getRequestURL(), exception.getMessage());
+    }
+
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     @ExceptionHandler({NgDashboardException.class, IllegalArgumentException.class, CurrencyPairNotFoundException.class})
     @ResponseBody
     public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    @ExceptionHandler({NgOrderValidationException.class})
+    @ResponseBody
+    public OrdersValidationErrorInfo OrderValidationErrorsHandler(HttpServletRequest req, Exception exception) {
+        NgOrderValidationException ex = (NgOrderValidationException) exception;
+        return new OrdersValidationErrorInfo(req.getRequestURL(), ex);
     }
 
     @ResponseStatus(HttpStatus.EXPECTATION_FAILED)

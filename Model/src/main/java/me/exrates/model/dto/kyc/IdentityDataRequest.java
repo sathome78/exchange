@@ -30,13 +30,18 @@ public class IdentityDataRequest {
     private Integer birthYear;
 
     @NotNull
-    private String[] firstNames;
+    private String firstName;
 
     @NotNull
     private String lastName;
 
-    private DocTypeEnum typeDoc;
+    @NotNull
+    private String countryCode;
 
     @NotNull
-    private String country;
+    private String city;
+
+    @NotNull
+    private String address;
+
 }

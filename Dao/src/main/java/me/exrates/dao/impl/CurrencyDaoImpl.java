@@ -7,6 +7,8 @@ import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairWithRestriction;
+import me.exrates.model.MarketVolume;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyReportInfoDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
@@ -16,6 +18,7 @@ import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
+import me.exrates.model.enums.CurrencyPairRestrictionsEnum;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.Market;
 import me.exrates.model.enums.MerchantProcessType;
@@ -25,6 +28,7 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.util.BigDecimalProcessing;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
@@ -60,17 +64,6 @@ import java.util.stream.Collectors;
 @Repository
 public class CurrencyDaoImpl implements CurrencyDao {
 
-    @Autowired
-    @Qualifier(value = "masterTemplate")
-    private NamedParameterJdbcTemplate masterJdbcTemplate;
-
-    @Autowired
-    @Qualifier(value = "slaveTemplate")
-    private NamedParameterJdbcTemplate slaveJdbcTemplate;
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
     public static RowMapper<CurrencyPair> currencyPairRowMapper = (rs, row) -> {
         CurrencyPair currencyPair = new CurrencyPair();
         currencyPair.setId(rs.getInt("id"));
@@ -88,11 +81,13 @@ public class CurrencyDaoImpl implements CurrencyDao {
         currencyPair.setCurrency2(currency2);
         /**/
         currencyPair.setMarket(rs.getString("market"));
+        currencyPair.setIsTopMarket(rs.getBoolean("top_market"));
+        currencyPair.setTopMarketVolume(rs.getObject("top_market_volume") == null ? null :
+                rs.getBigDecimal("top_market_volume"));
 
         return currencyPair;
 
     };
-
     public static RowMapper<CurrencyPair> currencyPairRowMapperWithDescrption = (rs, row) -> {
         CurrencyPair currencyPair = new CurrencyPair();
         currencyPair.setId(rs.getInt("id"));
@@ -116,7 +111,6 @@ public class CurrencyDaoImpl implements CurrencyDao {
         return currencyPair;
 
     };
-
     protected static RowMapper<CurrencyPair> currencyPairRowShort = (rs, row) -> {
         CurrencyPair currencyPair = new CurrencyPair();
         currencyPair.setId(rs.getInt("id"));
@@ -125,6 +119,14 @@ public class CurrencyDaoImpl implements CurrencyDao {
         currencyPair.setMarket(rs.getString("market"));
         return currencyPair;
     };
+    @Autowired
+    @Qualifier(value = "masterTemplate")
+    private NamedParameterJdbcTemplate masterJdbcTemplate;
+    @Autowired
+    @Qualifier(value = "slaveTemplate")
+    private NamedParameterJdbcTemplate slaveJdbcTemplate;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     public List<Currency> getAllActiveCurrencies() {
         String sql = "SELECT id, name FROM CURRENCY WHERE hidden IS NOT TRUE ";
@@ -272,14 +274,15 @@ public class CurrencyDaoImpl implements CurrencyDao {
     }
 
     @Override
-    public void updateCurrencyLimit(int currencyId, OperationType operationType, List<Integer> roleIds, BigDecimal minAmount, BigDecimal minAmountUSD, Integer maxDailyRequest) {
+    public void updateCurrencyLimit(int currencyId, OperationType operationType, List<Integer> roleIds, BigDecimal minAmount, BigDecimal minAmountUSD, BigDecimal maxAmount, Integer maxDailyRequest) {
         String sql = "UPDATE CURRENCY_LIMIT " +
-                "SET min_sum = :min_sum, min_sum_usd = :min_sum_usd, max_daily_request = :max_daily_request " +
+                "SET min_sum = :min_sum, min_sum_usd = :min_sum_usd, max_sum = :max_sum, max_daily_request = :max_daily_request " +
                 "WHERE currency_id = :currency_id AND operation_type_id = :operation_type_id AND user_role_id IN (:role_ids)";
 
         final Map<String, Object> params = new HashMap<String, Object>() {
             {
                 put("min_sum", minAmount);
+                put("max_sum", maxAmount);
                 put("min_sum_usd", minAmountUSD);
                 put("currency_id", currencyId);
                 put("operation_type_id", operationType.getType());
@@ -291,14 +294,15 @@ public class CurrencyDaoImpl implements CurrencyDao {
     }
 
     @Override
-    public void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, BigDecimal minAmountUSD, Integer maxDailyRequest) {
+    public void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, BigDecimal minAmountUSD, BigDecimal maxAmount, Integer maxDailyRequest) {
         String sql = "UPDATE CURRENCY_LIMIT " +
-                "SET min_sum = :min_sum, min_sum_usd = :min_sum_usd, max_daily_request = :max_daily_request " +
+                "SET min_sum = :min_sum, min_sum_usd = :min_sum_usd, max_sum = :max_sum, max_daily_request = :max_daily_request " +
                 "WHERE currency_id = :currency_id AND operation_type_id = :operation_type_id";
 
         final Map<String, Object> params = new HashMap<String, Object>() {
             {
                 put("min_sum", minAmount);
+                put("max_sum", maxAmount);
                 put("min_sum_usd", minAmountUSD);
                 put("currency_id", currencyId);
                 put("operation_type_id", operationType.getType());
@@ -329,7 +333,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         if (type != null && type != CurrencyPairType.ALL) {
             typeClause = " WHERE type =:pairType ";
         }
-        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, " +
+        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, top_market, top_market_volume, " +
                 "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
                 "(select name from CURRENCY where id = currency2_id) as currency2_name " +
                 " FROM CURRENCY_PAIR " + typeClause +
@@ -340,7 +344,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
     @Override
     public CurrencyPair getCurrencyPairById(int currency1Id, int currency2Id) {
-        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, " +
+        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, top_market, top_market_volume, " +
                 "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
                 "(select name from CURRENCY where id = currency2_id) as currency2_name " +
                 " FROM CURRENCY_PAIR WHERE currency1_id = :currency1Id AND currency2_id = :currency2Id";
@@ -352,7 +356,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
     @Override
     public CurrencyPair findCurrencyPairById(int currencyPairId) {
-        String sql = "SELECT id, currency1_id, currency2_id, name, market, type," +
+        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, top_market, top_market_volume, " +
                 "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
                 "(select name from CURRENCY where id = currency2_id) as currency2_name " +
                 " FROM CURRENCY_PAIR WHERE id = :currencyPairId";
@@ -363,7 +367,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
     @Override
     public CurrencyPair getNotHiddenCurrencyPairByName(String currencyPairName) {
-        String sql = "SELECT id, currency1_id, currency2_id, name, market, type," +
+        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, top_market, top_market_volume, " +
                 "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
                 "(select name from CURRENCY where id = currency2_id) as currency2_name " +
                 " FROM CURRENCY_PAIR WHERE name = :currencyPairName AND hidden IS NOT TRUE ";
@@ -380,6 +384,8 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 "cp.name, " +
                 "cp.market, " +
                 "cp.type," +
+                "cp.top_market, " +
+                "cp.top_market_volume, " +
                 "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
                 "(select name from CURRENCY where id = currency2_id) as currency2_name " +
                 " FROM CURRENCY_PAIR cp" +
@@ -505,7 +511,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
     @Override
     public CurrencyPair findCurrencyPairByOrderId(int orderId) {
-        String sql = "SELECT CURRENCY_PAIR.id, CURRENCY_PAIR.currency1_id, CURRENCY_PAIR.currency2_id, name, type," +
+        String sql = "SELECT CURRENCY_PAIR.id, CURRENCY_PAIR.currency1_id, CURRENCY_PAIR.currency2_id, name, type, top_market, top_market_volume, " +
                 "CURRENCY_PAIR.market, " +
                 "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
                 "(select name from CURRENCY where id = currency2_id) as currency2_name " +
@@ -525,7 +531,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     @Override
     public CurrencyPairLimitDto findCurrencyPairLimitForRoleByPairAndType(Integer currencyPairId, Integer roleId, Integer orderTypeId) {
         String sql = "SELECT CURRENCY_PAIR.id AS currency_pair_id, CURRENCY_PAIR.name AS currency_pair_name, lim.min_rate, lim.max_rate, " +
-                "lim.min_amount, lim.max_amount " +
+                "lim.min_amount, lim.max_amount, lim.min_total " +
                 " FROM CURRENCY_PAIR_LIMIT lim " +
                 " JOIN CURRENCY_PAIR ON lim.currency_pair_id = CURRENCY_PAIR.id AND CURRENCY_PAIR.hidden != 1 " +
                 " WHERE lim.currency_pair_id = :currency_pair_id AND lim.user_role_id = :user_role_id AND lim.order_type_id = :order_type_id";
@@ -543,6 +549,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 dto.setMaxRate(rs.getBigDecimal("max_rate"));
                 dto.setMinAmount(rs.getBigDecimal("min_amount"));
                 dto.setMaxAmount(rs.getBigDecimal("max_amount"));
+                dto.setMinTotal(rs.getBigDecimal("min_total"));
                 return dto;
             });
         } catch (Exception ex) {
@@ -554,7 +561,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     @Override
     public List<CurrencyPairLimitDto> findLimitsForRolesByType(List<Integer> roleIds, Integer orderTypeId) {
         String sql = "SELECT DISTINCT CURRENCY_PAIR.id AS currency_pair_id, CURRENCY_PAIR.name AS currency_pair_name, " +
-                " lim.min_rate, lim.max_rate, lim.min_amount, lim.max_amount " +
+                " lim.min_rate, lim.max_rate, lim.min_amount, lim.max_amount, lim.min_total " +
                 " FROM CURRENCY_PAIR_LIMIT lim " +
                 " JOIN CURRENCY_PAIR ON lim.currency_pair_id = CURRENCY_PAIR.id " +
                 " WHERE lim.user_role_id IN(:user_role_ids) AND lim.order_type_id = :order_type_id AND CURRENCY_PAIR.hidden != 1";
@@ -569,14 +576,15 @@ public class CurrencyDaoImpl implements CurrencyDao {
             dto.setMaxRate(rs.getBigDecimal("max_rate"));
             dto.setMinAmount(rs.getBigDecimal("min_amount"));
             dto.setMaxAmount(rs.getBigDecimal("max_amount"));
+            dto.setMinTotal(rs.getBigDecimal("min_total"));
             return dto;
         });
     }
 
     @Override
     public void setCurrencyPairLimit(Integer currencyPairId, List<Integer> roleIds, Integer orderTypeId,
-                                     BigDecimal minRate, BigDecimal maxRate, BigDecimal minAmount, BigDecimal maxAmount) {
-        String sql = "UPDATE CURRENCY_PAIR_LIMIT SET max_rate = :max_rate, min_rate = :min_rate, min_amount = :min_amount, max_amount = :max_amount " +
+                                     BigDecimal minRate, BigDecimal maxRate, BigDecimal minAmount, BigDecimal maxAmount, BigDecimal minTotal) {
+        String sql = "UPDATE CURRENCY_PAIR_LIMIT SET max_rate = :max_rate, min_rate = :min_rate, min_amount = :min_amount, max_amount = :max_amount, min_total = :min_total " +
                 "WHERE currency_pair_id = :currency_pair_id AND user_role_id IN(:user_role_ids) AND order_type_id = :order_type_id";
         Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("currency_pair_id", currencyPairId);
@@ -586,12 +594,13 @@ public class CurrencyDaoImpl implements CurrencyDao {
         namedParameters.put("max_rate", maxRate);
         namedParameters.put("min_amount", minAmount);
         namedParameters.put("max_amount", maxAmount);
+        namedParameters.put("min_total", minTotal);
         masterJdbcTemplate.update(sql, namedParameters);
     }
 
     @Override
     public List<CurrencyPairWithLimitsDto> findAllCurrencyPairsWithLimits(Integer roleId) {
-        String sql = "SELECT CP.id, CP.currency1_id, CP.currency2_id, CP.name, CP.market, CP.type, " +
+        String sql = "SELECT CP.id, CP.currency1_id, CP.currency2_id, CP.name, CP.market, CP.type, CP.top_market, CP.top_market_volume, " +
                 "             (select name from CURRENCY where id = currency1_id) as currency1_name, " +
                 "        (select name from CURRENCY where id = currency2_id) as currency2_name, " +
                 "  LIM_SELL.min_rate AS min_rate_sell, LIM_SELL.max_rate AS max_rate_sell, LIM_SELL.min_amount AS min_amount_sell, LIM_SELL.max_amount AS max_amount_sell, " +
@@ -663,7 +672,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
     @Override
     public List<CurrencyPair> findPermitedCurrencyPairs(CurrencyPairType currencyPairType) {
-        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, " +
+        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, top_market, top_market_volume, " +
                 "        (select name from CURRENCY where id = currency1_id) as currency1_name, " +
                 "        (select name from CURRENCY where id = currency2_id) as currency2_name " +
                 "         FROM CURRENCY_PAIR " +
@@ -723,13 +732,15 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
     @Override
     public List<CurrencyPair> findAllCurrencyPair() {
-        String sql = "SELECT id, name, hidden, permitted_link FROM CURRENCY_PAIR";
+        String sql = "SELECT id, name, hidden, permitted_link, top_market_volume FROM CURRENCY_PAIR";
         return masterJdbcTemplate.query(sql, (rs, i) -> {
             CurrencyPair result = new CurrencyPair();
             result.setId(rs.getInt("id"));
             result.setName(rs.getString("name"));
             result.setHidden(rs.getBoolean("hidden"));
             result.setPermittedLink(rs.getBoolean("permitted_link"));
+            result.setTopMarketVolume(rs.getObject("top_market_volume") == null ? null :
+                    rs.getBigDecimal("top_market_volume"));
             return result;
         });
     }
@@ -741,6 +752,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         params.put("currency_pair_id", currencyPairId);
         return masterJdbcTemplate.update(sql, params) > 0;
     }
+
 
     @Override
     public boolean updateAccessToDirectLinkCurrencyPairById(int currencyPairId) {
@@ -1052,5 +1064,143 @@ public class CurrencyDaoImpl implements CurrencyDao {
         params.put("type", currencyPair.getPairType().name());
 
         return masterJdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public boolean updateCurrencyPairVolume(Integer currencyPairId, BigDecimal volume) {
+        String sql = "UPDATE CURRENCY_PAIR SET top_market_volume = ";
+        if (volume == null) {
+            sql += "NULL ";
+        } else {
+            sql += ":volume";
+        }
+
+        sql += " WHERE id = :id";
+        Map<String, Object> params = new HashMap<>();
+        params.put("id", currencyPairId);
+        if (volume != null) {
+            params.put("volume", volume);
+        }
+        return masterJdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public List<MarketVolume> getAllMarketVolumes() {
+        String sql = "SELECT * FROM CURRENCY_PAIR_MARKET_VOLUMES";
+        return masterJdbcTemplate.query(sql, (rs, row) -> MarketVolume.builder()
+                .name(rs.getString("name"))
+                .marketVolume(rs.getBigDecimal("market_volume"))
+                .build());
+    }
+
+    @Override
+    public boolean updateDefaultMarketVolume(String name, BigDecimal marketVolume) {
+        String sql = "UPDATE CURRENCY_PAIR_MARKET_VOLUMES SET market_volume = :volume WHERE name = :name";
+        Map<String, Object> params = new HashMap<>();
+        params.put("volume", marketVolume);
+        params.put("name", name);
+        return masterJdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public CurrencyLimit getCurrencyLimit(Integer currencyId, Integer roleId, Integer operationType) {
+        String sql = "SELECT " +
+                "CL.currency_id, " +
+                "CL.min_sum, " +
+                "CL.min_sum_usd, " +
+                "CL.usd_rate, " +
+                "IFNULL(CL.max_sum, 999999999999) as max_sum, " +
+                "CL.max_daily_request, " +
+                "CL.recalculate_to_usd " +
+                "FROM CURRENCY_LIMIT CL " +
+                "WHERE user_role_id = :role_id AND CL.operation_type_id = :operation_type_id AND CL.currency_id = :currency_id ";
+
+        final Map<String, Object> params = new HashMap<String, Object>() {{
+            put("role_id", roleId);
+            put("currency_id", currencyId);
+            put("operation_type_id", operationType);
+        }};
+
+        return masterJdbcTemplate.queryForObject(sql, params, (rs, row) -> CurrencyLimit.builder()
+                .minSum(rs.getBigDecimal("min_sum"))
+                .minSumUsdRate(rs.getBigDecimal("min_sum_usd"))
+                .maxSum(rs.getBigDecimal("max_sum"))
+                .currencyUsdRate(rs.getBigDecimal("usd_rate"))
+                .maxDailyRequest(rs.getInt("max_daily_request"))
+                .recalculateToUsd(rs.getBoolean("recalculate_to_usd"))
+                .build());
+    }
+
+    @Override
+    public CurrencyPairWithRestriction findCurrencyPairWithRestrictionRestrictions(Integer currencyPairId) {
+        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, top_market, top_market_volume, " +
+                "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
+                "(select name from CURRENCY where id = currency2_id) as currency2_name, " +
+                "(select group_concat(cpr.restriction_name) from CURRENCY_PAIR_RESTRICTION cpr " +
+                "   where currency_pair_id = :currencyPairId ) as restrictions " +
+                " FROM CURRENCY_PAIR " +
+                "WHERE id = :currencyPairId ";
+        Map<String, String> namedParameters = new HashMap<>();
+        namedParameters.put("currencyPairId", String.valueOf(currencyPairId));
+        return slaveJdbcTemplate.queryForObject(sql, namedParameters, (rs, rowNum) -> {
+            CurrencyPairWithRestriction pair = new CurrencyPairWithRestriction(currencyPairRowMapper.mapRow(rs, rowNum));
+            String restrictions = rs.getString("restrictions");
+            if (!StringUtils.isEmpty(restrictions)) {
+                pair.setTradeRestriction(Arrays.stream(restrictions.split(","))
+                        .map(CurrencyPairRestrictionsEnum::valueOf)
+                        .collect(Collectors.toList()));
+            }
+            return pair;
+        });
+    }
+
+    @Override
+    public void insertCurrencyPairRestriction(Integer currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum) {
+        final String sql = "INSERT INTO CURRENCY_PAIR_RESTRICTION (currency_pair_id, restriction_name) values (:id, :name)";
+        MapSqlParameterSource parameters = new MapSqlParameterSource()
+            .addValue("id", currencyPairId)
+            .addValue("name", restrictionsEnum.name());
+
+        int result = masterJdbcTemplate.update(sql, parameters);
+        if (result <= 0) {
+            throw new RuntimeException("error, cant add new restriction " + currencyPairId + " " + restrictionsEnum);
+        }
+    }
+
+    @Override
+    public void deleteCurrencyPairRestriction(Integer currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum) {
+        final String sql = "DELETE FROM CURRENCY_PAIR_RESTRICTION WHERE restriction_name = :name and currency_pair_id = :id ";
+        MapSqlParameterSource parameters = new MapSqlParameterSource()
+                .addValue("id", currencyPairId)
+                .addValue("name", restrictionsEnum.name());
+
+        int result = masterJdbcTemplate.update(sql, parameters);
+        if (result <= 0) {
+            throw new RuntimeException("error, cant remove restriction " + currencyPairId + " " + restrictionsEnum);
+        }
+    }
+
+    @Override
+    public List<CurrencyPairWithRestriction> findAllCurrencyPairWithRestrictions() {
+        String sql = "SELECT id, name, hidden, permitted_link, top_market_volume, " +
+                "(select group_concat(cpr.restriction_name) from CURRENCY_PAIR_RESTRICTION cpr " +
+                "   where currency_pair_id = id ) as restrictions " +
+                "FROM CURRENCY_PAIR";
+        return masterJdbcTemplate.query(sql, (rs, i) -> {
+            CurrencyPairWithRestriction result = new CurrencyPairWithRestriction();
+            result.setId(rs.getInt("id"));
+            result.setName(rs.getString("name"));
+            result.setHidden(rs.getBoolean("hidden"));
+            result.setPermittedLink(rs.getBoolean("permitted_link"));
+            result.setTopMarketVolume(rs.getObject("top_market_volume") == null ? null :
+                    rs.getBigDecimal("top_market_volume"));
+            String restrictions = rs.getString("restrictions");
+            if (!StringUtils.isEmpty(restrictions)) {
+                result.setTradeRestriction(Arrays.stream(restrictions.split(","))
+                        .map(CurrencyPairRestrictionsEnum::valueOf)
+                        .collect(Collectors.toList()));
+            }
+            return result;
+        });
     }
 }

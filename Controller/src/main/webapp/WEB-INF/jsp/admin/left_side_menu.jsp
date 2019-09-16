@@ -43,8 +43,11 @@
             });
             var adkLink = '<li><a href="/2a8fy7b07dxe44/adkWallet"><loc:message code="admin.adk.wallet"/></a></li>';
             var usdtLink = '<li><a href="/2a8fy7b07dxe44/usdtWallet"><loc:message code="admin.usdt.wallet"/></a></li>';
+            var usdxLink = '<li><a href="/2a8fy7b07dxe44/usdxWallet"><loc:message code="admin.usdx.wallet"/></a></li>';
+
             $('#cryptoWalletsMenu').find('ul').append(adkLink);
             $('#cryptoWalletsMenu').find('ul').append(usdtLink);
+            $('#cryptoWalletsMenu').find('ul').append(usdxLink);
             $('#cryptoWalletsMenu').find('ul').show();
 
         })
@@ -126,6 +129,7 @@
                     <ul>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/editCurrencyLimits'/>"><loc:message code="admin.currencyLimits.title"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/commissions'/>"><loc:message code="admin.commissions"/></a></li>
+                        <li><a href="<c:url value='/2a8fy7b07dxe44/comission_count'/>"><loc:message code="admin.commissionsCount"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/merchantAccess'/>"><loc:message code="admin.merchantAccess"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/notificatorsSettings'/>"><loc:message code="admin.notificatorsMessagesSettings"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/referral'/>"><loc:message code="admin.referral"/></a></li>
@@ -181,6 +185,13 @@
             <%--session control--%>
             <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
                 <a href="<c:url value='/2a8fy7b07dxe44/sessionControl'/>"><loc:message code="admin.sessionControl"/></a>
+            </sec:authorize>
+        </li>
+
+        <li>
+            <%--ip addresses--%>
+            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
+                <a href="<c:url value='/2a8fy7b07dxe44/ip'/>"><loc:message code="admin.IPAdresses"/></a>
             </sec:authorize>
         </li>
 

@@ -9,7 +9,9 @@ import me.exrates.model.IEODetails;
 import me.exrates.model.enums.IEODetailsStatus;
 import me.exrates.model.serializer.LocalDateTimeDeserializer;
 
+import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -19,6 +21,7 @@ import java.time.LocalDateTime;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class IeoDetailsCreateDto {
 
+    @Size(min = 2, max = 14, message = "Name must be contain minimal 2 chars, maximum 14")
     @NotNull(message = "Name must not be null")
     private String currencyName;
     @NotNull(message = "Currency description must not be null")
@@ -35,6 +38,7 @@ public class IeoDetailsCreateDto {
     @NotNull(message = "available balance must not be null")
     private BigDecimal availableBalance;
     @NotNull(message = "Min amount must not be null")
+    @DecimalMin(value = "0.00001", message = "Amount must be greater than 0.00001")
     private BigDecimal minAmount;
     @NotNull(message = "Max amount per user must not be null")
     private BigDecimal maxAmountPerUser;
@@ -45,6 +49,10 @@ public class IeoDetailsCreateDto {
     private LocalDateTime startDate;
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime endDate;
+    private String content;
+    private Boolean isTestIeo;
+    private Integer countTestTransaction;
+    private String logo;
 
     public IEODetails toIEODetails(int makerId, int creatorId) {
         return IEODetails.builder()
@@ -63,6 +71,10 @@ public class IeoDetailsCreateDto {
                 .endDate(endDate)
                 .makerId(makerId)
                 .createdBy(creatorId)
+                .logo(logo)
+                .testIeo(isTestIeo)
+                .countTestTransaction(countTestTransaction)
+                .content(content)
                 .build();
     }
 

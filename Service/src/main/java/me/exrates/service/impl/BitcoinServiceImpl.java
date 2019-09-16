@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import com.neemre.btcdcli4j.core.BitcoindException;
 import com.neemre.btcdcli4j.core.CommunicationException;
+import com.neemre.btcdcli4j.core.domain.Transaction;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
@@ -17,6 +18,7 @@ import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
 import me.exrates.model.dto.RefillRequestSetConfirmationsNumberDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.dto.dataTable.DataTable;
+import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.merchants.btc.BtcAdminPreparedTxDto;
 import me.exrates.model.dto.merchants.btc.BtcBlockDto;
 import me.exrates.model.dto.merchants.btc.BtcPaymentFlatDto;
@@ -24,6 +26,7 @@ import me.exrates.model.dto.merchants.btc.BtcPaymentResultDetailedDto;
 import me.exrates.model.dto.merchants.btc.BtcPaymentResultDto;
 import me.exrates.model.dto.merchants.btc.BtcPreparedTransactionDto;
 import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
+import me.exrates.model.dto.merchants.btc.BtcTxPaymentDto;
 import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.BitcoinService;
@@ -117,6 +120,8 @@ public class BitcoinServiceImpl implements BitcoinService {
 
     private Boolean supportReferenceLine;
 
+    private Boolean useSendManyForWithdraw;
+
     private ScheduledExecutorService newTxCheckerScheduler = Executors.newSingleThreadScheduledExecutor();
 
 
@@ -136,11 +141,12 @@ public class BitcoinServiceImpl implements BitcoinService {
 
     public BitcoinServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations, Integer blockTargetForFee,
                               Boolean rawTxEnabled, Boolean supportSubtractFee, Boolean supportWalletNotifications) {
-        this(propertySource, merchantName, currencyName, minConfirmations, blockTargetForFee, rawTxEnabled, supportSubtractFee, supportWalletNotifications, false);
+        this(propertySource, merchantName, currencyName, minConfirmations, blockTargetForFee, rawTxEnabled, supportSubtractFee, supportWalletNotifications, false, true);
     }
 
     public BitcoinServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations, Integer blockTargetForFee,
-                              Boolean rawTxEnabled, Boolean supportSubtractFee, Boolean supportWalletNotifications, Boolean supportReferenceLine) {
+                              Boolean rawTxEnabled, Boolean supportSubtractFee, Boolean supportWalletNotifications, Boolean supportReferenceLine,
+                              Boolean useSendManyForWithdraw) {
         Properties props = new Properties();
         try {
             props.load(getClass().getClassLoader().getResourceAsStream(propertySource));
@@ -157,6 +163,8 @@ public class BitcoinServiceImpl implements BitcoinService {
             this.supportSubtractFee = supportSubtractFee;
             this.supportWalletNotifications = supportWalletNotifications;
             this.supportReferenceLine = supportReferenceLine;
+
+            this.useSendManyForWithdraw = useSendManyForWithdraw;
         } catch (IOException e) {
             log.error(e);
         }
@@ -177,7 +185,6 @@ public class BitcoinServiceImpl implements BitcoinService {
 
     @PostConstruct
     void startBitcoin() {
-        System.out.println("::Starting " + merchantName);
         Properties passSource;
         if (nodeEnabled) {
             try {
@@ -189,7 +196,7 @@ public class BitcoinServiceImpl implements BitcoinService {
                 log.info("{} not started, pass props error", merchantName);
                 return;
             }
-            bitcoinWalletService.initCoreClient(nodePropertySource, passSource, supportInstantSend, supportSubtractFee, supportReferenceLine);
+            bitcoinWalletService.initCoreClient(nodePropertySource, passSource, supportInstantSend, supportSubtractFee, supportReferenceLine, useSendManyForWithdraw);
             bitcoinWalletService.initBtcdDaemon(zmqEnabled);
             bitcoinWalletService.blockFlux().subscribe(this::onIncomingBlock);
             if (supportWalletNotifications) {
@@ -459,6 +466,11 @@ public class BitcoinServiceImpl implements BitcoinService {
         return bitcoinWalletService.listAllTransactions();
     }
 
+    @Override
+    public BtcTransactionDto getTransactionByHash(String transactionHash) {
+        return bitcoinWalletService.getTransaction(transactionHash);
+    }
+
   @Override
   public List<BtcTransactionHistoryDto> listTransactions(int page) {
     return bitcoinWalletService.listTransaction(page);
@@ -466,11 +478,8 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   @Override
   public DataTable<List<BtcTransactionHistoryDto>> listTransactions(Map<String, String> tableParams) throws BitcoindException, CommunicationException{
-      Integer start = Integer.parseInt(tableParams.getOrDefault("start", "0"));
-      Integer length = Integer.parseInt(tableParams.getOrDefault("length", "10"));
-      String searchValue = tableParams.get("search[value]");
-
-      PagingData<List<BtcTransactionHistoryDto>> searchResult = bitcoinWalletService.listTransaction(start, length, searchValue);
+      DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(tableParams);
+      PagingData<List<BtcTransactionHistoryDto>> searchResult = bitcoinWalletService.listTransaction(dataTableParams);
 
       DataTable<List<BtcTransactionHistoryDto>> output = new DataTable<>();
       output.setData(searchResult.getData());
@@ -480,7 +489,7 @@ public class BitcoinServiceImpl implements BitcoinService {
     return output;
   }
 
-  @Override
+    @Override
   public BigDecimal estimateFee() {
     return bitcoinWalletService.estimateFee(40);
   }

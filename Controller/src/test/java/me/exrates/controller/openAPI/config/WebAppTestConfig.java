@@ -6,6 +6,8 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
+import me.exrates.service.api.ExchangeApi;
+import me.exrates.service.chart.CandleDataProcessingService;
 import me.exrates.service.openapi.OpenApiCommonService;
 import me.exrates.service.openapi.impl.OpenApiCommonServiceImpl;
 import me.exrates.service.userOperation.UserOperationService;
@@ -61,6 +63,16 @@ public class WebAppTestConfig {
     @Bean
     public WalletService walletService() {
         return Mockito.mock(WalletService.class);
+    }
+
+    @Bean
+    public ExchangeApi exchangeApi() {
+        return Mockito.mock(ExchangeApi.class);
+    }
+
+    @Bean
+    public CandleDataProcessingService candleDataProcessingService() {
+        return Mockito.mock(CandleDataProcessingService.class);
     }
 
     @Bean

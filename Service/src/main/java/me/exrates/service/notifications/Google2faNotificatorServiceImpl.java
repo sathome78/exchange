@@ -14,13 +14,12 @@ import me.exrates.model.enums.NotificationTypeEnum;
 import me.exrates.service.NotificationService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.MessageUndeliweredException;
-import me.exrates.service.util.RestApiUtils;
+import me.exrates.service.util.RestApiUtilComponent;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.aerogear.security.otp.Totp;
 import org.jboss.aerogear.security.otp.api.Base32;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,7 +31,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.Objects.isNull;
@@ -57,6 +55,8 @@ public class Google2faNotificatorServiceImpl implements NotificatorService, G2fa
     private UserDetailsService userDetailsService;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private RestApiUtilComponent restApiUtilComponent;
 
     private static final String QR_PREFIX = "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=";
     private static final String APP_NAME = "Exrates";
@@ -86,13 +86,13 @@ public class Google2faNotificatorServiceImpl implements NotificatorService, G2fa
     public String generateQRUrl(String userEmail, String secretCode) throws UnsupportedEncodingException {
         return QR_PREFIX
                 + URLEncoder.encode(
-                        String.format(
-                                "otpauth://totp/%s:%s?secret=%s&issuer=%s",
-                                APP_NAME,
-                                userEmail,
-                                secretCode,
-                                APP_NAME
-                        ), "UTF-8");
+                String.format(
+                        "otpauth://totp/%s:%s?secret=%s&issuer=%s",
+                        APP_NAME,
+                        userEmail,
+                        secretCode,
+                        APP_NAME
+                ), "UTF-8");
     }
 
     @Override
@@ -166,7 +166,7 @@ public class Google2faNotificatorServiceImpl implements NotificatorService, G2fa
 
     @Override
     public boolean submitGoogleSecret(User user, Map<String, String> body) {
-        String password = RestApiUtils.decodePassword(body.get("PASSWORD"));
+        String password = restApiUtilComponent.decodePassword(body.get("PASSWORD"));
         String secret = body.get("SECRET");
         String pin = body.get("PINCODE");
         String cached = GOOGLE_SECRETS_STORE.getIfPresent(user.getId());
@@ -214,7 +214,7 @@ public class Google2faNotificatorServiceImpl implements NotificatorService, G2fa
 
     @Override
     public boolean disableGoogleAuth(User user, Map<String, String> body) {
-        String password = RestApiUtils.decodePassword(body.get("PASSWORD"));
+        String password = restApiUtilComponent.decodePassword(body.get("PASSWORD"));
         String pin = body.get("PINCODE");
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {

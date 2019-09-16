@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
@@ -132,6 +133,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             /*ADMIN ...*/
             .antMatchers(POST, "/2a8fy7b07dxe44/edituser/submit",
                     "/2a8fy7b07dxe44/users/deleteUserFile").hasAuthority(AdminAuthority.EDIT_USER.name())
+            .antMatchers(POST, "/2a8fy7b07dxe44/usdxWallet/sendTransaction").hasAuthority(AdminAuthority.MANAGE_BTC_CORE_WALLET.name())
             .antMatchers("/2a8fy7b07dxe44/addComment",
                     "/2a8fy7b07dxe44/deleteUserComment").hasAuthority(AdminAuthority.COMMENT_USER.name())
             .antMatchers("/2a8fy7b07dxe44/updateTransactionAmount").hasAuthority(AdminAuthority.PROCESS_INVOICE.name())
@@ -156,7 +158,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers("/2a8fy7b07dxe44/addUser", "/2a8fy7b07dxe44/addUser/submit").hasAuthority(UserRole.ADMINISTRATOR.name())
             .antMatchers("/2a8fy7b07dxe44/merchantAccess/autoWithdrawParams").hasAuthority(UserRole.ADMINISTRATOR.name())
             .antMatchers("/2a8fy7b07dxe44/editAuthorities/submit").hasAuthority(MANAGE_ACCESS.name())
-            .antMatchers("/2a8fy7b07dxe44/changeActiveBalance/submit").hasAuthority(AdminAuthority.MANUAL_BALANCE_CHANGE.name())
+            .antMatchers("/2a8fy7b07dxe44/changeActiveBalance/submit", "/2a8fy7b07dxe44/withdrawCommission/submit").hasAuthority(AdminAuthority.MANUAL_BALANCE_CHANGE.name())
             .antMatchers(POST,"/2a8fy7b07dxe44/order/accept", "/2a8fy7b07dxe44/order/acceptMany").hasAnyAuthority(UserRole.BOT_TRADER.name(), UserRole.TRADER.name(),
             UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), AdminAuthority.DELETE_ORDER.name())
             .antMatchers("/2a8fy7b07dxe44/orderdelete", "/2a8fy7b07dxe44/order/deleteMany", "/2a8fy7b07dxe44/searchorders", "/2a8fy7b07dxe44/orderinfo",
@@ -184,7 +186,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers("/2a8fy7b07dxe44/ieo/**").hasAnyAuthority(UserRole.ADMINISTRATOR.name())
             /*... ADMIN */
             .antMatchers("/2a8fy7b07dxe44/**",
-            "/2a8fy7b07dxe44").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.FIN_OPERATOR.name())
+                    "/2a8fy7b07dxe44").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.FIN_OPERATOR.name())
             /*... ADMIN */
             .antMatchers("/companywallet").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.FIN_OPERATOR.name())
             .antMatchers("/merchants/bitcoin/payment/accept", "/merchants/invoice/payment/accept").hasAuthority(AdminAuthority.PROCESS_INVOICE.name())
@@ -231,6 +233,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(GET, "/generateReferral").permitAll()
             .antMatchers(POST, "/merchants/edrcoin/payment/received").permitAll()
             .antMatchers(POST, "/merchants/edc/payment/received").permitAll()
+            .antMatchers(POST, "/merchants/lht/payment/received").permitAll()
             .antMatchers(GET, "/merchants/blockchain/payment/received").permitAll()
             .antMatchers(GET, "/merchants/yandexmoney/token/access").permitAll()
             .antMatchers(GET, "/rest/yandexmoney/payment/process").permitAll()
@@ -327,6 +330,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     "/merchants/advcash/payment/status",
                     "/merchants/edrcoin/payment/received",
                     "/merchants/edc/payment/received",
+                    "/merchants/lht/payment/received",
                     "/merchants/liqpay/payment/failure",
                     "/merchants/liqpay/payment/success",
                     "/merchants/liqpay/payment/status",
@@ -355,7 +359,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .headers()
             .frameOptions()
             .sameOrigin();
+  }
 
-
+  @Override
+  public void configure(WebSecurity web) {
+    web.ignoring()
+            .antMatchers(POST, "/api/public/v2/kyc/callback");
   }
 }

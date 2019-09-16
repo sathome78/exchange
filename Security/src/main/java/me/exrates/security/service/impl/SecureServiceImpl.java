@@ -176,6 +176,18 @@ public class SecureServiceImpl implements SecureService {
     }
 
     @Override
+    public NotificationResultDto sendFreecoinsPincode(User user, HttpServletRequest request) {
+        NotificationsUserSetting setting = getFreecoinsSettings(user);
+        Locale locale = localeResolver.resolveLocale(request);
+        String subject = messageSource.getMessage(setting.getNotificationMessageEventEnum().getSbjCode(), null, locale);
+        String pin = userService.updatePinForUserForEvent(user.getEmail(), setting.getNotificationMessageEventEnum());
+        log.info("FREE_COINS pin code: {}", pin);
+        String messageText = messageSource.getMessage(setting.getNotificationMessageEventEnum().getMessageCode(),
+                new String[]{pin}, locale);
+        return sendMessage(user.getEmail(), messageText, subject, setting);
+    }
+
+    @Override
     public void checkLoginAuthNg(String email, HttpServletRequest request, Locale locale) {
         String result = reSendLoginMessage(request, email, locale).getMessage();
         if (result != null) {
@@ -194,6 +206,7 @@ public class SecureServiceImpl implements SecureService {
         return sendMessage(user.getEmail(), messageText, subject, setting);
     }
 
+    @SuppressWarnings("Duplicates")
     @Override
     public NotificationResultDto sendTransferPinCode(User user, String amount, String currencyName) {
         NotificationsUserSetting setting = getTransferSettings(user);
@@ -205,10 +218,19 @@ public class SecureServiceImpl implements SecureService {
     }
 
     @Override
+    public void sendPinCodeForCreateQuberaAccount(User user) {
+        NotificationsUserSetting setting = getCreateQuberAccountSettings(user);
+        String subject = messageSource.getMessage(setting.getNotificationMessageEventEnum().getSbjCode(), null, Locale.ENGLISH);
+        String pin = userService.updatePinForUserForEvent(user.getEmail(), setting.getNotificationMessageEventEnum());
+        String messageText = messageSource.getMessage(setting.getNotificationMessageEventEnum().getMessageCode(),
+                new String[]{pin}, Locale.ENGLISH);
+        sendMessage(user.getEmail(), messageText, subject, setting);
+    }
+
+    @Override
     public PinDto reSendLoginMessage(HttpServletRequest request, String userEmail, Locale locale) {
         return reSendLoginMessage(request, userEmail, true);
     }
-
 
     private NotificationsUserSetting determineSettings(NotificationsUserSetting setting, boolean canBeDisabled, int userId, NotificationMessageEventEnum event) {
         if (setting == null || setting.getNotificatorId() == null) {
@@ -220,7 +242,6 @@ public class SecureServiceImpl implements SecureService {
         }
         return setting;
     }
-
 
     private String sendPinMessage(String email, NotificationsUserSetting setting, HttpServletRequest request, String[] args) {
         Locale locale = localeResolver.resolveLocale(request);
@@ -251,6 +272,15 @@ public class SecureServiceImpl implements SecureService {
                 .build();
     }
 
+    private NotificationsUserSetting getCreateQuberAccountSettings(User user) {
+        return NotificationsUserSetting
+                .builder()
+                .notificationMessageEventEnum(NotificationMessageEventEnum.QUBERA_ACCOUNT)
+                .notificatorId(NotificationMessageEventEnum.LOGIN.getCode())
+                .userId(user.getId())
+                .build();
+    }
+
     private NotificationsUserSetting getLoginSettings(User user) {
         return NotificationsUserSetting
                 .builder()
@@ -265,6 +295,15 @@ public class SecureServiceImpl implements SecureService {
                 .builder()
                 .notificationMessageEventEnum(NotificationMessageEventEnum.API_TOKEN_SETTING)
                 .notificatorId(NotificationMessageEventEnum.API_TOKEN_SETTING.getCode())
+                .userId(user.getId())
+                .build();
+    }
+
+    private NotificationsUserSetting getFreecoinsSettings(User user) {
+        return NotificationsUserSetting
+                .builder()
+                .notificationMessageEventEnum(NotificationMessageEventEnum.FREE_COINS)
+                .notificatorId(NotificationMessageEventEnum.FREE_COINS.getCode())
                 .userId(user.getId())
                 .build();
     }

@@ -3,6 +3,7 @@ package me.exrates.service.impl;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
@@ -12,6 +13,7 @@ import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.util.WithdrawUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -23,6 +25,7 @@ import java.util.Map;
 
 @Log4j2 (topic = "aisi_log")
 @Service
+@Conditional(MonolitConditional.class)
 public class AisiServiceImpl implements AisiService {
 
     public final static String MERCHANT_NAME = "AISI";

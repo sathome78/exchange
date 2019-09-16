@@ -3,14 +3,16 @@ package me.exrates.ngService.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.OrderDao;
 import me.exrates.dao.StopOrderDao;
+import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.ExOrder;
 import me.exrates.model.StopOrder;
 import me.exrates.model.User;
-import me.exrates.model.dto.CandleDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.dto.OrderCreateDto;
@@ -20,13 +22,17 @@ import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.ChartPeriodsEnum;
+import me.exrates.model.enums.CurrencyPairRestrictionsEnum;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.enums.RestrictedCountrys;
 import me.exrates.model.ngExceptions.NgDashboardException;
+import me.exrates.model.ngExceptions.NgOrderValidationException;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.util.BigDecimalToStringSerializer;
 import me.exrates.ngService.NgOrderService;
@@ -36,11 +42,11 @@ import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.cache.ExchangeRatesHolder;
-import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
+import me.exrates.service.exception.NeedVerificationException;
+import me.exrates.service.exception.OrderCreationRestrictedException;
 import me.exrates.service.stopOrder.StopOrderService;
+import me.exrates.service.userOperation.UserOperationService;
 import org.apache.commons.lang.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -48,37 +54,30 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.temporal.ChronoField;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
 
+@Log4j2
 @Service
 public class NgOrderServiceImpl implements NgOrderService {
 
-    private static final Logger logger = LogManager.getLogger(NgOrderServiceImpl.class);
-    private static final Executor executor = Executors.newSingleThreadExecutor();
+    private static final Executor EXECUTOR = Executors.newSingleThreadExecutor();
 
     private final CurrencyService currencyService;
     private final OrderService orderService;
     private final OrderDao orderDao;
-    private final ObjectMapper objectMapper;
     private final StopOrderDao stopOrderDao;
     private final DashboardService dashboardService;
     private final SimpMessagingTemplate messagingTemplate;
     private final StopOrderService stopOrderService;
     private final UserService userService;
     private final WalletService walletService;
-    private final ExchangeRatesHolder exchangeRatesHolder;
+    private final UserOperationService userOperationService;
 
     @Autowired
     public NgOrderServiceImpl(CurrencyService currencyService,
@@ -91,18 +90,17 @@ public class NgOrderServiceImpl implements NgOrderService {
                               StopOrderService stopOrderService,
                               UserService userService,
                               WalletService walletService,
-                              ExchangeRatesHolder exchangeRatesHolder) {
+                              ExchangeRatesHolder exchangeRatesHolder, UserOperationService userOperationService) {
         this.currencyService = currencyService;
         this.orderService = orderService;
         this.orderDao = orderDao;
-        this.objectMapper = objectMapper;
         this.stopOrderDao = stopOrderDao;
         this.dashboardService = dashboardService;
         this.messagingTemplate = messagingTemplate;
         this.stopOrderService = stopOrderService;
         this.userService = userService;
         this.walletService = walletService;
-        this.exchangeRatesHolder = exchangeRatesHolder;
+        this.userOperationService = userOperationService;
     }
 
     @Override
@@ -123,7 +121,17 @@ public class NgOrderServiceImpl implements NgOrderService {
 
         String email = userService.getUserEmailFromSecurityContext();
         User user = userService.findByEmail(email);
-        CurrencyPair currencyPair = currencyService.findCurrencyPairById(inputOrder.getCurrencyPairId());
+        CurrencyPairWithRestriction currencyPair = currencyService.findCurrencyPairByIdWithRestrictions(inputOrder.getCurrencyPairId());
+
+        if (currencyPair.hasTradeRestriction()) {
+            if (currencyPair.getTradeRestriction().contains(CurrencyPairRestrictionsEnum.ESCAPE_USA) && user.getVerificationRequired()) {
+                if (Objects.isNull(user.getCountry())) {
+                    throw new NeedVerificationException("Sorry, you must pass verification to trade this pair.");
+                } else if(user.getCountry().equalsIgnoreCase(RestrictedCountrys.USA.name())) {
+                    throw new OrderCreationRestrictedException("Sorry, you are not allowed to trade this pair");
+                }
+            }
+        }
 
         OrderCreateDto prepareNewOrder = orderService.prepareNewOrder(currencyPair, operationType, user.getEmail(),
                 inputOrder.getAmount(), inputOrder.getRate(), baseType);
@@ -135,7 +143,7 @@ public class NgOrderServiceImpl implements NgOrderService {
 
         Map<String, Object> errorMap = orderValidationDto.getErrors();
         if (!errorMap.isEmpty()) {
-            throw new NgDashboardException(errorMap.toString());
+            throw new NgOrderValidationException(orderValidationDto);
         }
 
 //        BigDecimal totalWithComission = prepareNewOrder.getTotalWithComission();
@@ -303,10 +311,7 @@ public class NgOrderServiceImpl implements NgOrderService {
             spendCurrency = activeCurrencyPair.getCurrency2();
         }
 
-        WalletsAndCommissionsForOrderCreationDto walletAndCommission =
-                orderService.getWalletAndCommission(email, spendCurrency, operationType);
-
-        return walletAndCommission;
+        return orderService.getWalletAndCommission(email, spendCurrency, operationType);
 
     }
 
@@ -321,14 +326,14 @@ public class NgOrderServiceImpl implements NgOrderService {
                     orderService.getLastOrderPriceByCurrencyPair(currencyPair);
 
             if (currentRateOptional.isPresent()) {
-                logger.debug("Currency {} rate {}", currencyPair.getName(), currentRateOptional.get());
+                log.debug("Currency {} rate {}", currencyPair.getName(), currentRateOptional.get());
                 BigDecimal rateNow = BigDecimalProcessing.normalize(currentRateOptional.get());
                 result.setCurrencyRate(rateNow.toPlainString());
             }
 
             ExOrderStatisticsDto orderStatistic =
                     orderService.getOrderStatistic(currencyPair, ChartPeriodsEnum.HOURS_24.getBackDealInterval(), null);
-            logger.debug("Current statistic for currency {}, statistic: {}", currencyPair.getName(), orderStatistic);
+            log.debug("Current statistic for currency {}, statistic: {}", currencyPair.getName(), orderStatistic);
             if (orderStatistic != null) {
                 result.setLastCurrencyRate(orderStatistic.getFirstOrderRate());//or orderStatistic.getLastOrderRate() ??
                 result.setRateLow(orderStatistic.getMinRate());
@@ -353,7 +358,7 @@ public class NgOrderServiceImpl implements NgOrderService {
                 }
             }
         } catch (ArithmeticException e) {
-            logger.error("Error calculating max and min values - {}", e.getLocalizedMessage());
+            log.error("Error calculating max and min values - {}", e.getLocalizedMessage());
             throw new NgDashboardException("Error while processing calculate currency info, e - " + e.getMessage());
         }
         return result;
@@ -370,7 +375,7 @@ public class NgOrderServiceImpl implements NgOrderService {
             currencyPair = currencyService.findCurrencyPairById(currencyPairId);
         } catch (CurrencyPairNotFoundException e) {
             String message = "Failed to get currency pair for id: " + currencyPairId;
-            logger.warn(message, e);
+            log.warn(message, e);
             throw new CurrencyPairNotFoundException(message);
         }
 
@@ -417,68 +422,6 @@ public class NgOrderServiceImpl implements NgOrderService {
         return result;
     }
 
-
-    @SuppressWarnings("Duplicates")
-    @Override
-    public Map<String, Object> filterDataPeriod(List<CandleDto> data, long fromSeconds, long toSeconds, String resolution) {
-        List<CandleDto> filteredData = new ArrayList<>(data);
-        HashMap<String, Object> filterDataResponse = new HashMap<>();
-        if (filteredData.isEmpty()) {
-            filterDataResponse.put("s", "ok");
-            getData(filterDataResponse, filteredData, resolution);
-            return filterDataResponse;
-        }
-
-        if ((filteredData.get(data.size() - 1).getTime() / 1000) < fromSeconds) {
-            filterDataResponse.put("s", "no_data");
-            filterDataResponse.put("nextTime", filteredData.get(data.size() - 1).getTime() / 1000);
-            return filterDataResponse;
-
-        }
-
-        int fromIndex = -1;
-        int toIndex = -1;
-
-        for (int i = 0; i < filteredData.size(); i++) {
-            long time = filteredData.get(i).getTime() / 1000;
-            if (fromIndex == -1 && time >= fromSeconds) {
-                fromIndex = i;
-            }
-            if (toIndex == -1 && time >= toSeconds) {
-                toIndex = time > toSeconds ? i - 1 : i;
-            }
-            if (fromIndex != -1 && toIndex != -1) {
-                break;
-            }
-        }
-
-        fromIndex = fromIndex > 0 ? fromIndex : 0;
-        toIndex = toIndex > 0 ? toIndex + 1 : filteredData.size();
-
-
-        toIndex = Math.min(fromIndex + 1000, toIndex); // do not send more than 1000 bars for server capacity reasons
-
-        String s = "ok";
-
-        if (toSeconds < filteredData.get(0).getTime() / 1000) {
-            s = "no_data";
-        }
-        filterDataResponse.put("s", s);
-
-        toIndex = Math.min(fromIndex + 1000, toIndex);
-
-        if (fromIndex > toIndex) {
-            filterDataResponse.put("s", "no_data");
-            filterDataResponse.put("nextTime", filteredData.get(data.size() - 1).getTime() / 1000);
-            return filterDataResponse;
-        }
-
-        filteredData = filteredData.subList(fromIndex, toIndex);
-        getData(filterDataResponse, filteredData, resolution);
-        return filterDataResponse;
-
-    }
-
     @Override
     public List<CurrencyPair> getAllPairsByFirstPartName(String pathName) {
         return currencyService.getPairsByFirstPartName(pathName);
@@ -488,7 +431,6 @@ public class NgOrderServiceImpl implements NgOrderService {
     public List<CurrencyPair> getAllPairsBySecondPartName(String pathName) {
         return currencyService.getPairsBySecondPartName(pathName);
     }
-
 
 
 //    private void countTotal(List<SimpleOrderBookItem> items, OrderType orderType) {
@@ -532,7 +474,7 @@ public class NgOrderServiceImpl implements NgOrderService {
     }
 
     private void emitOpenOrderMessage(OrderCreateDto order) {
-        executor.execute(() ->
+        EXECUTOR.execute(() ->
                 IntStream.range(1, 6).forEach(precision -> {
                     int currencyPairId = order.getCurrencyPair().getId();
                     String destination = String.format("/topic/open-orders/%d/%d", currencyPairId, precision);
@@ -551,69 +493,4 @@ public class NgOrderServiceImpl implements NgOrderService {
 //        objectsArray.put(objectMapper.writeValueAsString(findAllOrderBookItems(OrderType.SELL, currencyId, precision)));
 //        return objectsArray.toString();
     }
-
-
-    @SuppressWarnings("Duplicates")
-    private void getData(HashMap<String, Object> response, List<CandleDto> result, String resolution) {
-        List<Long> t = new ArrayList<>();
-        List<BigDecimal> o = new ArrayList<>();
-        List<BigDecimal> h = new ArrayList<>();
-        List<BigDecimal> l = new ArrayList<>();
-        List<BigDecimal> c = new ArrayList<>();
-        List<BigDecimal> v = new ArrayList<>();
-
-        LocalDateTime first = LocalDateTime.ofEpochSecond((result.get(0).getTime() / 1000), 0, ZoneOffset.UTC)
-                .truncatedTo(ChronoUnit.DAYS);
-        t.add(first.toEpochSecond(ZoneOffset.UTC));
-        o.add(BigDecimal.ZERO);
-        h.add(BigDecimal.ZERO);
-        l.add(BigDecimal.ZERO);
-        c.add(BigDecimal.ZERO);
-        v.add(BigDecimal.ZERO);
-
-        for (CandleDto r : result) {
-            LocalDateTime now = LocalDateTime.ofEpochSecond((r.getTime() / 1000), 0, ZoneOffset.UTC)
-                    .truncatedTo(ChronoUnit.MINUTES);
-            LocalDateTime actualDateTime;
-            long currentMinutesOfHour = now.getLong(ChronoField.MINUTE_OF_HOUR);
-            long currentHourOfDay = now.getLong(ChronoField.HOUR_OF_DAY);
-
-            switch (resolution) {
-                case "30":
-                    long minutes = Math.abs(currentMinutesOfHour - 30);
-                    actualDateTime = now.minusMinutes(currentMinutesOfHour <= 30 ? currentMinutesOfHour : minutes);
-                    break;
-                case "60":
-                    actualDateTime = now.minusMinutes(currentMinutesOfHour);
-                    break;
-                case "240":
-                    actualDateTime = now.minusMinutes(currentMinutesOfHour).minusHours(currentHourOfDay % 4);
-                    break;
-                case "720":
-                    actualDateTime = now.minusMinutes(currentMinutesOfHour).minusHours(currentHourOfDay % 12);
-                    break;
-                case "M":
-                    actualDateTime = now.truncatedTo(ChronoUnit.DAYS).withDayOfMonth(1);
-                    break;
-                default:
-                    actualDateTime = now.minusMinutes(currentMinutesOfHour);
-
-            }
-
-            t.add(actualDateTime.toEpochSecond(ZoneOffset.UTC));
-            o.add(r.getOpen());
-            h.add(r.getHigh());
-            l.add(r.getLow());
-            c.add(r.getClose());
-            v.add(r.getVolume());
-        }
-        response.put("t", t);
-        response.put("o", o);
-        response.put("h", h);
-        response.put("l", l);
-        response.put("c", c);
-        response.put("v", v);
-    }
-
-
 }

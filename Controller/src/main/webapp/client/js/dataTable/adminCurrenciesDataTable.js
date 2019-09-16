@@ -22,6 +22,7 @@ $(document).ready(function () {
             var currencyId = rowData.currency.id;
             var currencyName = rowData.currency.name;
             var currentMinLimit = rowData.minSum;
+            var currentMaxLimit = rowData.maxSum;
             var currentMinUsdLimit = rowData.minSumUsdRate;
             var currentUsdRate = rowData.currencyUsdRate;
             var currentMaxDailyRequest = rowData.maxDailyRequest;
@@ -35,6 +36,7 @@ $(document).ready(function () {
             $($editCurrencyLimitForm).find('input[name="minAmount"]').val(currentMinLimit);
             $($editCurrencyLimitForm).find('input[name="minAmountUSD"]').val(currentMinUsdLimit);
             $($editCurrencyLimitForm).find('input[name="usdRate"]').val(currentUsdRate);
+            $($editCurrencyLimitForm).find('input[name="maxAmount"]').val(currentMaxLimit);
             $($editCurrencyLimitForm).find('input[name="maxDailyRequest"]').val(currentMaxDailyRequest);
             $('#editLimitModal').modal();
         }
@@ -86,6 +88,7 @@ $(document).ready(function () {
         var currentMaxRate = rowData.maxRate;
         var currentMinAmount = rowData.minAmount;
         var currentMaxAmount = rowData.maxAmount;
+        var currentMinTotal = rowData.minTotal;
         var orderType = $('#orderType').val();
         var userRole = $('#roleName-pair').val();
         $($editCurrencyPairLimitForm).find('input[name="currencyPairId"]').val(currencyId);
@@ -96,6 +99,7 @@ $(document).ready(function () {
         $($editCurrencyPairLimitForm).find('input[name="maxRate"]').val(currentMaxRate);
         $($editCurrencyPairLimitForm).find('input[name="minAmount"]').val(currentMinAmount);
         $($editCurrencyPairLimitForm).find('input[name="maxAmount"]').val(currentMaxAmount);
+        $($editCurrencyPairLimitForm).find('input[name="minTotal"]').val(currentMinTotal);
         $('#editPairLimitModal').modal();
     });
 
@@ -161,6 +165,15 @@ function updateCurrencyLimitsDataTable() {
                 },
                 {
                     "data": "minSumUsdRate",
+                    "render": function (data, type) {
+                        if (type === 'display') {
+                            return numbro(data).format('0.00[000000]');
+                        }
+                        return data;
+                    }
+                },
+                {
+                    "data": "maxSum",
                     "render": function (data, type) {
                         if (type === 'display') {
                             return numbro(data).format('0.00[000000]');
@@ -275,6 +288,15 @@ function updateCurrencyPairLimitsDataTable() {
                 },
                 {
                     "data": "maxAmount",
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbro(data).format('0.[0000000000]');
+                        }
+                        return data;
+                    }
+                },
+                {
+                    "data": "minTotal",
                     "render": function (data, type, row) {
                         if (type === 'display') {
                             return numbro(data).format('0.[0000000000]');

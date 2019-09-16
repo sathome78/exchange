@@ -198,7 +198,6 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         log.info("start " + merchantName);
 
         web3j = Web3j.build(new HttpService(url));
-
         scheduler.scheduleAtFixedRate(new Runnable() {
             public void run() {
                 checkSession();

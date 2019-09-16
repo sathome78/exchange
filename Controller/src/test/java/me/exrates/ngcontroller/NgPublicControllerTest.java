@@ -23,6 +23,7 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.IEOService;
 import me.exrates.service.NewsParser;
 import me.exrates.service.OrderService;
+import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.exception.IllegalChatMessageException;
@@ -72,7 +73,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-//https://www.baeldung.com/integration-testing-in-spring
+//https://www.baeldung.com/integration-testing-in-spring 3
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {AngularAppTestConfig.class})
 @WebAppConfiguration
@@ -110,6 +111,8 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
     private IEOService ieoService;
     @Autowired
     private NewsParser newsParser;
+    @Autowired
+    private SendMailService sendMailService;
 
     @InjectMocks
     private NgPublicController ngPublicController;
@@ -120,7 +123,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
     public void setUp() {
         ngPublicController = new NgPublicController(chatService, currencyService, ipBlockingService, ieoService, userService,
                 ngUserService, messagingTemplate, orderService, g2faService, ngOrderService, telegramChatDao, exchangeRatesHolder,
-                newsParser);
+                newsParser, sendMailService);
 
         HandlerExceptionResolver resolver = ((HandlerExceptionResolverComposite) webApplicationContext
                 .getBean("handlerExceptionResolver")).getExceptionResolvers().get(0);

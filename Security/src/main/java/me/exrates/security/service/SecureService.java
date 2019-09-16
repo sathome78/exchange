@@ -33,10 +33,14 @@ public interface SecureService {
 
     NotificationResultDto sendApiTokenPincode(User user, HttpServletRequest request);
 
+    NotificationResultDto sendFreecoinsPincode(User user, HttpServletRequest request);
+
     void checkLoginAuthNg(String email, HttpServletRequest request, Locale locale);
 
     NotificationResultDto sendWithdrawPinCode(User user, String amount, String currencyName);
 
     NotificationResultDto sendTransferPinCode(User user, String amount, String currencyName);
+
+    void sendPinCodeForCreateQuberaAccount(User user);
 
 }

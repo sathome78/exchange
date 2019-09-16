@@ -1,8 +1,10 @@
 package me.exrates.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.dto.RefillRequestCreateDto;
@@ -19,6 +21,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Map;
 
+@Log4j2
 @Service
 @Conditional(MicroserviceConditional.class)
 @RequiredArgsConstructor
@@ -34,13 +37,18 @@ public class Privat24ServiceMsImpl implements Privat24Service {
     }
 
     @Override
-    @SneakyThrows
     public boolean confirmPayment(Map<String, String> params, String signature, String payment) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_MERCHANT_PRIVAT_24_CONFIRM_PAYMENT)
                 .queryParam("signature", signature)
                 .queryParam("payment", payment);
 
-        HttpEntity<String> entity = new HttpEntity<>(mapper.writeValueAsString(params));
+        HttpEntity<String> entity = null;
+        try {
+            entity = new HttpEntity<>(mapper.writeValueAsString(params));
+        } catch (JsonProcessingException e) {
+            log.error("Privat24 can't map params", e);
+            throw new RuntimeException(e);
+        }
         ResponseEntity<Boolean> response = template.exchange(
                 builder.toUriString(),
                 HttpMethod.POST,

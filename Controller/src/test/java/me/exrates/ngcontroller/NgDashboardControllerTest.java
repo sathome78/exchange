@@ -24,7 +24,6 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -107,6 +106,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
     @Test
     public void createOrder_is_created_switch_stop_limit() throws Exception {
         InputCreateOrderDto requestBody = getMockInputCreateOrderDto();
+        requestBody.setBaseType(OrderBaseType.STOP_LIMIT.name());
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(SerializationFeature.WRAP_ROOT_VALUE, false);
         ObjectWriter ow = mapper.writer().withDefaultPrettyPrinter();
@@ -130,6 +130,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
     @Test
     public void createOrder_bad_reques_switch_stop_limit() throws Exception {
         InputCreateOrderDto requestBody = getMockInputCreateOrderDto();
+        requestBody.setBaseType(OrderBaseType.STOP_LIMIT.name());
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(SerializationFeature.WRAP_ROOT_VALUE, false);
         ObjectWriter ow = mapper.writer().withDefaultPrettyPrinter();
@@ -356,6 +357,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
+                anyBoolean(),
                 any(Locale.class))
         ).thenReturn(dto);
 
@@ -382,6 +384,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
+                anyBoolean(),
                 any(Locale.class));
         reset(orderService);
     }
@@ -403,6 +406,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
+                anyBoolean(),
                 any(Locale.class))
         ).thenReturn(dto);
 
@@ -429,6 +433,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
+                anyBoolean(),
                 any(Locale.class));
         reset(orderService);
     }
@@ -449,6 +454,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
+                anyBoolean(),
                 any(Locale.class))
         ).thenThrow(Exception.class);
 
@@ -480,6 +486,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
+                anyBoolean(),
                 any(Locale.class));
         reset(orderService);
     }
@@ -501,6 +508,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
+                anyBoolean(),
                 any(Locale.class))
         ).thenReturn(dto);
 
@@ -524,6 +532,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
+                anyBoolean(),
                 any(Locale.class));
         reset(orderService);
     }
@@ -546,6 +555,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
+                anyBoolean(),
                 any(Locale.class))
         ).thenReturn(dto);
 
@@ -572,6 +582,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
+                anyBoolean(),
                 any(Locale.class));
         reset(orderService);
     }
@@ -593,6 +604,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
+                anyBoolean(),
                 any(Locale.class))
         ).thenReturn(dto);
 
@@ -618,6 +630,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
+                anyBoolean(),
                 any(Locale.class));
         reset(orderService);
     }
@@ -637,6 +650,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
+                anyBoolean(),
                 any(Locale.class))
         ).thenThrow(Exception.class);
 
@@ -668,6 +682,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
+                anyBoolean(),
                 any(Locale.class));
         reset(orderService);
     }

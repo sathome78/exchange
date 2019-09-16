@@ -4,7 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.squareup.okhttp.FormEncodingBuilder;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import lombok.extern.log4j.Log4j2;
@@ -28,18 +27,24 @@ import me.exrates.service.exception.RefillRequestFakePaymentReceivedException;
 import me.exrates.service.exception.RefillRequestMerchantException;
 import me.exrates.service.util.WithdrawUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @Log4j2(topic = "edc_log")
 @Service
@@ -89,8 +94,10 @@ public class EDCServiceImpl implements EDCService {
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
         String address = getAddress();
-        String message = messageSource.getMessage("merchants.refill.edr",
-                new Object[]{address}, request.getLocale());
+        log.info("EDC. Generate new refill address: {}", address);
+
+        String message = messageSource.getMessage("merchants.refill.edr", new Object[]{address}, request.getLocale());
+
         return new HashMap<String, String>() {{
             put("address", address);
             put("message", message);
@@ -153,6 +160,7 @@ public class EDCServiceImpl implements EDCService {
                     .body()
                     .string();
         } catch (IOException e) {
+            log.error("EDC coin. Error: {}" + e);
             throw new MerchantInternalException(e);
         }
 
@@ -170,8 +178,10 @@ public class EDCServiceImpl implements EDCService {
             }
         } catch (IllegalStateException e) {
             if ("Address not found".equals(parser.parse(returnResponse).getAsJsonObject().get("message").getAsString())) {
+                log.info("EDC coin. Address not found. Fake transaction error: {}", e);
                 throw new RefillRequestFakePaymentReceivedException(params.toString());
             } else {
+                log.error("EDC coin. Error in parse: {}", e);
                 throw new RefillRequestMerchantException(params.toString());
             }
         }
@@ -179,27 +189,38 @@ public class EDCServiceImpl implements EDCService {
     }
 
     private String getAddress() {
-        final OkHttpClient client = new OkHttpClient();
-        client.setReadTimeout(60, TimeUnit.SECONDS);
-        final FormEncodingBuilder formBuilder = new FormEncodingBuilder();
-        formBuilder.add("account", main_account);
-        formBuilder.add("hook", hook);
-        final Request request = new Request.Builder()
-                .url(urlCreateNewAccount + token)
-                .post(formBuilder.build())
-                .build();
-        final String returnResponse;
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36");
+
+        JSONObject request = new JSONObject();
+        request.put("account", main_account);
+        request.put("hook", hook);
+
+        HttpEntity<String> entity = new HttpEntity<>(request.toString(), headers);
+
+        log.debug("Url (create new account): {}", urlCreateNewAccount + token);
+        log.debug("Headers (create new account): {}", headers);
+        log.debug("Request json (create new account): {}", request);
+
+        final ResponseEntity<String> returnResponse;
         try {
-            returnResponse = client
-                    .newCall(request)
-                    .execute()
-                    .body()
-                    .string();
+            returnResponse = restTemplate.exchange(urlCreateNewAccount + token, HttpMethod.POST, entity, String.class);
+            log.debug("Return response (create new account): {}", returnResponse);
+
+            String bodyResponse = returnResponse.getBody();
+            log.debug("Body of response (create new account): {}", bodyResponse);
+
             JsonParser parser = new JsonParser();
-            JsonObject object = parser.parse(returnResponse).getAsJsonObject();
+            JsonObject object = parser.parse(bodyResponse).getAsJsonObject();
+
+            log.debug("JsonObject (create new account): {}", object);
             return object.get("address").getAsString();
 
         } catch (Exception e) {
+            log.error("EDC coin. Error in generate new address for refill: {}", e);
             throw new MerchantInternalException("Unfortunately, the operation is not available at the moment, please try again later!");
         }
     }
@@ -209,6 +230,5 @@ public class EDCServiceImpl implements EDCService {
 
         return withdrawUtils.isValidDestinationAddress(address);
     }
-
 
 }

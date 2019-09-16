@@ -41,13 +41,15 @@ public interface WalletDao {
 
     int getWalletId(int userId, int currencyId);
 
+    BigDecimal getActiveBalanceAndBlockByWalletId(Integer walletId);
+
     int createNewWallet(Wallet wallet);
 
     int getUserIdFromWallet(int walletId);
 
     List<Wallet> findAllForNotHiddenCurByUser(int userId);
 
-    List<MyWalletsStatisticsDto> getAllWalletsForUserAndCurrenciesReduced(String email, Locale locale, Set<Integer> currencyIds);
+    List<MyWalletsStatisticsDto> getAllWalletsForUserAndCurrenciesReduced(String email, Set<Integer> currencyIds);
 
     List<WalletBalanceDto> getBalancesForUser(String userEmail);
 
@@ -152,4 +154,6 @@ public interface WalletDao {
     Map<String, String> findUserCurrencyBalances(User user, Collection<String> currencyNames);
 
     BigDecimal findUserCurrencyBalance(IEOClaim ieoClaim);
+
+    BigDecimal getActiveBalanceByUserAndCurrency(String email, Integer currencyId);
 }

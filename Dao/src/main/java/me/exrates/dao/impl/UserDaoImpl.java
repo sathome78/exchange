@@ -10,6 +10,7 @@ import me.exrates.model.Policy;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
+import me.exrates.model.dto.IpLogDto;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserBalancesDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
@@ -18,17 +19,22 @@ import me.exrates.model.dto.UserIpReportDto;
 import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.UserShortDto;
 import me.exrates.model.dto.UsersInfoDto;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.AdminIpLogsFilterData;
 import me.exrates.model.dto.ieo.IeoUserStatus;
+import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.AdminAuthority;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.PolicyEnum;
 import me.exrates.model.enums.TokenType;
+import me.exrates.model.enums.UserEventEnum;
 import me.exrates.model.enums.UserIpState;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,6 +75,7 @@ import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
+import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toList;
 
 @Repository
@@ -78,7 +85,7 @@ public class UserDaoImpl implements UserDao {
 
     private final String SELECT_USER =
             "SELECT USER.id, u.email AS parent_email, USER.finpassword, USER.nickname, USER.email, USER.password, USER.regdate, " +
-                    "USER.phone, USER.status, USER.kyc_status, USER_ROLE.name AS role_name, USER.country AS country, USER.pub_id FROM USER " +
+                    "USER.phone, USER.status, USER.kyc_status, USER_ROLE.name AS role_name, USER.country AS country, USER.pub_id, USER.verification_required FROM USER " +
                     "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LEFT JOIN REFERRAL_USER_GRAPH " +
                     "ON USER.id = REFERRAL_USER_GRAPH.child LEFT JOIN USER AS u ON REFERRAL_USER_GRAPH.parent = u.id ";
 
@@ -116,7 +123,7 @@ public class UserDaoImpl implements UserDao {
             user.setNickname(resultSet.getString("nickname"));
             user.setEmail(resultSet.getString("email"));
             user.setPassword(resultSet.getString("password"));
-            user.setRegdate(resultSet.getDate("regdate"));
+            user.setRegdate(resultSet.getDate("regdate").toLocalDate());
             user.setPhone(resultSet.getString("phone"));
             user.setUserStatus(UserStatus.values()[resultSet.getInt("status") - 1]);
             user.setRole(UserRole.valueOf(resultSet.getString("role_name")));
@@ -124,6 +131,7 @@ public class UserDaoImpl implements UserDao {
             user.setKycStatus(resultSet.getString("kyc_status"));
             user.setCountry(resultSet.getString("country"));
             user.setPublicId(resultSet.getString("pub_id"));
+            user.setVerificationRequired(resultSet.getBoolean("verification_required"));
             try {
                 user.setParentEmail(resultSet.getString("parent_email")); // May not exist for some users
             } catch (final SQLException e) {/*NOP*/}
@@ -138,7 +146,7 @@ public class UserDaoImpl implements UserDao {
             user.setNickname(resultSet.getString("nickname"));
             user.setEmail(resultSet.getString("email"));
             user.setPassword(resultSet.getString("password"));
-            user.setRegdate(resultSet.getDate("regdate"));
+            user.setRegdate(resultSet.getDate("regdate").toLocalDate());
             user.setPhone(resultSet.getString("phone"));
             user.setUserStatus(UserStatus.values()[resultSet.getInt("status") - 1]);
             user.setFinpassword(resultSet.getString("finpassword"));
@@ -182,16 +190,17 @@ public class UserDaoImpl implements UserDao {
     }
 
     public boolean create(User user) {
-        String sqlUser = "insert into USER(pub_id, nickname,email,password,phone,status,roleid ) " +
-                "values(SUBSTRING(MD5(:email), 1, 20), :nickname, :email, :password, :phone, :status, :roleid)";
+        String sqlUser = "insert into USER(pub_id, nickname, email, password, phone, status, roleid, verification_required ) " +
+                "values(SUBSTRING(MD5(:email), 1, 20), :nickname, :email, :password, :phone, :status, :roleid, :need_verification)";
         String sqlWallet = "INSERT INTO WALLET (currency_id, user_id) select id, :user_id from CURRENCY;";
         String sqlNotificationOptions = "INSERT INTO NOTIFICATION_OPTIONS(notification_event_id, user_id, send_notification, send_email) " +
                 "select id, :user_id, default_send_notification, default_send_email FROM NOTIFICATION_EVENT; ";
         String sqlUserOperationAuthority = "INSERT INTO USER_OPERATION_AUTHORITY (user_id, user_operation_id) " +
                 "SELECT :user_id, id FROM USER_OPERATION;";
-        Map<String, String> namedParameters = new HashMap<String, String>();
+        Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("email", user.getEmail());
         namedParameters.put("nickname", user.getNickname());
+        namedParameters.put("need_verification", user.getVerificationRequired());
         if (user.getPassword() != null) {
             BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
             String hashedPassword = passwordEncoder.encode(user.getPassword());
@@ -415,11 +424,13 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public boolean updateKycStatusByEmail(String email, String result) {
-        String sql = "UPDATE USER SET kyc_status = :value WHERE email = :email";
+    public boolean updateVerificationStatus(String email, String status) {
+        final String sql = "UPDATE USER SET kyc_status = :kyc_status WHERE email = :email";
+
         MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("value", result);
+        params.addValue("kyc_status", status);
         params.addValue("email", email);
+
         try {
             return masterTemplate.update(sql, params) > 0;
         } catch (EmptyResultDataAccessException e) {
@@ -477,7 +488,8 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public User getCommonReferralRoot() {
-        final String sql = "SELECT USER.id, nickname, email, password, finpassword, regdate, phone, status, USER_ROLE.name as role_name, USER.pub_id FROM COMMON_REFERRAL_ROOT INNER JOIN USER ON COMMON_REFERRAL_ROOT.user_id = USER.id INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LIMIT 1";
+        final String sql = "SELECT USER.id, nickname, email, password, finpassword, regdate, phone, status, USER_ROLE.name as role_name, USER.pub_id, USER.verification_required " +
+                "FROM COMMON_REFERRAL_ROOT INNER JOIN USER ON COMMON_REFERRAL_ROOT.user_id = USER.id INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LIMIT 1";
         final List<User> result = masterTemplate.query(sql, getUserRowMapper());
         if (result.isEmpty()) {
             return null;
@@ -576,12 +588,54 @@ public class UserDaoImpl implements UserDao {
         return masterTemplate.update(sql, namedParameters) > 0;
     }
 
-    public boolean addIPToLog(int userId, String ip) {
-        String sql = "insert INTO IP_Log (ip,user_id) values(:ip,:userId)";
-        Map<String, String> namedParameters = new HashMap<String, String>();
+    @Override
+    public boolean addIpToLog(Integer userId, String ip, UserEventEnum eventEnum, String url) {
+        String sql = "insert INTO IP_Log (ip, user_id, event, url) values(:ip, :userId, :event, :url)";
+        Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("ip", ip);
-        namedParameters.put("userId", String.valueOf(userId));
+        namedParameters.put("userId", userId);
+        namedParameters.put("event", eventEnum.name());
+        namedParameters.put("url", url);
         return masterTemplate.update(sql, namedParameters) > 0;
+    }
+
+    @Override
+    public PagingData<List<IpLogDto>> getIpLogPage(AdminIpLogsFilterData adminOrderFilterData,
+                                                   DataTableParams dataTableParams) {
+        String limitAndOffset = dataTableParams.getLimitAndOffsetClause();
+        String orderBy = dataTableParams.getOrderByClause();
+        String criteria = adminOrderFilterData.getSQLFilterClause();
+        String sqlSelect = "SELECT * ";
+        String sqlSelectCount = "SELECT COUNT(*) ";
+        String sqlFrom = " FROM IP_Log JOIN USER ON USER.id = IP_Log.user_id ";
+        Map<String, Object> namedParameters = new HashMap<>();
+        namedParameters.put("offset", dataTableParams.getStart());
+        namedParameters.put("limit", dataTableParams.getLength());
+        namedParameters.putAll(adminOrderFilterData.getNamedParams());
+        String whereClause = StringUtils.isNotEmpty(criteria) ? "WHERE " + criteria : "";
+        String selectQuery = String.join(" ", sqlSelect, sqlFrom, whereClause, orderBy, limitAndOffset);
+        String selectCountQuery = String.join(" ", sqlSelectCount, sqlFrom, whereClause);
+        PagingData<List<IpLogDto>> result = new PagingData<>();
+        List<IpLogDto> infoDtoList = new ArrayList<>();
+        int total = slaveTemplate.queryForObject(selectCountQuery, namedParameters, Integer.class);
+        if (total > 0) {
+            infoDtoList = slaveTemplate.query(selectQuery, namedParameters, (rs, rowNum) ->
+                    IpLogDto
+                            .builder()
+                            .id(rs.getInt("id"))
+                            .ip(rs.getString("ip"))
+                            .dateTime(rs.getTimestamp("date").toLocalDateTime())
+                            .email(rs.getString("email"))
+                            .event(rs.getString("event"))
+                            .url(rs.getString("url"))
+                            .build());
+        }
+        result.setData(infoDtoList);
+        result.setTotal(total);
+        result.setFiltered(total);
+        return result;
+
+
     }
 
     public boolean update(UpdateUserDto user) {
@@ -606,6 +660,9 @@ public class UserDaoImpl implements UserDao {
         }
         if (user.getFinpassword() != null && !user.getFinpassword().isEmpty()) {
             fieldsStr.append("finpassword = '" + passwordEncoder.encode(user.getFinpassword())).append("',");
+        }
+        if (user.isVerificationRequired() != null) {
+            fieldsStr.append("verification_required = " + user.isVerificationRequired()).append(",");
         }
         if (fieldsStr.toString().trim().length() == 0) {
             return true;
@@ -907,14 +964,16 @@ public class UserDaoImpl implements UserDao {
     @Override
     public boolean addUserComment(Comment comment) {
         String sql = "INSERT INTO USER_COMMENT (user_id, users_comment, user_creator_id, message_sent, topic_id) " +
-                "VALUES (:user_id, :comment, :user_creator_id, :message_sent, :topic_id);";
-        Map<String, Object> namedParameters = new HashMap<>();
-        namedParameters.put("user_id", comment.getUser().getId());
-        namedParameters.put("comment", comment.getComment());
-        namedParameters.put("user_creator_id", comment.getCreator() == null ? -1 : comment.getCreator().getId());
-        namedParameters.put("message_sent", comment.isMessageSent());
-        namedParameters.put("topic_id", comment.getUserCommentTopic().getCode());
-        return masterTemplate.update(sql, namedParameters) > 0;
+                "VALUES (:user_id, :comment, :user_creator_id, :message_sent, :topic_id)";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("user_id", comment.getUser().getId());
+        params.put("comment", comment.getComment());
+        params.put("user_creator_id", isNull(comment.getCreator()) ? -1 : comment.getCreator().getId());
+        params.put("message_sent", comment.isMessageSent());
+        params.put("topic_id", comment.getUserCommentTopic().getCode());
+
+        return masterTemplate.update(sql, params) > 0;
     }
 
     @Override
@@ -1059,10 +1118,12 @@ public class UserDaoImpl implements UserDao {
     public void updatePinByUserEmail(String userEmail, String pin, NotificationMessageEventEnum event) {
         String sql = String.format("UPDATE USER SET %s_pin = :pin " +
                 "WHERE USER.email = :email", event.name().toLowerCase());
+
         Map<String, Object> namedParameters = new HashMap<String, Object>() {{
             put("email", userEmail);
             put("pin", pin);
         }};
+
         masterTemplate.update(sql, namedParameters);
     }
 
@@ -1165,14 +1226,6 @@ public class UserDaoImpl implements UserDao {
         return masterTemplate.update(sql, namedParameters);
     }
 
-    @Transactional(readOnly = true)
-    @Override
-    public int getVerificationStep(String userEmail) {
-        String sql = "SELECT u.kyc_verification_step FROM USER u WHERE u.email =:email";
-
-        return masterTemplate.queryForObject(sql, Collections.singletonMap("email", userEmail), Integer.class);
-    }
-
     @Override
     public boolean userExistByEmail(String email) {
         return this.jdbcTemplate.queryForObject("SELECT CASE WHEN count(id) > 0 THEN TRUE ELSE FALSE END FROM USER WHERE email = ?", Boolean.class, email);
@@ -1210,11 +1263,12 @@ public class UserDaoImpl implements UserDao {
 
     @Transactional
     @Override
-    public int updateReferenceId(String referenceId, String userEmail) {
-        final String sql = "UPDATE USER SET kyc_reference = :kyc_reference WHERE email = :email";
+    public int updateReferenceIdAndStatus(String referenceId, EventStatus status, String userEmail) {
+        final String sql = "UPDATE USER SET kyc_reference = :kyc_reference, kyc_status = :kyc_status WHERE email = :email";
 
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("kyc_reference", referenceId);
+            put("kyc_status", status.name());
             put("email", userEmail);
         }};
         return masterTemplate.update(sql, params);
@@ -1237,14 +1291,6 @@ public class UserDaoImpl implements UserDao {
         String sql = "SELECT u.email FROM USER u WHERE u.kyc_reference =:kyc_reference";
 
         return masterTemplate.queryForObject(sql, Collections.singletonMap("kyc_reference", referenceId), String.class);
-    }
-
-    @Transactional
-    @Override
-    public int updateVerificationStep(String userEmail) {
-        final String sql = "UPDATE USER SET kyc_verification_step = kyc_verification_step + 1 WHERE email = :email";
-
-        return masterTemplate.update(sql, Collections.singletonMap("email", userEmail));
     }
 
     @Override
@@ -1381,8 +1427,13 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public String getKycStatusByEmail(String email) {
-        String sql = "SELECT u.kyc_status FROM USER u WHERE u.email =:email";
-        return masterTemplate.queryForObject(sql, Collections.singletonMap("email", email), String.class);
+        final String sql = "SELECT u.kyc_status FROM USER u WHERE u.email =:email";
+
+        try {
+            return masterTemplate.queryForObject(sql, Collections.singletonMap("email", email), String.class);
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     @Override
@@ -1421,8 +1472,13 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public String findKycReferenceByUserEmail(String email) {
-        String sql = "SELECT kyc_reference FROM USER WHERE email = :email";
-        return masterTemplate.queryForObject(sql, Collections.singletonMap("email", email), String.class);
+        final String sql = "SELECT u.kyc_reference FROM USER u WHERE u.email = :email";
+
+        try {
+            return masterTemplate.queryForObject(sql, Collections.singletonMap("email", email), String.class);
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     @Override
@@ -1495,4 +1551,33 @@ public class UserDaoImpl implements UserDao {
         return masterTemplate.update(sql, params) > 0;
     }
 
+    @Override
+    public String getUserPublicId(String userEmail) {
+        final String sql = "SELECT u.pub_id FROM USER u WHERE u.email = :user_email";
+
+        final Map<String, Object> params = Collections.singletonMap("user_email", userEmail);
+
+        return slaveTemplate.queryForObject(sql, params, String.class);
+    }
+
+    @Override
+    public boolean updateCountryCode(String countryCode, String userEmail) {
+        final String sql = "UPDATE USER u SET u.country = :code WHERE u.email = :email";
+
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("code", countryCode);
+            put("email", userEmail);
+        }};
+        return masterTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public void deleteTemporalTokenByUserIdAndTokenType(int userId, TokenType tokenType) {
+        final String sql = "DELETE FROM TEMPORAL_TOKEN WHERE user_id = :userId AND token_type_id = :token_type";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("userId", userId);
+            put("token_type", tokenType.getTokenType());
+        }};
+        masterTemplate.update(sql, params);
+    }
 }

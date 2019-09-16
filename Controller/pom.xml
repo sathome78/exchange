@@ -16,7 +16,6 @@
 
     <properties>
         <javax.json.version>1.0.4</javax.json.version>
-        <jackson-databind.version>2.6.3</jackson-databind.version>
     </properties>
 
     <dependencies>
@@ -64,11 +63,6 @@
             <version>${javax.json.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson-databind.version}</version>
-        </dependency>
-        <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>2.4</version>
@@ -91,8 +85,10 @@
     <profiles>
         <profile>
             <id>dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <build>
-
                 <finalName>ROOT</finalName>
                 <plugins>
                     <plugin>
@@ -128,6 +124,34 @@
                             <webResources>
                                 <resource>
                                     <directory>src/main/uat/</directory>
+                                    <includes>
+                                        <include>*/*.properties</include>
+                                        <include>*.properties</include>
+                                    </includes>
+                                    <targetPath>WEB-INF/classes</targetPath>
+                                </resource>
+                            </webResources>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>dedik</id>
+            <properties>
+                <maven.test.skip>true</maven.test.skip>
+            </properties>
+            <build>
+                <finalName>ROOT</finalName>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-war-plugin</artifactId>
+                        <version>2.4</version>
+                        <configuration>
+                            <webResources>
+                                <resource>
+                                    <directory>src/main/dedik/</directory>
                                     <includes>
                                         <include>*/*.properties</include>
                                         <include>*.properties</include>

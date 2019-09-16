@@ -8,6 +8,7 @@ import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.model.enums.UserEventEnum;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngExceptions.NgResponseException;
@@ -22,7 +23,8 @@ import me.exrates.security.service.SecureService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.UserService;
 import me.exrates.service.notifications.G2faService;
-import me.exrates.service.util.RestApiUtils;
+import me.exrates.service.util.IpUtils;
+import me.exrates.service.util.RestApiUtilComponent;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -52,6 +54,7 @@ import javax.validation.Valid;
 import java.util.Locale;
 import java.util.Optional;
 
+import static me.exrates.service.util.RestUtil.getUrlFromRequest;
 import static org.apache.commons.lang.StringUtils.isEmpty;
 
 @RestController
@@ -73,18 +76,22 @@ public class NgUserController {
     private final NgUserService ngUserService;
     private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
+    private final RestApiUtilComponent restApiUtilComponent;
 
     @Value("${dev.mode}")
     private boolean DEV_MODE;
 
     @Autowired
-    public NgUserController(IpBlockingService ipBlockingService, AuthTokenService authTokenService,
-                            UserService userService, ReferralService referralService,
+    public NgUserController(IpBlockingService ipBlockingService,
+                            AuthTokenService authTokenService,
+                            UserService userService,
+                            ReferralService referralService,
                             SecureService secureService,
                             G2faService g2faService,
                             NgUserService ngUserService,
                             UserDetailsService userDetailsService,
-                            PasswordEncoder passwordEncoder) {
+                            PasswordEncoder passwordEncoder,
+                            RestApiUtilComponent restApiUtilComponent) {
         this.ipBlockingService = ipBlockingService;
         this.authTokenService = authTokenService;
         this.userService = userService;
@@ -94,7 +101,9 @@ public class NgUserController {
         this.ngUserService = ngUserService;
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
+        this.restApiUtilComponent = restApiUtilComponent;
     }
+
 
     @PostMapping(value = "/authenticate")
 //    @CheckIp(value = IpTypesOfChecking.LOGIN)
@@ -107,7 +116,7 @@ public class NgUserController {
 
         User user = authenticateUser(authenticationDto, request);
 
-        String ipAddress = request.getHeader("X-Forwarded-For");
+        String ipAddress = IpUtils.getIpForDbLog(request);
         boolean shouldLoginWithGoogle = g2faService.isGoogleAuthenticatorEnable(user.getId());
         if (isEmpty(authenticationDto.getPin())) {
             if (!shouldLoginWithGoogle) {
@@ -136,6 +145,7 @@ public class NgUserController {
         }
         AuthTokenDto authTokenDto = createToken(authenticationDto, request, user);
 //        ipBlockingService.successfulProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
+        userService.logIP(user.getId(), ipAddress, UserEventEnum.LOGIN_SUCCESS, getUrlFromRequest(request));
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK); // 200
     }
 
@@ -158,12 +168,11 @@ public class NgUserController {
         }
 
         boolean registered = ngUserService.registerUser(userEmailDto, request);
-
+        String ipAddress = IpUtils.getIpForDbLog(request);
         if (registered) {
-            ipBlockingService.successfulProcessing(request.getHeader("X-Forwarded-For"), IpTypesOfChecking.REGISTER);
+            ipBlockingService.successfulProcessing(ipAddress, IpTypesOfChecking.REGISTER);
             return ResponseEntity.ok().build();
         }
-        String ipAddress = request.getHeader("X-Forwarded-For");
         if (ipAddress == null) ipAddress = request.getRemoteAddr();
         ipBlockingService.failureProcessing(ipAddress, IpTypesOfChecking.REGISTER);
         throw new NgResponseException(ErrorApiTitles.FAILED_TO_REGISTER_USER, "Registration failed from ip: " + ipAddress);
@@ -211,6 +220,11 @@ public class NgUserController {
         return new ResponseModel<>(ngUserService.validateTempToken(token));
     }
 
+    @GetMapping("/publicId")
+    public ResponseModel<String> getUserPublicId() {
+        return new ResponseModel<>(ngUserService.getUserPublicId());
+    }
+
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({NgDashboardException.class, MethodArgumentNotValidException.class})
     @ResponseBody
@@ -248,7 +262,7 @@ public class NgUserController {
             logger.debug(message);
             throw new NgResponseException(ErrorApiTitles.USER_NOT_ACTIVE, message);
         }
-        String password = RestApiUtils.decodePassword(authenticationDto.getPassword());
+        String password = restApiUtilComponent.decodePassword(authenticationDto.getPassword());
         UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationDto.getEmail());
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {
             String message = String.format("Invalid password and/or email [%s]", authenticationDto.getEmail());

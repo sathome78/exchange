@@ -6,14 +6,11 @@ import com.google.common.collect.Lists;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.chat.telegram.TelegramChatDao;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
-import me.exrates.model.ChatMessage;
-import me.exrates.model.Currency;
-import me.exrates.model.CurrencyPair;
-import me.exrates.model.IEODetails;
-import me.exrates.model.User;
+import me.exrates.model.*;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.ChatHistoryDateWrapperDto;
 import me.exrates.model.dto.ChatHistoryDto;
+import me.exrates.model.dto.ErrorReportDto;
 import me.exrates.model.dto.OrderBookWrapperDto;
 import me.exrates.model.dto.ieo.EmailIEORequestDTO;
 import me.exrates.model.dto.news.FeedWrapper;
@@ -33,12 +30,7 @@ import me.exrates.ngService.NgOrderService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.service.NgUserService;
-import me.exrates.service.ChatService;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.IEOService;
-import me.exrates.service.NewsParser;
-import me.exrates.service.OrderService;
-import me.exrates.service.UserService;
+import me.exrates.service.*;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.exception.IllegalChatMessageException;
 import me.exrates.service.notifications.G2faService;
@@ -101,6 +93,7 @@ public class NgPublicController {
     private final TelegramChatDao telegramChatDao;
     private final ExchangeRatesHolder exchangeRatesHolder;
     private final NewsParser newsParser;
+    private final SendMailService sendMailService;
 
     @Autowired
     public NgPublicController(ChatService chatService,
@@ -115,7 +108,7 @@ public class NgPublicController {
                               NgOrderService ngOrderService,
                               TelegramChatDao telegramChatDao,
                               ExchangeRatesHolder exchangeRatesHolder,
-                              NewsParser newsParser) {
+                              NewsParser newsParser, SendMailService sendMailService) {
         this.chatService = chatService;
         this.currencyService = currencyService;
         this.ipBlockingService = ipBlockingService;
@@ -129,6 +122,7 @@ public class NgPublicController {
         this.exchangeRatesHolder = exchangeRatesHolder;
         this.telegramChatDao = telegramChatDao;
         this.newsParser = newsParser;
+        this.sendMailService = sendMailService;
     }
 
     @GetMapping(value = "/if_email_exists")
@@ -406,6 +400,13 @@ public class NgPublicController {
         result.put("email", ieoService.isUserSubscribeForIEOEmail(email));
         result.put("telegram", ieoService.isUserSubscribeForIEOTelegram(email));
         return new ResponseModel<>(result);
+    }
+
+    @PostMapping(value = "/error_report", produces = MediaType.APPLICATION_JSON_UTF8_VALUE,
+            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseModel<?> sendErrorReposrt(@RequestBody @Valid ErrorReportDto dto) {
+        ngUserService.sendErrorReportEmail(dto);
+        return new ResponseModel<>();
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

@@ -28,17 +28,20 @@ import me.exrates.service.NotificationService;
 import me.exrates.service.OpenApiTokenService;
 import me.exrates.service.OrderService;
 import me.exrates.service.PageLayoutSettingsService;
+import me.exrates.service.QuberaService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.RefillService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.TemporalTokenService;
 import me.exrates.service.TransferService;
-import me.exrates.service.UserNotificationService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
 import me.exrates.service.cache.ExchangeRatesHolder;
+import me.exrates.service.chart.CandleDataProcessingService;
+import me.exrates.service.freecoins.FreecoinsService;
+import me.exrates.service.freecoins.FreecoinsSettingsService;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.G2faService;
@@ -46,6 +49,7 @@ import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.util.RateLimitService;
+import me.exrates.service.util.RestApiUtilComponent;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -83,7 +87,7 @@ public class AngularAppTestConfig {
         return Mockito.mock(StompMessenger.class);
     }
 
-    @Bean
+    @Bean(name = "angularTestDataSource")
     public DataSource dataSource() {
         return Mockito.mock(DataSource.class);
     }
@@ -121,11 +125,6 @@ public class AngularAppTestConfig {
     @Bean
     public Map<String, IMerchantService> merchantServiceMap() {
         return Mockito.mock(Map.class);
-    }
-
-    @Bean
-    public UserNotificationService userNotificationService() {
-        return Mockito.mock(UserNotificationService.class);
     }
 
     @Bean
@@ -336,5 +335,30 @@ public class AngularAppTestConfig {
     @Bean
     public NewsParser newsParser() {
         return Mockito.mock(NewsParser.class);
+    }
+
+    @Bean
+    public QuberaService quberaService() {
+        return Mockito.mock(QuberaService.class);
+    }
+
+    @Bean
+    public RestApiUtilComponent restApiUtils() {
+        return Mockito.mock(RestApiUtilComponent.class);
+    }
+
+    @Bean
+    public CandleDataProcessingService candleDataProcessingService() {
+        return Mockito.mock(CandleDataProcessingService.class);
+    }
+
+    @Bean
+    public FreecoinsService freecoinsService() {
+        return Mockito.mock(FreecoinsService.class);
+    }
+
+    @Bean
+    public FreecoinsSettingsService freecoinsSettingsService() {
+        return Mockito.mock(FreecoinsSettingsService.class);
     }
 }

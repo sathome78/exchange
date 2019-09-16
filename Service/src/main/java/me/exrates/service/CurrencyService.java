@@ -3,6 +3,8 @@ package me.exrates.service;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairWithRestriction;
+import me.exrates.model.MarketVolume;
 import me.exrates.model.User;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyReportInfoDto;
@@ -13,6 +15,7 @@ import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
+import me.exrates.model.enums.CurrencyPairRestrictionsEnum;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
@@ -24,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -43,11 +47,13 @@ public interface CurrencyService {
 
     List<Currency> findAllCurrencies();
 
-    void updateCurrencyLimit(int currencyId, OperationType operationType, String roleName, BigDecimal minAmount, BigDecimal minAmountUSD, Integer maxDailyRequest);
+    void updateCurrencyLimit(int currencyId, OperationType operationType, String roleName, BigDecimal minAmount, BigDecimal minAmountUSD, BigDecimal maxAmount, Integer maxDailyRequest);
 
-    void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, BigDecimal minAmountUSD, Integer maxDailyRequest);
+    void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, BigDecimal minAmountUSD, BigDecimal maxAmount, Integer maxDailyRequest);
 
     List<CurrencyLimit> retrieveCurrencyLimitsForRole(String roleName, OperationType operationType);
+
+    CurrencyLimit getCurrencyLimit(Integer currencyId, Integer operationType, Integer roleId);
 
     BigDecimal retrieveMinLimitForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId);
 
@@ -104,7 +110,7 @@ public interface CurrencyService {
 
     List<CurrencyPairLimitDto> findAllCurrencyLimitsForRoleAndType(String roleName, OrderType orderType);
 
-    void updateCurrencyPairLimit(Integer currencyPairId, OrderType orderType, String roleName, BigDecimal minRate, BigDecimal maxRate, BigDecimal minAmount, BigDecimal maxAmount);
+    void updateCurrencyPairLimit(Integer currencyPairId, OrderType orderType, String roleName, BigDecimal minRate, BigDecimal maxRate, BigDecimal minAmount, BigDecimal maxAmount, BigDecimal minTotal);
 
     List<CurrencyPairWithLimitsDto> findCurrencyPairsWithLimitsForUser();
 
@@ -133,6 +139,8 @@ public interface CurrencyService {
     boolean updateVisibilityCurrencyById(int currencyId);
 
     List<CurrencyPair> findAllCurrencyPair();
+
+    List<CurrencyPairWithRestriction> findAllCurrencyPairWithRestrictions();
 
     boolean updateVisibilityCurrencyPairById(int currencyPairId);
 
@@ -167,4 +175,18 @@ public interface CurrencyService {
     List<BalanceDto> getCurrencyBalances();
 
     boolean updateCurrencyPair(CurrencyPair currencyPair);
+
+    Map<Integer, CurrencyPair> getAllCurrencyPairCached();
+
+    boolean updateMarketVolumeCurrecencyPair(Integer currencyPairId, BigDecimal volume);
+
+    List<MarketVolume> getAllMarketVolumes();
+
+    boolean updateDefaultMarketVolume(String name, BigDecimal volume);
+
+    CurrencyPairWithRestriction findCurrencyPairByIdWithRestrictions(Integer currencyPairId);
+
+    void addRestrictionForCurrencyPairById(int currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum);
+
+    void deleteRestrictionForCurrencyPairById(int currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum);
 }

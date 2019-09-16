@@ -435,7 +435,7 @@ function getOrders() {
             xhr.responseType = 'blob';
 
             xhr.onreadystatechange = function () {
-                if(xhr.readyState == 4 && xhr.status == 200) {
+                if(xhr.readyState === 4 && xhr.status === 200) {
                     var blob = xhr.response;
                     var header = xhr.getResponseHeader('Content-Disposition');
                     var link = document.createElement('a');
