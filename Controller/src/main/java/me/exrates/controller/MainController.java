@@ -171,7 +171,7 @@ public class MainController {
         User user = new User();
         user.setEmail(userEmailDto.getEmail());
         user.setParentEmail(userEmailDto.getParentEmail());
-
+        user.setVerificationRequired(false);
         String recapchaResponse = request.getParameter("g-recaptcha-response");
 
         if (verifyReCaptchaSec.verify(recapchaResponse)) {

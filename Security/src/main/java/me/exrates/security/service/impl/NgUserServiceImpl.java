@@ -254,7 +254,7 @@ public class NgUserServiceImpl implements NgUserService {
                 "emailsubmitregister.subject",
                 "emailsubmitregister.text",
                 Locale.ENGLISH, getHost(), "final-registration/token?t=",
-                user.isVerificationRequired());
+                user.getVerificationRequired());
 
     }
 

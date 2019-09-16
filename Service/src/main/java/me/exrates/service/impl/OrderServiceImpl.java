@@ -393,7 +393,7 @@ public class OrderServiceImpl implements OrderService {
         User user = userService.findByEmail(userEmail);
 
         if (activeCurrencyPair.hasTradeRestriction()) {
-            if (activeCurrencyPair.getTradeRestriction().contains(CurrencyPairRestrictionsEnum.ESCAPE_USA) && user.isVerificationRequired()) {
+            if (activeCurrencyPair.getTradeRestriction().contains(CurrencyPairRestrictionsEnum.ESCAPE_USA) && user.getVerificationRequired()) {
                 if (Objects.isNull(user.getCountry())) {
                     throw new NeedVerificationException("Sorry, you must pass verification to trade this pair.");
                 } else if(user.getCountry().equalsIgnoreCase(RestrictedCountrys.USA.name())) {
@@ -895,7 +895,7 @@ public class OrderServiceImpl implements OrderService {
         User user = userService.findByEmail(userEmail);
 
         if (activeCurrencyPair.hasTradeRestriction()) {
-            if (activeCurrencyPair.getTradeRestriction().contains(CurrencyPairRestrictionsEnum.ESCAPE_USA) && user.isVerificationRequired()) {
+            if (activeCurrencyPair.getTradeRestriction().contains(CurrencyPairRestrictionsEnum.ESCAPE_USA) && user.getVerificationRequired()) {
                 if (Objects.isNull(user.getCountry())) {
                     throw new NeedVerificationException("Sorry, you must pass verification to trade this pair.");
                 } else if(user.getCountry().equalsIgnoreCase(RestrictedCountrys.USA.name())) {
