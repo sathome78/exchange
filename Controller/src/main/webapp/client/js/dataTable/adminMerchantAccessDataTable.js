@@ -7,15 +7,19 @@ const TIME_UNIT_MINUTES = "minute(s)";
 const TIME_UNIT_HOURS = "hours(s)";
 
 var pairsRestrictions = [];
+var verifTypes = [];
+var kycArrSize = 0;
 var arrSize = 0;
 
-$(document).ready(function () {
+var $merchantAccessTable = $('#merchant-options-table');
 
+function loadMerchantaccessTable() {
     pairsRestrictions = $('#pairs_restrictions').text().split(',');
+    verifTypes = $('#verif_types').text().split(',');
     arrSize = pairsRestrictions.length;
+    kycArrSize = verifTypes.length;
     console.log('log ' + pairsRestrictions + ' ' + arrSize);
 
-    var $merchantAccessTable = $('#merchant-options-table');
     merchantAccessTable = $($merchantAccessTable).DataTable({
         "ajax": {
             "url": "/2a8fy7b07dxe44/merchantAccess/data",
@@ -31,24 +35,51 @@ $(document).ready(function () {
         "bInfo": false,
         "columns": [
             {
-                "data": "merchantName",
+                "data": "merchantName"
             },
             {
-                "data": "currencyName",
+                "data": "currencyName"
             },
             {
                 "data": "isRefillBlocked",
                 "render": function (data) {
                     return '<span data-operationtype="INPUT">'.concat(data ? '<i class="fa fa-lock red" aria-hidden="true"></i>' : '<i class="fa fa-unlock" aria-hidden="true"></i>')
                         .concat('</span>');
-                },
+                }
             },
             {
                 "data": "isWithdrawBlocked",
                 "render": function (data) {
                     return '<span data-operationtype="OUTPUT">'.concat(data ? '<i class="fa fa-lock red" aria-hidden="true"></i>' : '<i class="fa fa-unlock" aria-hidden="true"></i>')
                         .concat('</span>');
-                },
+                }
+            },
+            {
+                "data": "kycRefill",
+                "render": function (data) {
+                    return '<span data-kycfield="REFILL">'.concat(data ? '<i class="fa fa-lock red" aria-hidden="true"></i>' : '<i class="fa fa-unlock" aria-hidden="true"></i>')
+                        .concat('</span>');
+                }
+            },
+            {
+                "data": "kycWithdraw",
+                "render": function (data) {
+                    return '<span data-kycfield="WITHDRAW">'.concat(data ? '<i class="fa fa-lock red" aria-hidden="true"></i>' : '<i class="fa fa-unlock" aria-hidden="true"></i>')
+                        .concat('</span>');
+                }
+            },
+            {
+                "data": "kycType",
+                "render": function (data) {
+                    var wrapper = $('<div></div>');
+                    var sel = $('<select>').attr('class', 'kyc_type').appendTo(wrapper);
+                    $(verifTypes).each(function() {
+                        sel.append(
+                            $("<option>").attr('value', this).attr('SELECTED', this == data).text(this)
+                        );
+                    });
+                    return wrapper.html();
+                }
             },
             {
                 "data": "withdrawAutoEnabled",
@@ -79,6 +110,11 @@ $(document).ready(function () {
             }
         }
     });
+}
+
+$(document).ready(function () {
+
+    loadMerchantaccessTable();
 
     var $transferAccessTable = $('#transfer-options-table');
     transferAccessTable = $($transferAccessTable).DataTable({
@@ -298,8 +334,13 @@ $(document).ready(function () {
         var operationType = $(this).parent().data('operationtype');
         var merchantId = $(this).parents('tr').data('merchantid');
         var currencyId = $(this).parents('tr').data('currencyid');
+        var kycField = $(this).parent().data('kycfield');
         if (confirm($('#prompt-toggle-block').html())) {
-            toggleBlock(merchantId, currencyId, operationType, this);
+            if (operationType) {
+                toggleBlock(merchantId, currencyId, operationType, this);
+            } else if (kycField) {
+                toggleMerchantKyc(merchantId, kycField, this)
+            }
         }
     });
 
@@ -337,6 +378,14 @@ $(document).ready(function () {
             } else {
                 changeTradeRestrictionForCurrencyPair(currencyPairId, restriction, this, 'POST');
             }
+        }
+    });
+
+    $merchantAccessTable.find('tbody').on('change', '.kyc_type', function () {
+        if (confirm($('#prompt-toggle-block').html())) {
+            var selected = $(this).children("option:selected").val();
+            var merchantId = $(this).parents('tr').data('merchantid');
+            changeKycType(merchantId, selected);
         }
     });
 
@@ -500,6 +549,50 @@ function toggleBlock(merchantId, currencyId, operationType, $element) {
             $($element).toggleClass('fa-lock red');
             $($element).toggleClass('fa-unlock');
         }
+    });
+}
+
+function toggleMerchantKyc(merchantId, toggleField, $element) {
+    var formData = new FormData();
+    formData.append("merchantId", merchantId);
+    formData.append("toggleField", toggleField);
+
+    $.ajax({
+        headers: {
+            'X-CSRF-Token': $("input[name='_csrf']").val()
+        },
+        url: '/2a8fy7b07dxe44/merchantAccess/toggleKycBlock',
+        type: 'POST',
+        data: formData,
+        contentType: false,
+        processData: false,
+        success: function () {
+            $($element).toggleClass('fa-lock red');
+            $($element).toggleClass('fa-unlock');
+        }
+    });
+}
+
+function changeKycType(kycType, merchantId, $element) {
+    var formData = new FormData();
+    formData.append("merchantId", merchantId);
+    formData.append("kycType", kycType);
+    $.ajax({
+        headers: {
+            'X-CSRF-Token': $("input[name='_csrf']").val()
+        },
+        url: '/2a8fy7b07dxe44/merchantAccess/kycType',
+        type: 'POST',
+        data: formData,
+        contentType: false,
+        processData: false,
+        success: function () {
+        },
+        error: function () {
+            loadMerchantaccessTable();
+            errorNoty('error update kyc type')
+        }
+
     });
 }
 
