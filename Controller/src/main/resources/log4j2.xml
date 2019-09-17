@@ -663,7 +663,7 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="adgroup_log" fileName="${sys:catalina.home}/logs/merchants/adgroup.log"
+        <RollingFile name="adgroup_log" fileName="${sys:catalina.home}/logs/merchants/adgroup_log.log"
                      filePattern="${sys:catalina.home}/logs/merchants/adgroup_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
             <Policies>
@@ -719,6 +719,15 @@
         </RollingFile>
         <RollingFile name="nixmoney_log" fileName="${sys:catalina.home}/logs/merchants/nixmoney_log.log"
                      filePattern="${sys:catalina.home}/logs/merchants/nixmoney_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="qubera_log" fileName="${sys:catalina.home}/logs/merchants/qubera_log.log"
+                     filePattern="${sys:catalina.home}/logs/merchants/qubera_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -1082,6 +1091,15 @@
         </logger>
         <logger name="nixmoney_log" level="ALL" additivity="false">
             <AppenderRef ref="nixmoney_log"/>
+        </logger>
+        <logger name="adgroup_log" level="ALL" additivity="false">
+            <AppenderRef ref="adgroup_log"/>
+        </logger>
+        <logger name="qubera_log" level="ALL" additivity="false">
+            <AppenderRef ref="qubera_log"/>
+        </logger>
+        <logger name="coin_pay_log" level="ALL" additivity="false">
+            <AppenderRef ref="coin_pay_log"/>
         </logger>
         <logger name="ordersTxLogger" level="ALL" additivity="false">
             <AppenderRef ref="ordersTxLogger"/>
