@@ -2,10 +2,13 @@ package me.exrates.dao.impl;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.WsSourceTypeEnum;
+import me.exrates.ngDao.RedisUserNotificationDao;
+import me.exrates.ngDao.impl.RedisUserNotificationDaoImpl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,7 +20,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.test.context.ContextConfiguration;
@@ -25,27 +28,32 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.Protocol;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {UserNotificationRepositoryImplTest.TestReddisConfig.class})
-public class UserNotificationRepositoryImplTest {
+@ContextConfiguration(classes = {RedisUserNotificationDaoImplTest.TestReddisConfig.class})
+public class RedisUserNotificationDaoImplTest {
 
     private final String USER_PUBLIC_ID = "01";
     private final String OTHER_USER_PUBLIC_ID = "02";
     private static int counter = 0;
 
     @Autowired
-    private UserNotificationRepository userNotificationRepository;
+    private RedisUserNotificationDao redisUserNotificationDao;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Autowired
     @Qualifier("testRedisTemplate")
-    private RedisTemplate<String, Object> redisTemplate;
+    private StringRedisTemplate redisTemplate;
 
     @Before
     public void setUp() {
@@ -54,32 +62,18 @@ public class UserNotificationRepositoryImplTest {
 
     @Test
     public void save() {
-        userNotificationRepository.save(USER_PUBLIC_ID, getSimpleTestMessage());
+        redisUserNotificationDao.saveUserNotification(USER_PUBLIC_ID, getSimpleTestMessage());
         List<UserNotificationMessage> found = getAll(USER_PUBLIC_ID);
         assertEquals(1, found.size());
-    }
-
-    @Test
-    public void update() {
-        String key = USER_PUBLIC_ID + ":03765327645";
-        UserNotificationMessage message = getSimpleTestMessage();
-        message.setId(key);
-        assertFalse(message.isViewed());
-        redisTemplate.opsForValue().set(key, message);
-        message.setViewed(true);
-        userNotificationRepository.update(message);
-        List<UserNotificationMessage> found = getAll(USER_PUBLIC_ID);
-        assertEquals(1, found.size());
-        assertTrue(found.get(0).isViewed());
     }
 
     @Test
     public void delete() {
         String key = USER_PUBLIC_ID + ":03765327645";
         UserNotificationMessage message = getSimpleTestMessage();
-        message.setId(key);
-        redisTemplate.opsForValue().set(key, message);
-        userNotificationRepository.delete(message);
+        message.setMessageId(key);
+        redisTemplate.opsForValue().set(key, toString(message));
+        redisUserNotificationDao.deleteUserNotification(key);
         List<UserNotificationMessage> found = getAll(USER_PUBLIC_ID);
         assertEquals(0, found.size());
     }
@@ -90,11 +84,11 @@ public class UserNotificationRepositoryImplTest {
         String key2 = USER_PUBLIC_ID + ":03765327324";
         String key3 = OTHER_USER_PUBLIC_ID + ":03765327324";
 
-        redisTemplate.opsForValue().set(key1, getSimpleTestMessage(key1));
-        redisTemplate.opsForValue().set(key2, getSimpleTestMessage(key2));
-        redisTemplate.opsForValue().set(key3, getSimpleTestMessage(key3));
+        redisTemplate.opsForValue().set(key1, toString(getSimpleTestMessage(key1)));
+        redisTemplate.opsForValue().set(key2, toString(getSimpleTestMessage(key2)));
+        redisTemplate.opsForValue().set(key3, toString(getSimpleTestMessage(key3)));
 
-        List<UserNotificationMessage> found = userNotificationRepository.findAll(USER_PUBLIC_ID, 2);
+        List<UserNotificationMessage> found = new ArrayList<>(redisUserNotificationDao.findAllByUser(USER_PUBLIC_ID));
         assertEquals(2, found.size());
     }
 
@@ -103,20 +97,20 @@ public class UserNotificationRepositoryImplTest {
         String key1 = USER_PUBLIC_ID + ":03765327645";
         String key2 = USER_PUBLIC_ID + ":03765327994";
 
-        redisTemplate.opsForValue().set(key1, getSimpleTestMessage(key1));
-        redisTemplate.opsForValue().set(key2, getSimpleTestMessage(key2));
+        redisTemplate.opsForValue().set(key1, toString(getSimpleTestMessage(key1)));
+        redisTemplate.opsForValue().set(key2, toString(getSimpleTestMessage(key2)));
 
-        List<UserNotificationMessage> found = userNotificationRepository.findAll(USER_PUBLIC_ID, 2);
+        List<UserNotificationMessage> found = new ArrayList<>(redisUserNotificationDao.findAllByUser(USER_PUBLIC_ID));
         assertEquals(2, found.size());
-        assertEquals(key2, found.get(0).getId());
+        assertEquals(key2, found.get(0).getMessageId());
     }
 
     @After
     public void cleanUp() {
         getAll(USER_PUBLIC_ID)
-                .forEach(notificationMessage -> redisTemplate.delete(notificationMessage.getId()));
+                .forEach(notificationMessage -> redisTemplate.delete(notificationMessage.getMessageId()));
         getAll(OTHER_USER_PUBLIC_ID)
-                .forEach(notificationMessage -> redisTemplate.delete(notificationMessage.getId()));
+                .forEach(notificationMessage -> redisTemplate.delete(notificationMessage.getMessageId()));
     }
 
     private UserNotificationMessage getSimpleTestMessage() {
@@ -126,7 +120,7 @@ public class UserNotificationRepositoryImplTest {
 
     private UserNotificationMessage getSimpleTestMessage(String key) {
         UserNotificationMessage message = getSimpleTestMessage();
-        message.setId(key);
+        message.setMessageId(key);
         return message;
     }
 
@@ -135,8 +129,24 @@ public class UserNotificationRepositoryImplTest {
         return redisTemplate.opsForValue()
                 .multiGet(keys)
                 .stream()
-                .map(o -> (UserNotificationMessage)o)
+                .map(this::toValue)
                 .collect(Collectors.toList());
+    }
+
+    private String toString(Object object) {
+        try {
+            return objectMapper.writeValueAsString(object);
+        } catch (JsonProcessingException e) {
+            return "";
+        }
+    }
+
+    private UserNotificationMessage toValue(String value) {
+        try {
+            return objectMapper.readValue(value, UserNotificationMessage.class);
+        } catch (IOException e) {
+            return null;
+        }
     }
 
     @Configuration
@@ -170,9 +180,8 @@ public class UserNotificationRepositoryImplTest {
 
         @Bean
         @Qualifier("testRedisTemplate")
-        public RedisTemplate<String, Object> testRedisTemplate() {
-            final RedisTemplate<String, Object> template = new RedisTemplate<>();
-            template.setConnectionFactory(notificationsJedisConnectionFactory());
+        public StringRedisTemplate testRedisTemplate() {
+            final StringRedisTemplate template = new StringRedisTemplate(notificationsJedisConnectionFactory());
             template.setKeySerializer(new StringRedisSerializer());
             template.setHashKeySerializer(new StringRedisSerializer());
 
@@ -189,8 +198,13 @@ public class UserNotificationRepositoryImplTest {
         }
 
         @Bean
-        public UserNotificationRepository userNotificationRepository() {
-            return new UserNotificationRepositoryImpl(testRedisTemplate());
+        ObjectMapper objectMapper() {
+            return new ObjectMapper();
+        }
+
+        @Bean
+        public RedisUserNotificationDao redisUserNotificationDao() {
+            return new RedisUserNotificationDaoImpl(testRedisTemplate(), objectMapper());
         }
     }
 }

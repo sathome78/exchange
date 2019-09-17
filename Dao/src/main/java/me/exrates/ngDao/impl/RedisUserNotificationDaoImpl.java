@@ -10,13 +10,12 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Repository
 public class RedisUserNotificationDaoImpl implements RedisUserNotificationDao {
@@ -39,18 +38,11 @@ public class RedisUserNotificationDaoImpl implements RedisUserNotificationDao {
         final Set<String> keys = Optional.ofNullable(redisTemplate.keys(email + ":*"))
                 .orElse(Collections.emptySet());
         if (!keys.isEmpty()) {
-            List<UserNotificationMessage> messages = new ArrayList<>(keys.size());
-            keys.forEach(key -> {
-                final String value = redisTemplate.opsForValue().get(key);
-                try {
-                    final UserNotificationMessage message = objectMapper.readValue(value, UserNotificationMessage.class);
-                    message.setMessageId(key);
-                    messages.add(message);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-            return messages;
+            return redisTemplate.opsForValue()
+                    .multiGet(keys)
+                    .stream()
+                    .map(this::toMessage)
+                    .collect(Collectors.toList());
         }
         return Collections.emptyList();
     }
@@ -71,5 +63,13 @@ public class RedisUserNotificationDaoImpl implements RedisUserNotificationDao {
     @Override
     public void deleteUserNotification(String key) {
         redisTemplate.delete(key);
+    }
+
+    private UserNotificationMessage toMessage(String value) {
+        try {
+            return objectMapper.readValue(value, UserNotificationMessage.class);
+        } catch (IOException e) {
+            return null;
+        }
     }
 }

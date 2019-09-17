@@ -20,6 +20,7 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import me.exrates.model.vo.BackDealInterval;
+import me.exrates.ngService.RedisUserNotificationService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.IEOService;
 import me.exrates.service.OrderService;
@@ -70,7 +71,7 @@ public class WsControllerTest {
     private ObjectMapper objectMapper;
     private UserService userService;
     private UsersAlertsService usersAlertsService;
-    private UserNotificationService userNotificationService;
+    private RedisUserNotificationService redisUserNotificationService;
     private IEOService ieoService;
 
     private TestMessageChannel clientOutboundChannel;
@@ -83,16 +84,10 @@ public class WsControllerTest {
         this.objectMapper = Mockito.mock(ObjectMapper.class);
         this.userService = Mockito.mock(UserService.class);
         this.usersAlertsService = Mockito.mock(UsersAlertsService.class);
-        this.userNotificationService = Mockito.mock(UserNotificationService.class);
+        this.redisUserNotificationService = Mockito.mock(RedisUserNotificationService.class);
 
-        WsController wsController = new WsController(
-                orderService,
-                currencyService,
-                objectMapper,
-                redisUserNotificationService, userService,
-                usersAlertsService,
-                userNotificationService, ieoService
-        );
+        WsController wsController = new WsController(currencyService, ieoService,
+                objectMapper, orderService, redisUserNotificationService, userService, usersAlertsService);
 
         this.clientOutboundChannel = new TestMessageChannel();
 
@@ -600,7 +595,7 @@ public class WsControllerTest {
 
     @Test
     public void subscribeToUserPersonalMessages() {
-        when(userNotificationService.findAllUserMessages(anyString())).thenReturn(getTestUserMessages());
+        when(redisUserNotificationService.findAllByUser(anyString())).thenReturn(getTestUserMessages());
         when(userService.getEmailByPubId(anyString())).thenReturn("test@test.com");
 
         StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
