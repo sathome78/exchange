@@ -8,7 +8,6 @@ import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.WsSourceTypeEnum;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @Data
@@ -16,7 +15,7 @@ import java.time.LocalDateTime;
 @Builder
 public class UserNotificationMessage implements Serializable {
 
-    private String id;
+    private String messageId;
     private WsSourceTypeEnum sourceTypeEnum;
     private UserNotificationType notificationType;
     private String text;

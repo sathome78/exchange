@@ -42,6 +42,8 @@ public interface StompMessenger {
     @SneakyThrows
     void sendPersonalMessageToUser(String userEmail, UserNotificationMessage message);
 
+    void updateUserOpenOrders(String currencyPairName, String userEmail);
+
     void sendPersonalDetailsIeo(String userEmail, String payload);
 
     void sendDetailsIeo(Integer detailId, String payload);

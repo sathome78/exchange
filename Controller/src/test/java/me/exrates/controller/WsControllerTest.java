@@ -90,7 +90,7 @@ public class WsControllerTest {
                 orderService,
                 currencyService,
                 objectMapper,
-                userService,
+                redisUserNotificationService, userService,
                 usersAlertsService,
                 userNotificationService, ieoService
         );
