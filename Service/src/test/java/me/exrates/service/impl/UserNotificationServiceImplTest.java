@@ -1,10 +1,8 @@
 package me.exrates.service.impl;
 
-import me.exrates.dao.UserNotificationRepository;
 import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.WsSourceTypeEnum;
-import me.exrates.service.UserNotificationService;
 import me.exrates.service.UserService;
 import me.exrates.service.stomp.StompMessenger;
 import org.junit.Before;
@@ -24,7 +22,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;

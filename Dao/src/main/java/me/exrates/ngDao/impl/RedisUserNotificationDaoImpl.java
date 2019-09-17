@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.ngDao.RedisUserNotificationDao;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -21,11 +21,14 @@ import java.util.concurrent.TimeUnit;
 @Repository
 public class RedisUserNotificationDaoImpl implements RedisUserNotificationDao {
 
+    @Value("${redis.notification.expiration.period: 7}")
+    private int expirationPeriod;
+
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
 
     @Autowired
-    public RedisUserNotificationDaoImpl(@Qualifier("stringRedisTemplate") StringRedisTemplate redisTemplate,
+    public RedisUserNotificationDaoImpl(StringRedisTemplate redisTemplate,
                                         ObjectMapper objectMapper) {
         this.redisTemplate = redisTemplate;
         this.objectMapper = objectMapper;
@@ -58,7 +61,7 @@ public class RedisUserNotificationDaoImpl implements RedisUserNotificationDao {
             String key = email.concat(":" + System.currentTimeMillis());
             final String notification = objectMapper.writeValueAsString(userNotification);
             redisTemplate.opsForValue().set(key, notification);
-            redisTemplate.expire(key, 120, TimeUnit.SECONDS);
+            redisTemplate.expire(key, expirationPeriod, TimeUnit.DAYS);
             return true;
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to parse user notification: " + e);

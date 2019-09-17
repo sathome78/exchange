@@ -23,7 +23,6 @@ import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.IEOService;
 import me.exrates.service.OrderService;
-import me.exrates.service.UserNotificationService;
 import me.exrates.service.UserService;
 import me.exrates.service.UsersAlertsService;
 import me.exrates.service.impl.OrderServiceImpl;

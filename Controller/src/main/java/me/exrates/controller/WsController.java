@@ -26,7 +26,6 @@ import me.exrates.ngService.RedisUserNotificationService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.IEOService;
 import me.exrates.service.OrderService;
-import me.exrates.service.UserNotificationService;
 import me.exrates.service.UserService;
 import me.exrates.service.UsersAlertsService;
 import me.exrates.service.bitshares.memo.Preconditions;
