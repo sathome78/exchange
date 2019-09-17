@@ -28,6 +28,7 @@ import me.exrates.service.vo.MyTradesHandler;
 import me.exrates.service.vo.OrdersEventsHandler;
 import me.exrates.service.vo.PersonalOrderRefreshDelayHandler;
 import me.exrates.service.vo.TradesEventsHandler;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,6 +53,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
@@ -99,6 +102,8 @@ public class OrdersEventHandleService {
 
     private Map<Integer, UserPersonalOrdersHandler> personalOrdersHandlerMap = new ConcurrentHashMap<>();
 
+    private final static ExecutorService handlersExecutors = Executors.newCachedThreadPool();
+
     @Async
     @TransactionalEventListener
     public void handleOrderEventAsync(CreateOrderEvent event) {
@@ -119,10 +124,10 @@ public class OrdersEventHandleService {
         ExOrder exOrder = (ExOrder) event.getSource();
 
         if (!(event instanceof PartiallyAcceptedOrder)) {
-            CompletableFuture.runAsync(() -> handleOrdersDetailed(exOrder, event.getOrderEventEnum()));
+            CompletableFuture.runAsync(() -> handleOrdersDetailed(exOrder, event.getOrderEventEnum()), handlersExecutors);
         }
 
-        CompletableFuture.runAsync(() -> openOrdersRefreshHandler.onEvent(exOrder.getUserId(), exOrder.getCurrencyPair().getName()));
+        CompletableFuture.runAsync(() -> openOrdersRefreshHandler.onEvent(exOrder.getUserId(), exOrder.getCurrencyPair().getName()), handlersExecutors);
 
         if (!DEV_MODE) {
             handleCallBack(event);
@@ -151,8 +156,8 @@ public class OrdersEventHandleService {
                 if (!orders.isEmpty()) {
                     currencyStatisticsHandler.onEvent(event.getPairId());
                 }
-            });
-            handlePersonalOrders(orderList, event.getPairId());
+            }, handlersExecutors);
+//            handlePersonalOrders(orderList, event.getPairId());  not used now
         } catch (Exception e) {
             ExceptionUtils.printRootCauseStackTrace(e);
         }
@@ -172,12 +177,17 @@ public class OrdersEventHandleService {
     @TransactionalEventListener
     public void handleOrderEventAsync(AcceptOrderEvent event) {
         ExOrder order = (ExOrder) event.getSource();
-
-        CompletableFuture.runAsync(() -> rabbitMqService.sendTradeInfo(order));
-
         handleAllTrades(order);
         handleMyTrades(order);
         onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
+    }
+
+    @Async
+    @TransactionalEventListener
+    public void handleChartMessages(AcceptOrderEvent event) {
+        ExOrder order = (ExOrder) event.getSource();
+        System.out.println("order accepted " + order.getCurrencyPair().getName());
+        rabbitMqService.sendTradeInfo(order);
     }
 
     private void handleCallBack(OrderEvent event) throws JsonProcessingException {
@@ -190,7 +200,7 @@ public class OrdersEventHandleService {
     }
 
     private void processCallBackUrl(OrderEvent event, int userId, String url) throws JsonProcessingException {
-        if (url != null) {
+        if (!StringUtils.isEmpty(url)) {
             CallBackLogDto callBackLogDto = makeCallBack((ExOrder) event.getSource(), url, userId);
             orderService.logCallBackData(callBackLogDto);
             log.debug("*** Callback. User userId:" + userId + " | Callback:" + callBackLogDto);
