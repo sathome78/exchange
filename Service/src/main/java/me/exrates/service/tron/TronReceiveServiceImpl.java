@@ -42,7 +42,7 @@ public class TronReceiveServiceImpl {
     private static final int TRX_DECIMALS = 6;
 
     private static Map<String, TronTrc20Token> tokenTrc20Map = new HashMap<String, TronTrc20Token>(){{
-        put("USDT", new TronTrc20Token("USDT","USDT"));
+        put("USDT", new TronTrc20Token("USDTTRC20","USDTTRC20"));
     }};
 
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);

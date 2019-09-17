@@ -457,9 +457,9 @@ public class CryptocurrencyConfig {
        return new TronTrc10Token("BTT", "BTT", 6, "1002000", "31303032303030", "1002000");
     }
 
-    @Bean(name = "usdttrcServiceImpl")
+    @Bean(name = "usdttrc20ServiceImpl")
     public TronTrc20Token usdttrcService() {
-        return new TronTrc20Token("USDTTRC", "USDTTRC");
+        return new TronTrc20Token("USDTTRC20", "USDTTRC20");
     }
 
 
