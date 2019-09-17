@@ -19,4 +19,5 @@ public interface UserOperationService {
   void updateUserOperationAuthority(List<UserOperationAuthorityOption> options, Integer userId, String currentUserEmail);
 
 
+    void updateUserOperationAuthority(UserOperationAuthorityOption options, Integer userId);
 }

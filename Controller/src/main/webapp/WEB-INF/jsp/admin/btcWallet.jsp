@@ -66,6 +66,9 @@
                     <button class="btc_show_data blue-box">
                         <loc:message code="admin.datatable.showData"/> ${currency}
                     </button>
+                    <button id="btc_get_transaction" class="blue-box">
+                        <loc:message code="admin.datatable.getTransaction"/>
+                    </button>
                     <table id="txHistory">
                         <thead>
                         <tr>
@@ -372,6 +375,125 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <div id="btc-get-transaction-modal" class="modal fade modal-form-dialog" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <p style="font-size: 1.4rem">Type transaction id:</p>
+                    </div>
+                    <div class="row">
+                        <input class="form-control" id="input-get-transaction-by-hash">
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <div class="order-info__button-wrapper">
+                        <div class="row">
+                            <button id="submit-get-transaction-btn">
+                                <loc:message code="admin.submit"/>
+                            </button>
+                            <button class="order-info__button" data-dismiss="modal">
+                                <loc:message code="admin.cancel"/>
+                            </button>
+                        </div>
+
+                        <div class="row">
+                            <div class="input-block-wrapper">
+                                <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                    <label class="input-block-wrapper__label" id="label-btc_trans_time">Time</label>
+                                </div>
+
+                                <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                    <input class="input-block-wrapper__input admin-form-input" id="btc_trans_time" readonly disabled/>
+                                </div>
+                            </div>
+
+                            <div class="input-block-wrapper">
+                                <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                    <label class="input-block-wrapper__label" id="label-btc_trans_hash">Hash</label>
+                                </div>
+
+                                <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                    <input class="input-block-wrapper__input admin-form-input" id="btc_trans_hash" readonly disabled/>
+                                </div>
+                            </div>
+
+                            <div class="input-block-wrapper">
+                                <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                    <label class="input-block-wrapper__label" id="label-btc_trans_amount">Amount</label>
+                                </div>
+
+                                <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                    <input class="input-block-wrapper__input admin-form-input" id="btc_trans_amount" readonly disabled/>
+                                </div>
+                            </div>
+
+                            <div class="input-block-wrapper">
+                                <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                    <label class="input-block-wrapper__label" id="label-btc_trans_address">Address</label>
+                                </div>
+
+                                <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                    <input class="input-block-wrapper__input admin-form-input" id="btc_trans_address" readonly disabled/>
+                                </div>
+                            </div>
+
+                            <div class="input-block-wrapper">
+                                <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                    <label class="input-block-wrapper__label" id="label-btc_trans_fee_amount">Fee</label>
+                                </div>
+
+                                <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                    <input class="input-block-wrapper__input admin-form-input" id="btc_trans_fee_amount" readonly disabled/>
+                                </div>
+                            </div>
+
+                            <div class="input-block-wrapper">
+                                <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                    <label class="input-block-wrapper__label" id="label-btc_trans_confirmation">Confirmation</label>
+                                </div>
+
+                                <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                    <input class="input-block-wrapper__input admin-form-input" id="btc_trans_confirmation" readonly disabled/>
+                                </div>
+                            </div>
+
+                            <div class="input-block-wrapper">
+                                <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                    <label class="input-block-wrapper__label" id="label-btc_trans_comment">Comment</label>
+                                </div>
+
+                                <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                    <input class="input-block-wrapper__input admin-form-input" id="btc_trans_comment" readonly disabled/>
+                                </div>
+                            </div>
+
+                            <table id="btcTxDetailInfoTable" class="table">
+                                <thead class="thead-light">
+                                <tr>
+                                    <th scope="col">Address</th>
+                                    <th scope="col">Category</th>
+                                    <th scope="col">Amount</th>
+                                    <th scope="col">Fee</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     </div>
 
 </sec:authorize>

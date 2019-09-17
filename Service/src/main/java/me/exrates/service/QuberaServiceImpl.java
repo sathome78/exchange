@@ -9,6 +9,7 @@ import com.itextpdf.text.Phrase;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.QuberaDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Email;
@@ -25,7 +26,6 @@ import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.dto.kyc.CreateApplicantDto;
-import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.model.dto.kyc.IdentityDataKyc;
 import me.exrates.model.dto.kyc.IdentityDataRequest;
 import me.exrates.model.dto.kyc.PersonKycDto;
@@ -42,6 +42,8 @@ import me.exrates.model.dto.qubera.QuberaPaymentToMasterDto;
 import me.exrates.model.dto.qubera.QuberaRequestPaymentShortDto;
 import me.exrates.model.dto.qubera.ResponsePaymentDto;
 import me.exrates.model.dto.qubera.responses.ExternalPaymentResponseDto;
+import me.exrates.model.dto.qubera.responses.ResponseVerificationStatusDto;
+import me.exrates.model.dto.qubera.responses.StatusKycEnum;
 import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.exceptions.KycException;
@@ -54,8 +56,6 @@ import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.util.DateUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Conditional;
@@ -72,11 +72,11 @@ import java.util.UUID;
 
 import static me.exrates.model.constants.ErrorApiTitles.KYC_NOT_PROCESSING;
 
+@Log4j2(topic = "qubera_log")
 @Service
 @PropertySource({"classpath:/merchants/qubera.properties", "classpath:/angular.properties"})
 @Conditional(MonolitConditional.class)
 public class QuberaServiceImpl implements QuberaService {
-    private static final Logger logger = LogManager.getLogger(QuberaServiceImpl.class);
 
     private final CurrencyService currencyService;
     private final GtagService gtagService;
@@ -143,12 +143,12 @@ public class QuberaServiceImpl implements QuberaService {
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
-        logger.info(String.format("qubera refill email %s, amount %s ", request.getUserEmail(),
+        log.info(String.format("qubera refill email %s, amount %s ", request.getUserEmail(),
                 request.getAmount().toPlainString()));
         PaymentRequestDto paymentRequestDto = new PaymentRequestDto(request.getAmount(), request.getCurrencyName());
         //create request to make payment to master account
         ResponsePaymentDto paymentToMaster = createPaymentToMaster(request.getUserEmail(), paymentRequestDto);
-        logger.info(String.format("Success create payment, email %s, paymentId %s, amount %s", request.getUserEmail(),
+        log.info(String.format("Success create payment, email %s, paymentId %s, amount %s", request.getUserEmail(),
                 paymentToMaster.getPaymentId().toString(), paymentToMaster.getTransactionAmount().toPlainString()));
 
         Map<String, String> details = quberaDao.getUserDetailsForCurrency(request.getUserId(), request.getCurrencyId());
@@ -162,15 +162,15 @@ public class QuberaServiceImpl implements QuberaService {
         refillParams.put("paymentId", paymentToMaster.getPaymentId().toString());
 
         if (confirmPaymentToMaster(paymentToMaster.getPaymentId())) {
-            logger.info(String.format("Confirm payment, paymentId %s, amount %s", paymentToMaster.getPaymentId(),
+            log.info(String.format("Confirm payment, paymentId %s, amount %s", paymentToMaster.getPaymentId(),
                     paymentToMaster.getTransactionAmount().toPlainString()));
             try {
                 processPayment(refillParams);
             } catch (RefillRequestAppropriateNotFoundException e) {
-                logger.error("Some exception happens " + e.getMessage());
+                log.error("Some exception happens " + e.getMessage());
             }
         } else {
-            logger.error("Payment not confirmed {}" + paymentToMaster.getPaymentId());
+            log.error("Payment not confirmed {}" + paymentToMaster.getPaymentId());
             throw new NgRefillException("Payment not confirmed {}" + paymentToMaster.getPaymentId());
         }
         return refillParams;
@@ -197,7 +197,7 @@ public class QuberaServiceImpl implements QuberaService {
         sendNotification(userId, paymentAmount);
 
         final String gaTag = refillService.getUserGAByRequestId(requestId);
-        logger.info("Process of sending data to Google Analytics...");
+        log.info("Process of sending data to Google Analytics...");
         gtagService.sendGtagEvents(paymentAmount, currency.getName(), gaTag);
     }
 
@@ -206,7 +206,7 @@ public class QuberaServiceImpl implements QuberaService {
         String currencyName = withdrawMerchantOperationDto.getCurrency();
         Currency currency = currencyService.findByName(currencyName);
         QuberaUserData quberaUserData = quberaDao.getUserDataByUserIdAndCurrencyId(withdrawMerchantOperationDto.getUserId(), currency.getId());
-        logger.info("withdraw qubera service email " + quberaUserData.getEmail() + " , amount " + withdrawMerchantOperationDto.getAmount());
+        log.info("withdraw qubera service email " + quberaUserData.getEmail() + " , amount " + withdrawMerchantOperationDto.getAmount());
         QuberaPaymentToMasterDto paymentToMasterDto = QuberaPaymentToMasterDto.builder()
                 .accountNumber(quberaUserData.getAccountNumber())
                 .beneficiaryAccountNumber(masterAccount)
@@ -216,10 +216,10 @@ public class QuberaServiceImpl implements QuberaService {
                 .build();
 
         ResponsePaymentDto responsePaymentDto = kycHttpClient.createPaymentInternal(paymentToMasterDto, false);
-        logger.info("withdraw create payment internal success, amount - " + responsePaymentDto.getTransactionAmount().toPlainString()
+        log.info("withdraw create payment internal success, amount - " + responsePaymentDto.getTransactionAmount().toPlainString()
                 + ", transaction " + responsePaymentDto.getTransactionCurrencyCode());
         if (!kycHttpClient.confirmInternalPayment(responsePaymentDto.getPaymentId(), false)) {
-            logger.info("Fail confirm payment " + responsePaymentDto.getTransactionCurrencyCode());
+            log.info("Fail confirm payment " + responsePaymentDto.getTransactionCurrencyCode());
             throw new MerchantException("Payment not confirmed");
         }
         return Collections.emptyMap();
@@ -237,7 +237,7 @@ public class QuberaServiceImpl implements QuberaService {
 
     @Override
     public AccountQuberaResponseDto createAccount(String email) {
-        logger.info("createAccount(), {}" + email);
+        log.info("createAccount(), {}" + email);
         QuberaUserData userData = quberaDao.getUserDataByUserEmail(email);
 
         if (userData != null) {
@@ -246,20 +246,20 @@ public class QuberaServiceImpl implements QuberaService {
             }
         }
 
-        if (!userData.getBankVerificationStatus().equalsIgnoreCase("success")) {
+        if (!userData.getBankVerificationStatus().equalsIgnoreCase("OK")) {
             throw new NgDashboardException(ErrorApiTitles.KYC_NOT_PROCESSING);
         }
 
         String account = userData.buildAccountString();
         if (account.length() >= thresholdLength) {
             String error = "Count chars of request is over limit {}" + account.length();
-            logger.error(error);
+            log.error(error);
             throw new NgDashboardException(error, Constants.ErrorApi.QUBERA_PARAMS_OVER_LIMIT);
         }
 
         AccountQuberaRequestDto requestCreateAccountDto = new AccountQuberaRequestDto(account, "EUR", poolId);
         AccountQuberaResponseDto responseCreateAccountDto = kycHttpClient.createAccount(requestCreateAccountDto);
-        logger.info("Response from create account service success, iban {} + " + responseCreateAccountDto.getIban() + ", number "
+        log.info("Response from create account service success, iban {} + " + responseCreateAccountDto.getIban() + ", number "
                 + responseCreateAccountDto.getAccountNumber());
         userData.setIban(responseCreateAccountDto.getIban());
         userData.setAccountNumber(responseCreateAccountDto.getAccountNumber());
@@ -269,7 +269,7 @@ public class QuberaServiceImpl implements QuberaService {
         if (updateUserData) {
             return new AccountQuberaResponseDto(userData.getAccountNumber(), userData.getIban());
         } else {
-            logger.error("Error saving qubera user details " + email);
+            log.error("Error saving qubera user details " + email);
             throw new NgDashboardException(KYC_NOT_PROCESSING);
         }
     }
@@ -293,7 +293,7 @@ public class QuberaServiceImpl implements QuberaService {
         String account = quberaDao.getAccountByUserEmail(email);
 
         if (account == null) {
-            logger.error("Account not found " + email);
+            log.error("Account not found " + email);
             throw new NgDashboardException("Account not found " + email,
                     Constants.ErrorApi.QUBERA_ACCOUNT_NOT_FOUND_ERROR);
         }
@@ -311,7 +311,7 @@ public class QuberaServiceImpl implements QuberaService {
         String account = quberaDao.getAccountByUserEmail(email);
 
         if (account == null) {
-            logger.error("Account not found " + email);
+            log.error("Account not found " + email);
             throw new NgDashboardException("Account not found " + email,
                     Constants.ErrorApi.QUBERA_ACCOUNT_NOT_FOUND_ERROR);
         }
@@ -339,7 +339,7 @@ public class QuberaServiceImpl implements QuberaService {
     public ExternalPaymentResponseDto createExternalPayment(ExternalPaymentShortDto externalPaymentDto, String email) {
         QuberaUserData userData = quberaDao.getUserDataByUserEmail(email);
         if (userData == null || userData.getAccountNumber() == null) {
-            logger.error("Account not found " + email);
+            log.error("Account not found " + email);
             throw new NgDashboardException("Account not found " + email,
                     Constants.ErrorApi.QUBERA_ACCOUNT_NOT_FOUND_ERROR);
         }
@@ -351,7 +351,7 @@ public class QuberaServiceImpl implements QuberaService {
                     externalPaymentDto.getAmount()
                     + " available balance " +
                     balanceAccount.getAvailableBalance().getAmount().toPlainString();
-            logger.error(messageError);
+            log.error(messageError);
             throw new NgDashboardException(messageError, Constants.ErrorApi.QUBERA_NOT_ENOUGH_MONEY_FOR_PAYMENT);
         }
 
@@ -417,35 +417,47 @@ public class QuberaServiceImpl implements QuberaService {
     @Override
     public String getUserVerificationStatus(String email) {
         QuberaUserData quberaUserData = quberaDao.getUserDataByUserEmail(email);
-        return quberaUserData == null ? "none" : quberaUserData.getBankVerificationStatus();
+        if (quberaUserData == null || quberaUserData.getBankVerificationStatus() == null) {
+            return null;
+        }
+
+        if (quberaUserData.getBankVerificationStatus().equalsIgnoreCase("None")) {
+            ResponseVerificationStatusDto statusKyc =
+                    kycHttpClient.getCurrentStatusKyc(quberaUserData.getReference());
+            if (StringUtils.isNoneEmpty(statusKyc.getLastReportStatus())) {
+                String responseStatus = statusKyc.getLastReportStatus();
+                quberaUserData.setBankVerificationStatus(responseStatus);
+                quberaDao.updateUserData(quberaUserData);
+            }
+        }
+        return quberaUserData.getBankVerificationStatus();
     }
 
     @Override
     public void processingCallBack(String referenceId, KycStatusResponseDto kycStatusResponseDto) {
         QuberaUserData quberaUserData = quberaDao.getUserDataByReference(referenceId);
+        if (quberaUserData == null) {
+            return;
+        }
+
+        ResponseVerificationStatusDto statusResponse = kycHttpClient.getCurrentStatusKyc(referenceId);
+        String eventStatus = statusResponse.getLastReportStatus();
         User user = userService.getUserById(quberaUserData.getUserId());
-        quberaUserData.setBankVerificationStatus(kycStatusResponseDto.getStatus());
+        quberaUserData.setBankVerificationStatus(eventStatus);
         quberaDao.updateUserData(quberaUserData);
         sendPersonalMessage(kycStatusResponseDto, user);
-        String eventStatus = kycStatusResponseDto.getStatus();
-        logger.info(String.format("SEND TO EMAIL %s, STATUS %s", user.getEmail(), eventStatus));
+        log.info(String.format("SEND TO EMAIL %s, STATUS %s", user.getEmail(), eventStatus));
 
+        String msg = defineMessageByStatusKys(eventStatus);
         Email email = Email.builder()
                 .to(user.getEmail())
                 .subject("Notification of bank verification process")
-                .message(String.format("Dear user, your current bank verification status is %s", eventStatus))
+                .message(msg)
                 .build();
 
         sendMailService.sendMail(email);
-        UserNotificationType type;
-        String msg = String.format("Dear user, your current bank verification status is %s", eventStatus);
-        if (eventStatus.equalsIgnoreCase("SUCCESS")
-                || eventStatus.equalsIgnoreCase(EventStatus.ACCEPTED.name())) {
-            type = UserNotificationType.SUCCESS;
-        } else {
-            type = UserNotificationType.ERROR;
-        }
-        final UserNotificationMessage message = new UserNotificationMessage(WsSourceTypeEnum.KYC, type, msg);
+        UserNotificationType typeNotification = getTypeNotificationByStatusKys(eventStatus);
+        final UserNotificationMessage message = new UserNotificationMessage(WsSourceTypeEnum.KYC, typeNotification, msg);
         stompMessenger.sendPersonalMessageToUser(user.getEmail(), message);
     }
 
@@ -487,9 +499,9 @@ public class QuberaServiceImpl implements QuberaService {
         String docId = RandomStringUtils.random(18, true, false);
         String callBackUrl = String.format("%s/api/public/v2/kyc/webhook/%s", host, uuid);
         RequestOnBoardingDto onBoardingDto = RequestOnBoardingDto.createOfParams(callBackUrl, email, uuid, docId, confCode);
-        logger.info("Sending to create applicant " + onBoardingDto);
+        log.info("Sending to create applicant " + onBoardingDto);
         OnboardingResponseDto onBoarding = kycHttpClient.createOnBoarding(onBoardingDto);
-        userData.setBankVerificationStatus("Pending");
+        userData.setBankVerificationStatus("None");
         quberaDao.updateUserData(userData);
         return onBoarding;
     }
@@ -541,7 +553,7 @@ public class QuberaServiceImpl implements QuberaService {
 
             return stream.toByteArray();
         } catch (Exception e) {
-            logger.error("Error generating pdf document {}", e);
+            log.error("Error generating pdf document {}", e);
             throw new NgDashboardException(ErrorApiTitles.QUBERA_PDF_ERROR_GENERATING);
         }
     }
@@ -677,5 +689,49 @@ public class QuberaServiceImpl implements QuberaService {
             message.setText(text);
         }
         stompMessenger.sendPersonalMessageToUser(user.getEmail(), message);
+    }
+
+    private String defineMessageByStatusKys(String statusKyc) {
+        StatusKycEnum status = StatusKycEnum.of(statusKyc);
+        String generalMessage = "Dear user, your current bank verification status is %s";
+        String result = null;
+        switch (status) {
+            case OK:
+                result = String.format(generalMessage, "SUCCESS");
+                break;
+            case ERROR:
+                result = String.format(generalMessage, "ERROR") + ", try again";
+                break;
+            case OBSOLETE:
+            case WARN:
+                result = String.format(generalMessage, "WARN") + ", try again";
+                break;
+            case NONE:
+                result = "Dear user, your documents have not been uploaded yet.";
+        }
+        return result;
+    }
+
+    private UserNotificationType getTypeNotificationByStatusKys(String statusString) {
+        StatusKycEnum status = StatusKycEnum.of(statusString);
+        UserNotificationType type;
+        switch (status) {
+            case OK:
+                type = UserNotificationType.SUCCESS;
+                break;
+            case NONE:
+                type = UserNotificationType.INFORMATION;
+                break;
+            case OBSOLETE:
+            case WARN:
+                type = UserNotificationType.WARNING;
+                break;
+            case ERROR:
+                type = UserNotificationType.ERROR;
+                break;
+            default:
+                throw new KycException(ErrorApiTitles.QUBERA_UNKNOWN_KYC_STATUS);
+        }
+        return type;
     }
 }

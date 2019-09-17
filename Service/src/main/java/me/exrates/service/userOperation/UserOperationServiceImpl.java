@@ -54,4 +54,9 @@ public class UserOperationServiceImpl implements UserOperationService {
     }
     userOperationDao.updateUserOperationAuthority(options, userId);
   }
+
+  @Override
+  public void updateUserOperationAuthority(UserOperationAuthorityOption option, Integer userId) {
+    userOperationDao.updateUserOperationAuthority(Collections.singletonList(option), userId);
+  }
 }

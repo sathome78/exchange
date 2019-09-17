@@ -40,6 +40,8 @@ import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.chart.CandleDataProcessingService;
+import me.exrates.service.freecoins.FreecoinsService;
+import me.exrates.service.freecoins.FreecoinsSettingsService;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.G2faService;
@@ -348,5 +350,15 @@ public class AngularAppTestConfig {
     @Bean
     public CandleDataProcessingService candleDataProcessingService() {
         return Mockito.mock(CandleDataProcessingService.class);
+    }
+
+    @Bean
+    public FreecoinsService freecoinsService() {
+        return Mockito.mock(FreecoinsService.class);
+    }
+
+    @Bean
+    public FreecoinsSettingsService freecoinsSettingsService() {
+        return Mockito.mock(FreecoinsSettingsService.class);
     }
 }

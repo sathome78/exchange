@@ -16,13 +16,14 @@ import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.PinCodeCheckNeedException;
 import me.exrates.security.exception.UnconfirmedUserException;
+import me.exrates.security.filter.NotVerifiedCaptchaError;
+import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.QRCodeService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.AbsentFinPasswordException;
 import me.exrates.service.exception.NotConfirmedFinPasswordException;
 import me.exrates.service.exception.WrongFinPasswordException;
-import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -100,7 +101,7 @@ public class MainController {
     @Autowired
     private ReferralService referralService;
     @Autowired
-    private GeetestLib geetest;
+    private VerifyReCaptchaSec verifyReCaptchaSec;
     @Autowired
     private QRCodeService qrCodeService;
 
@@ -166,29 +167,14 @@ public class MainController {
                                         @RequestParam(required = false) String source,
                                         BindingResult result,
                                         HttpServletRequest request) {
-        String challenge = request.getParameter(GeetestLib.fn_geetest_challenge);
-        String validate = request.getParameter(GeetestLib.fn_geetest_validate);
-        String seccode = request.getParameter(GeetestLib.fn_geetest_seccode);
+
         User user = new User();
         user.setEmail(userEmailDto.getEmail());
         user.setParentEmail(userEmailDto.getParentEmail());
-        int gt_server_status_code = (Integer) request.getSession().getAttribute(geetest.gtServerStatusSessionKey);
-        String userid = (String) request.getSession().getAttribute("userid");
+        user.setVerificationRequired(false);
+        String recapchaResponse = request.getParameter("g-recaptcha-response");
 
-        HashMap<String, String> param = new HashMap<>();
-        param.put("user_id", userid);
-
-        int gtResult = 0;
-        if (gt_server_status_code == 1) {
-            gtResult = geetest.enhencedValidateRequest(challenge, validate, seccode, param);
-            logger.info(gtResult);
-        } else {
-            logger.error("failback:use your own server captcha validate");
-            gtResult = geetest.failbackValidateRequest(challenge, validate, seccode);
-            logger.error(gtResult);
-        }
-
-        if (gtResult == 1) {
+        if (verifyReCaptchaSec.verify(recapchaResponse)) {
             registerFormValidation.validate(null, user.getEmail(), null, result, localeResolver.resolveLocale(request));
             user.setPhone("");
             if (result.hasErrors()) {
@@ -242,7 +228,8 @@ public class MainController {
             }
         } else {
             //TODO
-            throw new RuntimeException("Geetest error");
+            String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
+            throw new NotVerifiedCaptchaError(correctCapchaRequired);
         }
     }
 

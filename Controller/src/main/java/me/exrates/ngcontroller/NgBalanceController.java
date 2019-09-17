@@ -176,9 +176,8 @@ public class NgBalanceController {
 
     @SuppressWarnings("Duplicates")
     @GetMapping("/totalBalance")
-    public Map<String, Object> getUserTotalBalance(HttpServletRequest request) {
-        List<MyWalletsStatisticsDto> resultWallet = walletService.getAllWalletsForUserReduced(null, getPrincipalEmail(),
-                localeResolver.resolveLocale(request), CurrencyPairType.MAIN);
+    public Map<String, Object> getUserTotalBalance() {
+        List<MyWalletsStatisticsDto> resultWallet = walletService.getAllWalletsForUserReduced(null, getPrincipalEmail(), CurrencyPairType.MAIN);
         HashMap<String, Object> map = new HashMap<>();
         map.put("mapWallets", resultWallet);
 

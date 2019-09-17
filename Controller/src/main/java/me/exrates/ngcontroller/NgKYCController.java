@@ -42,7 +42,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static me.exrates.service.impl.KYCServiceImpl.SIGNATURE;
 
-@Log4j2
+@Log4j2(topic = "qubera_log")
 @RestController
 @RequestMapping(
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE

@@ -489,7 +489,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 currencyCondition +
                 dateClauseTransaction +
                 "    USER.email = :email " +
-                "    AND TRANSACTION.source_type IN ('REFILL', 'WITHDRAW', 'IEO') " +
+                "    AND TRANSACTION.source_type IN ('REFILL', 'WITHDRAW', 'IEO', 'FREE_COINS_TRANSFER') " +
                 "    AND TRANSACTION.status_id IN (1, 2)" +
 
                 "  UNION " +
