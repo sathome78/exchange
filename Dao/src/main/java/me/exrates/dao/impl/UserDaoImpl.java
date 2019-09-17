@@ -1580,4 +1580,26 @@ public class UserDaoImpl implements UserDao {
         }};
         masterTemplate.update(sql, params);
     }
+
+    @Override
+    public boolean subscribeToMailingByPublicId(String publicId, boolean subscribe) {
+        final String sql = "UPDATE USER u SET u.mailing_subscription = :subscribe WHERE u.pub_id = :public_id";
+
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("public_id", publicId);
+            put("subscribe", subscribe);
+        }};
+        return masterTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public boolean subscribeToMailingByEmail(String email, boolean subscribe) {
+        final String sql = "UPDATE USER u SET u.mailing_subscription = :subscribe WHERE u.email = :email";
+
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("email", email);
+            put("subscribe", subscribe);
+        }};
+        return masterTemplate.update(sql, params) > 0;
+    }
 }

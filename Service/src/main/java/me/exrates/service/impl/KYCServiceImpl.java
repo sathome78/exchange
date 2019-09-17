@@ -41,6 +41,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Properties;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -305,10 +306,14 @@ public class KYCServiceImpl implements KYCService {
 
     private void sendStatusNotification(String userEmail, String eventStatus) {
         log.info("SEND TO EMAIL {}, STATUS {}", userEmail, eventStatus);
+        Properties properties = new Properties();
+        properties.put("public_id", userService.getPubIdByEmail(userEmail));
+
         Email email = Email.builder()
                 .to(userEmail)
                 .subject(emailSubject)
                 .message(String.format(emailMessagePattern, eventStatus))
+                .properties(properties)
                 .build();
 
         sendMailService.sendMail(email);

@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Properties;
 
 /**
  * Created by OLEG on 10.11.2016.
@@ -119,6 +120,11 @@ public class NotificationServiceImpl implements NotificationService {
         email.setSubject(titleMessage);
         email.setMessage(message);
         email.setTo(user.getEmail());
+
+        Properties properties = new Properties();
+        properties.put("public_id", user.getPublicId());
+        email.setProperties(properties);
+
         sendMailService.sendMail(email);
     }
 

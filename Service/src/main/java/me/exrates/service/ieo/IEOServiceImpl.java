@@ -49,6 +49,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -309,6 +310,11 @@ public class IEOServiceImpl implements IEOService {
         email.setTo(user.getEmail());
         email.setMessage("Revert IEO");
         email.setSubject(String.format("Revert ieo for %s finish successful!", ieoEntity.getCurrencyName()));
+
+        Properties properties = new Properties();
+        properties.put("public_id", user.getPublicId());
+        email.setProperties(properties);
+
         sendMailService.sendMail(email);
     }
 
@@ -406,6 +412,11 @@ public class IEOServiceImpl implements IEOService {
             email.setMessage("Success finish IEO");
             email.setSubject(String.format("The IEO procedure for a currency %s has ended successfully, congratulations!",
                     ieoDetails.getCurrencyName()));
+
+            Properties properties = new Properties();
+            properties.put("public_id", maker.getPublicId());
+            email.setProperties(properties);
+
             sendMailService.sendMail(email);
         }
 
@@ -513,6 +524,11 @@ public class IEOServiceImpl implements IEOService {
         emailError.setSubject("IEO claim save error");
         emailError.setMessage(message);
         emailError.setTo(email);
+
+        Properties properties = new Properties();
+        properties.put("public_id", userService.getPubIdByEmail(email));
+        emailError.setProperties(properties);
+
         sendMailService.sendMail(emailError);
     }
 

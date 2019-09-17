@@ -195,6 +195,11 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
         email.setTo(user.getEmail());
         email.setSubject("Deposit fiat");
         email.setMessage(msg);
+
+        Properties properties = new Properties();
+        properties.put("public_id", user.getPublicId());
+        email.setProperties(properties);
+
         sendMailService.sendMail(email);
     }
 }
