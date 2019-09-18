@@ -6,6 +6,9 @@ const TIME_UNIT_SECS = "second(s)";
 const TIME_UNIT_MINUTES = "minute(s)";
 const TIME_UNIT_HOURS = "hours(s)";
 
+const NONE_KYC = "none";
+const DEFAUKT_KYC = "shuftipro";
+
 var pairsRestrictions = [];
 var verifTypes = [];
 var kycArrSize = 0;
@@ -351,8 +354,18 @@ $(document).ready(function () {
             if (operationType) {
                 toggleBlock(merchantId, currencyId, operationType, this);
             } else if (kycField) {
-
-                toggleMerchantKyc(merchantId, kycField, this)
+                var selected = $(this).parents('tr').find('.kyc_type').children("option:selected").val();
+                var isEnabled = $(this).hasClass('fa-unlock');
+                console.log(selected + ' ' + isEnabled);
+                if (selected == NONE_KYC && isEnabled) {
+                    toggleMerchantKyc(merchantId, kycField, this, changeKycType(merchantId, DEFAUKT_KYC, function () {
+                        loadMerchantAccessTable();
+                    }));
+                } else {
+                    toggleMerchantKyc(merchantId, kycField, this, function () {
+                        loadMerchantAccessTable();
+                    });
+                }
             }
         }
     });
@@ -398,7 +411,9 @@ $(document).ready(function () {
         if (confirm($('#prompt-toggle-block').html())) {
             var selected = $(this).children("option:selected").val();
             var merchantId = $(this).parents('tr').data('merchantid');
-            changeKycType(merchantId, selected);
+            changeKycType(merchantId, selected, function () {
+                loadMerchantAccessTable();
+            });
         }
     });
 
@@ -429,7 +444,7 @@ $(document).ready(function () {
         setBlockForAll('OUTPUT', false);
     });
 
-    function changeKycType(merchantId, kycType) {
+    function changeKycType(merchantId, kycType, callback) {
         var formData = new FormData();
         formData.append("merchantId", merchantId);
         formData.append("kycType", kycType);
@@ -443,13 +458,39 @@ $(document).ready(function () {
             contentType: false,
             processData: false,
             success: function () {
-                loadMerchantAccessTable();
+                if (callback) {
+                    callback();
+                }
             },
             error: function () {
-                loadMerchantAccessTable();
+                if (callback) {
+                    callback();
+                }
                 errorNoty('error update kyc type')
             }
 
+        });
+    }
+
+    function toggleMerchantKyc(merchantId, toggleField, $element, callback) {
+        var formData = new FormData();
+        formData.append("merchantId", merchantId);
+        formData.append("toggleField", toggleField);
+
+        $.ajax({
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            url: '/2a8fy7b07dxe44/merchantAccess/toggleKycBlock',
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function () {
+                if (callback) {
+                    callback();
+                }
+            }
         });
     }
 
