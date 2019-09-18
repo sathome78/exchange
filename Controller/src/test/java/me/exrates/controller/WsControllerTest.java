@@ -598,7 +598,7 @@ public class WsControllerTest {
 
     @Test
     public void subscribeToUserPersonalMessages() {
-        when(redisUserNotificationService.findAllByUser(anyString())).thenReturn(getTestUserMessages());
+        when(redisUserNotificationService.findAllByUser(anyString())).thenReturn(getTestUserMessages("test@test.com"));
         when(userService.getEmailByPubId(anyString())).thenReturn("test@test.com");
 
         StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
@@ -615,14 +615,14 @@ public class WsControllerTest {
         Message<?> reply = this.clientOutboundChannel.getMessages().get(0);
 
         String json = new String((byte[]) reply.getPayload(), Charset.forName("UTF-8"));
-        new JsonPathExpectationsHelper("$.[0].text").assertValue(json, "message #1");
-        new JsonPathExpectationsHelper("$.[1].text").assertValue(json, "message #2");
-        new JsonPathExpectationsHelper("$.[2].text").assertValue(json, "message #3");
+        new JsonPathExpectationsHelper("$.message[0].text").assertValue(json, "message #1");
+        new JsonPathExpectationsHelper("$.message[1].text").assertValue(json, "message #2");
+        new JsonPathExpectationsHelper("$.message[2].text").assertValue(json, "message #3");
     }
 
-    private List<UserNotificationMessage> getTestUserMessages() {
+    private List<UserNotificationMessage> getTestUserMessages(String key) {
         List<UserNotificationMessage> messages = Lists.newArrayList();
-        IntStream.range(1, 5).forEach(i -> messages.add(new UserNotificationMessage(WsSourceTypeEnum.IEO, UserNotificationType.SUCCESS, "message #" + i)));
+        IntStream.range(1, 5).forEach(i -> messages.add(new UserNotificationMessage(key, WsSourceTypeEnum.IEO, UserNotificationType.SUCCESS, "message #" + i, false)));
         return messages;
     }
 
