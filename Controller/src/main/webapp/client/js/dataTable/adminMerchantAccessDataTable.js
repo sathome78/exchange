@@ -11,110 +11,122 @@ var verifTypes = [];
 var kycArrSize = 0;
 var arrSize = 0;
 
-var $merchantAccessTable = $('#merchant-options-table');
 
-function loadMerchantaccessTable() {
+
+
+
+$(document).ready(function () {
+
+    var $merchantAccessTable = $('#merchant-options-table');
+    var merchantAccessTable;
+
+
     pairsRestrictions = $('#pairs_restrictions').text().split(',');
     verifTypes = $('#verif_types').text().split(',');
     arrSize = pairsRestrictions.length;
     kycArrSize = verifTypes.length;
     console.log('log ' + pairsRestrictions + ' ' + arrSize);
 
-    merchantAccessTable = $($merchantAccessTable).DataTable({
-        "ajax": {
-            "url": "/2a8fy7b07dxe44/merchantAccess/data",
-            "dataSrc": "",
-            traditional: true,
-            data: {processTypes: ["CRYPTO, MERCHANT, INVOICE"]}
-        },
-        "bFilter": true,
-        "paging": false,
-        "order": [],
-        "bLengthChange": false,
-        "bPaginate": false,
-        "bInfo": false,
-        "columns": [
-            {
-                "data": "merchantName"
-            },
-            {
-                "data": "currencyName"
-            },
-            {
-                "data": "isRefillBlocked",
-                "render": function (data) {
-                    return '<span data-operationtype="INPUT">'.concat(data ? '<i class="fa fa-lock red" aria-hidden="true"></i>' : '<i class="fa fa-unlock" aria-hidden="true"></i>')
-                        .concat('</span>');
-                }
-            },
-            {
-                "data": "isWithdrawBlocked",
-                "render": function (data) {
-                    return '<span data-operationtype="OUTPUT">'.concat(data ? '<i class="fa fa-lock red" aria-hidden="true"></i>' : '<i class="fa fa-unlock" aria-hidden="true"></i>')
-                        .concat('</span>');
-                }
-            },
-            {
-                "data": "kycRefill",
-                "render": function (data) {
-                    return '<span data-kycfield="REFILL">'.concat(data ? '<i class="fa fa-lock red" aria-hidden="true"></i>' : '<i class="fa fa-unlock" aria-hidden="true"></i>')
-                        .concat('</span>');
-                }
-            },
-            {
-                "data": "kycWithdraw",
-                "render": function (data) {
-                    return '<span data-kycfield="WITHDRAW">'.concat(data ? '<i class="fa fa-lock red" aria-hidden="true"></i>' : '<i class="fa fa-unlock" aria-hidden="true"></i>')
-                        .concat('</span>');
-                }
-            },
-            {
-                "data": "kycType",
-                "render": function (data) {
-                    var wrapper = $('<div></div>');
-                    var sel = $('<select>').attr('class', 'kyc_type').appendTo(wrapper);
-                    $(verifTypes).each(function() {
-                        sel.append(
-                            $("<option>").attr('value', this).attr('SELECTED', this == data).text(this)
-                        );
-                    });
-                    return wrapper.html();
-                }
-            },
-            {
-                "data": "withdrawAutoEnabled",
-                "render": function (data) {
-                    return '<input style="cursor: pointer" readonly class="auto-enabled" type="checkbox"' + (data ? 'checked' : '') + '/>';
+    function loadMerchantAccessTable() {
+        var url = "/2a8fy7b07dxe44/merchantAccess/data";
+        if ($.fn.dataTable.isDataTable('#merchant-options-table')) {
+            merchantAccessTable = $($merchantAccessTable).DataTable();
+            merchantAccessTable.ajax.url(url).load();
+        } else {
+            merchantAccessTable = $($merchantAccessTable).DataTable({
+                "ajax": {
+                    "url": url,
+                    "dataSrc": "",
+                    traditional: true,
+                    data: {processTypes: ["CRYPTO, MERCHANT, INVOICE"]}
                 },
-            },
-            {
-                "data": "withdrawAutoDelaySeconds",
-                "render": function (data) {
-                    var timeData = autoConvertSecondsToTimeUnit(data);
-                    return '<span style="white-space: nowrap" class="auto-delay">' + timeData.time + " " + timeData.unit + '</span>';
+                "bFilter": true,
+                "paging": false,
+                "order": [],
+                "bLengthChange": false,
+                "bPaginate": false,
+                "bInfo": false,
+                "columns": [
+                    {
+                        "data": "merchantName"
+                    },
+                    {
+                        "data": "currencyName"
+                    },
+                    {
+                        "data": "isRefillBlocked",
+                        "render": function (data) {
+                            return '<span data-operationtype="INPUT">'.concat(data ? '<i class="fa fa-lock red" aria-hidden="true"></i>' : '<i class="fa fa-unlock" aria-hidden="true"></i>')
+                                .concat('</span>');
+                        }
+                    },
+                    {
+                        "data": "isWithdrawBlocked",
+                        "render": function (data) {
+                            return '<span data-operationtype="OUTPUT">'.concat(data ? '<i class="fa fa-lock red" aria-hidden="true"></i>' : '<i class="fa fa-unlock" aria-hidden="true"></i>')
+                                .concat('</span>');
+                        }
+                    },
+                    {
+                        "data": "kycRefill",
+                        "render": function (data) {
+                            return '<span data-kycfield="REFILL">'.concat(data ? '<i class="fa fa-lock red" aria-hidden="true"></i>' : '<i class="fa fa-unlock" aria-hidden="true"></i>')
+                                .concat('</span>');
+                        }
+                    },
+                    {
+                        "data": "kycWithdraw",
+                        "render": function (data) {
+                            return '<span data-kycfield="WITHDRAW">'.concat(data ? '<i class="fa fa-lock red" aria-hidden="true"></i>' : '<i class="fa fa-unlock" aria-hidden="true"></i>')
+                                .concat('</span>');
+                        }
+                    },
+                    {
+                        "data": "kycType",
+                        "render": function (data) {
+                            var wrapper = $('<div></div>');
+                            var sel = $('<select>').attr('class', 'kyc_type').appendTo(wrapper);
+                            $(verifTypes).each(function () {
+                                sel.append(
+                                    $("<option>").attr('value', this).attr('SELECTED', this == data).text(this)
+                                );
+                            });
+                            return wrapper.html();
+                        }
+                    },
+                    {
+                        "data": "withdrawAutoEnabled",
+                        "render": function (data) {
+                            return '<input style="cursor: pointer" readonly class="auto-enabled" type="checkbox"' + (data ? 'checked' : '') + '/>';
+                        },
+                    },
+                    {
+                        "data": "withdrawAutoDelaySeconds",
+                        "render": function (data) {
+                            var timeData = autoConvertSecondsToTimeUnit(data);
+                            return '<span style="white-space: nowrap" class="auto-delay">' + timeData.time + " " + timeData.unit + '</span>';
+                        }
+                    },
+                    {
+                        "data": "withdrawAutoThresholdAmount",
+                        "render": function (data) {
+                            return '<span style="white-space: nowrap" class="auto-threshold">' + (data > 0 ? data : "ALWAYS") + '</span>';
+                        }
+                    },
+                ],
+                "createdRow": function (row, data, index) {
+                    $(row).attr("data-merchantid", data.merchantId);
+                    $(row).attr("data-currencyid", data.currencyId);
+                    if (!data.withdrawAutoEnabled) {
+                        $(row).find(".auto-delay").attr("hidden", true);
+                        $(row).find(".auto-threshold").attr("hidden", true);
+                    }
                 }
-            },
-            {
-                "data": "withdrawAutoThresholdAmount",
-                "render": function (data) {
-                    return '<span style="white-space: nowrap" class="auto-threshold">' + (data > 0 ? data : "ALWAYS") + '</span>';
-                }
-            },
-        ],
-        "createdRow": function (row, data, index) {
-            $(row).attr("data-merchantid", data.merchantId);
-            $(row).attr("data-currencyid", data.currencyId);
-            if (!data.withdrawAutoEnabled) {
-                $(row).find(".auto-delay").attr("hidden", true);
-                $(row).find(".auto-threshold").attr("hidden", true);
-            }
+            });
         }
-    });
-}
+    }
 
-$(document).ready(function () {
-
-    loadMerchantaccessTable();
+    loadMerchantAccessTable();
 
     var $transferAccessTable = $('#transfer-options-table');
     transferAccessTable = $($transferAccessTable).DataTable({
@@ -339,6 +351,7 @@ $(document).ready(function () {
             if (operationType) {
                 toggleBlock(merchantId, currencyId, operationType, this);
             } else if (kycField) {
+
                 toggleMerchantKyc(merchantId, kycField, this)
             }
         }
@@ -415,6 +428,30 @@ $(document).ready(function () {
     $('#unblock-all-output').click(function () {
         setBlockForAll('OUTPUT', false);
     });
+
+    function changeKycType(merchantId, kycType) {
+        var formData = new FormData();
+        formData.append("merchantId", merchantId);
+        formData.append("kycType", kycType);
+        $.ajax({
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            url: '/2a8fy7b07dxe44/merchantAccess/kycType',
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function () {
+                loadMerchantAccessTable();
+            },
+            error: function () {
+                loadMerchantAccessTable();
+                errorNoty('error update kyc type')
+            }
+
+        });
+    }
 
 });
 
@@ -573,28 +610,6 @@ function toggleMerchantKyc(merchantId, toggleField, $element) {
     });
 }
 
-function changeKycType(kycType, merchantId, $element) {
-    var formData = new FormData();
-    formData.append("merchantId", merchantId);
-    formData.append("kycType", kycType);
-    $.ajax({
-        headers: {
-            'X-CSRF-Token': $("input[name='_csrf']").val()
-        },
-        url: '/2a8fy7b07dxe44/merchantAccess/kycType',
-        type: 'POST',
-        data: formData,
-        contentType: false,
-        processData: false,
-        success: function () {
-        },
-        error: function () {
-            loadMerchantaccessTable();
-            errorNoty('error update kyc type')
-        }
-
-    });
-}
 
 function changeVisibilityForCurrency(currencyId, $element) {
     $.ajax({
