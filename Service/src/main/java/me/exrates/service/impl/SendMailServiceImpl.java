@@ -5,6 +5,7 @@ import me.exrates.model.Email;
 import me.exrates.model.enums.EmailSenderType;
 import me.exrates.model.mail.ListingRequest;
 import me.exrates.service.SendMailService;
+import me.exrates.service.cache.SettingsService;
 import me.exrates.service.util.MessageFormatterUtil;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -58,6 +60,9 @@ public class SendMailServiceImpl implements SendMailService {
     @Qualifier("SendGridMailSender")
     private JavaMailSender sendGridMailSender;
 
+    @Autowired
+    private SettingsService settingsService;
+
     @Value("${mail_info.allowedOnly}")
     private Boolean allowedOnly;
     @Value("${mail_info.allowedEmails}")
@@ -87,15 +92,30 @@ public class SendMailServiceImpl implements SendMailService {
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void sendMail(Email email) {
+        JavaMailSender sender = this.defineEmailSender(email.getTo(), settingsService.getEmailsSender());
         email.setFrom(noReplyExrateMe);
         SUPPORT_MAIL_EXECUTORS.execute(() -> {
             try {
-                sendMail(email, supportMailSender);
+                sendMail(email, sender);
             } catch (Exception ex) {
                 log.error(ex);
                 sendMail(email, sendGridMailSender);
             }
         });
+    }
+
+    private JavaMailSender defineEmailSender(String to, Map<String, String> emailsSenders) {
+        String host = to.split("@")[1];
+        if (emailsSenders.get(host) == null) {
+            return supportMailSender;
+        }
+
+        switch (host) {
+            case "sendGridMailSender":
+                return sendGridMailSender;
+            default:
+                return supportMailSender;
+        }
     }
 
     /*Use sendMail*/
