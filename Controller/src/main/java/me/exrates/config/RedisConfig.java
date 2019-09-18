@@ -54,6 +54,7 @@ public class RedisConfig {
     }
 
     @Bean
+    @Qualifier("exratesRedisTemplate")
     RedisTemplate<String, Object> redisTemplate() {
         final RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(jedisConnFactory());
@@ -73,6 +74,7 @@ public class RedisConfig {
     }
 
     @Bean
+    @Qualifier("stringRedisTemplate")
     public StringRedisTemplate stringRedisTemplate() {
         final StringRedisTemplate template = new StringRedisTemplate(jedisConnFactory());
         template.setKeySerializer(new StringRedisSerializer());
