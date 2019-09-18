@@ -14,8 +14,9 @@ import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.lisk.*;
 import me.exrates.service.neo.NeoService;
 import me.exrates.service.neo.NeoServiceImpl;
+import me.exrates.service.tron.Trc20TokenService;
 import me.exrates.service.tron.TronTrc10Token;
-import me.exrates.service.tron.TronTrc20Token;
+import me.exrates.service.tron.Trc20TokenServiceImpl;
 import me.exrates.service.waves.WavesService;
 import me.exrates.service.waves.WavesServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -458,8 +459,13 @@ public class CryptocurrencyConfig {
     }
 
     @Bean(name = "usdttrc20ServiceImpl")
-    public TronTrc20Token usdttrcService() {
-        return new TronTrc20Token("USDTTRC20", "USDTTRC20");
+    public Trc20TokenService usdttrcService() {
+        return new Trc20TokenServiceImpl("USDTTRC20", "USDTTRC20");
+    }
+
+    @Bean(name = "winServiceImpl")
+    public Trc20TokenService winService() {
+        return new Trc20TokenServiceImpl("WIN", "WIN");
     }
 
 

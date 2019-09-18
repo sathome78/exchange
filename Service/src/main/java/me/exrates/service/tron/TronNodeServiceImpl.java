@@ -5,7 +5,6 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.TronNewAddressDto;
 import me.exrates.model.dto.TronTransferDto;
-import org.bitcoinj.core.Base58;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,8 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Arrays;
 
 @Log4j2(topic = "tron")
 @Service

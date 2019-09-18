@@ -8,6 +8,8 @@ import me.exrates.model.dto.MerchantSpecParamDto;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.TronReceivedTransactionDto;
 import me.exrates.model.dto.TronTransactionTypeEnum;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.MerchantService;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,24 +38,31 @@ public class TronReceiveServiceImpl {
     private final TronTransactionsService tronTransactionsService;
     private final TronTokenContext tronTokenContext;
 
+    private MerchantService merchantService;
+    private CurrencyService currencyService;
+
     private static final String LAST_BLOCK_PARAM = "LastScannedBlock";
     private static final String MERCHANT_NAME = "TRX";
     private static final String CURRENCY_NAME = "TRX";
     private static final int TRX_DECIMALS = 6;
 
-    private static Map<String, TronTrc20Token> tokenTrc20Map = new HashMap<String, TronTrc20Token>(){{
-        put("USDT", new TronTrc20Token("USDTTRC20","USDTTRC20"));
+    private static Map<String, Trc20TokenService> tokenTrc20Map = new HashMap<String, Trc20TokenService>(){{
+        put("USDT", new Trc20TokenServiceImpl("USDTTRC20", "USDTTRC20"));
+        put("WIN", new Trc20TokenServiceImpl("WIN", "WIN"));
     }};
 
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     @Autowired
-    public TronReceiveServiceImpl(TronNodeService nodeService, TronService tronService, MerchantSpecParamsDao specParamsDao, TronTransactionsService tronTransactionsService, TronTokenContext tronTokenContext) {
+    public TronReceiveServiceImpl(TronNodeService nodeService, TronService tronService, MerchantSpecParamsDao specParamsDao, TronTransactionsService tronTransactionsService,
+                                  TronTokenContext tronTokenContext, MerchantService merchantService, CurrencyService currencyService) {
         this.nodeService = nodeService;
         this.tronService = tronService;
         this.specParamsDao = specParamsDao;
         this.tronTransactionsService = tronTransactionsService;
         this.tronTokenContext = tronTokenContext;
+        this.merchantService = merchantService;
+        this.currencyService = currencyService;
     }
 
     @PostConstruct
@@ -80,7 +89,7 @@ public class TronReceiveServiceImpl {
 
     private void checkTransactionsAndProceed(List<TronReceivedTransactionDto> transactionDtos) {
         transactionDtos.forEach(transaction->{
-            if(true) {// TODO Return: tronService.getAddressesHEX().contains(transaction.getAddress())
+            if(tronService.getAddressesHEX().contains(transaction.getAddress())) {// TODO
                 try {
                     switch (transaction.getTxType()) {
                         case TransferContract: {
@@ -99,10 +108,12 @@ public class TronReceiveServiceImpl {
                             break;
                         }
                         case TriggerSmartContract: {
-                            TronTrc20Token tronTrc20Token = tokenTrc20Map.get(transaction.getAssetName());
-                            transaction.setMerchantId(tronTrc20Token.getMerchantId());
-                            transaction.setCurrencyId(tronTrc20Token.getCurrencyId());
-                            transaction.setAmount(parseAmount(transaction.getRawAmount(), TRX_DECIMALS));
+                            if (tokenTrc20Map.containsKey(transaction.getAssetName())){
+                                Trc20TokenService trc20TokenService = tokenTrc20Map.get(transaction.getAssetName());
+                                transaction.setMerchantId(merchantService.findByName(trc20TokenService.getMerchantName()).getId());
+                                transaction.setCurrencyId(currencyService.findByName(trc20TokenService.getMerchantName()).getId());
+                                transaction.setAmount(parseAmount(transaction.getRawAmount(), TRX_DECIMALS));
+                            }
                             break;
                         }
                         default: throw new RuntimeException("unsupported tx type");
