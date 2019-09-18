@@ -30,6 +30,7 @@ import redis.clients.jedis.Protocol;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -107,10 +108,10 @@ public class RedisUserNotificationDaoImplTest {
 
     @After
     public void cleanUp() {
-        getAll(USER_PUBLIC_ID)
-                .forEach(notificationMessage -> redisTemplate.delete(notificationMessage.getMessageId()));
-        getAll(OTHER_USER_PUBLIC_ID)
-                .forEach(notificationMessage -> redisTemplate.delete(notificationMessage.getMessageId()));
+        Set<String> keys = new HashSet<>();
+        keys.addAll(redisTemplate.keys(USER_PUBLIC_ID + ":*"));
+        keys.addAll(redisTemplate.keys(OTHER_USER_PUBLIC_ID + ":*"));
+        redisTemplate.delete(keys);
     }
 
     private UserNotificationMessage getSimpleTestMessage() {

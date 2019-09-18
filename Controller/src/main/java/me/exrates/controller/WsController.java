@@ -23,6 +23,7 @@ import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.ngService.RedisUserNotificationService;
+import me.exrates.ngService.RedisWsSessionService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.IEOService;
 import me.exrates.service.OrderService;
@@ -31,6 +32,8 @@ import me.exrates.service.UsersAlertsService;
 import me.exrates.service.bitshares.memo.Preconditions;
 import me.exrates.service.util.OpenApiUtils;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.stereotype.Controller;
@@ -41,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 
 @Log4j2(topic = "ws_stomp_log")
@@ -52,6 +56,7 @@ public class WsController {
     private final ObjectMapper objectMapper;
     private final OrderService orderService;
     private final RedisUserNotificationService redisUserNotificationService;
+    private final RedisWsSessionService redisWsSessionService;
     private final UserService userService;
     private final UsersAlertsService usersAlertsService;
 
@@ -60,6 +65,7 @@ public class WsController {
                         ObjectMapper objectMapper,
                         OrderService orderService,
                         RedisUserNotificationService redisUserNotificationService,
+                        RedisWsSessionService redisWsSessionService,
                         UserService userService,
                         UsersAlertsService usersAlertsService) {
         this.currencyService = currencyService;
@@ -67,6 +73,7 @@ public class WsController {
         this.objectMapper = objectMapper;
         this.orderService = orderService;
         this.redisUserNotificationService = redisUserNotificationService;
+        this.redisWsSessionService = redisWsSessionService;
         this.userService = userService;
         this.usersAlertsService = usersAlertsService;
     }
@@ -157,6 +164,16 @@ public class WsController {
     @SubscribeMapping("/queue/my_orders/{currencyPairName}")
     public List<OrdersListWrapper> subscribeMyTradeOrdersDetailed(@DestinationVariable String currencyPairName, Principal principal) {
         return orderService.getMyOpenOrdersForWs(OpenApiUtils.transformCurrencyPair(currencyPairName), principal.getName());
+    }
+
+    @MessageMapping("/register")
+    public void processMessage(@Payload Map<String, String> message, SimpMessageHeaderAccessor simpMessageHeaderAccessor) throws Exception {
+        redisWsSessionService.addSession(message.get("sessionId"), message.get("email"));
+    }
+
+    @MessageMapping("/unregister")
+    public void processOffMessage(@Payload Map<String, String> message, SimpMessageHeaderAccessor simpMessageHeaderAccessor) throws Exception {
+        redisWsSessionService.removeSession(message.get("email"));
     }
 
     @SubscribeMapping("/message/private/{pubId}")
