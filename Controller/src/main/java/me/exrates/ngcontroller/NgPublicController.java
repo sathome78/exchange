@@ -156,6 +156,20 @@ public class NgPublicController {
         return g2faService.isGoogleAuthenticatorEnable(email);
     }
 
+    @GetMapping("/check/publicity")
+    public ResponseEntity<Map<String, Boolean>> checkIfPublicIdExists(@RequestParam("id") String id) {
+        final String result = "STATUS";
+        if (StringUtils.isBlank(id)) {
+            return ResponseEntity.ok(Collections.singletonMap(result, false));
+        }
+        try {
+            final String emailByPubId = userService.getEmailByPubId(id);
+            return ResponseEntity.ok(Collections.singletonMap(result, StringUtils.isNotEmpty(emailByPubId)));
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.ok(Collections.singletonMap(result, false));
+        }
+    }
+
     @GetMapping("/ieo")
     @ResponseBody
     public Collection<IEODetails> getAllIeo() {
