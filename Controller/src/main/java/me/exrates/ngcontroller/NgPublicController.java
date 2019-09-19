@@ -422,12 +422,12 @@ public class NgPublicController {
 
     @PostMapping(value = "/mailing-subscription")
     public ResponseEntity<Boolean> subscribe(@RequestParam(value = "public_id", required = false) String publicId,
-                                             @RequestParam(value = "token", required = false) String email,
+                                             @RequestParam(value = "token", required = false) String token,
                                              @RequestParam boolean subscribe) {
         if (Objects.nonNull(publicId)) {
             return ResponseEntity.ok(userService.subscribeToMailingByPublicId(publicId, subscribe));
-        } else if (Objects.nonNull(email)) {
-            return ResponseEntity.ok(userService.subscribeToMailingByEmail(email, subscribe));
+        } else if (Objects.nonNull(token)) {
+            return ResponseEntity.ok(userService.subscribeToMailingByToken(token, subscribe));
         }
         return ResponseEntity.badRequest().build();
     }
