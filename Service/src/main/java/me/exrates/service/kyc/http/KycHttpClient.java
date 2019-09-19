@@ -38,7 +38,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 
-@Log4j2
+@Log4j2(topic = "qubera_log")
 @Component
 @PropertySource("classpath:/merchants/qubera.properties")
 public class KycHttpClient {
