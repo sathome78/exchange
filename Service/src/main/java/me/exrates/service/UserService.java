@@ -291,5 +291,5 @@ public interface UserService {
 
     boolean subscribeToMailingByPublicId(String publicId, boolean subscribe);
 
-    boolean subscribeToMailingByToken(String token, boolean subscribe);
+    boolean subscribeToMailingByEmail(String email, boolean subscribe);
 }

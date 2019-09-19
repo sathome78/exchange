@@ -79,7 +79,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Base64Utils;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
@@ -1124,9 +1123,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean subscribeToMailingByToken(String token, boolean subscribe) {
-        final String email = new String(Base64Utils.decodeFromString(token));
-
+    public boolean subscribeToMailingByEmail(String email, boolean subscribe) {
         return userDao.subscribeToMailingByEmail(email, subscribe);
     }
 }

@@ -53,6 +53,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.util.Base64Utils;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -427,7 +428,9 @@ public class NgPublicController {
         if (Objects.nonNull(publicId)) {
             return ResponseEntity.ok(userService.subscribeToMailingByPublicId(publicId, subscribe));
         } else if (Objects.nonNull(token)) {
-            return ResponseEntity.ok(userService.subscribeToMailingByToken(token, subscribe));
+            final String email = new String(Base64Utils.decodeFromString(token));
+
+            return ResponseEntity.ok(userService.subscribeToMailingByEmail(email, subscribe));
         }
         return ResponseEntity.badRequest().build();
     }
