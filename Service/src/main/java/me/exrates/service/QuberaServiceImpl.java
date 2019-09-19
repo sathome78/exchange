@@ -26,6 +26,7 @@ import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.dto.kyc.CreateApplicantDto;
+import me.exrates.model.dto.kyc.DataKyc;
 import me.exrates.model.dto.kyc.IdentityDataKyc;
 import me.exrates.model.dto.kyc.IdentityDataRequest;
 import me.exrates.model.dto.kyc.PersonKycDto;
@@ -440,6 +441,11 @@ public class QuberaServiceImpl implements QuberaService {
             return;
         }
 
+        try {
+            //waiting for processing KYC on third part
+            Thread.sleep(5000L);
+        } catch (InterruptedException e) {
+        }
         ResponseVerificationStatusDto statusResponse = kycHttpClient.getCurrentStatusKyc(referenceId);
         String eventStatus = statusResponse.getLastReportStatus();
         User user = userService.getUserById(quberaUserData.getUserId());
@@ -489,7 +495,8 @@ public class QuberaServiceImpl implements QuberaService {
             }
         }
 
-        PersonKycDto personKycDto = new PersonKycDto(Collections.singletonList(IdentityDataKyc.of(identityDataRequest)));
+        DataKyc dataKyc = DataKyc.of(identityDataRequest);
+        PersonKycDto personKycDto = new PersonKycDto(Collections.singletonList(new IdentityDataKyc(dataKyc)));
         CreateApplicantDto createApplicantDto = new CreateApplicantDto(uuid, personKycDto);
         ResponseCreateApplicantDto response = kycHttpClient.createApplicant(createApplicantDto);
         if (!response.getState().equalsIgnoreCase("INITIAL")) {

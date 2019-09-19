@@ -704,34 +704,38 @@ public class CoreWalletServiceImpl implements CoreWalletService {
     @Override
     public PagingData<List<BtcTransactionHistoryDto>> listTransaction(DataTableParams dataTableParams) {
         PagingData<List<BtcTransactionHistoryDto>> result = new PagingData<>();
+
         int start = dataTableParams.getStart();
         int length = dataTableParams.getLength() == 0 ? 10 : dataTableParams.getLength();
+
         String searchValue = dataTableParams.getSearchValue();
         String orderColumn = dataTableParams.getOrderColumnName();
+
         DataTableParams.OrderDirection orderDirection = dataTableParams.getOrderDirection();
         try {
-            final Integer transactionCount = getWalletInfo().getTransactionCount() != null
-                    ? getWalletInfo().getTransactionCount()
-                    : calculateTransactionCount();
-            int recordsTotal = transactionCount > 10000
-                    ? 10000
-                    : transactionCount;
+            final Integer transactionCount = getWalletInfo().getTransactionCount() != null ? getWalletInfo().getTransactionCount() : calculateTransactionCount();
+
+            int recordsTotal = transactionCount > 10000 ? 10000 : transactionCount;
+
+            List<BtcTransactionHistoryDto> data;
+            int end = recordsTotal < (start + length) ? recordsTotal : start + length;
+
             if (orderDirection == DataTableParams.OrderDirection.DESC && orderColumn.equals("time")){
-               result.setData(getTransactionsForPagination(start, length));
+                data = getTransactionsForPagination(start, length);
             } else {
-                List<BtcTransactionHistoryDto> dataAll = getTransactionsForPagination(0, recordsTotal);
-                if (StringUtils.isNotEmpty(searchValue)) {
-                    dataAll = dataAll
-                            .stream()
-                            .filter(historyDtoPredicate(searchValue))
-                            .collect(Collectors.toList());
-                    recordsTotal = dataAll.size();
-                }
-                dataAll.sort(BtcTransactionHistoryDto.getComparator(orderColumn, orderDirection));
-                int end = recordsTotal < (start + length) ? recordsTotal : start + length;
-                result.setData(dataAll.subList(start, end));
+                data = getTransactionsForPagination(0, recordsTotal);
+                data.sort(BtcTransactionHistoryDto.getComparator(orderColumn, orderDirection));
             }
 
+            if (StringUtils.isNotEmpty(searchValue)) {
+                data = data.stream()
+                        .filter(historyDtoPredicate(searchValue))
+                        .collect(Collectors.toList());
+                recordsTotal = data.size();
+                end = recordsTotal;
+            }
+
+            result.setData(data.subList(start, end));
             result.setTotal(recordsTotal);
             result.setFiltered(recordsTotal);
             return result;

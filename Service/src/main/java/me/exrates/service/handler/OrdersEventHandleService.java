@@ -41,6 +41,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
@@ -136,19 +137,24 @@ public class OrdersEventHandleService {
     @TransactionalEventListener
     public void handleOrderPersonalEventAsync(DetailOrderEvent event) {
         try {
-            List<ExOrder> orderList;
+            final List<ExOrder> orderList;
             if (event.getOrderEventEnum() == OrderEventEnum.AUTO_ACCEPT) {
                 orderList = (List<ExOrder>) event.getSource();
             } else {
                 orderList = Collections.singletonList(((ExOrder) event.getSource()));
             }
             CompletableFuture.runAsync(() -> {
-                List<ExOrder> orders = orderList.stream()
-                        .filter(p -> nonNull(p) && p.getStatus() == OrderStatus.CLOSED)
-                        .sorted(Comparator.comparing(ExOrder::getDateAcception))
-                        .collect(Collectors.toList());
+                List<ExOrder> orders = Collections.EMPTY_LIST;
+                try {
+                    orders = orderList.stream()
+                            .filter(p -> nonNull(p) && p.getStatus() == OrderStatus.CLOSED)
+                            .sorted(Comparator.comparing(ExOrder::getDateAcception))
+                            .collect(Collectors.toList());
+                } catch (Exception e) {
+                    ExceptionUtils.printRootCauseStackTrace(e);
+                }
                 orders.forEach(p -> ratesHolder.onRatesChange(p));
-                if (!orders.isEmpty()) {
+                if (!CollectionUtils.isEmpty(orders)) {
                     currencyStatisticsHandler.onEvent(event.getPairId());
                 }
             });
