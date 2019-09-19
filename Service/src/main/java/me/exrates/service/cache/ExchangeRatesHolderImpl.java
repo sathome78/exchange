@@ -97,7 +97,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         this.ratesRedisRepository = ratesRedisRepository;
     }
 
-   /* @PostConstruct*/
+    @PostConstruct
     private void init() {
         FIAT_SCHEDULER.scheduleAtFixedRate(() -> {
             Map<String, BigDecimal> newData = getFiatCacheFromAPI();

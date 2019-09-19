@@ -38,6 +38,6 @@ public class MerchantCurrencyOptionsDto {
     private Boolean isMerchantCommissionSubtractedForWithdraw;
     private boolean recalculateToUsd;
     private MerchantVerificationType kycType;
-    private boolean kycRefill;
-    private boolean kycWithdraw;
+    private boolean needKycRefill;
+    private boolean needKycWithdraw;
 }

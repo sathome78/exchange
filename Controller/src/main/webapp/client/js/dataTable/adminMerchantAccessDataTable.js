@@ -71,14 +71,14 @@ $(document).ready(function () {
                         }
                     },
                     {
-                        "data": "kycRefill",
+                        "data": "needKycRefill",
                         "render": function (data) {
                             return '<span data-kycfield="REFILL">'.concat(data ? '<i class="fa fa-lock red" aria-hidden="true"></i>' : '<i class="fa fa-unlock" aria-hidden="true"></i>')
                                 .concat('</span>');
                         }
                     },
                     {
-                        "data": "kycWithdraw",
+                        "data": "needKycWithdraw",
                         "render": function (data) {
                             return '<span data-kycfield="WITHDRAW">'.concat(data ? '<i class="fa fa-lock red" aria-hidden="true"></i>' : '<i class="fa fa-unlock" aria-hidden="true"></i>')
                                 .concat('</span>');

@@ -21,7 +21,6 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransferTypeVoucher;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.exceptions.UnsupportedTransferProcessTypeException;
-import me.exrates.model.ngModel.enums.VerificationDocumentType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -159,6 +158,7 @@ public class MerchantDaoImpl implements MerchantDao {
     @Override
     public Optional<MerchantCurrency> findByMerchantAndCurrency(int merchantId, int currencyId) {
         final String sql = "SELECT MERCHANT.id as merchant_id,MERCHANT.name,MERCHANT.description, MERCHANT.process_type, " +
+                " MERCHANT.kyc_refill as kyc_refill, MERCHANT.kyc_withdraw as kyc_withdraw, MERCHANT.type_verification AS typeVerification, " +
                 " MERCHANT_CURRENCY.min_sum, " +
                 " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, " +
                 " MERCHANT_CURRENCY.merchant_fixed_commission " +
@@ -181,6 +181,9 @@ public class MerchantDaoImpl implements MerchantDao {
                 merchantCurrency.setOutputCommission(resultSet.getBigDecimal("merchant_output_commission"));
                 merchantCurrency.setFixedMinCommission(resultSet.getBigDecimal("merchant_fixed_commission"));
                 merchantCurrency.setProcessType(resultSet.getString("process_type"));
+                merchantCurrency.setNeedKycRefill(resultSet.getBoolean("kyc_refill"));
+                merchantCurrency.setNeedKycWithdraw(resultSet.getBoolean("kyc_withdraw"));
+                merchantCurrency.setVerificationType(MerchantVerificationType.valueOf(resultSet.getString("typeVerification")));
                 final String sqlInner = "SELECT * FROM MERCHANT_IMAGE where merchant_id = :merchant_id" +
                         " AND currency_id = :currency_id;";
                 Map<String, Integer> innerParams = new HashMap<String, Integer>();
@@ -206,7 +209,9 @@ public class MerchantDaoImpl implements MerchantDao {
             blockClause = " AND MERCHANT_CURRENCY.transfer_block = 0";
         }
 
-        final String sql = "SELECT MERCHANT.id as merchant_id,MERCHANT.name,MERCHANT.description, MERCHANT.process_type, MERCHANT_CURRENCY.refill_block, MERCHANT.needVerification AS needVerification, MERCHANT.type_verification AS typeVerification, " +
+        final String sql = "SELECT MERCHANT.id as merchant_id, MERCHANT.name, MERCHANT.description, MERCHANT.process_type, " +
+                " MERCHANT_CURRENCY.refill_block, MERCHANT.needVerification AS needVerification, MERCHANT.type_verification AS typeVerification, " +
+                " MERCHANT.kyc_refill as kyc_refill, MERCHANT.kyc_withdraw as kyc_withdraw, " +
                 " MERCHANT_CURRENCY.min_sum, " +
                 " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, " +
                 " MERCHANT_CURRENCY.merchant_fixed_commission " +
@@ -233,6 +238,8 @@ public class MerchantDaoImpl implements MerchantDao {
                 params.put("currency_id", resultSet.getInt("currency_id"));
                 merchantCurrency.setListMerchantImage(masterJdbcTemplate.query(sqlInner, params, new BeanPropertyRowMapper<>(MerchantImage.class)));
                 merchantCurrency.setNeedVerification(resultSet.getBoolean("needVerification"));
+                merchantCurrency.setNeedKycWithdraw(resultSet.getBoolean("kyc_withdraw"));
+                merchantCurrency.setNeedKycRefill(resultSet.getBoolean("kyc_refill"));
                 merchantCurrency.setVerificationType(MerchantVerificationType.valueOf(resultSet.getString("typeVerification")));
                 merchantCurrency.setAvailableForRefill(resultSet.getInt("refill_block") == 0);
                 return merchantCurrency;
@@ -375,8 +382,8 @@ public class MerchantDaoImpl implements MerchantDao {
                 .withdrawAutoThresholdAmount(rs.getBigDecimal("withdraw_auto_threshold_amount"))
                 .isMerchantCommissionSubtractedForWithdraw(rs.getBoolean("subtract_merchant_commission_for_withdraw"))
                 .recalculateToUsd(rs.getBoolean("recalculate_to_usd"))
-                .kycRefill(rs.getBoolean("kyc_refill"))
-                .kycWithdraw(rs.getBoolean("kyc_withdraw"))
+                .needKycRefill(rs.getBoolean("kyc_refill"))
+                .needKycWithdraw(rs.getBoolean("kyc_withdraw"))
                 .kycType(MerchantVerificationType.valueOf(rs.getString("verification_type")))
                 .build());
     }
