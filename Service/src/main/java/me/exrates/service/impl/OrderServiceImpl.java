@@ -814,6 +814,7 @@ public class OrderServiceImpl implements OrderService {
         exOrder.setUserAcceptorId(orderCreateDto.getUserId());
         orderDao.postAcceptedOrderToDB(exOrder);
         eventPublisher.publishEvent(new AcceptOrderEvent(exOrder));
+        eventPublisher.publishEvent(new AcceptDetailOrderEvent(exOrder, exOrder.getCurrencyPairId()));
     }
 
     @Override
