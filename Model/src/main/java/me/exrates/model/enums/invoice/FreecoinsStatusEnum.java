@@ -14,17 +14,22 @@ import java.util.Set;
 @Log4j2
 public enum FreecoinsStatusEnum implements InvoiceStatus {
 
-    CREATED_BY_USER(1) {
+    CREATED(1) {
         @Override
         public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
         }
     },
-    REVOKED_BY_FAILURE(2) {
+    REVOKED(2) {
         @Override
         public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
         }
     },
-    SUCCESS(3) {
+    CLOSED(3) {
+        @Override
+        public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+        }
+    },
+    FAILED(4) {
         @Override
         public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
         }
@@ -68,7 +73,7 @@ public enum FreecoinsStatusEnum implements InvoiceStatus {
         return Arrays.stream(FreecoinsStatusEnum.class.getEnumConstants())
                 .filter(e -> e.code == id)
                 .findAny()
-                .orElse(FreecoinsStatusEnum.CREATED_BY_USER);
+                .orElse(FreecoinsStatusEnum.CREATED);
     }
 
     public static FreecoinsStatusEnum convert(String name) {
@@ -98,8 +103,14 @@ public enum FreecoinsStatusEnum implements InvoiceStatus {
 
     @Override
     public BaseStatus getBaseStatus() {
-        log.warn("Not implemented yet");
-
-        return null;
+        switch (this) {
+            case CREATED:
+            case REVOKED:
+            case CLOSED:
+            case FAILED:
+                return BaseStatus.COMPLETED;
+            default:
+                return null;
+        }
     }
 }
