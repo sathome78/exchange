@@ -120,20 +120,10 @@ public class NgOrderServiceImpl implements NgOrderService {
         }
 
         String email = userService.getUserEmailFromSecurityContext();
-        User user = userService.findByEmail(email);
         CurrencyPairWithRestriction currencyPair = currencyService.findCurrencyPairByIdWithRestrictions(inputOrder.getCurrencyPairId());
+        orderService.checkPairToUserRestrictons(email, currencyPair);
 
-        if (currencyPair.hasTradeRestriction()) {
-            if (currencyPair.getTradeRestriction().contains(CurrencyPairRestrictionsEnum.ESCAPE_USA) && user.getVerificationRequired()) {
-                if (Objects.isNull(user.getCountry())) {
-                    throw new NeedVerificationException("Sorry, you must pass verification to trade this pair.");
-                } else if(user.getCountry().equalsIgnoreCase(RestrictedCountrys.USA.name())) {
-                    throw new OrderCreationRestrictedException("Sorry, you are not allowed to trade this pair");
-                }
-            }
-        }
-
-        OrderCreateDto prepareNewOrder = orderService.prepareNewOrder(currencyPair, operationType, user.getEmail(),
+        OrderCreateDto prepareNewOrder = orderService.prepareNewOrder(currencyPair, operationType, email,
                 inputOrder.getAmount(), inputOrder.getRate(), baseType);
 
         if (baseType == OrderBaseType.STOP_LIMIT) prepareNewOrder.setStop(inputOrder.getStop());

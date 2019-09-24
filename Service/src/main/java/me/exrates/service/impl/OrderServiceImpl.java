@@ -49,6 +49,7 @@ import me.exrates.model.dto.WalletsForOrderCancelDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
+import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.model.dto.mobileApiDto.OrderCreationParamsDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
@@ -390,17 +391,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderCreateDto prepareNewOrder(CurrencyPairWithRestriction activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, Integer sourceId, OrderBaseType baseType) {
 
-        User user = userService.findByEmail(userEmail);
-
-        if (activeCurrencyPair.hasTradeRestriction()) {
-            if (activeCurrencyPair.getTradeRestriction().contains(CurrencyPairRestrictionsEnum.ESCAPE_USA) && user.getVerificationRequired()) {
-                if (Objects.isNull(user.getCountry())) {
-                    throw new NeedVerificationException("Sorry, you must pass verification to trade this pair.");
-                } else if(user.getCountry().equalsIgnoreCase(RestrictedCountrys.USA.name())) {
-                    throw new OrderCreationRestrictedException("Sorry, you are not allowed to trade this pair");
-                }
-            }
-        }
+        checkPairToUserRestrictons(userEmail, activeCurrencyPair);
 
         Currency spendCurrency = null;
         if (orderType == OperationType.SELL) {
@@ -442,6 +433,34 @@ public class OrderServiceImpl implements OrderService {
             orderCreateDto.calculateAmounts();
         }
         return orderCreateDto;
+    }
+
+    @Override
+    public void checkPairToUserRestrictons(String userEmail, CurrencyPairWithRestriction activeCurrencyPair) {
+        if (activeCurrencyPair.hasTradeRestriction()) {
+            User user = userService.findByEmail(userEmail);
+
+            activeCurrencyPair.getTradeRestriction().forEach(p -> {
+                switch (p) {
+                    case ESCAPE_USA : {
+                        handleRestrictionEscapeUsa(user);
+                        break;
+                    } default: {
+                        log.debug("unhandled restriction " + p.name());
+                        break;
+                    }
+                }
+            });
+        }
+    }
+
+    private void handleRestrictionEscapeUsa(User user) {
+        if (user.getVerificationRequired()) {
+            throw new NeedVerificationException("Sorry, you must pass verification to trade this pair.");
+        }
+        if (user.getTradeRestriction() && !user.getTradesManuallyAllowed()) {
+            throw new OrderCreationRestrictedException("Sorry, you are not allowed to trade this pair");
+        }
     }
 
     @Override
@@ -892,17 +911,8 @@ public class OrderServiceImpl implements OrderService {
         String userEmail = userService.getUserEmailFromSecurityContext();
         Currency spendCurrency = null;
         CurrencyPairWithRestriction activeCurrencyPair = currencyService.findCurrencyPairByIdWithRestrictions(inputOrder.getCurrencyPairId());
-        User user = userService.findByEmail(userEmail);
 
-        if (activeCurrencyPair.hasTradeRestriction()) {
-            if (activeCurrencyPair.getTradeRestriction().contains(CurrencyPairRestrictionsEnum.ESCAPE_USA) && user.getVerificationRequired()) {
-                if (Objects.isNull(user.getCountry())) {
-                    throw new NeedVerificationException("Sorry, you must pass verification to trade this pair.");
-                } else if(user.getCountry().equalsIgnoreCase(RestrictedCountrys.USA.name())) {
-                    throw new OrderCreationRestrictedException("Sorry, you are not allowed to trade this pair");
-                }
-            }
-        }
+        checkPairToUserRestrictons(userEmail, activeCurrencyPair);
 
         if (operationType == OperationType.SELL) {
             spendCurrency = activeCurrencyPair.getCurrency1();

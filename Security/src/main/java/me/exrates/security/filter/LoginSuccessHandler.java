@@ -83,7 +83,7 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
                 me.exrates.model.User u = new me.exrates.model.User();
                 u.setId(userIpDto.getUserId());
                 u.setEmail(email);
-                u.setIp(ip);
+                u.setIpaddress(ip);
                 userService.sendUnfamiliarIpNotificationEmail(u, "emailsubmitnewip.subject", "emailsubmitnewip.text", locale);
             }
             userService.setLastRegistrationDate(userIpDto.getUserId(), ip);

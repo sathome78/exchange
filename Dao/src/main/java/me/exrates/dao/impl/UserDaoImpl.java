@@ -27,6 +27,7 @@ import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.AdminAuthority;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.PolicyEnum;
+import me.exrates.model.enums.RestrictedCountrys;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserEventEnum;
 import me.exrates.model.enums.UserIpState;
@@ -62,6 +63,7 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -85,7 +87,8 @@ public class UserDaoImpl implements UserDao {
 
     private final String SELECT_USER =
             "SELECT USER.id, u.email AS parent_email, USER.finpassword, USER.nickname, USER.email, USER.password, USER.regdate, " +
-                    "USER.phone, USER.status, USER.kyc_status, USER_ROLE.name AS role_name, USER.country AS country, USER.pub_id, USER.verification_required FROM USER " +
+                    "USER.phone, USER.status, USER.kyc_status, USER_ROLE.name AS role_name, USER.country AS country, USER.pub_id, " +
+                    "USER.verification_required, USER.trades_restriction, USER.trades_manually_allowed FROM USER " +
                     "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LEFT JOIN REFERRAL_USER_GRAPH " +
                     "ON USER.id = REFERRAL_USER_GRAPH.child LEFT JOIN USER AS u ON REFERRAL_USER_GRAPH.parent = u.id ";
 
@@ -132,6 +135,8 @@ public class UserDaoImpl implements UserDao {
             user.setCountry(resultSet.getString("country"));
             user.setPublicId(resultSet.getString("pub_id"));
             user.setVerificationRequired(resultSet.getBoolean("verification_required"));
+            user.setTradeRestriction(resultSet.getBoolean("trades_restriction"));
+            user.setTradesManuallyAllowed(resultSet.getBoolean("trades_manually_allowed"));
             try {
                 user.setParentEmail(resultSet.getString("parent_email")); // May not exist for some users
             } catch (final SQLException e) {/*NOP*/}
@@ -190,8 +195,9 @@ public class UserDaoImpl implements UserDao {
     }
 
     public boolean create(User user) {
-        String sqlUser = "insert into USER(pub_id, nickname, email, password, phone, status, roleid, verification_required ) " +
-                "values(SUBSTRING(MD5(:email), 1, 20), :nickname, :email, :password, :phone, :status, :roleid, :need_verification)";
+        String sqlUser = "insert into USER(pub_id, nickname, email, password, phone, status, roleid, verification_required, trades_restriction, trades_manually_allowed) " +
+                "values(SUBSTRING(MD5(:email), 1, 20), :nickname, :email, :password, :phone, :status, :roleid, " +
+                ":need_verification, :trades_restriction, :trades_manually_allowed)";
         String sqlWallet = "INSERT INTO WALLET (currency_id, user_id) select id, :user_id from CURRENCY;";
         String sqlNotificationOptions = "INSERT INTO NOTIFICATION_OPTIONS(notification_event_id, user_id, send_notification, send_email) " +
                 "select id, :user_id, default_send_notification, default_send_email FROM NOTIFICATION_EVENT; ";
@@ -201,6 +207,8 @@ public class UserDaoImpl implements UserDao {
         namedParameters.put("email", user.getEmail());
         namedParameters.put("nickname", user.getNickname());
         namedParameters.put("need_verification", user.getVerificationRequired());
+        namedParameters.put("trades_restriction", user.getTradeRestriction());
+        namedParameters.put("trades_manually_allowed", user.getTradesManuallyAllowed());
         if (user.getPassword() != null) {
             BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
             String hashedPassword = passwordEncoder.encode(user.getPassword());
@@ -439,6 +447,26 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
+    public boolean updateSetNeedVerification(String email, boolean needVerification) {
+        final String sql = "UPDATE USER U " +
+                "LEFT JOIN USER U2 ON U2.email = U.email and U2.country in (:country_codes) " +
+                "SET U.verification_required = :verification_required, " +
+                "                U.trades_restriction = U2.id IS NOT NULL " +
+                "WHERE U.email = :email";
+
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("verification_required", needVerification);
+        params.addValue("email", email);
+        params.addValue("country_codes", Arrays.asList(RestrictedCountrys.values()));
+
+        try {
+            return masterTemplate.update(sql, params) > 0;
+        } catch (EmptyResultDataAccessException e) {
+            return false;
+        }
+    }
+
+    @Override
     public User findByNickname(String nickname) {
         String sql = SELECT_USER + "WHERE USER.nickname = :nickname";
         final Map<String, String> params = new HashMap<String, String>() {
@@ -663,6 +691,12 @@ public class UserDaoImpl implements UserDao {
         }
         if (user.isVerificationRequired() != null) {
             fieldsStr.append("verification_required = " + user.isVerificationRequired()).append(",");
+        }
+        if (user.getTradeRestriction() != null) {
+            fieldsStr.append("trades_restriction = " + user.getTradeRestriction()).append(",");
+        }
+        if (user.getTradesManuallyAllowed() != null) {
+            fieldsStr.append("trades_manually_allowed = " + user.getTradesManuallyAllowed()).append(",");
         }
         if (fieldsStr.toString().trim().length() == 0) {
             return true;

@@ -103,6 +103,8 @@ public interface UserDao {
 
     boolean updateVerificationStatus(String email, String result);
 
+    boolean updateSetNeedVerification(String email, boolean needVerification);
+
     User findByNickname(String nickname);
 
     List<User> getAllUsers();

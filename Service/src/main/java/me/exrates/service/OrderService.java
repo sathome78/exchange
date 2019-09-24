@@ -82,6 +82,8 @@ public interface OrderService {
 
     OrderCreateDto prepareNewOrder(CurrencyPairWithRestriction activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, Integer sourceId, OrderBaseType baseType);
 
+    void checkPairToUserRestrictons(String userEmail, CurrencyPairWithRestriction activeCurrencyPair);
+
     OrderValidationDto validateOrder(OrderCreateDto orderCreateDto, boolean fromDemo, User user);
 
     OrderValidationDto validateOrder(OrderCreateDto orderCreateDto);

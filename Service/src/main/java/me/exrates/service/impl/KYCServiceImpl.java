@@ -267,6 +267,8 @@ public class KYCServiceImpl implements KYCService {
                 log.debug("Verification status: {}. Data have been ACCEPTED", eventStatus);
 
                 updated = userService.updateVerificationStatus(userEmail, eventStatus.name());
+                userService.updateSetNeedVerificationAndTradeRestriction(userEmail, false);
+
                 if (!updated) {
                     log.debug("Verification status have not been updated in database");
                 }

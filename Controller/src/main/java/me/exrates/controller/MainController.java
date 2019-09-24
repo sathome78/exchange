@@ -172,6 +172,8 @@ public class MainController {
         user.setEmail(userEmailDto.getEmail());
         user.setParentEmail(userEmailDto.getParentEmail());
         user.setVerificationRequired(false);
+        user.setTradesManuallyAllowed(false);
+        user.setTradeRestriction(false);
         String recapchaResponse = request.getParameter("g-recaptcha-response");
 
         if (verifyReCaptchaSec.verify(recapchaResponse)) {
@@ -186,7 +188,7 @@ public class MainController {
                     if (ip == null) {
                         ip = request.getRemoteHost();
                     }
-                    user.setIp(ip);
+                    user.setIpaddress(ip);
                     if (userService.create(user, localeResolver.resolveLocale(request), source)) {
                         flag = true;
                         logger.info("User registered with parameters = " + user.toString());
@@ -219,7 +221,7 @@ public class MainController {
                     Map<String, Object> body = new HashMap<>();
                     body.put("result", successNoty);
                     body.put("user", user);
-                    userService.logIP(child, user.getIp(), UserEventEnum.REGISTER, getUrlFromRequest(request));
+                    userService.logIP(child, user.getIpaddress(), UserEventEnum.REGISTER, getUrlFromRequest(request));
                     return ResponseEntity.ok(body);
 
                 } else {

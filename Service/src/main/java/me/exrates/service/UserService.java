@@ -269,6 +269,8 @@ public interface UserService {
 
     boolean updateKycStatus(String status);
 
+    boolean updateSetNeedVerificationAndTradeRestriction(String email, boolean needVerification);
+
     String getKycReferenceByEmail(String email);
 
     boolean addPolicyToUser(String email, String policy);

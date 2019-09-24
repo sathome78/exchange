@@ -106,17 +106,19 @@ public class NgUserServiceImpl implements NgUserService {
         User user = new User();
         user.setEmail(userEmailDto.getEmail());
         if (!StringUtils.isEmpty(userEmailDto.getParentEmail())) user.setParentEmail(userEmailDto.getParentEmail());
-        user.setIp(IpUtils.getClientIpAddress(request));
+        user.setIpaddress(IpUtils.getClientIpAddress(request));
         user.setVerificationRequired(userEmailDto.getIsUsa());
+        user.setTradeRestriction(userEmailDto.getIsUsa());
+        user.setTradesManuallyAllowed(false);
 
-        if (!(userDao.create(user) && userDao.insertIp(user.getEmail(), user.getIp()))) {
+        if (!(userDao.create(user) && userDao.insertIp(user.getEmail(), user.getIpaddress()))) {
             return false;
         }
 
         int idUser = userDao.getIdByEmail(userEmailDto.getEmail());
 
         user.setId(idUser);
-        userService.logIP(idUser, user.getIp(), UserEventEnum.REGISTER, getUrlFromRequest(request));
+        userService.logIP(idUser, user.getIpaddress(), UserEventEnum.REGISTER, getUrlFromRequest(request));
         sendEmailWithToken(user,
                 TokenType.REGISTRATION,
                 "emailsubmitregister.subject",
@@ -279,7 +281,7 @@ public class NgUserServiceImpl implements NgUserService {
         token.setUserId(user.getId());
         token.setValue(UUID.randomUUID().toString());
         token.setTokenType(tokenType);
-        token.setCheckIp(user.getIp());
+        token.setCheckIp(user.getIpaddress());
         token.setAlreadyUsed(false);
         logger.info("sendEmailWithToken(), temp-token {}, email {}", token.getValue(), user.getEmail());
 

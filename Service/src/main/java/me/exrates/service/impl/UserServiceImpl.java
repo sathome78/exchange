@@ -164,7 +164,7 @@ public class UserServiceImpl implements UserService {
         Boolean flag = false;
         if (this.ifEmailIsUnique(user.getEmail())) {
             if (this.ifNicknameIsUnique(user.getNickname())) {
-                if (userDao.create(user) && userDao.insertIp(user.getEmail(), user.getIp())) {
+                if (userDao.create(user) && userDao.insertIp(user.getEmail(), user.getIpaddress())) {
                     int user_id = this.getIdByEmail(user.getEmail());
                     user.setId(user_id);
                     if (source != null && !source.isEmpty()) {
@@ -192,7 +192,7 @@ public class UserServiceImpl implements UserService {
             LOGGER.error("Email already exists!");
             throw new UniqueEmailConstraintException("Email already exists!");
         }
-        Boolean result = userDao.create(user) && userDao.insertIp(user.getEmail(), user.getIp());
+        Boolean result = userDao.create(user) && userDao.insertIp(user.getEmail(), user.getIpaddress());
         if (result) {
             int user_id = this.getIdByEmail(user.getEmail());
             user.setId(user_id);
@@ -419,7 +419,7 @@ public class UserServiceImpl implements UserService {
         token.setUserId(user.getId());
         token.setValue(generateRegistrationToken());
         token.setTokenType(tokenType);
-        token.setCheckIp(user.getIp());
+        token.setCheckIp(user.getIpaddress());
         token.setAlreadyUsed(false);
 
         createTemporalToken(token);
@@ -460,7 +460,7 @@ public class UserServiceImpl implements UserService {
     public void sendUnfamiliarIpNotificationEmail(User user, String emailSubject, String emailText, Locale locale) {
         Email email = new Email();
         email.setTo(user.getEmail());
-        email.setMessage(messageSource.getMessage(emailText, new Object[]{user.getIp()}, locale));
+        email.setMessage(messageSource.getMessage(emailText, new Object[]{user.getIpaddress()}, locale));
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
         sendMailService.sendMail(email);
     }
@@ -1045,6 +1045,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean updateKycStatus(String status) {
         return userDao.updateVerificationStatus(getUserEmailFromSecurityContext(), status);
+    }
+
+    @Override
+    public boolean updateSetNeedVerificationAndTradeRestriction(String email, boolean needVerification) {
+        return userDao.updateSetNeedVerification(email, needVerification);
     }
 
     @Override
