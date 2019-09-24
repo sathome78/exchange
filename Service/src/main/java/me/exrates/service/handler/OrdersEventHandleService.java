@@ -60,10 +60,12 @@ import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
@@ -173,9 +175,13 @@ public class OrdersEventHandleService {
                 ratesHolder.onRatesChange(order);
                 currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
             }, handlersExecutors));
-            CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0]))
-                    .exceptionally(ex -> null)
-                    .join();
+            try {
+                CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0]))
+                        .exceptionally(ex -> null)
+                        .get(5, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                ExceptionUtils.printRootCauseStackTrace(e);
+            }
         });
     }
 
