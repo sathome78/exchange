@@ -38,13 +38,25 @@ function loadFreecoinsTable() {
                     "data": "currency"
                 },
                 {
-                    "data": "total_amount"
+                    "data": "total_amount",
+                    "render": function (data, type) {
+                        if (type === 'display') {
+                            return numbro(data).format('0.00[000000]');
+                        }
+                        return data;
+                    }
                 },
                 {
                     "data": "period"
                 },
                 {
-                    "data": "prize_amount"
+                    "data": "prize_amount",
+                    "render": function (data, type) {
+                        if (type === 'display') {
+                            return numbro(data).format('0.00[000000]');
+                        }
+                        return data;
+                    }
                 },
                 {
                     "data": "quantity"
