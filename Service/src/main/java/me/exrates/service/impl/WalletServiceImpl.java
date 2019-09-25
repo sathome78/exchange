@@ -50,7 +50,6 @@ import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.CacheData;
-import me.exrates.model.vo.TransactionDescription;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.CommissionService;
 import me.exrates.service.CompanyWalletService;
@@ -64,7 +63,6 @@ import me.exrates.service.api.WalletsApi;
 import me.exrates.service.exception.BalanceChangeException;
 import me.exrates.service.exception.ForbiddenOperationException;
 import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.service.exception.RefillRequestRevokeException;
 import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import me.exrates.service.util.Cache;
 import org.apache.commons.lang3.StringUtils;
@@ -1026,7 +1024,7 @@ public class WalletServiceImpl implements WalletService {
                         : wallet.getActiveBalance().subtract(amount))
                 .reservedBalanceBefore(wallet.getReservedBalance())
                 .sourceType(TransactionSourceType.FREE_COINS_TRANSFER)
-                .invoiceStatus(FreecoinsStatusEnum.CREATED_BY_USER)
+                .invoiceStatus(FreecoinsStatusEnum.CREATED)
                 .description(description)
                 .build();
     }

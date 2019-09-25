@@ -10,7 +10,7 @@ public interface FreecoinsRepository {
 
     int saveClaim(GiveawayResultDto giveawayResultDto);
 
-    GiveawayResultDto getClaim(int id);
+    GiveawayResultDto getClaim(int giveawayId);
 
     List<GiveawayResultDto> getAllCreatedClaims();
 
@@ -27,4 +27,8 @@ public interface FreecoinsRepository {
     List<ReceiveResultDto> getAllUserProcess(String receiverEmail);
 
     boolean updateStatuses();
+
+    List<GiveawayResultDto> getAllClaims();
+
+    int getUniqueAcceptorsByClaimId(int giveawayId);
 }

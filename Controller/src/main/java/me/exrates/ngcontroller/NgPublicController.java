@@ -6,7 +6,11 @@ import com.google.common.collect.Lists;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.chat.telegram.TelegramChatDao;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
-import me.exrates.model.*;
+import me.exrates.model.ChatMessage;
+import me.exrates.model.Currency;
+import me.exrates.model.CurrencyPair;
+import me.exrates.model.IEODetails;
+import me.exrates.model.User;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.ChatHistoryDateWrapperDto;
 import me.exrates.model.dto.ChatHistoryDto;
@@ -30,7 +34,13 @@ import me.exrates.ngService.NgOrderService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.service.NgUserService;
-import me.exrates.service.*;
+import me.exrates.service.ChatService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.IEOService;
+import me.exrates.service.NewsParser;
+import me.exrates.service.OrderService;
+import me.exrates.service.SendMailService;
+import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.exception.IllegalChatMessageException;
 import me.exrates.service.notifications.G2faService;
@@ -43,6 +53,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.util.Base64Utils;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -65,6 +76,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -421,6 +433,20 @@ public class NgPublicController {
     public ResponseModel<?> sendErrorReposrt(@RequestBody @Valid ErrorReportDto dto) {
         ngUserService.sendErrorReportEmail(dto);
         return new ResponseModel<>();
+    }
+
+    @PostMapping(value = "/mailing-subscription")
+    public ResponseEntity<Boolean> subscribe(@RequestParam(value = "public_id", required = false) String publicId,
+                                             @RequestParam(value = "token", required = false) String token,
+                                             @RequestParam boolean subscribe) {
+        if (Objects.nonNull(publicId)) {
+            return ResponseEntity.ok(userService.subscribeToMailingByPublicId(publicId, subscribe));
+        } else if (Objects.nonNull(token)) {
+            final String email = new String(Base64Utils.decodeFromString(token));
+
+            return ResponseEntity.ok(userService.subscribeToMailingByEmail(email, subscribe));
+        }
+        return ResponseEntity.badRequest().build();
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

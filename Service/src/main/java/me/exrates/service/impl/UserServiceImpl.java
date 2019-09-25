@@ -93,6 +93,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -452,6 +453,11 @@ public class UserServiceImpl implements UserService {
         );
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
         email.setTo(user.getEmail());
+
+        Properties properties = new Properties();
+        properties.put("public_id", user.getPublicId());
+        email.setProperties(properties);
+
         sendMailService.sendMail(email);
 
     }
@@ -462,6 +468,11 @@ public class UserServiceImpl implements UserService {
         email.setTo(user.getEmail());
         email.setMessage(messageSource.getMessage(emailText, new Object[]{user.getIp()}, locale));
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
+
+        Properties properties = new Properties();
+        properties.put("public_id", user.getPublicId());
+        email.setProperties(properties);
+
         sendMailService.sendMail(email);
     }
 
@@ -1104,5 +1115,15 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteTemporalTokenByUserIdAndTokenType(int userId, TokenType tokenType) {
         userDao.deleteTemporalTokenByUserIdAndTokenType(userId, tokenType);
+    }
+
+    @Override
+    public boolean subscribeToMailingByPublicId(String publicId, boolean subscribe) {
+        return userDao.subscribeToMailingByPublicId(publicId, subscribe);
+    }
+
+    @Override
+    public boolean subscribeToMailingByEmail(String email, boolean subscribe) {
+        return userDao.subscribeToMailingByEmail(email, subscribe);
     }
 }
