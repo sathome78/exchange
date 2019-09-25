@@ -1,5 +1,6 @@
-INSERT IGNORE INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)
-VALUES ('Tether USD TRC-20', 'USDTTRC20', 2, 'usdttrc20ServiceImpl', 'CRYPTO');
+Set @tronId = (SELECT id FROM MERCHANT WHERE name = 'TRX');
+INSERT IGNORE INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`, `tokens_parrent_id`)
+VALUES ('Tether USD TRC-20', 'USDTTRC20', 2, 'tronServiceImpl', 'CRYPTO', @tronId);
 INSERT IGNORE INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
 VALUES ('USDTTRC20', 'Tether USD TRC-20', 0, 8, 8, 8);
 

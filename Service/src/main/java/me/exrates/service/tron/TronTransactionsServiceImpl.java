@@ -58,8 +58,8 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
     private void init() {
         //TODO transfer to main account
         scheduler.scheduleAtFixedRate(this::checkUnconfirmedJob, 5, 2, TimeUnit.MINUTES);
-        transferScheduler.scheduleAtFixedRate(this::transferToMainAccountJob, 5, 30, TimeUnit.MINUTES);
-        transferScheduler.scheduleAtFixedRate(this::transferTokensToMainAccountJob, 5, 30, TimeUnit.MINUTES);
+        transferScheduler.scheduleAtFixedRate(this::transferToMainAccountJob, 2, 5, TimeUnit.MINUTES);
+        transferScheduler.scheduleAtFixedRate(this::transferTokensToMainAccountJob, 2, 5, TimeUnit.MINUTES);
     }
 
     private void checkUnconfirmedJob() {
