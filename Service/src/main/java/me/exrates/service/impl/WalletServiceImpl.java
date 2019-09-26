@@ -86,6 +86,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -868,7 +869,9 @@ public class WalletServiceImpl implements WalletService {
             userIeoWallet = walletDao.createWallet(ieoClaim.getUserId(), currencyId);
         }
 
-        BigDecimal makerBtcInitialAmount = makerBtcWallet.getIeoReserved();
+        BigDecimal makerBtcInitialAmount = Objects.isNull(makerBtcWallet.getIeoReserved())
+                ? ZERO
+                : makerBtcWallet.getIeoReserved();
         makerBtcWallet.setIeoReserved(makerBtcInitialAmount.add(ieoClaim.getPriceInBtc()));
 
         BigDecimal updateActiveUserBalanceBtc = userBtcWallet.getActiveBalance().subtract(ieoClaim.getPriceInBtc());
