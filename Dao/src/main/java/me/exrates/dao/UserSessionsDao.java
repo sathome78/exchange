@@ -9,7 +9,7 @@ public interface UserSessionsDao {
 
     void insertSessionDto(UserLoginSessionDto userLoginSessionDto, String email);
 
-    boolean updateModified(String userAgent, LocalDateTime modified, String email);
+    boolean updateModified(String userAgent, String token, LocalDateTime modified);
 
     List<UserLoginSessionDto> getPage(String email, int limit, int offset);
 
