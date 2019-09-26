@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -42,6 +41,8 @@ public class SendMailServiceImpl implements SendMailService {
     private final static ExecutorService EXECUTORS = Executors.newCachedThreadPool();
     private final static ExecutorService SUPPORT_MAIL_EXECUTORS = Executors.newCachedThreadPool();
     private static final String UTF8 = "UTF-8";
+    private static final String DEFAULT_SENDER = "default";
+
     @Autowired
     @Qualifier("SupportMailSender")
     private JavaMailSender supportMailSender;
@@ -92,7 +93,7 @@ public class SendMailServiceImpl implements SendMailService {
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void sendMail(Email email) {
-        JavaMailSender sender = this.defineEmailSender(email.getTo(), settingsService.getEmailsSender());
+        JavaMailSender sender = this.defineEmailSender(email.getTo());
         email.setFrom(noReplyExrateMe);
         SUPPORT_MAIL_EXECUTORS.execute(() -> {
             try {
@@ -104,18 +105,21 @@ public class SendMailServiceImpl implements SendMailService {
         });
     }
 
-    private JavaMailSender defineEmailSender(String to, Map<String, String> emailsSenders) {
+    private JavaMailSender defineEmailSender(String to) {
         String host = to.split("@")[1];
-        if (emailsSenders.get(host) == null) {
+        String sender = settingsService.getEmailsSenderFromCache(host);
+        if (sender == null || sender.equalsIgnoreCase(DEFAULT_SENDER)) {
             return supportMailSender;
         }
 
-        switch (host) {
-            case "sendGridMailSender":
-                return sendGridMailSender;
-            default:
-                return supportMailSender;
+        if ("sendGridMailSender".equalsIgnoreCase(sender)) {
+            return sendGridMailSender;
         }
+
+        if ("supportMailSender".equalsIgnoreCase(sender)) {
+            return supportMailSender;
+        }
+        return supportMailSender;
     }
 
     /*Use sendMail*/
