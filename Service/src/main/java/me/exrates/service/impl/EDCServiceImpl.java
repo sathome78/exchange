@@ -7,7 +7,6 @@ import com.google.gson.JsonParser;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.dao.EDCAccountDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.condition.MonolitConditional;
@@ -20,7 +19,6 @@ import me.exrates.service.EDCServiceNode;
 import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
-import me.exrates.service.TransactionService;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestFakePaymentReceivedException;
@@ -46,6 +44,8 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
+import static me.exrates.service.util.RequestUtil.getSSlFactory;
+
 @Log4j2(topic = "edc_log")
 @Service
 @PropertySource({"classpath:/merchants/edcmerchant.properties"})
@@ -63,24 +63,34 @@ public class EDCServiceImpl implements EDCService {
     private @Value("${edcmerchant.new_account}")
     String urlCreateNewAccount;
 
+    private final MessageSource messageSource;
+    private final RefillService refillService;
+    private final MerchantService merchantService;
+    private final CurrencyService currencyService;
+    private final WithdrawUtils withdrawUtils;
+    private final EDCServiceNode edcServiceNode;
+    private final GtagService gtagService;
+    private final RestTemplate restTemplate;
+
     @Autowired
-    private TransactionService transactionService;
-    @Autowired
-    private EDCAccountDao edcAccountDao;
-    @Autowired
-    private MessageSource messageSource;
-    @Autowired
-    private RefillService refillService;
-    @Autowired
-    private MerchantService merchantService;
-    @Autowired
-    private CurrencyService currencyService;
-    @Autowired
-    private WithdrawUtils withdrawUtils;
-    @Autowired
-    private EDCServiceNode edcServiceNode;
-    @Autowired
-    private GtagService gtagService;
+    public EDCServiceImpl(MessageSource messageSource,
+                          RefillService refillService,
+                          MerchantService merchantService,
+                          CurrencyService currencyService,
+                          WithdrawUtils withdrawUtils,
+                          EDCServiceNode edcServiceNode,
+                          GtagService gtagService) {
+        this.messageSource = messageSource;
+        this.refillService = refillService;
+        this.merchantService = merchantService;
+        this.currencyService = currencyService;
+        this.withdrawUtils = withdrawUtils;
+        this.edcServiceNode = edcServiceNode;
+        this.gtagService = gtagService;
+        restTemplate = new RestTemplate();
+        restTemplate.setRequestFactory(getSSlFactory());
+    }
+
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
@@ -189,7 +199,6 @@ public class EDCServiceImpl implements EDCService {
     }
 
     private String getAddress() {
-        RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

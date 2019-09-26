@@ -45,6 +45,7 @@ import java.util.Properties;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static me.exrates.service.util.RequestUtil.getSSlFactory;
 
 @PropertySource(value = {"classpath:/kyc.properties", "classpath:/angular.properties"})
 @Slf4j
@@ -112,7 +113,7 @@ public class KYCServiceImpl implements KYCService {
         this.kycHttpClient = kycHttpClient;
         this.stompMessenger = stompMessenger;
         this.restTemplate = new RestTemplate();
-        this.restTemplate.setRequestFactory(sslFactory());
+        this.restTemplate.setRequestFactory(getSSlFactory());
         this.restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(username, password));
     }
 
@@ -339,14 +340,7 @@ public class KYCServiceImpl implements KYCService {
         }
     }
 
-    private HttpComponentsClientHttpRequestFactory sslFactory() {
-        CloseableHttpClient httpClient = HttpClients.custom()
-                .setSSLHostnameVerifier(new NoopHostnameVerifier())
-                .build();
-        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-        requestFactory.setHttpClient(httpClient);
-        return requestFactory;
-    }
+
 
     @Builder(builderClassName = "Builder")
     @AllArgsConstructor
