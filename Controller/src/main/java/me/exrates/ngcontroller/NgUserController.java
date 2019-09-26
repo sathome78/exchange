@@ -151,7 +151,7 @@ public class NgUserController {
         AuthTokenDto authTokenDto = createToken(authenticationDto, request, user);
 //        ipBlockingService.successfulProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
         userService.logIP(user.getId(), ipAddress, UserEventEnum.LOGIN_SUCCESS, getUrlFromRequest(request));
-        CompletableFuture.runAsync(() -> userLoginSessionsService.insert(request, authTokenDto, user.getEmail()));
+        CompletableFuture.runAsync(() -> userLoginSessionsService.insert(request, authTokenDto.getToken(), user.getEmail()));
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK); // 200
     }
 

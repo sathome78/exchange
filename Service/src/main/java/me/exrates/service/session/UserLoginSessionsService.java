@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 public interface UserLoginSessionsService {
     PagedResult<UserLoginSessionShortDto> getSessionsHistory(String userEmail, int limit, int offset, HttpServletRequest request);
 
-    void insert(HttpServletRequest request, AuthTokenDto authTokenDto, String email);
+    void insert(HttpServletRequest request, String token, String email);
 
     void update(HttpServletRequest request, Authentication authentication);
 }

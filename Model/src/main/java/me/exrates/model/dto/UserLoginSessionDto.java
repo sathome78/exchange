@@ -1,13 +1,18 @@
 package me.exrates.model.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+@Builder
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserLoginSessionDto {
 
-    private Integer userId;
     private String device;
     private String userAgent;
     private String os;
