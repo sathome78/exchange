@@ -133,7 +133,16 @@ public class NgWithdrawController {
         if (StringUtils.isEmpty(requestParamsDto.getSecurityCode())) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
+
         User user = userService.findByEmail(email);
+        MerchantCurrency merchantCurrency = merchantService
+                .findByMerchantAndCurrency(requestParamsDto.getMerchant(), requestParamsDto.getCurrency()).orElseThrow(() -> new RuntimeException("merchant not found"));
+        withdrawService.setAdditionalData(merchantCurrency, user);
+
+        if (merchantCurrency.getNeedKycWithdraw()) {
+            throw new UserOperationAccessException("Need to pass KYC");
+        }
+
         if (g2faService.isGoogleAuthenticatorEnable(user.getId())) {
             if (!g2faService.checkGoogle2faVerifyCode(requestParamsDto.getSecurityCode(), user.getId())) {
                 throw new IncorrectPinException();

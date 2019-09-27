@@ -13,6 +13,7 @@ import me.exrates.model.Merchant;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.PagingData;
 import me.exrates.model.Payment;
+import me.exrates.model.QuberaUserData;
 import me.exrates.model.RefillRequestAddressShortDto;
 import me.exrates.model.User;
 import me.exrates.model.condition.MonolitConditional;
@@ -57,6 +58,7 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.InputOutputService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.NotificationService;
+import me.exrates.service.QuberaService;
 import me.exrates.service.RefillService;
 import me.exrates.service.RequestLimitExceededException;
 import me.exrates.service.UserFilesService;
@@ -171,6 +173,8 @@ public class RefillServiceImpl implements RefillService {
     private CommissionService commissionService;
     @Autowired
     private UserFilesService userFilesService;
+    @Autowired
+    private QuberaService quberaService;
 
     @Override
     public Map<String, String> callRefillIRefillable(RefillRequestCreateDto request) {
@@ -273,10 +277,11 @@ public class RefillServiceImpl implements RefillService {
     @Override
     @Transactional
     public List<MerchantCurrency> retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies, String userEmail) {
-        Integer userId = userService.getIdByEmail(userEmail);
+        User user = userService.findByEmail(userEmail);
+
         merchantCurrencies.forEach(e -> {
 
-            e.setAddress(refillRequestDao.findLastValidAddressByMerchantIdAndCurrencyIdAndUserId(e.getMerchantId(), e.getCurrencyId(), userId).orElse(""));
+            e.setAddress(refillRequestDao.findLastValidAddressByMerchantIdAndCurrencyIdAndUserId(e.getMerchantId(), e.getCurrencyId(), user.getId()).orElse(""));
             /**/
             //TODO: Temporary fix
             if (e.getMerchantId() == merchantService.findByName("EDC").getId()) {
@@ -293,8 +298,30 @@ public class RefillServiceImpl implements RefillService {
             if (!StringUtils.isEmpty(e.getAddress()) && merchantService.concatAdditionalToMainAddress()) {
                 e.setAddress(merchantService.getMainAddress().concat(e.getAddress()));
             }
+
+            setNeedKyc(e, user);
+
         });
         return merchantCurrencies;
+    }
+
+    @Override
+    public void setNeedKyc(MerchantCurrency merchantCurrency, User user) {
+
+        if (merchantCurrency.getNeedKycRefill()) {
+            switch (merchantCurrency.getVerificationType()) {
+                case ariadnext:
+                    QuberaUserData quberaUserData = quberaService.getUserDataByUserEmail(user.getEmail());
+                    if (quberaUserData != null) {
+                        String status = quberaUserData.getBankVerificationStatus();
+                        merchantCurrency.setNeedKycRefill(!status.equalsIgnoreCase("OK"));
+                    }
+                    break;
+                case shuftipro:
+                    merchantCurrency.setNeedKycRefill(!user.getKycStatus().equalsIgnoreCase("SUCCESS"));
+                    break;
+            }
+        }
     }
 
     @Override

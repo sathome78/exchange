@@ -311,7 +311,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
             data.setHigh24hr(lastOrderRate.toPlainString());
         }
         BigDecimal low24hr = new BigDecimal(data.getLow24hr());
-        if (isZero(low24hr) || lastOrderRate.compareTo(high24hr) < 0) {
+        if (isZero(low24hr) || lastOrderRate.compareTo(low24hr) < 0) {
             data.setLow24hr(lastOrderRate.toPlainString());
         }
         calculatePercentChange(data);
