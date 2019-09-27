@@ -261,4 +261,7 @@ public interface UserDao {
 
     void deleteTemporalTokenByUserIdAndTokenType(int userId, TokenType tokenType);
 
+    boolean subscribeToMailingByPublicId(String publicId, boolean subscribe);
+
+    boolean subscribeToMailingByEmail(String email, boolean subscribe);
 }

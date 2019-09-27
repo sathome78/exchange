@@ -69,6 +69,7 @@ import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
 
 import static me.exrates.model.constants.ErrorApiTitles.KYC_NOT_PROCESSING;
@@ -412,6 +413,11 @@ public class QuberaServiceImpl implements QuberaService {
         email.setTo(user.getEmail());
         email.setSubject("Deposit for your bank account");
         email.setMessage(msg);
+
+        Properties properties = new Properties();
+        properties.put("public_id", user.getPublicId());
+        email.setProperties(properties);
+
         sendMailService.sendMail(email);
     }
 
@@ -681,6 +687,11 @@ public class QuberaServiceImpl implements QuberaService {
         email.setTo(user.getEmail());
         email.setSubject("Deposit fiat");
         email.setMessage(msg);
+
+        Properties properties = new Properties();
+        properties.put("public_id", user.getPublicId());
+        email.setProperties(properties);
+
         sendMailService.sendMail(email);
     }
 

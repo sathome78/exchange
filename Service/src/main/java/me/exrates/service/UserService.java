@@ -288,4 +288,8 @@ public interface UserService {
     boolean updateCountryCode(String countryCode);
 
     void deleteTemporalTokenByUserIdAndTokenType(int userId, TokenType tokenType);
+
+    boolean subscribeToMailingByPublicId(String publicId, boolean subscribe);
+
+    boolean subscribeToMailingByEmail(String email, boolean subscribe);
 }
