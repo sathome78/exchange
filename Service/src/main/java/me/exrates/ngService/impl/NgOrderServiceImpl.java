@@ -124,7 +124,7 @@ public class NgOrderServiceImpl implements NgOrderService {
         CurrencyPairWithRestriction currencyPair = currencyService.findCurrencyPairByIdWithRestrictions(inputOrder.getCurrencyPairId());
 
         if (currencyPair.hasTradeRestriction()) {
-            if (currencyPair.getTradeRestriction().contains(CurrencyPairRestrictionsEnum.ESCAPE_USA) && user.isVerificationRequired()) {
+            if (currencyPair.getTradeRestriction().contains(CurrencyPairRestrictionsEnum.ESCAPE_USA) && user.getVerificationRequired()) {
                 if (Objects.isNull(user.getCountry())) {
                     throw new NeedVerificationException("Sorry, you must pass verification to trade this pair.");
                 } else if(user.getCountry().equalsIgnoreCase(RestrictedCountrys.USA.name())) {

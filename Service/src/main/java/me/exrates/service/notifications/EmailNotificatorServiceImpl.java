@@ -4,9 +4,12 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Email;
 import me.exrates.model.enums.NotificationTypeEnum;
 import me.exrates.service.SendMailService;
+import me.exrates.service.UserService;
 import me.exrates.service.exception.MessageUndeliweredException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Properties;
 
 /**
  * Created by Maks on 29.09.2017.
@@ -17,6 +20,8 @@ public class EmailNotificatorServiceImpl implements NotificatorService {
 
     @Autowired
     private SendMailService sendMailService;
+    @Autowired
+    private UserService userService;
 
 
     @Override
@@ -30,6 +35,11 @@ public class EmailNotificatorServiceImpl implements NotificatorService {
         email.setTo(userEmail);
         email.setMessage(message);
         email.setSubject(subject);
+
+        Properties properties = new Properties();
+        properties.put("public_id", userService.getPubIdByEmail(userEmail));
+        email.setProperties(properties);
+
         sendMailService.sendMail(email);
         return userEmail;
     }

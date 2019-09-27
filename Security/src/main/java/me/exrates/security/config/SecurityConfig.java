@@ -184,6 +184,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(POST, "/2a8fy7b07dxe44/autoTrading/**")
             .hasAnyAuthority(UserRole.BOT_TRADER.name(), UserRole.ADMINISTRATOR.name())
             .antMatchers("/2a8fy7b07dxe44/ieo/**").hasAnyAuthority(UserRole.ADMINISTRATOR.name())
+            .antMatchers("/2a8fy7b07dxe44/free-coins/**").hasAnyAuthority(UserRole.ADMINISTRATOR.name())
             /*... ADMIN */
             .antMatchers("/2a8fy7b07dxe44/**",
                     "/2a8fy7b07dxe44").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.FIN_OPERATOR.name())

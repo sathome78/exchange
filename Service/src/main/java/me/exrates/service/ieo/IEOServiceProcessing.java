@@ -32,6 +32,7 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 
 @Service
 @Log4j2
@@ -259,6 +260,11 @@ public class IEOServiceProcessing {
         email.setTo(userEmail);
         email.setMessage(message.getText());
         email.setSubject(message.getNotificationType().name());
+
+        Properties properties = new Properties();
+        properties.put("public_id", userService.getPubIdByEmail(userEmail));
+        email.setProperties(properties);
+
         return email;
     }
 

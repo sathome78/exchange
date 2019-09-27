@@ -140,52 +140,37 @@ import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 @Conditional(MonolitConditional.class)
 public class RefillServiceImpl implements RefillService {
 
-    @Value("${invoice.blockNotifyUsers}")
-    private Boolean BLOCK_NOTIFYING;
-
     private static final Logger log = LogManager.getLogger("refill");
-
-    @Autowired
-    private MerchantDao merchantDao;
-
-    @Autowired
-    private CurrencyService currencyService;
-
-    @Autowired
-    private MessageSource messageSource;
-
-    @Autowired
-    private RefillRequestDao refillRequestDao;
-
-    @Autowired
-    private MerchantService merchantService;
-
-    @Autowired
-    private CompanyWalletService companyWalletService;
-
-    @Autowired
-    private WalletService walletService;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private NotificationService notificationService;
-
     @Autowired
     TransactionDescription transactionDescription;
-
     @Autowired
     MerchantServiceContext merchantServiceContext;
-
-    @Autowired
-    private CommissionService commissionService;
-
-    @Autowired
-    private UserFilesService userFilesService;
-
     @Autowired
     InputOutputService inputOutputService;
+    @Value("${invoice.blockNotifyUsers}")
+    private Boolean BLOCK_NOTIFYING;
+    @Autowired
+    private MerchantDao merchantDao;
+    @Autowired
+    private CurrencyService currencyService;
+    @Autowired
+    private MessageSource messageSource;
+    @Autowired
+    private RefillRequestDao refillRequestDao;
+    @Autowired
+    private MerchantService merchantService;
+    @Autowired
+    private CompanyWalletService companyWalletService;
+    @Autowired
+    private WalletService walletService;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private NotificationService notificationService;
+    @Autowired
+    private CommissionService commissionService;
+    @Autowired
+    private UserFilesService userFilesService;
 
     @Override
     public Map<String, String> callRefillIRefillable(RefillRequestCreateDto request) {
@@ -533,7 +518,9 @@ public class RefillServiceImpl implements RefillService {
                     locale);
             String userEmail = userService.getEmailById(refillRequestFlatDto.getUserId());
             userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
-            notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+            if (refillRequestFlatDto.getStatus() != RefillStatusEnum.ON_BCH_EXAM) {
+                notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+            }
         } else {
             throw new RefillRequestAppropriateNotFoundException(onBchExamDto.toString());
         }
@@ -612,6 +599,7 @@ public class RefillServiceImpl implements RefillService {
 
         RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);
         /**/
+
         Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
         String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
         String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
@@ -619,8 +607,9 @@ public class RefillServiceImpl implements RefillService {
                 locale);
         String userEmail = userService.getEmailById(refillRequestFlatDto.getUserId());
         userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
-        notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
-
+        if (refillRequestFlatDto.getStatus() != RefillStatusEnum.ON_BCH_EXAM) {
+            notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+        }
         return requestId;
     }
 
@@ -639,8 +628,9 @@ public class RefillServiceImpl implements RefillService {
                 locale);
         String userEmail = userService.getEmailById(refillRequestFlatDto.getUserId());
         userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
-        notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
-
+        if (refillRequestFlatDto.getStatus() != RefillStatusEnum.ON_BCH_EXAM) {
+            notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+        }
         return requestId;
     }
 
@@ -668,7 +658,9 @@ public class RefillServiceImpl implements RefillService {
                     locale);
             String userEmail = userService.getEmailById(refillRequestFlatDto.getUserId());
             userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
-            notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+            if (refillRequestFlatDto.getStatus() != RefillStatusEnum.ON_BCH_EXAM) {
+                notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+            }
         } else {
             throw new RefillRequestAppropriateNotFoundException(requestAcceptDto.toString());
         }
@@ -714,7 +706,9 @@ public class RefillServiceImpl implements RefillService {
                     locale);
             String userEmail = userService.getEmailById(refillRequestFlatDto.getUserId());
             userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
-            notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+            if (refillRequestFlatDto.getStatus() != RefillStatusEnum.ON_BCH_EXAM) {
+                notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+            }
         }
     }
 
@@ -736,7 +730,9 @@ public class RefillServiceImpl implements RefillService {
                         locale);
                 String userEmail = userService.getEmailById(refillRequestFlatDto.getUserId());
                 userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
-                notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+                if (refillRequestFlatDto.getStatus() != RefillStatusEnum.ON_BCH_EXAM) {
+                    notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+                }
             }
         } catch (Exception e) {
             throw new WithdrawRequestPostException(refillRequestFlatDto.toString());
@@ -1054,7 +1050,9 @@ public class RefillServiceImpl implements RefillService {
                 }
                 String userEmail = userService.getEmailById(refillRequest.getUserId());
                 userService.addUserComment(REFILL_DECLINE, comment, userEmail, false);
-                notificationService.notifyUser(refillRequest.getUserId(), NotificationEvent.IN_OUT, title, comment);
+                if (newStatus != RefillStatusEnum.ON_BCH_EXAM) {
+                    notificationService.notifyUser(refillRequest.getUserId(), NotificationEvent.IN_OUT, title, comment);
+                }
             }
             profileData.setTime3();
         } finally {
@@ -1415,5 +1413,18 @@ public class RefillServiceImpl implements RefillService {
     @Override
     public boolean changeRefillRequestStatusToOnPending(int id) {
         return refillRequestDao.changeRefillRequestStatusToOnPending(id);
+    }
+
+    @Override
+    public Map<String, String> correctAmountAndCalculateCommissionPreliminarily(Integer userId, BigDecimal amount,
+                                                                                Integer currencyId, Integer merchantId,
+                                                                                Locale locale, String destinationTag) {
+        OperationType operationType = INPUT;
+        BigDecimal addition = currencyService.computeRandomizedAddition(currencyId, operationType);
+        amount = amount.add(addition);
+        merchantService.checkAmountForMinSum(merchantId, currencyId, amount);
+        Map<String, String> result = commissionService.computeCommissionAndMapAllToString(userId, amount, operationType, currencyId, merchantId, locale, destinationTag);
+        result.put("addition", addition.toString());
+        return result;
     }
 }

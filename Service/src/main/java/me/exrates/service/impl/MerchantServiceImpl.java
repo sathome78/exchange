@@ -175,6 +175,10 @@ public class MerchantServiceImpl implements MerchantService {
                 .getMessage("merchants.depositNotification.header", null, locale));
         mail.setMessage(notification);
 
+        Properties properties = new Properties();
+        properties.put("public_id", userService.getPubIdByEmail(email));
+        mail.setProperties(properties);
+
         try {
       /* TODO temporary disable
       notificationService.createLocalizedNotification(email, NotificationEvent.IN_OUT,

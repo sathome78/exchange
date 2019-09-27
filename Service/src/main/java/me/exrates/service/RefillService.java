@@ -4,7 +4,17 @@ import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewrit
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.RefillRequestAddressShortDto;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.RefillRequestAcceptDto;
+import me.exrates.model.dto.RefillRequestAddressDto;
+import me.exrates.model.dto.RefillRequestBtcInfoDto;
+import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.RefillRequestFlatAdditionalDataDto;
+import me.exrates.model.dto.RefillRequestFlatDto;
+import me.exrates.model.dto.RefillRequestFlatForReportDto;
+import me.exrates.model.dto.RefillRequestManualDto;
+import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
+import me.exrates.model.dto.RefillRequestSetConfirmationsNumberDto;
+import me.exrates.model.dto.RefillRequestsAdminTableDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillAddressFilterData;
@@ -201,4 +211,9 @@ public interface RefillService {
     boolean setPropertyNeedTransfer(int userId, int currencyId, int merchantId, String address, Boolean needTransfer);
 
     boolean changeRefillRequestStatusToOnPending(int id);
+
+    Map<String, String> correctAmountAndCalculateCommissionPreliminarily(Integer userId, BigDecimal amount,
+                                                                         Integer currencyId, Integer merchantId,
+                                                                         Locale locale, String destinationTag);
+
 }

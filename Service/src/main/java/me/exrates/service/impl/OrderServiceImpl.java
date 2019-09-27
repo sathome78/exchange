@@ -393,7 +393,7 @@ public class OrderServiceImpl implements OrderService {
         User user = userService.findByEmail(userEmail);
 
         if (activeCurrencyPair.hasTradeRestriction()) {
-            if (activeCurrencyPair.getTradeRestriction().contains(CurrencyPairRestrictionsEnum.ESCAPE_USA) && user.isVerificationRequired()) {
+            if (activeCurrencyPair.getTradeRestriction().contains(CurrencyPairRestrictionsEnum.ESCAPE_USA) && user.getVerificationRequired()) {
                 if (Objects.isNull(user.getCountry())) {
                     throw new NeedVerificationException("Sorry, you must pass verification to trade this pair.");
                 } else if(user.getCountry().equalsIgnoreCase(RestrictedCountrys.USA.name())) {
@@ -895,7 +895,7 @@ public class OrderServiceImpl implements OrderService {
         User user = userService.findByEmail(userEmail);
 
         if (activeCurrencyPair.hasTradeRestriction()) {
-            if (activeCurrencyPair.getTradeRestriction().contains(CurrencyPairRestrictionsEnum.ESCAPE_USA) && user.isVerificationRequired()) {
+            if (activeCurrencyPair.getTradeRestriction().contains(CurrencyPairRestrictionsEnum.ESCAPE_USA) && user.getVerificationRequired()) {
                 if (Objects.isNull(user.getCountry())) {
                     throw new NeedVerificationException("Sorry, you must pass verification to trade this pair.");
                 } else if(user.getCountry().equalsIgnoreCase(RestrictedCountrys.USA.name())) {
@@ -2701,7 +2701,14 @@ public class OrderServiceImpl implements OrderService {
             row.createCell(2, CellType.STRING).setCellValue(getValue(transaction.getCurrencyName()));
             row.createCell(3, CellType.STRING).setCellValue(getValue(transaction.getCommissionAmount()));
             row.createCell(4, CellType.STRING).setCellValue(getValue(transaction.getAmount()));
-            row.createCell(5, CellType.STRING).setCellValue(getValue(transaction.getSourceType()));
+
+            String sourceType = nonNull(transaction.getSourceType())
+                    ? transaction.getSourceType().name()
+                    : StringUtils.EMPTY;
+            if (sourceType.equals(TransactionSourceType.FREE_COINS_TRANSFER.name())) {
+                sourceType = String.format("%s %s", transaction.getOperationType(), sourceType);
+            }
+            row.createCell(5, CellType.STRING).setCellValue(sourceType);
             row.createCell(6, CellType.STRING).setCellValue(getValue(transaction.getTransactionHash()));
         }
 

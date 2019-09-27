@@ -1,0 +1,18 @@
+DROP PROCEDURE IF EXISTS `Alter_Table`;
+
+DELIMITER ;;
+CREATE PROCEDURE Alter_Table()
+  BEGIN
+    IF NOT EXISTS(SELECT NULL
+                  FROM INFORMATION_SCHEMA.COLUMNS
+                  WHERE table_name = 'FREE_COINS_CLAIM' AND column_name = 'created_at')
+    THEN
+      ALTER TABLE FREE_COINS_CLAIM ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP AFTER creator_email;
+    END IF;
+
+  END;;
+DELIMITER ;
+
+CALL Alter_Table();
+
+DROP PROCEDURE IF EXISTS Alter_Table;

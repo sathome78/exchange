@@ -170,6 +170,42 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
     }
 
     @Test
+    public void checkIfPublicIdExists_whenEmpty() throws Exception {
+        when(userService.getEmailByPubId(anyString())).thenThrow(UserNotFoundException.class);
+        mockMvc.perform(get(BASE_URL + "/check/publicity")
+                .param("id", "hgfhjsdgfkjsadgfsa")
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.STATUS").value("false"));
+        reset(userService);
+    }
+
+    @Test
+    public void checkIfPublicIdExists_whenExists() throws Exception {
+        when(userService.getEmailByPubId(anyString())).thenReturn(EMAIL);
+        mockMvc.perform(get(BASE_URL + "/check/publicity")
+                .param("id", "hgfhjsdgfkjsadgfsa")
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.STATUS").value("true"));
+        reset(userService);
+    }
+
+    @Test
+    public void checkIfPublicIdExists_whenInvalidQueryParam() throws Exception {
+        when(userService.getEmailByPubId(anyString())).thenReturn(EMAIL);
+        mockMvc.perform(get(BASE_URL + "/check/publicity")
+                .param("id", "")
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.STATUS").value("false"));
+        reset(userService);
+    }
+
+    @Test
     public void checkIfNewUserEmailExists_whenRegistrationIncomplete() throws Exception {
         String actualMessage = String.format("User with email %s registration is not complete", EMAIL);
         User user = new User();
