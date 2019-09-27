@@ -14,12 +14,14 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 
 import static java.util.Objects.isNull;
 
+@EnableScheduling
 @PropertySource(value = {"classpath:/rabbit.properties"})
 @Log4j2
 @Service
@@ -42,24 +44,10 @@ public class RabbitMqServiceImpl implements RabbitMqService {
         this.chartQueue = chartQueue;
     }
 
+//    @Scheduled(initialDelay = 0, fixedDelay = 5000)
 //    @Override
-//    public void sendOrderInfo(InputCreateOrderDto inputOrder, String queueName) {
-//        try {
-//            String orderJson = mapper.writeValueAsString(inputOrder);
-//            log.info("Sending order to demo-server {}", orderJson);
-//
-//            try {
-//                byte[] bytes = (byte[]) this.rabbitTemplate.convertSendAndReceive(queueName, orderJson);
-//                String result = new String(bytes);
-//                log.info("Return from demo-server {}", result);
-//            } catch (AmqpException e) {
-//                String msg = "Failed to send data via rabbit queue";
-//                log.error(msg + " " + orderJson, e);
-//                throw new RabbitMqException(msg);
-//            }
-//        } catch (JsonProcessingException e) {
-//            log.error("Failed to send order to old instance", e);
-//        }
+//    public void generateNewTrade() {
+//        initData();
 //    }
 
     @Override
@@ -67,10 +55,9 @@ public class RabbitMqServiceImpl implements RabbitMqService {
         if (!Objects.equals(order.getStatus(), OrderStatus.CLOSED) || isNull(order.getDateAcception())) {
             return;
         }
-        CurrencyPair currencyPair = currencyService.findCurrencyPairById(order.getCurrencyPairId());
 
         final TradeDataDto tradeDataDto = new TradeDataDto(order);
-        tradeDataDto.setPairName(currencyPair.getName());
+        tradeDataDto.setCurrencyPairName(currencyService.findCurrencyPairById(order.getCurrencyPairId()).getName());
 
         log.info("Start sending trade data to chart service");
         try {
@@ -81,4 +68,25 @@ public class RabbitMqServiceImpl implements RabbitMqService {
             throw new RabbitMqException("Failed to send data via rabbit queue");
         }
     }
+
+//    private void initData() {
+//        Random r = new Random();
+//
+//        final TradeDataDto tradeDataDto = TradeDataDto.builder()
+//                .pairName("BTC/USD")
+//                .exrate(BigDecimal.valueOf(9000.0 + (12000.0 - 9000.0) * r.nextDouble()))
+//                .amountBase(BigDecimal.valueOf(0.0 + (100.0 - 0.0) * r.nextDouble()))
+//                .amountConvert(BigDecimal.valueOf(0.0 + (100.0 - 0.0) * r.nextDouble()))
+//                .tradeDate(LocalDateTime.now())
+//                .build();
+//
+//        log.info("Start sending trade data to chart service");
+//        try {
+//            rabbitTemplate.convertAndSend(chartQueue, tradeDataDto);
+//
+//            log.info("End sending trade data to chart service");
+//        } catch (AmqpException ex) {
+//            throw new RabbitMqException("Failed to send data via rabbit queue");
+//        }
+//    }
 }

@@ -20,14 +20,18 @@ import java.time.LocalDateTime;
 public class TradeDataDto {
 
     private int orderId;
-    private String pairName;
+    private String currencyPairName;
     private BigDecimal exrate;
     private BigDecimal amountBase;
     private BigDecimal amountConvert;
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime tradeDate;
-
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    private LocalDateTime createDate;
+    private int operationTypeId;
+    private int statusId;
 
     public TradeDataDto(ExOrder order) {
         this.orderId = order.getId();
@@ -35,5 +39,8 @@ public class TradeDataDto {
         this.amountBase = order.getAmountBase();
         this.amountConvert = order.getAmountConvert();
         this.tradeDate = order.getDateAcception();
+        this.createDate = order.getDateCreation();
+        this.operationTypeId = order.getOperationType().getType();
+        this.statusId = order.getStatus().getStatus();
     }
 }
