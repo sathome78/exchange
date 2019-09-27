@@ -72,7 +72,9 @@ import me.exrates.model.enums.AlertType;
 import me.exrates.model.enums.BusinessUserRoleEnum;
 import me.exrates.model.enums.CurrencyPairRestrictionsEnum;
 import me.exrates.model.enums.CurrencyPairType;
+import me.exrates.model.enums.MerchantKycToggleField;
 import me.exrates.model.enums.MerchantProcessType;
+import me.exrates.model.enums.MerchantVerificationType;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.NotificationPayTypeEnum;
 import me.exrates.model.enums.OperationType;
@@ -1106,6 +1108,9 @@ public class AdminController {
         model.addAttribute("pairsRestrictions", Arrays.stream(CurrencyPairRestrictionsEnum.values())
                                                                    .map(Enum::name)
                                                                    .collect(Collectors.joining(",")));
+        model.addAttribute("kyc_types", Arrays.stream(MerchantVerificationType.values())
+                .map(Enum::name)
+                .collect(Collectors.joining(",")));
         return "admin/merchantAccess";
     }
 
@@ -1136,6 +1141,24 @@ public class AdminController {
                                             @RequestParam OperationType operationType) {
         LOG.debug("merchantId = " + merchantId + ", currencyId = " + currencyId + ", operationType = " + operationType);
         merchantService.toggleMerchantBlock(merchantId, currencyId, operationType);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @AdminLoggable
+    @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess/toggleKycBlock", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<Void> toggleBlock(@RequestParam Integer merchantId,
+                                            @RequestParam MerchantKycToggleField toggleField) {
+        merchantService.toggleKycBlock(merchantId, toggleField);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @AdminLoggable
+    @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess/kycType", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<Void> toggleBlock(@RequestParam Integer merchantId,
+                                            @RequestParam String kycType) {
+        merchantService.updateKycType(merchantId, kycType);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

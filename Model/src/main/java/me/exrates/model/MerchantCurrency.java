@@ -41,6 +41,8 @@ public class MerchantCurrency {
     private Boolean comissionDependsOnDestinationTag;
     private Boolean specMerchantComission;
     private Boolean availableForRefill;
+    private Boolean needKycRefill;
+    private Boolean needKycWithdraw;
     private Boolean needVerification;
     private MerchantVerificationType verificationType;
 }
