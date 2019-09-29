@@ -1,8 +1,6 @@
 package me.exrates.service.usdx;
 
 import me.exrates.service.usdx.model.UsdxAccountBalance;
-import me.exrates.service.usdx.model.UsdxApiResponse;
-import me.exrates.service.usdx.model.UsdxHistoryTransaction;
 import me.exrates.service.usdx.model.UsdxTransaction;
 
 import java.util.List;
