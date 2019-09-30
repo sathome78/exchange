@@ -12,12 +12,13 @@ import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Data
 @Builder(builderClassName = "Builder")
 @NoArgsConstructor
 @AllArgsConstructor
-public class TradeDataDto {
+public class OrderDataDto {
 
     private int orderId;
     private String currencyPairName;
@@ -33,13 +34,16 @@ public class TradeDataDto {
     private int operationTypeId;
     private int statusId;
 
-    public TradeDataDto(ExOrder order) {
+    public OrderDataDto(ExOrder order) {
         this.orderId = order.getId();
+        this.currencyPairName = order.getCurrencyPair().getName();
         this.exrate = order.getExRate();
         this.amountBase = order.getAmountBase();
         this.amountConvert = order.getAmountConvert();
         this.tradeDate = order.getDateAcception();
-        this.createDate = order.getDateCreation();
+        this.createDate = Objects.nonNull(order.getDateCreation())
+                ? order.getDateCreation()
+                : LocalDateTime.now();
         this.operationTypeId = order.getOperationType().getType();
         this.statusId = order.getStatus().getStatus();
     }

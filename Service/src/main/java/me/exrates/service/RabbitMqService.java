@@ -9,5 +9,5 @@ public interface RabbitMqService {
 
 //    void generateNewTrade();
 
-    void sendTradeInfo(ExOrder order);
+    void sendOrderInfo(ExOrder order);
 }

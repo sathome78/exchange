@@ -11,7 +11,6 @@ import me.exrates.model.dto.ExOrderWrapperDTO;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderEventEnum;
 import me.exrates.model.enums.OrderStatus;
-import me.exrates.model.enums.UserRole;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.RabbitMqService;
@@ -20,8 +19,6 @@ import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CancelOrderEvent;
 import me.exrates.service.events.CreateOrderEvent;
-import me.exrates.service.events.EventsForDetailed.AcceptDetailOrderEvent;
-import me.exrates.service.events.EventsForDetailed.DetailOrderEvent;
 import me.exrates.service.events.OrderEvent;
 import me.exrates.service.events.PartiallyAcceptedOrder;
 import me.exrates.service.stomp.StompMessenger;
@@ -40,35 +37,20 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
 
-import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
-
-import static java.util.Objects.nonNull;
 
 /**
  * Created by Maks on 28.08.2017.
@@ -120,8 +102,9 @@ public class OrdersEventHandleService {
     @Async
     @TransactionalEventListener
     public void handleOrderEventAsync(CreateOrderEvent event) {
-        ExOrder exOrder = (ExOrder) event.getSource();
-        onOrdersEvent(exOrder.getCurrencyPairId(), exOrder.getOperationType());
+        ExOrder order = (ExOrder) event.getSource();
+        CompletableFuture.runAsync(() -> rabbitMqService.sendOrderInfo(order), handlersExecutors);
+        onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
     }
 
     @Async
@@ -167,7 +150,7 @@ public class OrdersEventHandleService {
         dealsSync.execute(order.getCurrencyPairId(), () -> {
             List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
             log.info("order accepted " + order.getCurrencyPair().getName());
-            completableFutures.add(CompletableFuture.runAsync(() -> rabbitMqService.sendTradeInfo(order), handlersExecutors));
+            completableFutures.add(CompletableFuture.runAsync(() -> rabbitMqService.sendOrderInfo(order), handlersExecutors));
             completableFutures.add(CompletableFuture.runAsync(() -> handleAllTrades(order), handlersExecutors));
             completableFutures.add(CompletableFuture.runAsync(() -> handleMyTrades(order), handlersExecutors));
             completableFutures.add(CompletableFuture.runAsync(() -> onOrdersEvent(order.getCurrencyPairId(), order.getOperationType()), handlersExecutors));
