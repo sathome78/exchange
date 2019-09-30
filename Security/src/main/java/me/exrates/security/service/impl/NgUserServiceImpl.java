@@ -115,8 +115,9 @@ public class NgUserServiceImpl implements NgUserService {
         }
 
         int idUser = userDao.getIdByEmail(userEmailDto.getEmail());
-
+        user.setPublicId(userDao.getPubIdByEmail(userEmailDto.getEmail()));
         user.setId(idUser);
+
         userService.logIP(idUser, user.getIp(), UserEventEnum.REGISTER, getUrlFromRequest(request));
         sendEmailWithToken(user,
                 TokenType.REGISTRATION,

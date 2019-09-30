@@ -4,7 +4,9 @@ import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.InvoiceBank;
+import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Payment;
+import me.exrates.model.User;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
@@ -86,6 +88,16 @@ public class RefillRequestController {
     if (!refillService.checkInputRequestsLimit(requestParamsDto.getCurrency(), principal.getName())) {
       throw new RequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
     }
+
+    User user = userService.findByEmail(principal.getName());
+    MerchantCurrency merchantCurrency = merchantService
+            .findByMerchantAndCurrency(requestParamsDto.getMerchant(), requestParamsDto.getCurrency()).orElseThrow(() -> new RuntimeException("merchant not found"));
+    refillService.setNeedKyc(merchantCurrency, user);
+
+    if (merchantCurrency.getNeedKycRefill()) {
+        throw new UserOperationAccessException("Need to pass KYC");
+    }
+
     Boolean forceGenerateNewAddress = requestParamsDto.getGenerateNewAddress() != null && requestParamsDto.getGenerateNewAddress();
     if (!forceGenerateNewAddress) {
       Optional<String> address = refillService.getAddressByMerchantIdAndCurrencyIdAndUserId(

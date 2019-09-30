@@ -14,6 +14,7 @@ import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.MerchantImageShortenedDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
+import me.exrates.model.enums.MerchantKycToggleField;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.MerchantVerificationType;
 import me.exrates.model.enums.OperationType;
@@ -157,6 +158,7 @@ public class MerchantDaoImpl implements MerchantDao {
     @Override
     public Optional<MerchantCurrency> findByMerchantAndCurrency(int merchantId, int currencyId) {
         final String sql = "SELECT MERCHANT.id as merchant_id,MERCHANT.name,MERCHANT.description, MERCHANT.process_type, " +
+                " MERCHANT.kyc_refill as kyc_refill, MERCHANT.kyc_withdraw as kyc_withdraw, MERCHANT.type_verification AS typeVerification, " +
                 " MERCHANT_CURRENCY.min_sum, " +
                 " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, " +
                 " MERCHANT_CURRENCY.merchant_fixed_commission " +
@@ -179,6 +181,9 @@ public class MerchantDaoImpl implements MerchantDao {
                 merchantCurrency.setOutputCommission(resultSet.getBigDecimal("merchant_output_commission"));
                 merchantCurrency.setFixedMinCommission(resultSet.getBigDecimal("merchant_fixed_commission"));
                 merchantCurrency.setProcessType(resultSet.getString("process_type"));
+                merchantCurrency.setNeedKycRefill(resultSet.getBoolean("kyc_refill"));
+                merchantCurrency.setNeedKycWithdraw(resultSet.getBoolean("kyc_withdraw"));
+                merchantCurrency.setVerificationType(MerchantVerificationType.valueOf(resultSet.getString("typeVerification")));
                 final String sqlInner = "SELECT * FROM MERCHANT_IMAGE where merchant_id = :merchant_id" +
                         " AND currency_id = :currency_id;";
                 Map<String, Integer> innerParams = new HashMap<String, Integer>();
@@ -204,7 +209,9 @@ public class MerchantDaoImpl implements MerchantDao {
             blockClause = " AND MERCHANT_CURRENCY.transfer_block = 0";
         }
 
-        final String sql = "SELECT MERCHANT.id as merchant_id,MERCHANT.name,MERCHANT.description, MERCHANT.process_type, MERCHANT_CURRENCY.refill_block, MERCHANT.needVerification AS needVerification, MERCHANT.type_verification AS typeVerification, " +
+        final String sql = "SELECT MERCHANT.id as merchant_id, MERCHANT.name, MERCHANT.description, MERCHANT.process_type, " +
+                " MERCHANT_CURRENCY.refill_block, MERCHANT.needVerification AS needVerification, MERCHANT.type_verification AS typeVerification, " +
+                " MERCHANT.kyc_refill as kyc_refill, MERCHANT.kyc_withdraw as kyc_withdraw, " +
                 " MERCHANT_CURRENCY.min_sum, " +
                 " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, " +
                 " MERCHANT_CURRENCY.merchant_fixed_commission " +
@@ -231,6 +238,8 @@ public class MerchantDaoImpl implements MerchantDao {
                 params.put("currency_id", resultSet.getInt("currency_id"));
                 merchantCurrency.setListMerchantImage(masterJdbcTemplate.query(sqlInner, params, new BeanPropertyRowMapper<>(MerchantImage.class)));
                 merchantCurrency.setNeedVerification(resultSet.getBoolean("needVerification"));
+                merchantCurrency.setNeedKycWithdraw(resultSet.getBoolean("kyc_withdraw"));
+                merchantCurrency.setNeedKycRefill(resultSet.getBoolean("kyc_refill"));
                 merchantCurrency.setVerificationType(MerchantVerificationType.valueOf(resultSet.getString("typeVerification")));
                 merchantCurrency.setAvailableForRefill(resultSet.getInt("refill_block") == 0);
                 return merchantCurrency;
@@ -326,6 +335,9 @@ public class MerchantDaoImpl implements MerchantDao {
         final String sql = "SELECT" +
                 " MERCHANT.id as merchant_id," +
                 " MERCHANT.name AS merchant_name," +
+                " MERCHANT.type_verification as verification_type, " +
+                " MERCHANT.kyc_refill as kyc_refill, " +
+                " MERCHANT.kyc_withdraw as kyc_withdraw, " +
                 " CURRENCY.id AS currency_id," +
                 " CURRENCY.name AS currency_name," +
                 " MERCHANT_CURRENCY.merchant_input_commission," +
@@ -370,6 +382,9 @@ public class MerchantDaoImpl implements MerchantDao {
                 .withdrawAutoThresholdAmount(rs.getBigDecimal("withdraw_auto_threshold_amount"))
                 .isMerchantCommissionSubtractedForWithdraw(rs.getBoolean("subtract_merchant_commission_for_withdraw"))
                 .recalculateToUsd(rs.getBoolean("recalculate_to_usd"))
+                .needKycRefill(rs.getBoolean("kyc_refill"))
+                .needKycWithdraw(rs.getBoolean("kyc_withdraw"))
+                .kycType(MerchantVerificationType.valueOf(rs.getString("verification_type")))
                 .build());
     }
 
@@ -396,6 +411,26 @@ public class MerchantDaoImpl implements MerchantDao {
         Map<String, Integer> params = new HashMap<>();
         params.put("merchant_id", merchantId);
         params.put("currency_id", currencyId);
+        masterJdbcTemplate.update(sql, params);
+    }
+
+    @Override
+    public void toggleMerchantKyc(Integer merchantId, MerchantKycToggleField toggleField) {
+        String fieldToToggle = toggleField.getFieldName();
+        String sql = "UPDATE MERCHANT SET " + fieldToToggle + " = !" + fieldToToggle +
+                " WHERE id = :merchant_id";
+        Map<String, Integer> params = new HashMap<>();
+        params.put("merchant_id", merchantId);
+        masterJdbcTemplate.update(sql, params);
+    }
+
+    @Override
+    public void updateKycType(Integer merchantId, String kycType) {
+        String sql = "UPDATE MERCHANT SET type_verification = :kyc_type " +
+                " WHERE id = :merchant_id";
+        Map<String, Object> params = new HashMap<>();
+        params.put("merchant_id", merchantId);
+        params.put("kyc_type", kycType);
         masterJdbcTemplate.update(sql, params);
     }
 
