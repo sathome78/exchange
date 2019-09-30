@@ -28,6 +28,7 @@ import me.exrates.model.enums.UserStatus;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
+import me.exrates.model.ngModel.response.ResponseCustomError;
 import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.ngService.NgOrderService;
@@ -44,6 +45,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.exception.IllegalChatMessageException;
 import me.exrates.service.notifications.G2faService;
+import me.exrates.service.util.DateUtils;
 import me.exrates.service.util.IpUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -139,6 +141,12 @@ public class NgPublicController {
 
     @GetMapping(value = "/if_email_exists")
     public ResponseEntity<Boolean> checkIfNewUserEmailExists(@RequestParam("email") String email, HttpServletRequest request) {
+        email = DateUtils.decodeStringFromUrl(email);
+
+        if (Objects.isNull(email)) {
+            throw new NgResponseException(ErrorApiTitles.USER_EMAIL_NOT_DECODED, "User email is not decoded");
+        }
+
         logger.info("Url request url {}, scheme {}, port {}", request.getRequestURI(), request.getScheme(), request.getServerPort());
         User user;
         try {
@@ -165,6 +173,12 @@ public class NgPublicController {
     @GetMapping("/is_google_2fa_enabled")
     @ResponseBody
     public Boolean isGoogleTwoFAEnabled(@RequestParam("email") String email) {
+        email = DateUtils.decodeStringFromUrl(email);
+
+        if (Objects.isNull(email)) {
+            throw new NgResponseException(ErrorApiTitles.USER_EMAIL_NOT_DECODED, "User email is not decoded");
+        }
+
         return g2faService.isGoogleAuthenticatorEnable(email);
     }
 
@@ -422,6 +436,12 @@ public class NgPublicController {
 
     @GetMapping(value = "/ieo/subscribe", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseModel<?> checkSubscribe(@RequestParam String email) {
+        email = DateUtils.decodeStringFromUrl(email);
+
+        if (Objects.isNull(email)) {
+            return new ResponseModel<>(null, new ResponseCustomError("User email is not decoded"));
+        }
+
         Map<String, Boolean> result = new HashMap<>(2);
         result.put("email", ieoService.isUserSubscribeForIEOEmail(email));
         result.put("telegram", ieoService.isUserSubscribeForIEOTelegram(email));

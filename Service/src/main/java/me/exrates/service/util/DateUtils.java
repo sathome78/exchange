@@ -34,7 +34,7 @@ public class DateUtils {
         return time;
     }
 
-    private static String decodeStringFromUrl(String input) {
+    public static String decodeStringFromUrl(String input) {
         try {
             return URLDecoder.decode(input, StandardCharsets.UTF_8.name());
         } catch (UnsupportedEncodingException e) {
