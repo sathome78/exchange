@@ -10,6 +10,7 @@ import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
+import me.exrates.model.enums.MerchantKycToggleField;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransferTypeVoucher;
 import me.exrates.model.enums.UserRole;
@@ -50,6 +51,8 @@ public interface MerchantDao {
     void toggleSubtractMerchantCommissionForWithdraw(String merchantName, String currencyName, boolean subtractMerchantCommissionForWithdraw);
 
     void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
+
+    void toggleMerchantKyc(Integer merchantId, MerchantKycToggleField toggleField);
 
     void setBlockForAllNonTransfer(OperationType operationType);
 
@@ -100,4 +103,6 @@ public interface MerchantDao {
     boolean checkAvailable(Integer currencyId, Integer merchantId);
 
     MerchantCurrency getMerchantByCurrencyForVoucher(Integer currencyId, TransferTypeVoucher transferType);
+
+    void updateKycType(Integer merchantId, String kycType);
 }

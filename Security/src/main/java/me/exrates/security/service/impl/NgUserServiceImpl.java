@@ -41,6 +41,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.UUID;
 
 import static me.exrates.service.util.RestUtil.getUrlFromRequest;
@@ -114,8 +115,9 @@ public class NgUserServiceImpl implements NgUserService {
         }
 
         int idUser = userDao.getIdByEmail(userEmailDto.getEmail());
-
+        user.setPublicId(userDao.getPubIdByEmail(userEmailDto.getEmail()));
         user.setId(idUser);
+
         userService.logIP(idUser, user.getIp(), UserEventEnum.REGISTER, getUrlFromRequest(request));
         sendEmailWithToken(user,
                 TokenType.REGISTRATION,
@@ -227,6 +229,10 @@ public class NgUserServiceImpl implements NgUserService {
                 "If this was not you, please change your password and contact us.");
         email.setSubject("Notification of disable 2FA");
 
+        Properties properties = new Properties();
+        properties.put("public_id", userService.getPubIdByEmail(userEmail));
+        email.setProperties(properties);
+
         sendMailService.sendMail(email);
     }
 
@@ -240,6 +246,10 @@ public class NgUserServiceImpl implements NgUserService {
                 "\n" +
                 "If this was not you, please change your password and contact us.");
         email.setSubject("Notification of enable 2FA");
+
+        Properties properties = new Properties();
+        properties.put("public_id", userService.getPubIdByEmail(userEmail));
+        email.setProperties(properties);
 
         sendMailService.sendMail(email);
     }
@@ -298,17 +308,24 @@ public class NgUserServiceImpl implements NgUserService {
 
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
         email.setTo(user.getEmail());
+
+        Properties properties = new Properties();
+        properties.put("public_id", user.getPublicId());
+        email.setProperties(properties);
+
         sendMailService.sendMail(email);
     }
 
     @Override
     public void sendErrorReportEmail(ErrorReportDto dto) {
         Preconditions.checkNotNull(dto);
+
         sendMailService.sendMailMandrill(Email.builder()
                 .from(mandrillEmail)
                 .to(supportEmail)
                 .message(dto.toString())
                 .subject("Error report")
+                .properties(new Properties())
                 .build());
     }
 

@@ -1,5 +1,6 @@
 package me.exrates.config;
 
+import co.elastic.apm.attach.ElasticApmAttacher;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.zaxxer.hikari.HikariConfig;
@@ -283,6 +284,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     @PostConstruct
     public void init() {
+        ElasticApmAttacher.attach();
         RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
         List<String> arguments = runtimeMxBean.getInputArguments();
         log.debug(String.join("; ", arguments));
@@ -2036,7 +2038,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Conditional(MonolitConditional.class)
     public EthTokenService fstServiceImpl() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0xa1a6f16d26aa53aec17e4001fd8cb6e6d5b17ff7");
+        tokensList.add("0x310c93dfc1c5e34cdf51678103f63c41762089cd");
         return new EthTokenServiceImpl(tokensList, "FST", "FST", true, ExConvert.Unit.MWEI);
     }
 
