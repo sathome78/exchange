@@ -121,7 +121,7 @@ public class PublicController {
         return list
                 .stream()
                 .collect(Collectors.toMap(
-                        dto -> dto.getCurrency_pair_name().replace('/', '_'),
+                        dto -> dto.getCurrencyPairName().replace('/', '_'),
                         CoinmarketApiJsonDto::new));
     }
 

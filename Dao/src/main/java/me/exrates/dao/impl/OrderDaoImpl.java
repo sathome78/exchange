@@ -544,7 +544,7 @@ public class OrderDaoImpl implements OrderDao {
             while (rs.next()) {
                 CoinmarketApiDto coinmarketApiDto = new CoinmarketApiDto();
                 coinmarketApiDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
-                coinmarketApiDto.setCurrency_pair_name(rs.getString("currency_pair_name"));
+                coinmarketApiDto.setCurrencyPairName(rs.getString("currency_pair_name"));
                 coinmarketApiDto.setFirst(rs.getBigDecimal("first"));
                 coinmarketApiDto.setLast(rs.getBigDecimal("last"));
                 coinmarketApiDto.setLowestAsk(rs.getBigDecimal("lowestAsk"));

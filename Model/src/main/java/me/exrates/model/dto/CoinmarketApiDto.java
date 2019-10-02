@@ -10,7 +10,7 @@ import java.math.BigDecimal;
  */
 public class CoinmarketApiDto {
     private Integer currencyPairId;
-    private String currency_pair_name;
+    private String currencyPairName;
     private BigDecimal first;
     private BigDecimal last;
     private BigDecimal lowestAsk;
@@ -35,12 +35,12 @@ public class CoinmarketApiDto {
     }
 
     public CoinmarketApiDto(CurrencyPair currencyPair) {
-        this.currency_pair_name = currencyPair.getName();
+        this.currencyPairName = currencyPair.getName();
     }
 
     @Override
     public String toString() {
-        return '"'+currency_pair_name.replace('/','_')+"\":" +
+        return '"'+ currencyPairName.replace('/','_')+"\":" +
                 "{\"last\":"+ BigDecimalProcessing.formatNonePointQuoted(last, true) +
                 ", \"lowestAsk\":" + BigDecimalProcessing.formatNonePointQuoted(lowestAsk, true) +
                 ", \"highestBid\":" + BigDecimalProcessing.formatNonePointQuoted(highestBid, true) +
@@ -55,12 +55,12 @@ public class CoinmarketApiDto {
 
     /*getters setters*/
 
-    public String getCurrency_pair_name() {
-        return currency_pair_name;
+    public String getCurrencyPairName() {
+        return currencyPairName;
     }
 
-    public void setCurrency_pair_name(String currency_pair_name) {
-        this.currency_pair_name = currency_pair_name;
+    public void setCurrencyPairName(String currencyPairName) {
+        this.currencyPairName = currencyPairName;
     }
 
     public BigDecimal getFirst() {

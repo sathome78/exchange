@@ -86,7 +86,6 @@ import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.ngExceptions.MarketOrderAcceptionException;
 import me.exrates.model.ngExceptions.NgOrderValidationException;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
-import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
@@ -153,7 +152,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
-import javax.swing.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
 import java.io.ByteArrayOutputStream;
@@ -1688,7 +1686,7 @@ public class OrderServiceImpl implements OrderService {
                 .filter(e -> (StringUtils.isEmpty(currencyPairName) || e.getName().equals(currencyPairName))
                         && result
                         .stream()
-                        .noneMatch(r -> r.getCurrency_pair_name().equals(e.getName())))
+                        .noneMatch(r -> r.getCurrencyPairName().equals(e.getName())))
                 .map(CoinmarketApiDto::new)
                 .collect(Collectors.toList()));
         return result;

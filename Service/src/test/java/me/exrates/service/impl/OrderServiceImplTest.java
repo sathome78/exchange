@@ -106,7 +106,6 @@ import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.util.BiTuple;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.json.JSONArray;
 import org.junit.Before;
@@ -4141,7 +4140,7 @@ public class OrderServiceImplTest {
         assertNotNull(coinmarketData);
         assertEquals(1, coinmarketData.size());
         assertEquals(Integer.valueOf(mockCurrencyPair.getId()), coinmarketData.get(0).getCurrencyPairId());
-        assertEquals(mockCurrencyPair.getName(), coinmarketData.get(0).getCurrency_pair_name());
+        assertEquals(mockCurrencyPair.getName(), coinmarketData.get(0).getCurrencyPairName());
         assertEquals(BigDecimal.TEN, coinmarketData.get(0).getFirst());
         assertEquals(BigDecimal.ONE, coinmarketData.get(0).getLast());
 
@@ -4162,7 +4161,7 @@ public class OrderServiceImplTest {
         assertNotNull(hourlyCoinmarketData);
         assertEquals(1, hourlyCoinmarketData.size());
         assertEquals(dto.getCurrencyPairId(), hourlyCoinmarketData.get(0).getCurrencyPairId());
-        assertEquals(dto.getCurrency_pair_name(), hourlyCoinmarketData.get(0).getCurrency_pair_name());
+        assertEquals(dto.getCurrencyPairName(), hourlyCoinmarketData.get(0).getCurrencyPairName());
         assertEquals(dto.getFirst(), hourlyCoinmarketData.get(0).getFirst());
         assertEquals(dto.getLast(), hourlyCoinmarketData.get(0).getLast());
 
@@ -4181,7 +4180,7 @@ public class OrderServiceImplTest {
         assertNotNull(hourlyCoinmarketData);
         assertEquals(1, hourlyCoinmarketData.size());
         assertEquals(dto.getCurrencyPairId(), hourlyCoinmarketData.get(0).getCurrencyPairId());
-        assertEquals(dto.getCurrency_pair_name(), hourlyCoinmarketData.get(0).getCurrency_pair_name());
+        assertEquals(dto.getCurrencyPairName(), hourlyCoinmarketData.get(0).getCurrencyPairName());
         assertEquals(dto.getFirst(), hourlyCoinmarketData.get(0).getFirst());
         assertEquals(dto.getLast(), hourlyCoinmarketData.get(0).getLast());
 
@@ -4199,7 +4198,7 @@ public class OrderServiceImplTest {
         assertNotNull(hourlyCoinmarketData);
         assertEquals(1, hourlyCoinmarketData.size());
         assertEquals(dto.getCurrencyPairId(), hourlyCoinmarketData.get(0).getCurrencyPairId());
-        assertEquals(dto.getCurrency_pair_name(), hourlyCoinmarketData.get(0).getCurrency_pair_name());
+        assertEquals(dto.getCurrencyPairName(), hourlyCoinmarketData.get(0).getCurrencyPairName());
         assertEquals(dto.getFirst(), hourlyCoinmarketData.get(0).getFirst());
         assertEquals(dto.getLast(), hourlyCoinmarketData.get(0).getLast());
 
@@ -6573,7 +6572,7 @@ public class OrderServiceImplTest {
     private CoinmarketApiDto getMockCoinmarketApiDto() {
         CoinmarketApiDto dto = new CoinmarketApiDto();
         dto.setCurrencyPairId(100);
-        dto.setCurrency_pair_name("BTC/USD");
+        dto.setCurrencyPairName("BTC/USD");
         dto.setFirst(BigDecimal.TEN);
         dto.setLast(BigDecimal.ONE);
         return dto;
