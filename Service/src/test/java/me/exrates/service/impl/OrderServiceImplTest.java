@@ -5335,26 +5335,23 @@ public class OrderServiceImplTest {
 
     @Test
     public void getAllCurrenciesStatForRefreshForAllPairs() throws Exception {
-        Object[] data = {getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.ICO)};
-        OrdersListWrapper ordersListWrapper = new OrdersListWrapper(data, "CURRENCIES_STATISTIC", 0);
+        List<ExOrderStatisticsShortByPairsDto> data = ImmutableList.of(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.ICO));
 
-        String wrapper = new ObjectMapper().writeValueAsString(ordersListWrapper);
-        String expected = new JSONArray() {{
-            put(new ObjectMapper().writeValueAsString(ordersListWrapper));
-        }}.toString();
-        when(currencyService.getAllCurrencyPairCached()).thenReturn(Collections.singletonMap(1, getMockCurrencyPair(CurrencyPairType.MAIN)));
-
+        String expected = responseJson();
+        when(currencyService.getAllCurrencyPairCached())
+                .thenReturn(Collections.singletonMap(1, getMockCurrencyPair(CurrencyPairType.MAIN)));
         when(exchangeRatesHolder.getAllRates())
                 .thenReturn(Collections.singletonList(getExOrderStatisticsShortByPairsDto(CurrencyPairType.ICO)));
-        when(objectMapper.writeValueAsString(any(OrdersListWrapper.class))).thenReturn(wrapper);
+        when(objectMapper.writeValueAsString(any()))
+                .thenReturn(expected);
 
         String allCurrenciesStatForRefreshForAllPairs = orderService.getAllCurrenciesStatForRefreshForAllPairs();
-
         assertNotNull(allCurrenciesStatForRefreshForAllPairs);
         assertEquals(expected, allCurrenciesStatForRefreshForAllPairs);
-
-        verify(exchangeRatesHolder, atLeastOnce()).getAllRates();
-        verify(objectMapper, atLeastOnce()).writeValueAsString(any(OrdersListWrapper.class));
+        verify(exchangeRatesHolder, atLeastOnce())
+                .getAllRates();
+        verify(objectMapper, atLeastOnce())
+                .writeValueAsString(any(OrdersListWrapper.class));
     }
 
     @Test
@@ -5366,7 +5363,7 @@ public class OrderServiceImplTest {
         doThrow(JsonProcessingException.class).when(objectMapper).writeValueAsString(any(OrdersListWrapper.class));
 
         String allCurrenciesStatForRefreshForAllPairs = orderService.getAllCurrenciesStatForRefreshForAllPairs();
-        assertNull(allCurrenciesStatForRefreshForAllPairs);
+        assertEquals("[]", allCurrenciesStatForRefreshForAllPairs);
 
         verify(exchangeRatesHolder, atLeastOnce()).getAllRates();
         verify(objectMapper, atLeastOnce()).writeValueAsString(any(OrdersListWrapper.class));
@@ -6835,5 +6832,32 @@ public class OrderServiceImplTest {
         List<ExOrder> candidates = new ArrayList<>();
         IntStream.range(0, 6).forEach(i -> candidates.add(getTestExOrder(i, BigDecimal.valueOf(3.0))));
         return candidates;
+    }
+
+    private String responseJson() {
+        return "[" +
+                "{" +
+                "\"currencyPairId\":1," +
+                "\"currencyPairName\":\"BTC/USD\"," +
+                "\"currencyPairPrecision\":2," +
+                "\"lastOrderRate\":\"0\"," +
+                "\"predLastOrderRate\":\"0\"," +
+                "\"percentChange\":\"0\"," +
+                "\"valueChange\":\"0\"," +
+                "\"market\":\"FIAT\"," +
+                "\"priceInUSD\":\"0\"," +
+                "\"type\":\"ICO\"," +
+                "\"volume\":\"0.000000000\"," +
+                "\"currencyVolume\":\"0.000000000\"," +
+                "\"high24hr\":\"0.000000000\"," +
+                "\"low24hr\":\"0.000000000\"," +
+                "\"lastOrderRate24hr\":\"0.000000000\"," +
+                "\"hidden\":false," +
+                "\"lastUpdateCache\":\"2019-04-03 14:52:14\"," +
+                "\"needRefresh\":false," +
+                "\"page\":0," +
+                "\"topMarket\":true" +
+                "}" +
+                "]";
     }
 }

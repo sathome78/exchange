@@ -1,31 +1,19 @@
 package me.exrates.service.impl;
 
 import me.exrates.dao.NotificationDao;
-import me.exrates.dao.NotificationUserSettingsDao;
 import me.exrates.model.Email;
 import me.exrates.model.Notification;
 import me.exrates.model.NotificationOption;
 import me.exrates.model.User;
-import me.exrates.model.dto.NotificationsUserSetting;
-import me.exrates.model.dto.onlineTableDto.NotificationDto;
 import me.exrates.model.enums.NotificationEvent;
-import me.exrates.model.enums.NotificationMessageEventEnum;
-import me.exrates.model.vo.CacheData;
 import me.exrates.service.NotificationService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
-import me.exrates.service.exception.IncorrectSmsPinException;
-import me.exrates.service.util.Cache;
-import org.apache.commons.lang3.StringUtils;
-import org.jboss.aerogear.security.otp.Totp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -67,16 +55,6 @@ public class NotificationServiceImpl implements NotificationService {
     public long createLocalizedNotification(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
                                             Object[] messageArgs) {
          Locale locale = new Locale(userService.getPreferedLang(userId));
-        return 0L /*createNotification(userId, messageSource.getMessage(titleCode, null, locale),
-                messageSource.getMessage(messageCode, normalizeArgs(messageArgs), locale), cause)*/;
-
-    }
-
-    @Override
-    public long createLocalizedNotification(String userEmail, NotificationEvent cause, String titleCode, String messageCode,
-                                            Object[] messageArgs) {
-        Integer userId = userService.getIdByEmail(userEmail);
-        Locale locale = new Locale(userService.getPreferedLang(userId));
         return 0L /*createNotification(userId, messageSource.getMessage(titleCode, null, locale),
                 messageSource.getMessage(messageCode, normalizeArgs(messageArgs), locale), cause)*/;
 
@@ -135,17 +113,6 @@ public class NotificationServiceImpl implements NotificationService {
         return notificationDao.findAllByUser(userService.getIdByEmail(email));
     }
 
-    @Transactional(readOnly = true)
-    public List<NotificationDto> findByUser(String email, CacheData cacheData, Integer offset, Integer limit) {
-        List<NotificationDto> result = notificationDao.findByUser(userService.getIdByEmail(email), offset, limit);
-        if (Cache.checkCache(cacheData, result)) {
-            result = new ArrayList<NotificationDto>() {{
-                add(new NotificationDto(false));
-            }};
-        }
-        return result;
-    }
-
     @Override
     public boolean setRead(Long notificationId) {
         return notificationDao.setRead(notificationId);
@@ -171,11 +138,6 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional(readOnly = true)
     public List<NotificationOption> getNotificationOptionsByUser(Integer userId) {
         return notificationDao.getNotificationOptionsByUser(userId);
-    }
-
-    @Override
-    public void updateUserNotifications(List<NotificationOption> options) {
-        notificationDao.updateNotificationOptions(options);
     }
 
     private String[] normalizeArgs(Object... args) {

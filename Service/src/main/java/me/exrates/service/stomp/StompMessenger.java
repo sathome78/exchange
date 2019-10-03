@@ -31,8 +31,6 @@ public interface StompMessenger {
 
     void sendAllTrades(CurrencyPair currencyPair);
 
-    List<ChartTimeFrame> getSubscribedTimeFramesForCurrencyPair(Integer pairId);
-
     void sendStatisticMessage(Set<Integer> currenciesIds);
 
     void sendCpInfoMessage(Map<String, String> currenciesStatisticMap);
@@ -43,6 +41,8 @@ public interface StompMessenger {
 
     @SneakyThrows
     void sendPersonalMessageToUser(String userEmail, UserNotificationMessage message);
+
+    void updateUserOpenOrders(String currencyPairName, String userEmail);
 
     void sendPersonalDetailsIeo(String userEmail, String payload);
 

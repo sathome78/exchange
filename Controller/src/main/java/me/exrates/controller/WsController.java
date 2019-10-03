@@ -10,10 +10,10 @@ import me.exrates.model.User;
 import me.exrates.model.dto.AlertDto;
 import me.exrates.model.dto.OrderBookWrapperDto;
 import me.exrates.model.dto.OrdersListWrapper;
+import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.dto.WsMessageObject;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
-import me.exrates.model.dto.openAPI.UserOrdersDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.PrecissionsEnum;
@@ -22,6 +22,8 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import me.exrates.model.vo.BackDealInterval;
+import me.exrates.ngService.RedisUserNotificationService;
+import me.exrates.ngService.RedisWsSessionService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.IEOService;
 import me.exrates.service.OrderService;
@@ -29,42 +31,52 @@ import me.exrates.service.UserService;
 import me.exrates.service.UsersAlertsService;
 import me.exrates.service.bitshares.memo.Preconditions;
 import me.exrates.service.util.OpenApiUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.stereotype.Controller;
 
-import javax.websocket.EncodeException;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 
 @Log4j2(topic = "ws_stomp_log")
 @Controller
 public class WsController {
 
-    private final OrderService orderService;
     private final CurrencyService currencyService;
+    private final IEOService ieoService;
     private final ObjectMapper objectMapper;
+    private final OrderService orderService;
+    private final RedisUserNotificationService redisUserNotificationService;
+    private final RedisWsSessionService redisWsSessionService;
     private final UserService userService;
     private final UsersAlertsService usersAlertsService;
-    private final IEOService ieoService;
 
-    @Autowired
-    public WsController(OrderService orderService, CurrencyService currencyService, ObjectMapper objectMapper, UserService userService, UsersAlertsService usersAlertsService, IEOService ieoService) {
-        this.orderService = orderService;
+    public WsController(CurrencyService currencyService,
+                        IEOService ieoService,
+                        ObjectMapper objectMapper,
+                        OrderService orderService,
+                        RedisUserNotificationService redisUserNotificationService,
+                        RedisWsSessionService redisWsSessionService,
+                        UserService userService,
+                        UsersAlertsService usersAlertsService) {
         this.currencyService = currencyService;
+        this.ieoService = ieoService;
         this.objectMapper = objectMapper;
+        this.orderService = orderService;
+        this.redisUserNotificationService = redisUserNotificationService;
+        this.redisWsSessionService = redisWsSessionService;
         this.userService = userService;
         this.usersAlertsService = usersAlertsService;
-        this.ieoService = ieoService;
     }
-
 
     @SubscribeMapping("/users_alerts/{loc}")
     public String usersAlerts(@DestinationVariable String loc) throws JsonProcessingException {
@@ -154,11 +166,21 @@ public class WsController {
         return orderService.getMyOpenOrdersForWs(OpenApiUtils.transformCurrencyPair(currencyPairName), principal.getName());
     }
 
+    @MessageMapping("/register")
+    public void processMessage(@Payload Map<String, String> message, SimpMessageHeaderAccessor simpMessageHeaderAccessor) throws Exception {
+        redisWsSessionService.addSession(message.get("sessionId"), message.get("email"));
+    }
+
+    @MessageMapping("/unregister")
+    public void processOffMessage(@Payload Map<String, String> message, SimpMessageHeaderAccessor simpMessageHeaderAccessor) throws Exception {
+        redisWsSessionService.removeSession(message.get("email"));
+    }
 
     @SubscribeMapping("/message/private/{pubId}")
     public WsMessageObject subscribePersonalMessages(Principal principal, @DestinationVariable String pubId) {
         Preconditions.checkArgument(userService.getEmailByPubId(pubId).equals(principal.getName()));
-        return new WsMessageObject(WsSourceTypeEnum.SUBSCRIBE, principal.getName());
+        final Collection<UserNotificationMessage> messages = redisUserNotificationService.findAllByUser(principal.getName());
+        return new WsMessageObject(WsSourceTypeEnum.SUBSCRIBE, messages);
     }
 
     @SubscribeMapping("/ieo_details/private/{pubId}")
