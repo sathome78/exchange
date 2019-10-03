@@ -186,7 +186,7 @@ public class BtcGenerator {
 
 
     public static void main(String[] args) throws IOException {
-        generate("TSL", "TreasureSL", 30, false, false, "172.10.13.6", 8090, 12201);
+        generate("EST", "EastiCoin", 1, true, true, "172.10.10.86", 9332, 25959);
     }
 
 
