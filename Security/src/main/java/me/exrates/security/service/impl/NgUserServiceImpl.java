@@ -301,9 +301,9 @@ public class NgUserServiceImpl implements NgUserService {
 
         email.setMessage(
                 messageSource.getMessage(emailText, null, locale) +
-                        " <a href='" +
+                        " </p><a href=\"" +
                         host + "/" + confirmationUrl +
-                        "'>" + messageSource.getMessage("admin.ref", null, locale) + "</a>"
+                        "\" style=\"display: block;MAX-WIDTH: 347px; FONT-FAMILY: Roboto; COLOR: #237BEF; MARGIN: auto auto .8em; font-size: 36px; line-height: 1.37; text-align: center; font-weight: 600;\">" + messageSource.getMessage("admin.ref", null, locale) + "</a>"
         );
 
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));

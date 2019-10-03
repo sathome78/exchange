@@ -101,15 +101,16 @@ public class IEOServiceProcessing {
             processTestClaim(ieoDetails, ieoClaim);
             return;
         }
-        String msg = String.format("Congrats! You successfully purchased %s %s", ieoClaim.getAmount().toPlainString(), ieoClaim.getCurrencyName());
+        String msg = String.format("<p style=\"MAX-WIDTH: 347px; FONT-FAMILY: Roboto; COLOR: #000000; MARGIN: auto auto 2.15em;font-weight: normal; font-size: 16px; line-height: 19px; text-align: center;\">" +
+                "Congrats! You successfully purchased %s %s</p>", ieoClaim.getAmount().toPlainString(), ieoClaim.getCurrencyName());
         final UserNotificationMessage notificationMessage = new UserNotificationMessage(WsSourceTypeEnum.IEO, UserNotificationType.SUCCESS, msg);
         String principalEmail = userService.findEmailById(ieoClaim.getUserId());
         BigDecimal amountInBtcLocked = walletService.getAvailableAmountInBtcLocked(ieoClaim.getUserId(), CURRENCY_BTC_ID);
 
         if (amountInBtcLocked.compareTo(ieoClaim.getPriceInBtc()) < 0) {
             log.info("User active balance less claim amount, active {}, required {}", amountInBtcLocked, ieoClaim.getPriceInBtc());
-            String text = String.format("Unfortunately, You doesn't have required amount in BTC for purchase %s %s. Your amount is %s BTC",
-                    ieoClaim.getAmount(), ieoDetails.getCurrencyName(), amountInBtcLocked);
+            String text = String.format("<p style=\"MAX-WIDTH: 347px; FONT-FAMILY: Roboto; COLOR: #000000; MARGIN: auto auto 2.15em;font-weight: normal; font-size: 16px; line-height: 19px; text-align: center;\">" +
+                            "Unfortunately, you don't have the required amount of BTC to purchase %s %s. Your amount is %s BTC</p>", ieoClaim.getAmount(), ieoDetails.getCurrencyName(), amountInBtcLocked);
             String resultIeoMessage = String.format("Not enough user BTC amount %s", amountInBtcLocked);
             failedClaim(ieoClaim, ieoDetails.getAvailableAmount(), principalEmail, notificationMessage,
                     resultIeoMessage, text, ieoDetails);

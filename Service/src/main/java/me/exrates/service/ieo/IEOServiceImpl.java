@@ -175,8 +175,8 @@ public class IEOServiceImpl implements IEOService {
         String email = claimDto.getEmail();
         IEODetails ieoDetails = ieoDetailsRepository.findOpenIeoByCurrencyName(claimDto.getCurrencyName());
         if (ieoDetails == null) {
-            String message = String.format("Failed to create claim %s while IEO for %s not started or already finished",
-                    claimDto.getUuid(), claimDto.getCurrencyName());
+            String message = String.format("<p style=\"MAX-WIDTH: 387px; FONT-FAMILY: Roboto; COLOR: #000000; MARGIN: auto auto 2.15em;font-weight: normal; font-size: 16px; line-height: 19px; text-align: center;\">" +
+                            "Failed to create claim <br>%s<br> while IEO for %s not started or already finished</p>", claimDto.getUuid(), claimDto.getCurrencyName());
             logger.warn(message);
             sendErrorEmail(message, claimDto.getEmail());
             return;
