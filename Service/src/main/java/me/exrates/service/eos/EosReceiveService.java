@@ -5,6 +5,7 @@ import io.jafka.jeos.EosApiFactory;
 import io.jafka.jeos.core.response.chain.Block;
 import io.jafka.jeos.core.response.history.transaction.Transaction;
 import io.jafka.jeos.impl.EosApiServiceGenerator;
+import io.jafka.jeos.impl.EosChainApiService;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.condition.MonolitConditional;
@@ -80,7 +81,12 @@ public class EosReceiveService {
         long lastBlock = loadLastBlock();
         long blockchainHeight = getLastBlockNum();
         while (lastBlock < blockchainHeight - CONFIRMATIONS_NEEDED) {
-                Block block = client.getBlock(String.valueOf(++lastBlock));
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            Block block = getBlock(String.valueOf(++lastBlock));
                 List<Transaction> transactionList = Arrays.asList(block.getTransactions());
                 transactionList.forEach(transaction -> {
                     if (transaction.getStatus().equals(EXECUTED)) {
@@ -105,10 +111,9 @@ public class EosReceiveService {
         saveLastBlock(lastBlock);
     }
 
-    public Block getBlock(String blockNumberOrId) {
-        Class<EosApiServiceGenerator> clazz = EosApiServiceGenerator.class;
-        clazz.getDeclaredField("httpClient");
-        return (Block) EosApiServiceGenerator.executeSync(this.eosChainApiService.getBlock(Collections.singletonMap("block_num_or_id", blockNumberOrId)));
+    private Block getBlock(String blockNumberOrId) {
+        EosChainApiService eosChainApiService = (EosChainApiService)EosApiServiceGenerator.createService(EosChainApiService.class, "https://api.eosnewyork.io");
+        return (Block) NewEosApiServiceGenerator.executeSync(eosChainApiService.getBlock(Collections.singletonMap("block_num_or_id", blockNumberOrId)));
     }
 
     private long getLastBlockNum() {
