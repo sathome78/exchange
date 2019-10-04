@@ -364,7 +364,7 @@ public class CryptocurrencyConfig {
 
 	@Bean(name = "tslServiceImpl")
 	public BitcoinService tslServiceImpl() {
-		return new BitcoinServiceImpl("merchants/tsl_wallet.properties","TSL","TSL", Л30, 20, false, false);
+		return new BitcoinServiceImpl("merchants/tsl_wallet.properties","TSL","TSL", 30, 20, false, false);
 	}
 
 	@Bean(name = "estServiceImpl")
