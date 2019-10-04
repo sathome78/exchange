@@ -4,6 +4,7 @@ import io.jafka.jeos.EosApi;
 import io.jafka.jeos.EosApiFactory;
 import io.jafka.jeos.core.response.chain.Block;
 import io.jafka.jeos.core.response.history.transaction.Transaction;
+import io.jafka.jeos.impl.EosApiServiceGenerator;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.condition.MonolitConditional;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -60,13 +62,17 @@ public class EosReceiveService {
 
     @PostConstruct
     private void init() {
-        if (environment.equals("prd")) {
             BasicConfigurator.configure();
             client = EosApiFactory.create("http://127.0.0.1:8900",
                     "https://api.eosnewyork.io",
                     "https://api.eosnewyork.io");
-            scheduler.scheduleAtFixedRate(this::checkRefills, 5, 20, TimeUnit.MINUTES);
-        }
+            scheduler.scheduleWithFixedDelay(() -> {
+                try {
+                  checkRefills();
+               } catch (Exception e) {
+                  log.error(e);
+               }
+        }, 1, 1, TimeUnit.MINUTES);
     }
 
 
@@ -74,26 +80,35 @@ public class EosReceiveService {
         long lastBlock = loadLastBlock();
         long blockchainHeight = getLastBlockNum();
         while (lastBlock < blockchainHeight - CONFIRMATIONS_NEEDED) {
-            Block block = client.getBlock(String.valueOf(++lastBlock));
-            List<Transaction> transactionList = Arrays.asList(block.getTransactions());
-            transactionList.forEach(transaction -> {
-                if (transaction.getStatus().equals(EXECUTED)) {
-                    transaction.getTrx().ifPresent(trx -> {
-                        List<io.jafka.jeos.core.common.Action> actions = trx.getTransaction().getActions();
-                        actions.forEach(action -> {
-                            String operation = action.getName();
-                            if (operation.equalsIgnoreCase(TRANSFER) && action.getAccount().equals(EOSIO_ACCOUNT)) {
-                                EosDataDto dataDto = new EosDataDto((LinkedHashMap) action.getData());
-                                if (dataDto.getToAccount().equals(mainAccount) && dataDto.getCurrency().equals(CURRENCY_NAME)) {
-                                    processTransaction(dataDto, trx.getId());
+                Block block = client.getBlock(String.valueOf(++lastBlock));
+                List<Transaction> transactionList = Arrays.asList(block.getTransactions());
+                transactionList.forEach(transaction -> {
+                    if (transaction.getStatus().equals(EXECUTED)) {
+                        transaction.getTrx().ifPresent(trx -> {
+                            List<io.jafka.jeos.core.common.Action> actions = trx.getTransaction().getActions();
+                            actions.forEach(action -> {
+                                String operation = action.getName();
+                                if (operation.equalsIgnoreCase(TRANSFER) && action.getAccount().equals(EOSIO_ACCOUNT)) {
+                                    EosDataDto dataDto = new EosDataDto((LinkedHashMap) action.getData());
+                                    if (dataDto.getToAccount().equals(mainAccount) && dataDto.getCurrency().equals(CURRENCY_NAME)) {
+                                        processTransaction(dataDto, trx.getId());
+                                    }
                                 }
-                            }
+                            });
                         });
-                    });
+                    }
+                });
+                if (lastBlock % 200 == 0) {
+                    saveLastBlock(lastBlock);
                 }
-            });
-            saveLastBlock(lastBlock);
         }
+        saveLastBlock(lastBlock);
+    }
+
+    public Block getBlock(String blockNumberOrId) {
+        Class<EosApiServiceGenerator> clazz = EosApiServiceGenerator.class;
+        clazz.getDeclaredField("httpClient");
+        return (Block) EosApiServiceGenerator.executeSync(this.eosChainApiService.getBlock(Collections.singletonMap("block_num_or_id", blockNumberOrId)));
     }
 
     private long getLastBlockNum() {

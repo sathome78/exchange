@@ -5,6 +5,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.service.*;
+import me.exrates.service.eos.EosReceiveService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -30,6 +31,9 @@ public class AisiRecieveService {
     private AisiService aisiService;
 
     @Autowired
+    private EosReceiveService eosReceiveService;
+
+    @Autowired
     private MerchantService merchantService;
     @Autowired
     private CurrencyService currencyService;
@@ -46,8 +50,9 @@ public class AisiRecieveService {
         merchant = merchantService.findByName(AisiServiceImpl.MERCHANT_NAME);
     }
 
-    @Scheduled(initialDelay = 10 * 1000, fixedDelay = 1000 * 60 * 5)
+    @Scheduled(initialDelay = 1 * 1000, fixedDelay = 1 * 1000)
     void checkIncomePayment() {
+//        eosReceiveService.checkRefills();
         log.info("*** Aisi *** Scheduler start");
         List<String> listOfAddress = refillService.getListOfValidAddressByMerchantIdAndCurrency(merchant.getId(), currency.getId());
 
