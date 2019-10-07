@@ -4,8 +4,6 @@ import io.jafka.jeos.EosApi;
 import io.jafka.jeos.EosApiFactory;
 import io.jafka.jeos.core.response.chain.Block;
 import io.jafka.jeos.core.response.history.transaction.Transaction;
-import io.jafka.jeos.impl.EosApiServiceGenerator;
-import io.jafka.jeos.impl.EosChainApiService;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.condition.MonolitConditional;
@@ -20,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
