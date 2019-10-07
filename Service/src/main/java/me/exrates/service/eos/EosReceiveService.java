@@ -97,7 +97,7 @@ public class EosReceiveService {
                     });
                 }
             });
-            if (lastBlock % 200 == 0) {
+            if (lastBlock % 500 == 0) {
                 saveLastBlock(lastBlock);
             }
         }
