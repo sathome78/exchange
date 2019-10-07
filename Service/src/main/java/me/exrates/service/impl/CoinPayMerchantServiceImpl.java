@@ -110,14 +110,17 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
 
         Optional<RefillRequestFlatDto> flat = refillRequestDao.getFlatById(requestId);
         if (!flat.isPresent()) {
+            log.info("Refill request don`t found, id {}", requestId);
             return;
         }
 
         if (!params.containsKey("status")) {
+            log.info("Params not include status, id {}", requestId);
             return;
         }
 
         if (!params.get("status").equalsIgnoreCase("CLOSED")) {
+            log.info("Status is not CLOSED, id {}", requestId);
             refillService.declineMerchantRefillRequest(requestId);
         }
 
@@ -129,6 +132,7 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .merchantTransactionId(params.get("tr_hash"))
                 .build();
+        log.info("requestAcceptDto {}", requestAcceptDto);
         refillService.acceptRefillRequest(requestAcceptDto);
 
         final String gaTag = refillService.getUserGAByRequestId(requestId);

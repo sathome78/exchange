@@ -48,7 +48,7 @@ public class CoinPayMerchantController {
     public ResponseEntity<Void> statusPaymentWithdraw(@PathVariable("id") String id,
                                                       @RequestBody Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         final ResponseEntity<Void> responseOK = new ResponseEntity<>(OK);
-        log.info("Response from withdraw callback: {}", id);
+        log.info("Response from withdraw callback: id {}, params {}", id, params);
         try {
             coinPayMerchantService.withdrawProcessCallBack(id, params);
             return responseOK;
