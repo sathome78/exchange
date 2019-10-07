@@ -76,37 +76,33 @@ public class EosReceiveService {
         }, 1, 1, TimeUnit.MINUTES);
     }
 
-
     private void checkRefills() {
         long lastBlock = loadLastBlock();
         long blockchainHeight = getLastBlockNum();
-        while (lastBlock < blockchainHeight - CONFIRMATIONS_NEEDED) {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        int maxRound = 1000;
+
+        for (int i = 0; lastBlock < (blockchainHeight - CONFIRMATIONS_NEEDED) && i < maxRound; i++){
             Block block = getBlock(String.valueOf(++lastBlock));
-                List<Transaction> transactionList = Arrays.asList(block.getTransactions());
-                transactionList.forEach(transaction -> {
-                    if (transaction.getStatus().equals(EXECUTED)) {
-                        transaction.getTrx().ifPresent(trx -> {
-                            List<io.jafka.jeos.core.common.Action> actions = trx.getTransaction().getActions();
-                            actions.forEach(action -> {
-                                String operation = action.getName();
-                                if (operation.equalsIgnoreCase(TRANSFER) && action.getAccount().equals(EOSIO_ACCOUNT)) {
-                                    EosDataDto dataDto = new EosDataDto((LinkedHashMap) action.getData());
-                                    if (dataDto.getToAccount().equals(mainAccount) && dataDto.getCurrency().equals(CURRENCY_NAME)) {
-                                        processTransaction(dataDto, trx.getId());
-                                    }
+            List<Transaction> transactionList = Arrays.asList(block.getTransactions());
+            transactionList.forEach(transaction -> {
+                if (transaction.getStatus().equals(EXECUTED)) {
+                    transaction.getTrx().ifPresent(trx -> {
+                        List<io.jafka.jeos.core.common.Action> actions = trx.getTransaction().getActions();
+                        actions.forEach(action -> {
+                            String operation = action.getName();
+                            if (operation.equalsIgnoreCase(TRANSFER) && action.getAccount().equals(EOSIO_ACCOUNT)) {
+                                EosDataDto dataDto = new EosDataDto((LinkedHashMap) action.getData());
+                                if (dataDto.getToAccount().equals(mainAccount) && dataDto.getCurrency().equals(CURRENCY_NAME)) {
+                                    processTransaction(dataDto, trx.getId());
                                 }
-                            });
+                            }
                         });
-                    }
-                });
-                if (lastBlock % 200 == 0) {
-                    saveLastBlock(lastBlock);
+                    });
                 }
+            });
+            if (lastBlock % 200 == 0) {
+                saveLastBlock(lastBlock);
+            }
         }
         saveLastBlock(lastBlock);
     }
