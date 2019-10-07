@@ -37,7 +37,7 @@ public class EmailNotificatorServiceImpl implements NotificatorService {
         email.setSubject(subject);
 
         Properties properties = new Properties();
-        properties.put("public_id", userService.getPubIdByEmail(userEmail));
+        properties.setProperty("public_id", userService.getPubIdByEmail(userEmail));
         email.setProperties(properties);
 
         sendMailService.sendMail(email);

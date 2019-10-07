@@ -381,6 +381,7 @@ public class NgUserSettingsController {
         dto.setRole(user.getRole());
         dto.setStatus(user.getUserStatus());
         dto.setPhone(user.getPhone());
+        dto.setPublicId(user.getPublicId());
         return dto;
     }
 

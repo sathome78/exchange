@@ -100,7 +100,7 @@ public class NotificationServiceImpl implements NotificationService {
         email.setTo(user.getEmail());
 
         Properties properties = new Properties();
-        properties.put("public_id", user.getPublicId());
+        properties.setProperty("public_id", user.getPublicId());
         email.setProperties(properties);
 
         sendMailService.sendMail(email);

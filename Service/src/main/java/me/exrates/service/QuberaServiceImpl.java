@@ -415,7 +415,7 @@ public class QuberaServiceImpl implements QuberaService {
         email.setMessage(msg);
 
         Properties properties = new Properties();
-        properties.put("public_id", user.getPublicId());
+        properties.setProperty("public_id", user.getPublicId());
         email.setProperties(properties);
 
         sendMailService.sendMail(email);
@@ -689,7 +689,7 @@ public class QuberaServiceImpl implements QuberaService {
         email.setMessage(msg);
 
         Properties properties = new Properties();
-        properties.put("public_id", user.getPublicId());
+        properties.setProperty("public_id", user.getPublicId());
         email.setProperties(properties);
 
         sendMailService.sendMail(email);

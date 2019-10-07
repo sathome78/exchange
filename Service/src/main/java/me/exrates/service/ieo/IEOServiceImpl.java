@@ -312,7 +312,7 @@ public class IEOServiceImpl implements IEOService {
         email.setSubject(String.format("Revert ieo for %s finish successful!", ieoEntity.getCurrencyName()));
 
         Properties properties = new Properties();
-        properties.put("public_id", user.getPublicId());
+        properties.setProperty("public_id", user.getPublicId());
         email.setProperties(properties);
 
         sendMailService.sendMail(email);
@@ -414,7 +414,7 @@ public class IEOServiceImpl implements IEOService {
                     ieoDetails.getCurrencyName()));
 
             Properties properties = new Properties();
-            properties.put("public_id", maker.getPublicId());
+            properties.setProperty("public_id", maker.getPublicId());
             email.setProperties(properties);
 
             sendMailService.sendMail(email);
@@ -526,7 +526,7 @@ public class IEOServiceImpl implements IEOService {
         emailError.setTo(email);
 
         Properties properties = new Properties();
-        properties.put("public_id", userService.getPubIdByEmail(email));
+        properties.setProperty("public_id", userService.getPubIdByEmail(email));
         emailError.setProperties(properties);
 
         sendMailService.sendMail(emailError);

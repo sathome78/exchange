@@ -177,7 +177,7 @@ public class MerchantServiceImpl implements MerchantService {
         mail.setMessage(notification);
 
         Properties properties = new Properties();
-        properties.put("public_id", userService.getPubIdByEmail(email));
+        properties.setProperty("public_id", userService.getPubIdByEmail(email));
         mail.setProperties(properties);
 
         try {

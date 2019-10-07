@@ -98,7 +98,7 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
 
         Properties properties = new Properties();
         if (StringUtils.isNoneEmpty(response.getQr())) {
-            properties.put("qr", response.getQr());
+            properties.setProperty("qr", response.getQr());
         }
         return generateFullUrlMap(response.getAddr(), "GET", properties);
     }
@@ -201,7 +201,7 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
         email.setMessage(msg);
 
         Properties properties = new Properties();
-        properties.put("public_id", user.getPublicId());
+        properties.setProperty("public_id", user.getPublicId());
         email.setProperties(properties);
 
         sendMailService.sendMail(email);

@@ -391,6 +391,7 @@ public class UserServiceImpl implements UserService {
             User u = new User();
             u.setId(user.getId());
             u.setEmail(user.getEmail());
+            u.setPublicId(user.getPublicId());
             if (changePassword) {
                 sendUnfamiliarIpNotificationEmail(u, "admin.changePasswordTitle", "user.settings.changePassword.successful", locale);
             } else if (changeFinPassword) {
@@ -455,7 +456,7 @@ public class UserServiceImpl implements UserService {
         email.setTo(user.getEmail());
 
         Properties properties = new Properties();
-        properties.put("public_id", user.getPublicId());
+        properties.setProperty("public_id", user.getPublicId());
         email.setProperties(properties);
 
         sendMailService.sendMail(email);
@@ -470,7 +471,7 @@ public class UserServiceImpl implements UserService {
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
 
         Properties properties = new Properties();
-        properties.put("public_id", user.getPublicId());
+        properties.setProperty("public_id", user.getPublicId());
         email.setProperties(properties);
 
         sendMailService.sendMail(email);

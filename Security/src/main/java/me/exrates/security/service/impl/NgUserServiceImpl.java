@@ -230,7 +230,7 @@ public class NgUserServiceImpl implements NgUserService {
         email.setSubject("Notification of disable 2FA");
 
         Properties properties = new Properties();
-        properties.put("public_id", userService.getPubIdByEmail(userEmail));
+        properties.setProperty("public_id", userService.getPubIdByEmail(userEmail));
         email.setProperties(properties);
 
         sendMailService.sendMail(email);
@@ -248,7 +248,7 @@ public class NgUserServiceImpl implements NgUserService {
         email.setSubject("Notification of enable 2FA");
 
         Properties properties = new Properties();
-        properties.put("public_id", userService.getPubIdByEmail(userEmail));
+        properties.setProperty("public_id", userService.getPubIdByEmail(userEmail));
         email.setProperties(properties);
 
         sendMailService.sendMail(email);
@@ -310,7 +310,7 @@ public class NgUserServiceImpl implements NgUserService {
         email.setTo(user.getEmail());
 
         Properties properties = new Properties();
-        properties.put("public_id", user.getPublicId());
+        properties.setProperty("public_id", user.getPublicId());
         email.setProperties(properties);
 
         sendMailService.sendMail(email);

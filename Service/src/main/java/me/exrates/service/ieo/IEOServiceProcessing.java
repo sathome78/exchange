@@ -262,7 +262,7 @@ public class IEOServiceProcessing {
         email.setSubject(message.getNotificationType().name());
 
         Properties properties = new Properties();
-        properties.put("public_id", userService.getPubIdByEmail(userEmail));
+        properties.setProperty("public_id", userService.getPubIdByEmail(userEmail));
         email.setProperties(properties);
 
         return email;
