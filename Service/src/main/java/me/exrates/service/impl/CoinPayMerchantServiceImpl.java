@@ -152,7 +152,7 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
         CoinPayCreateWithdrawDto request = CoinPayCreateWithdrawDto.builder()
                 .amount(new BigDecimal(amount))
                 .currency(currencyName)
-                .walletTo(withdrawMerchantOperationDto.getDestinationTag())
+                .walletTo(withdrawMerchantOperationDto.getAccountTo())
                 .withdrawalType(CoinPayCreateWithdrawDto.WithdrawalType.GATEWAY)
                 .callBack(callBackUrl)
                 .build();
