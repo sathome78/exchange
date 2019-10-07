@@ -2273,24 +2273,18 @@ public class OrderServiceImpl implements OrderService {
                 .filter(p -> p.getType() == CurrencyPairType.MAIN)
                 .collect(Collectors.toList());
         if (!icos.isEmpty()) {
-            OrdersListWrapper wrapper = new OrdersListWrapper(icos, RefreshObjectsEnum.ICO_CURRENCY_STATISTIC.name());
-            res.setIcoData(new JSONArray() {{
-                try {
-                    put(objectMapper.writeValueAsString(wrapper));
-                } catch (JsonProcessingException e) {
-                    logger.error(e);
-                }
-            }}.toString());
+            try {
+                res.setIcoData(objectMapper.writeValueAsString(icos));
+            } catch (JsonProcessingException e) {
+                log.error(e);
+            }
         }
         if (!mains.isEmpty()) {
-            OrdersListWrapper wrapper = new OrdersListWrapper(mains, RefreshObjectsEnum.MAIN_CURRENCY_STATISTIC.name());
-            res.setMainCurrenciesData(new JSONArray() {{
-                try {
-                    put(objectMapper.writeValueAsString(wrapper));
-                } catch (JsonProcessingException e) {
-                    log.error(e);
-                }
-            }}.toString());
+            try {
+                res.setMainCurrenciesData(objectMapper.writeValueAsString(mains));
+            } catch (JsonProcessingException e) {
+                log.error(e);
+            }
         }
         if (!dtos.isEmpty()) {
             Map<String, String> resultsMap = dtos

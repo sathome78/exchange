@@ -168,7 +168,7 @@ public class WsController {
 
     @MessageMapping("/register")
     public void processMessage(@Payload Map<String, String> message, SimpMessageHeaderAccessor simpMessageHeaderAccessor) throws Exception {
-        redisWsSessionService.addSession(message.get("sessionId"), message.get("email"));
+        redisWsSessionService.addSession(message.get("email"), message.get("sessionId"));
     }
 
     @MessageMapping("/unregister")

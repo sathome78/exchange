@@ -5390,18 +5390,12 @@ public class OrderServiceImplTest {
         Set<Integer> currencyIds = new HashSet<>(Collections.singletonList(1));
         List<ExOrderStatisticsShortByPairsDto> exOrderStatisticsShortByPairsDtos = Collections
                 .singletonList(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.ICO));
-        OrdersListWrapper ordersListWrapper = new OrdersListWrapper(
-                exOrderStatisticsShortByPairsDtos,
-                "ICO_CURRENCY_STATISTIC");
 
-        String wrapper = new ObjectMapper().writeValueAsString(ordersListWrapper);
-        String expected = new JSONArray() {{
-            put(new ObjectMapper().writeValueAsString(ordersListWrapper));
-        }}.toString();
+        String expected = responseJson();
 
         when(exchangeRatesHolder.getCurrenciesRates(anySetOf(Integer.class)))
                 .thenReturn(exOrderStatisticsShortByPairsDtos);
-        when(objectMapper.writeValueAsString(any(OrdersListWrapper.class))).thenReturn(wrapper);
+        when(objectMapper.writeValueAsString(any())).thenReturn(responseJson());
 
         RefreshStatisticDto someCurrencyStatForRefresh = orderService.getSomeCurrencyStatForRefresh(currencyIds);
 
@@ -5410,7 +5404,7 @@ public class OrderServiceImplTest {
         assertNull(someCurrencyStatForRefresh.getMainCurrenciesData());
         assertEquals(1, someCurrencyStatForRefresh.getStatisticInfoDtos().size());
         assertTrue(someCurrencyStatForRefresh.getStatisticInfoDtos().containsKey("BTC/USD"));
-        assertTrue(someCurrencyStatForRefresh.getStatisticInfoDtos().containsValue(wrapper));
+        assertTrue(someCurrencyStatForRefresh.getStatisticInfoDtos().containsValue(responseJson()));
 
         verify(exchangeRatesHolder, atLeastOnce()).getCurrenciesRates(anySetOf(Integer.class));
         verify(objectMapper, atLeastOnce()).writeValueAsString(any(OrdersListWrapper.class));
@@ -5443,18 +5437,12 @@ public class OrderServiceImplTest {
         Set<Integer> currencyIds = new HashSet<>(Collections.singletonList(1));
         List<ExOrderStatisticsShortByPairsDto> exOrderStatisticsShortByPairsDtos = Collections
                 .singletonList(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.MAIN));
-        OrdersListWrapper ordersListWrapper = new OrdersListWrapper(
-                exOrderStatisticsShortByPairsDtos,
-                "MAIN_CURRENCY_STATISTIC");
 
-        String wrapper = new ObjectMapper().writeValueAsString(ordersListWrapper);
-        String expected = new JSONArray() {{
-            put(new ObjectMapper().writeValueAsString(ordersListWrapper));
-        }}.toString();
+        String expected = responseJson();
 
         when(exchangeRatesHolder.getCurrenciesRates(anySetOf(Integer.class)))
                 .thenReturn(exOrderStatisticsShortByPairsDtos);
-        when(objectMapper.writeValueAsString(any(OrdersListWrapper.class))).thenReturn(wrapper);
+        when(objectMapper.writeValueAsString(any())).thenReturn(responseJson());
 
         RefreshStatisticDto someCurrencyStatForRefresh = orderService.getSomeCurrencyStatForRefresh(currencyIds);
 
@@ -5463,7 +5451,7 @@ public class OrderServiceImplTest {
         assertEquals(expected, someCurrencyStatForRefresh.getMainCurrenciesData());
         assertEquals(1, someCurrencyStatForRefresh.getStatisticInfoDtos().size());
         assertTrue(someCurrencyStatForRefresh.getStatisticInfoDtos().containsKey("BTC/USD"));
-        assertTrue(someCurrencyStatForRefresh.getStatisticInfoDtos().containsValue(wrapper));
+        assertTrue(someCurrencyStatForRefresh.getStatisticInfoDtos().containsValue(responseJson()));
 
         verify(exchangeRatesHolder, atLeastOnce()).getCurrenciesRates(anySetOf(Integer.class));
         verify(objectMapper, atLeastOnce()).writeValueAsString(any(OrdersListWrapper.class));

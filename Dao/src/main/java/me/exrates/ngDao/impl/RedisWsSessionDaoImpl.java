@@ -52,7 +52,7 @@ public class RedisWsSessionDaoImpl implements RedisWsSessionDao {
     public Optional<String> getSessionId(String email) {
         try {
             return Optional.ofNullable(redisCache.get(email));
-        } catch (ExecutionException e) {
+        } catch (Exception e) {
             log.info("Failed to get sessionId from email: " + email, e);
             return Optional.empty();
         }
