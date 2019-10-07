@@ -87,7 +87,7 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
         log.info("Starting refill {}", request);
-        String callBackUrl = serverHost + "/merchant/coinpay/payment/status/" + request.getId();
+        String callBackUrl = serverHost + "/merchants/coinpay/payment/status/" + request.getId();
 
         String token = coinpayApi.authorizeUser();
         CoinPayResponseDepositDto response = coinpayApi.createDeposit(
@@ -105,7 +105,7 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
 
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-        Merchant merchant = merchantService.findById(Integer.parseInt(params.get("merchantId")));
+        Merchant merchant = merchantService.findByName("CoinPay");
         int requestId = Integer.parseInt(params.get("id"));
 
         Optional<RefillRequestFlatDto> flat = refillRequestDao.getFlatById(requestId);
@@ -143,7 +143,7 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
         String amount = withdrawMerchantOperationDto.getAmount();
         String currencyName = withdrawMerchantOperationDto.getCurrency();
         String uuid = UUID.randomUUID().toString();
-        String callBackUrl = serverHost + "/merchant/coinpay/payment/status/withdraw/" + uuid;
+        String callBackUrl = serverHost + "/merchants/coinpay/payment/status/withdraw/" + uuid;
 
         CoinPayCreateWithdrawDto request = CoinPayCreateWithdrawDto.builder()
                 .amount(new BigDecimal(amount))
