@@ -179,7 +179,7 @@ public class StompMessengerImpl implements StompMessenger {
 
     @Override
     public void updateUserOpenOrders(String currencyPairName, String userEmail) {
-        String destination = "/user/queue/open_orders/".concat(OpenApiUtils.transformCurrencyPairBack(currencyPairName));
+        String destination = "/queue/open_orders/".concat(OpenApiUtils.transformCurrencyPairBack(currencyPairName));
         final Optional<String> optSessionId = wsSessionService.getSessionId(userEmail);
         optSessionId.ifPresent(id -> {
             try {

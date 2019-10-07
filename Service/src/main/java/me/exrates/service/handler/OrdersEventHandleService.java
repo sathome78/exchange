@@ -10,8 +10,6 @@ import me.exrates.model.dto.CallBackLogDto;
 import me.exrates.model.dto.ExOrderWrapperDTO;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderEventEnum;
-import me.exrates.model.enums.OrderStatus;
-import me.exrates.model.enums.UserRole;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.RabbitMqService;
@@ -20,8 +18,6 @@ import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CancelOrderEvent;
 import me.exrates.service.events.CreateOrderEvent;
-import me.exrates.service.events.EventsForDetailed.AcceptDetailOrderEvent;
-import me.exrates.service.events.EventsForDetailed.DetailOrderEvent;
 import me.exrates.service.events.OrderEvent;
 import me.exrates.service.events.PartiallyAcceptedOrder;
 import me.exrates.service.stomp.StompMessenger;
@@ -40,35 +36,19 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
 
-import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
-
-import static java.util.Objects.nonNull;
 
 /**
  * Created by Maks on 28.08.2017.
@@ -140,7 +120,10 @@ public class OrdersEventHandleService {
             CompletableFuture.runAsync(() -> handleOrdersDetailed(exOrder, event.getOrderEventEnum()), handlersExecutors);
         }
 
-        CompletableFuture.runAsync(() -> openOrdersRefreshHandler.onEvent(exOrder.getUserId(), exOrder.getCurrencyPair().getName()), handlersExecutors);
+        CompletableFuture.runAsync(() -> {
+            openOrdersRefreshHandler.onEvent(exOrder.getUserId(), exOrder.getCurrencyPair().getName());
+            sendOrderEventNotification(exOrder);
+        }, handlersExecutors);
 
         if (!DEV_MODE) {
             handleCallBack(event);
@@ -293,34 +276,19 @@ public class OrdersEventHandleService {
         }
     }
 
-    private void handlePersonalOrders(List<ExOrder> orders, int pairId) {
-        try {
-            Map<Integer, List<OrderWsDetailDto>> byUserMap = new HashMap<>();
-            orders.forEach(p -> {
-                byUserMap.computeIfAbsent(p.getUserId(), y -> new ArrayList<>()).add(new OrderWsDetailDto(p));
-                if (p.getStatus() == OrderStatus.CLOSED && p.getUserId() != p.getUserAcceptorId()) {
-                    byUserMap.computeIfAbsent(p.getUserAcceptorId(), y -> new ArrayList<>()).add(new OrderWsDetailDto(p));
-                }
-            });
-            String pairName = currencyService.findCurrencyPairById(pairId).getName().replace("/", "_").toLowerCase();
-            UserPersonalOrdersHandler handler = getHandlerSafe(pairId, pairName, stompMessenger);
-            byUserMap.forEach((k, v) -> handler.sendInstant(v, k));
-        } catch (Exception e) {
-            ExceptionUtils.printRootCauseStackTrace(e);
-        }
-    }
+    private Runnable sendOrderEventNotification(ExOrder exOrder) {
+        return () -> {
+            String pairName = exOrder.getCurrencyPair().getName();
+            String creatorEmail = userService.findEmailById(exOrder.getUserId());
+            stompMessenger.updateUserOpenOrders(pairName, creatorEmail);
 
-    private UserPersonalOrdersHandler getHandlerSafe(int pairId, String pairName, StompMessenger stompMessenger) {
-        if (!personalOrdersHandlerMap.containsKey(pairId)) {
-            synchronized (handlerSync) {
-                return personalOrdersHandlerMap
-                        .computeIfAbsent(pairId, k -> new UserPersonalOrdersHandler(stompMessenger, objectMapper, pairName));
+            if (exOrder.getUserAcceptorId() > 0
+                    && exOrder.getUserAcceptorId() != exOrder.getUserId()) {
+                String acceptorEmail = userService.findEmailById(exOrder.getUserAcceptorId());
+                stompMessenger.updateUserOpenOrders(pairName, acceptorEmail);
             }
-        } else {
-            return personalOrdersHandlerMap.get(pairId);
-        }
+        };
     }
-
 
     private void handleAllTrades(ExOrder exOrder) {
         TradesEventsHandler handler = mapTrades
