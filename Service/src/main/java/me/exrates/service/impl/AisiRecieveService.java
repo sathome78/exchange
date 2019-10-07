@@ -33,7 +33,6 @@ public class AisiRecieveService {
     @Autowired
     private AisiService aisiService;
 
-
     @Autowired
     private MerchantService merchantService;
     @Autowired

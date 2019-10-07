@@ -102,11 +102,6 @@ public class EosReceiveService {
             }
         }
         saveLastBlock(lastBlock);
-            if (lastBlock % 500 == 0){
-                saveLastBlock(lastBlock);
-            }
-        }
-        saveLastBlock(lastBlock);
     }
 
     private long getLastBlockNum() {
