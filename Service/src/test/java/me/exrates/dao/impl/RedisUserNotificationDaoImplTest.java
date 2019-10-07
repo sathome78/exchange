@@ -103,7 +103,7 @@ public class RedisUserNotificationDaoImplTest {
 
         List<UserNotificationMessage> found = new ArrayList<>(redisUserNotificationDao.findAllByUser(USER_PUBLIC_ID));
         assertEquals(2, found.size());
-        assertEquals(key2, found.get(0).getMessageId());
+        assertEquals(key1, found.get(0).getMessageId());
     }
 
     @After
