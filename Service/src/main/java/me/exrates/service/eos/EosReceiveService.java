@@ -82,7 +82,7 @@ public class EosReceiveService {
         int maxRound = 1000;
 
         for (int i = 0; lastBlock < (blockchainHeight - CONFIRMATIONS_NEEDED) && i < maxRound; i++){
-            Block block = getBlock(String.valueOf(++lastBlock));
+            Block block = client.getBlock(String.valueOf(++lastBlock));
             List<Transaction> transactionList = Arrays.asList(block.getTransactions());
             transactionList.forEach(transaction -> {
                 if (transaction.getStatus().equals(EXECUTED)) {
@@ -105,11 +105,6 @@ public class EosReceiveService {
             }
         }
         saveLastBlock(lastBlock);
-    }
-
-    private Block getBlock(String blockNumberOrId) {
-        EosChainApiService eosChainApiService = (EosChainApiService)EosApiServiceGenerator.createService(EosChainApiService.class, "https://api.eosnewyork.io");
-        return (Block) NewEosApiServiceGenerator.executeSync(eosChainApiService.getBlock(Collections.singletonMap("block_num_or_id", blockNumberOrId)));
     }
 
     private long getLastBlockNum() {
