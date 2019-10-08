@@ -103,6 +103,7 @@ public class OrdersEventHandleService {
     @TransactionalEventListener
     public void handleOrderEventAsync(CreateOrderEvent event) {
         ExOrder order = (ExOrder) event.getSource();
+        CompletableFuture.runAsync(() -> rabbitMqService.sendOrderInfo(order), handlersExecutors);
         onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
     }
 
