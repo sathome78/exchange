@@ -9,7 +9,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title><loc:message code="admin.title"/></title>
+    <title><loc:message code="admin.emailSettings"/></title>
     <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -29,7 +29,7 @@
     <link rel="stylesheet" href="<c:url value="/client/css/jquery.datetimepicker.css"/>">
     <script type="text/javascript" src="<c:url value='/client/js/jquery.datetimepicker.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/moment-with-locales.min.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/ieo_page.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/email_settings_page.js'/>"></script>
 
 <body>
 <%@include file='../fragments/header-simple.jsp' %>
@@ -42,7 +42,7 @@
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
 
             <div class="text-center">
-                <h4 class="modal-title">IEO</h4>
+                <h4 class="modal-title">Email Settings</h4>
             </div>
             <br><div class="col-md-12 content">
             <button id="ieo_create" class="btn btn-default" style="cursor: pointer"><loc:message code="ieo.create_new"/></button>
@@ -250,11 +250,24 @@
 
             </div>
             <br>
-            <table id="emailTable" style="width:100%; cursor: pointer">
+            <table id="ieoTable" style="width:100%; cursor: pointer">
                 <thead>
                 <tr>
-                    <th class="col-2 center blue-white"><loc:message code="email.host"/></th>
-                    <th class="col-2 center blue-white"><loc:message code="email.sender"/></th>
+                    <th class="col-2 center blue-white"><loc:message code="ieo.coins"/></th>
+                    <th class="col-2 center blue-white"><loc:message code="ieo.curName"/></th>
+                    <th class="col-2 center blue-white"><loc:message code="ieo.status"/></th>
+                    <th class="col-2 center blue-white"><loc:message code="ieo.contributors"/></th>
+                    <th class="col-3 center blue-white"><loc:message code="ieo.price"/></th>
+                    <th class="col-2 center blue-white"><loc:message code="ieo.availableBalance"/></th>
+                    <th class="col-3 center blue-white"><loc:message code="ieo.startTime"/> UTC</th>
+                    <th class="col-3 center blue-white"><loc:message code="ieo.endTime"/> UTC</th>
+                    <th class="col-3 center blue-white"><loc:message code="ieo.amount"/></th>
+                    <th class="col-3 right blue-white"><loc:message code="ieo.minamount"/></th>
+                    <th class="col-3 right blue-white"><loc:message code="ieo.maxAmountPerClime"/></th>
+                    <th class="col-3 right blue-white"><loc:message code="ieo.maxAmountPerUser"/></th>
+                    <th class="col-3 right blue-white"><loc:message code="ieo.description"/></th>
+                    <th class="col-3 right blue-white"><loc:message code="ieo.is_tet_ieo"/></th>
+                    <th class="col-3 right blue-white"><loc:message code="ieo.soldAt"/></th>
                 </tr>
                 </thead>
             </table>
