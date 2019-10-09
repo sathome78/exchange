@@ -18,6 +18,7 @@ import me.exrates.dao.OrderDao;
 import me.exrates.dao.ReferralLevelDao;
 import me.exrates.dao.ReferralTransactionDao;
 import me.exrates.dao.ReferralUserGraphDao;
+import me.exrates.dao.SettingsEmailRepository;
 import me.exrates.dao.StopOrderDao;
 import me.exrates.dao.TelegramSubscriptionDao;
 import me.exrates.dao.TransactionDao;
@@ -47,6 +48,8 @@ import me.exrates.service.api.ChartApi;
 import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.api.WalletsApi;
 import me.exrates.service.cache.ExchangeRatesHolder;
+import me.exrates.service.cache.SettingsService;
+import me.exrates.service.cache.SettingsServiceImpl;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
@@ -99,22 +102,36 @@ import javax.servlet.http.HttpServletRequest;
 })
 public class ServiceTestConfig {
 
-    @Value("${precision.value1}") int precision1;
-    @Value("${precision.value2}") int precision2;
-    @Value("${precision.value3}") int precision3;
-    @Value("${precision.value4}") int precision4;
-    @Value("${precision.value5}") int precision5;
-    @Value("${precision.value6}") int precision6;
-    @Value("${precision.value7}") int precision7;
-    @Value("${precision.value8}") int precision8;
-    @Value("${precision.value9}") int precision9;
-    @Value("${precision.value10}") int precision10;
+    @Value("${precision.value1}")
+    int precision1;
+    @Value("${precision.value2}")
+    int precision2;
+    @Value("${precision.value3}")
+    int precision3;
+    @Value("${precision.value4}")
+    int precision4;
+    @Value("${precision.value5}")
+    int precision5;
+    @Value("${precision.value6}")
+    int precision6;
+    @Value("${precision.value7}")
+    int precision7;
+    @Value("${precision.value8}")
+    int precision8;
+    @Value("${precision.value9}")
+    int precision9;
+    @Value("${precision.value10}")
+    int precision10;
 
-    @Value("${api.wallets.url}") String walletsUrl;
-    @Value("${api.wallets.username}") String walletsUsername;
-    @Value("${api.wallets.password}") String walletsPassword;
+    @Value("${api.wallets.url}")
+    String walletsUrl;
+    @Value("${api.wallets.username}")
+    String walletsUsername;
+    @Value("${api.wallets.password}")
+    String walletsPassword;
 
-    @Value("${api.chart.url}") String chartUrl;
+    @Value("${api.chart.url}")
+    String chartUrl;
 
     @Bean
     public CurrencyDao currencyDao() {
@@ -147,7 +164,7 @@ public class ServiceTestConfig {
     }
 
     @Bean
-    public IEOClaimRepository ieoClaimRepository(){
+    public IEOClaimRepository ieoClaimRepository() {
         return Mockito.mock(IEOClaimRepository.class);
     }
 
@@ -160,6 +177,16 @@ public class ServiceTestConfig {
     @Bean
     public SendMailService sendMailService() {
         return new SendMailServiceImpl();
+    }
+
+    @Bean
+    public SettingsEmailRepository settingsEmailRepository() {
+        return Mockito.mock(SettingsEmailRepository.class);
+    }
+
+    @Bean
+    public SettingsService settingsServiceNew() {
+        return new SettingsServiceImpl(settingsEmailRepository());
     }
 
     @Bean("SupportMailSender")
@@ -264,13 +291,13 @@ public class ServiceTestConfig {
     }
 
     @Bean
-    public UserRoleService userRoleService () {
+    public UserRoleService userRoleService() {
         return Mockito.mock(UserRoleService.class);
     }
 
     @Bean
-    public BigDecimalConverter bigDecimalConverter () {
-        return new BigDecimalConverter(precision1,precision2,precision3,precision4,precision5,precision6,precision7,precision8,precision9,precision10);
+    public BigDecimalConverter bigDecimalConverter() {
+        return new BigDecimalConverter(precision1, precision2, precision3, precision4, precision5, precision6, precision7, precision8, precision9, precision10);
     }
 
     @Bean
@@ -279,7 +306,7 @@ public class ServiceTestConfig {
     }
 
     @Bean
-    public CommissionService commissionService () {
+    public CommissionService commissionService() {
         return new CommissionServiceImpl();
     }
 
@@ -289,22 +316,22 @@ public class ServiceTestConfig {
     }
 
     @Bean
-    public MerchantService merchantService () {
+    public MerchantService merchantService() {
         return new MerchantServiceImpl();
     }
 
     @Bean
-    public MerchantServiceContext merchantServiceContext () {
+    public MerchantServiceContext merchantServiceContext() {
         return new MerchantServiceContextImpl();
     }
 
     @Bean
-    public IMerchantService iMerchantService () {
+    public IMerchantService iMerchantService() {
         return new IcoServiceImpl();
     }
 
     @Bean
-    public WithdrawUtils withdrawUtils () {
+    public WithdrawUtils withdrawUtils() {
         return new WithdrawUtils();
     }
 
@@ -314,7 +341,7 @@ public class ServiceTestConfig {
     }
 
     @Bean("bitcoinServiceImpl")
-    public BitcoinService bitcoinService () {
+    public BitcoinService bitcoinService() {
         return Mockito.mock(BitcoinService.class);
     }
 
