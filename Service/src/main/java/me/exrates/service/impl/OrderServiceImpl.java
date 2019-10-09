@@ -86,7 +86,6 @@ import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.ngExceptions.MarketOrderAcceptionException;
 import me.exrates.model.ngExceptions.NgOrderValidationException;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
-import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
@@ -153,7 +152,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
-import javax.swing.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
 import java.io.ByteArrayOutputStream;
@@ -345,33 +343,33 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private void processStats(List<ExOrderStatisticsShortByPairsDto> dto, Locale locale) {
+        final List<MarketVolume> allMarketVolumes = currencyService.getAllMarketVolumes();
         dto.forEach(e -> {
             BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
             BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
             e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
             e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
             e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(e.getPercentChange(), locale, 2));
-            e.setTopMarket(setTopMarketToCurrencyPair(e));
+            e.setTopMarket(setTopMarketToCurrencyPair(e, allMarketVolumes));
         });
     }
 
-    private boolean setTopMarketToCurrencyPair(ExOrderStatisticsShortByPairsDto e) {
+    private boolean setTopMarketToCurrencyPair(ExOrderStatisticsShortByPairsDto e, List<MarketVolume> allMarketVolumes) {
         CurrencyPair currencyPair = currencyService.getAllCurrencyPairCached().get(e.getCurrencyPairId());
         if (currencyPair.getTopMarketVolume() != null) {
-            return new BigDecimal(e.getVolume()).compareTo(currencyPair.getTopMarketVolume()) > 0;
+            return new BigDecimal(e.getVolume()).compareTo(currencyPair.getTopMarketVolume()) >= 0;
         } else {
-            return (new BigDecimal(e.getVolume())).compareTo(new BigDecimal(getDefauktVolumeMarket(currencyPair.getMarket()))) > 0;
+            return new BigDecimal(e.getVolume()).compareTo(getDefaultVolumeMarket(currencyPair.getMarket(), allMarketVolumes)) > 0;
         }
     }
 
-    private String getDefauktVolumeMarket(String market) {
-        BigDecimal volume = currencyService.getAllMarketVolumes()
+    private BigDecimal getDefaultVolumeMarket(String market, List<MarketVolume> allMarketVolumes) {
+        return allMarketVolumes
                 .stream()
                 .filter(o -> o.getName().equalsIgnoreCase(market))
                 .map(MarketVolume::getMarketVolume)
                 .findFirst()
                 .orElse(BigDecimal.ZERO);
-        return volume.toPlainString();
     }
 
     @Override
@@ -2253,15 +2251,11 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public String getAllCurrenciesStatForRefreshForAllPairs() {
-        OrdersListWrapper wrapper = new OrdersListWrapper(this.processStatistic(exchangeRatesHolder.getAllRates()),
-                RefreshObjectsEnum.CURRENCIES_STATISTIC.name());
         try {
-            return new JSONArray() {{
-                put(objectMapper.writeValueAsString(wrapper));
-            }}.toString();
+            return objectMapper.writeValueAsString(this.processStatistic(exchangeRatesHolder.getAllRates()));
         } catch (JsonProcessingException e) {
             log.error(e);
-            return null;
+            return "[]";
         }
     }
 
@@ -2279,24 +2273,18 @@ public class OrderServiceImpl implements OrderService {
                 .filter(p -> p.getType() == CurrencyPairType.MAIN)
                 .collect(Collectors.toList());
         if (!icos.isEmpty()) {
-            OrdersListWrapper wrapper = new OrdersListWrapper(icos, RefreshObjectsEnum.ICO_CURRENCY_STATISTIC.name());
-            res.setIcoData(new JSONArray() {{
-                try {
-                    put(objectMapper.writeValueAsString(wrapper));
-                } catch (JsonProcessingException e) {
-                    logger.error(e);
-                }
-            }}.toString());
+            try {
+                res.setIcoData(objectMapper.writeValueAsString(icos));
+            } catch (JsonProcessingException e) {
+                log.error(e);
+            }
         }
         if (!mains.isEmpty()) {
-            OrdersListWrapper wrapper = new OrdersListWrapper(mains, RefreshObjectsEnum.MAIN_CURRENCY_STATISTIC.name());
-            res.setMainCurrenciesData(new JSONArray() {{
-                try {
-                    put(objectMapper.writeValueAsString(wrapper));
-                } catch (JsonProcessingException e) {
-                    log.error(e);
-                }
-            }}.toString());
+            try {
+                res.setMainCurrenciesData(objectMapper.writeValueAsString(mains));
+            } catch (JsonProcessingException e) {
+                log.error(e);
+            }
         }
         if (!dtos.isEmpty()) {
             Map<String, String> resultsMap = dtos
@@ -2701,7 +2689,14 @@ public class OrderServiceImpl implements OrderService {
             row.createCell(2, CellType.STRING).setCellValue(getValue(transaction.getCurrencyName()));
             row.createCell(3, CellType.STRING).setCellValue(getValue(transaction.getCommissionAmount()));
             row.createCell(4, CellType.STRING).setCellValue(getValue(transaction.getAmount()));
-            row.createCell(5, CellType.STRING).setCellValue(getValue(transaction.getSourceType()));
+
+            String sourceType = nonNull(transaction.getSourceType())
+                    ? transaction.getSourceType().name()
+                    : StringUtils.EMPTY;
+            if (sourceType.equals(TransactionSourceType.FREE_COINS_TRANSFER.name())) {
+                sourceType = String.format("%s %s", transaction.getOperationType(), sourceType);
+            }
+            row.createCell(5, CellType.STRING).setCellValue(sourceType);
             row.createCell(6, CellType.STRING).setCellValue(getValue(transaction.getTransactionHash()));
         }
 

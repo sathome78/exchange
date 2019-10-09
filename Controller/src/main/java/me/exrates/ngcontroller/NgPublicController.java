@@ -6,7 +6,11 @@ import com.google.common.collect.Lists;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.chat.telegram.TelegramChatDao;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
-import me.exrates.model.*;
+import me.exrates.model.ChatMessage;
+import me.exrates.model.Currency;
+import me.exrates.model.CurrencyPair;
+import me.exrates.model.IEODetails;
+import me.exrates.model.User;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.ChatHistoryDateWrapperDto;
 import me.exrates.model.dto.ChatHistoryDto;
@@ -24,16 +28,24 @@ import me.exrates.model.enums.UserStatus;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
+import me.exrates.model.ngModel.response.ResponseCustomError;
 import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.ngService.NgOrderService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.service.NgUserService;
-import me.exrates.service.*;
+import me.exrates.service.ChatService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.IEOService;
+import me.exrates.service.NewsParser;
+import me.exrates.service.OrderService;
+import me.exrates.service.SendMailService;
+import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.exception.IllegalChatMessageException;
 import me.exrates.service.notifications.G2faService;
+import me.exrates.service.util.DateUtils;
 import me.exrates.service.util.IpUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -43,6 +55,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.util.Base64Utils;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -65,6 +78,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -127,6 +141,12 @@ public class NgPublicController {
 
     @GetMapping(value = "/if_email_exists")
     public ResponseEntity<Boolean> checkIfNewUserEmailExists(@RequestParam("email") String email, HttpServletRequest request) {
+        email = DateUtils.decodeStringFromUrl(email);
+
+        if (Objects.isNull(email)) {
+            throw new NgResponseException(ErrorApiTitles.USER_EMAIL_NOT_DECODED, "User email is not decoded");
+        }
+
         logger.info("Url request url {}, scheme {}, port {}", request.getRequestURI(), request.getScheme(), request.getServerPort());
         User user;
         try {
@@ -153,7 +173,27 @@ public class NgPublicController {
     @GetMapping("/is_google_2fa_enabled")
     @ResponseBody
     public Boolean isGoogleTwoFAEnabled(@RequestParam("email") String email) {
+        email = DateUtils.decodeStringFromUrl(email);
+
+        if (Objects.isNull(email)) {
+            throw new NgResponseException(ErrorApiTitles.USER_EMAIL_NOT_DECODED, "User email is not decoded");
+        }
+
         return g2faService.isGoogleAuthenticatorEnable(email);
+    }
+
+    @GetMapping("/check/publicity")
+    public ResponseEntity<Map<String, Boolean>> checkIfPublicIdExists(@RequestParam("id") String id) {
+        final String result = "STATUS";
+        if (StringUtils.isBlank(id)) {
+            return ResponseEntity.ok(Collections.singletonMap(result, false));
+        }
+        try {
+            final String emailByPubId = userService.getEmailByPubId(id);
+            return ResponseEntity.ok(Collections.singletonMap(result, StringUtils.isNotEmpty(emailByPubId)));
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.ok(Collections.singletonMap(result, false));
+        }
     }
 
     @GetMapping("/ieo")
@@ -396,6 +436,12 @@ public class NgPublicController {
 
     @GetMapping(value = "/ieo/subscribe", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseModel<?> checkSubscribe(@RequestParam String email) {
+        email = DateUtils.decodeStringFromUrl(email);
+
+        if (Objects.isNull(email)) {
+            return new ResponseModel<>(null, new ResponseCustomError("User email is not decoded"));
+        }
+
         Map<String, Boolean> result = new HashMap<>(2);
         result.put("email", ieoService.isUserSubscribeForIEOEmail(email));
         result.put("telegram", ieoService.isUserSubscribeForIEOTelegram(email));
@@ -407,6 +453,20 @@ public class NgPublicController {
     public ResponseModel<?> sendErrorReposrt(@RequestBody @Valid ErrorReportDto dto) {
         ngUserService.sendErrorReportEmail(dto);
         return new ResponseModel<>();
+    }
+
+    @PostMapping(value = "/mailing-subscription")
+    public ResponseEntity<Boolean> subscribe(@RequestParam(value = "public_id", required = false) String publicId,
+                                             @RequestParam(value = "token", required = false) String token,
+                                             @RequestParam boolean subscribe) {
+        if (Objects.nonNull(publicId)) {
+            return ResponseEntity.ok(userService.subscribeToMailingByPublicId(publicId, subscribe));
+        } else if (Objects.nonNull(token)) {
+            final String email = new String(Base64Utils.decodeFromString(token));
+
+            return ResponseEntity.ok(userService.subscribeToMailingByEmail(email, subscribe));
+        }
+        return ResponseEntity.badRequest().build();
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

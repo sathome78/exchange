@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -35,7 +36,7 @@ import java.util.stream.Stream;
 
 @Log4j2(topic = "email_log")
 @Service
-@PropertySource(value = {"classpath:/mail.properties", "classpath:/angular.properties"})
+@PropertySource(value = {"classpath:/mail.properties", "classpath:/angular.properties", "classpath:/env.properties"})
 public class SendMailServiceImpl implements SendMailService {
 
     private final static ExecutorService EXECUTORS = Executors.newCachedThreadPool();
@@ -89,6 +90,9 @@ public class SendMailServiceImpl implements SendMailService {
 
     @Value("${main.email.name}")
     private String mainEmailName;
+
+    @Value("${env.host}")
+    private String host;
 
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -192,7 +196,7 @@ public class SendMailServiceImpl implements SendMailService {
             message.setFrom(new InternetAddress(email.getFrom(), mainEmailName));
             message.setTo(email.getTo());
             message.setSubject(email.getSubject());
-            message.setText(prepareTemplate(email.getMessage()), true);
+            message.setText(prepareTemplate(email), true);
             if (email.getAttachments() != null) {
                 for (Email.Attachment attachment : email.getAttachments())
                     message.addAttachment(attachment.getName(), attachment.getResource(), attachment.getContentType());
@@ -209,6 +213,7 @@ public class SendMailServiceImpl implements SendMailService {
                 .to(mailTo)
                 .message(messageBody)
                 .subject(String.format("Feedback from %s -- %s", senderName, senderMail))
+                .properties(new Properties())
                 .build());
     }
 
@@ -222,6 +227,7 @@ public class SendMailServiceImpl implements SendMailService {
                 .to(listingEmail)
                 .subject(listingSubject)
                 .message(MessageFormatterUtil.format(name, email, telegram, text))
+                .properties(new Properties())
                 .build());
     }
 
@@ -231,7 +237,7 @@ public class SendMailServiceImpl implements SendMailService {
         SUPPORT_MAIL_EXECUTORS.shutdown();
     }
 
-    private String prepareTemplate(String text) {
+    private String prepareTemplate(Email email) {
         File file;
         String html;
         try {
@@ -239,9 +245,12 @@ public class SendMailServiceImpl implements SendMailService {
             byte[] encoded = Files.readAllBytes(Paths.get(file.getAbsolutePath()));
             html = new String(encoded, StandardCharsets.UTF_8.name());
         } catch (IOException e) {
-            return text;
+            return email.getMessage();
         }
-        html = html.replace("{::text::}", text);
+        html = html
+                .replace("{::text::}", email.getMessage())
+                .replace("{::publicId::}", email.getProperties().getProperty("public_id"))
+                .replace("{::host::}", host);
         return html;
     }
 }

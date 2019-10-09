@@ -134,7 +134,7 @@ public class WavesServiceImplTest {
         wavesService.setMinConfirmations(5);
         wavesService.setNotifyEmail("");
         Properties properties = new Properties();
-        properties.put("waves.token.GameX.id", TOKEN_ID);
+        properties.setProperty("waves.token.GameX.id", TOKEN_ID);
         wavesService.initAssets(properties);
 
     }

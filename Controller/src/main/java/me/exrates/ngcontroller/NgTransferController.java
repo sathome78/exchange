@@ -40,6 +40,7 @@ import me.exrates.service.exception.UserOperationAccessException;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.util.CharUtils;
+import me.exrates.service.util.DateUtils;
 import me.exrates.service.util.RateLimitService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,6 +70,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.PRESENT_VOUCHER;
@@ -242,6 +244,12 @@ public class NgTransferController {
 
     @GetMapping("/check_email")
     public ResponseModel<Boolean> checkEmailForTransfer(@RequestParam("email") String email) {
+        email = DateUtils.decodeStringFromUrl(email);
+
+        if (Objects.isNull(email)) {
+            return new ResponseModel<>(false, new ResponseCustomError("User email is not decoded"));
+        }
+
         String principalEmail = getPrincipalEmail();
 
         if (email.equalsIgnoreCase(principalEmail)) {

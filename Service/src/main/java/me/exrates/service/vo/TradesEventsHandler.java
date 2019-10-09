@@ -26,7 +26,7 @@ public class TradesEventsHandler {
 
     private final Semaphore SEMAPHORE = new Semaphore(1, true);
 
-    private static final int LATENCY = 1200;
+    private static final int LATENCY = 800;
 
 
     private TradesEventsHandler(int currencyPairId) {
@@ -49,6 +49,5 @@ public class TradesEventsHandler {
                 SEMAPHORE.release();
             }
         }
-
     }
 }

@@ -83,7 +83,7 @@ public class UserPersonalOrdersHandler {
 
     private void sendMessage(List<OrderWsDetailDto> dtos, Integer userId) {
         try {
-            stompMessenger.sendPersonalOpenOrdersAndDealsToUser(userId, pairName, objectMapper.writeValueAsString(dtos));
+//            stompMessenger.sendPersonalOpenOrdersAndDealsToUser(userId, pairName, objectMapper.writeValueAsString(dtos));
         } catch (Exception e) {
             log.error(e);
         }

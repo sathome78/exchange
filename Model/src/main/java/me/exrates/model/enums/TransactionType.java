@@ -27,6 +27,8 @@ public enum TransactionType {
   MANUAL(TransactionSourceType.MANUAL, null),
   USER_TRANSFER_IN(USER_TRANSFER, OperationType.INPUT),
   USER_TRANSFER_OUT(USER_TRANSFER, OperationType.OUTPUT),
+  FREE_COINS_TRANSFER_IN(FREE_COINS_TRANSFER, OperationType.INPUT),
+  FREE_COINS_TRANSFER_OUT(FREE_COINS_TRANSFER, OperationType.OUTPUT),
   NOTIFICATIONS(TransactionSourceType.NOTIFICATIONS, null);
 
   private TransactionSourceType sourceType;

@@ -29,7 +29,7 @@ public class CurrencyStatisticsHandler {
     private Set<Integer> currenciesSet = Sets.newConcurrentHashSet();
 
     private final Semaphore semaphoreMain = new Semaphore(1, true);
-    private static final long DELAY = 1000;
+    private static final long DELAY = 600;
     private final Object syncObj = new Object();
 
     @Async

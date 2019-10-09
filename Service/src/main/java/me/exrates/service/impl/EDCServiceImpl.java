@@ -7,7 +7,6 @@ import com.google.gson.JsonParser;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.dao.EDCAccountDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.condition.MonolitConditional;
@@ -20,13 +19,28 @@ import me.exrates.service.EDCServiceNode;
 import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
-import me.exrates.service.TransactionService;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestFakePaymentReceivedException;
 import me.exrates.service.exception.RefillRequestMerchantException;
 import me.exrates.service.util.WithdrawUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpHost;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.config.SocketConfig;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.protocol.HTTP;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.ssl.SSLContexts;
+import org.apache.http.ssl.TrustStrategy;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,13 +52,25 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import sun.net.www.http.HttpClient;
+import sun.security.util.SecurityConstants;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.security.cert.CertificateException;
+import javax.security.cert.X509Certificate;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
+
+import static me.exrates.service.util.RequestUtil.getSSlFactory;
 
 @Log4j2(topic = "edc_log")
 @Service
@@ -63,24 +89,37 @@ public class EDCServiceImpl implements EDCService {
     private @Value("${edcmerchant.new_account}")
     String urlCreateNewAccount;
 
+    private final MessageSource messageSource;
+    private final RefillService refillService;
+    private final MerchantService merchantService;
+    private final CurrencyService currencyService;
+    private final WithdrawUtils withdrawUtils;
+    private final EDCServiceNode edcServiceNode;
+    private final GtagService gtagService;
+    private RestTemplate restTemplate;
+
     @Autowired
-    private TransactionService transactionService;
-    @Autowired
-    private EDCAccountDao edcAccountDao;
-    @Autowired
-    private MessageSource messageSource;
-    @Autowired
-    private RefillService refillService;
-    @Autowired
-    private MerchantService merchantService;
-    @Autowired
-    private CurrencyService currencyService;
-    @Autowired
-    private WithdrawUtils withdrawUtils;
-    @Autowired
-    private EDCServiceNode edcServiceNode;
-    @Autowired
-    private GtagService gtagService;
+    public EDCServiceImpl(MessageSource messageSource,
+                          RefillService refillService,
+                          MerchantService merchantService,
+                          CurrencyService currencyService,
+                          WithdrawUtils withdrawUtils,
+                          EDCServiceNode edcServiceNode,
+                          GtagService gtagService) {
+        this.messageSource = messageSource;
+        this.refillService = refillService;
+        this.merchantService = merchantService;
+        this.currencyService = currencyService;
+        this.withdrawUtils = withdrawUtils;
+        this.edcServiceNode = edcServiceNode;
+        this.gtagService = gtagService;
+        try {
+            this.restTemplate = restTemplate();
+        } catch (Exception e) {
+            log.error("Error creating edc rest-client");
+        }
+    }
+
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
@@ -189,7 +228,6 @@ public class EDCServiceImpl implements EDCService {
     }
 
     private String getAddress() {
-        RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -229,6 +267,29 @@ public class EDCServiceImpl implements EDCService {
     public boolean isValidDestinationAddress(String address) {
 
         return withdrawUtils.isValidDestinationAddress(address);
+    }
+
+
+    public RestTemplate restTemplate() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
+        HttpClientBuilder b = HttpClientBuilder.create();
+        SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(null, (chain, authType) -> true).build();
+        b.setSslcontext(sslContext);
+        HostnameVerifier hostnameVerifier = SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER;
+        SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext, hostnameVerifier);
+        Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
+                .register("http", PlainConnectionSocketFactory.getSocketFactory())
+                .register("https", sslSocketFactory)
+                .build();
+        PoolingHttpClientConnectionManager connMgr = new PoolingHttpClientConnectionManager( socketFactoryRegistry);
+        b.setConnectionManager( connMgr);
+        CloseableHttpClient client = b.build();
+        RestTemplate restTemplate = new RestTemplate();
+        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+        requestFactory.setHttpClient(client);
+        requestFactory.setConnectionRequestTimeout(20000);
+        requestFactory.setReadTimeout(25000);
+        restTemplate.setRequestFactory(requestFactory);
+        return restTemplate;
     }
 
 }

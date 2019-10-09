@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -14,5 +16,5 @@ public class AdGroupResponseDto<T> {
     private HeaderResponseDto header;
     private ResultResponseDto result;
     private T responseData;
-    private ErrorsResponseDto errors;
+    private List<AdGroupErrorResponseDto> errors;
 }

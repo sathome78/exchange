@@ -2,6 +2,7 @@ package me.exrates.service.cache.currencyPairsInfo;
 
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
@@ -21,7 +22,7 @@ public class CpInfoRedisRepository {
     private final HashOperations<String, Object, Object> ops;
 
     @Autowired
-    public CpInfoRedisRepository(RedisTemplate<String, Object> redisTemplate) {
+    public CpInfoRedisRepository(@Qualifier("exratesRedisTemplate") RedisTemplate<String, Object> redisTemplate) {
         redisTemplate.setHashKeySerializer(new GenericToStringSerializer<>(Integer.class));
         redisTemplate.delete(NEW_KEY);
         ops = redisTemplate.opsForHash();

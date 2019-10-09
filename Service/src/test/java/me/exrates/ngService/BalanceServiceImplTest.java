@@ -144,6 +144,9 @@ public class BalanceServiceImplTest {
         detailedDto1.setCurrencyId(3);
         detailedDto1.setCurrencyName(RUB);
         detailedDto1.setActiveBalance("0");
+        detailedDto1.setReservedByOrders("0");
+        detailedDto1.setReservedByMerchant("0");
+        detailedDto1.setOnConfirmation("0");
         detailedDto1.setReservedBalance("0");
         result.add(detailedDto1);
 
@@ -151,6 +154,9 @@ public class BalanceServiceImplTest {
         detailedDto2.setCurrencyId(1);
         detailedDto2.setCurrencyName(BTC);
         detailedDto2.setActiveBalance("10");
+        detailedDto2.setReservedByOrders("0");
+        detailedDto2.setReservedByMerchant("0");
+        detailedDto2.setOnConfirmation("1");
         detailedDto2.setReservedBalance("1");
         result.add(detailedDto2);
 
@@ -178,6 +184,9 @@ public class BalanceServiceImplTest {
         detailedDto1.setCurrencyId(4);
         detailedDto1.setCurrencyName(ETH);
         detailedDto1.setActiveBalance("20");
+        detailedDto1.setReservedByOrders("0");
+        detailedDto1.setReservedByMerchant("0");
+        detailedDto1.setOnConfirmation("5");
         detailedDto1.setReservedBalance("5");
         result.add(detailedDto1);
 
@@ -185,6 +194,9 @@ public class BalanceServiceImplTest {
         detailedDto2.setCurrencyId(1);
         detailedDto2.setCurrencyName(BTC);
         detailedDto2.setActiveBalance("10");
+        detailedDto2.setReservedByOrders("0");
+        detailedDto2.setReservedByMerchant("0");
+        detailedDto2.setOnConfirmation("1");
         detailedDto2.setReservedBalance("1");
         result.add(detailedDto2);
 
@@ -212,6 +224,9 @@ public class BalanceServiceImplTest {
         detailedDto1.setCurrencyId(4);
         detailedDto1.setCurrencyName(TEST_BTC);
         detailedDto1.setActiveBalance("20");
+        detailedDto1.setReservedByOrders("0");
+        detailedDto1.setReservedByMerchant("0");
+        detailedDto1.setOnConfirmation("5");
         detailedDto1.setReservedBalance("5");
         result.add(detailedDto1);
 
@@ -219,6 +234,9 @@ public class BalanceServiceImplTest {
         detailedDto2.setCurrencyId(1);
         detailedDto2.setCurrencyName(BTC);
         detailedDto2.setActiveBalance("10");
+        detailedDto2.setReservedByOrders("0");
+        detailedDto2.setReservedByMerchant("0");
+        detailedDto2.setOnConfirmation("1");
         detailedDto2.setReservedBalance("1");
         result.add(detailedDto2);
 
@@ -248,6 +266,9 @@ public class BalanceServiceImplTest {
         detailedDto1.setCurrencyId(4);
         detailedDto1.setCurrencyName(TEST_BTC);
         detailedDto1.setActiveBalance("20");
+        detailedDto1.setReservedByOrders("0");
+        detailedDto1.setReservedByMerchant("0");
+        detailedDto1.setOnConfirmation("5");
         detailedDto1.setReservedBalance("5");
         result.add(detailedDto1);
 
@@ -255,6 +276,9 @@ public class BalanceServiceImplTest {
         detailedDto2.setCurrencyId(1);
         detailedDto2.setCurrencyName(BTC);
         detailedDto2.setActiveBalance("10");
+        detailedDto2.setReservedByOrders("0");
+        detailedDto2.setReservedByMerchant("0");
+        detailedDto2.setOnConfirmation("1");
         detailedDto2.setReservedBalance("1");
         result.add(detailedDto2);
 
@@ -262,6 +286,9 @@ public class BalanceServiceImplTest {
         detailedDto3.setCurrencyId(2);
         detailedDto3.setCurrencyName(ETH);
         detailedDto3.setActiveBalance("15");
+        detailedDto3.setReservedByOrders("0");
+        detailedDto3.setReservedByMerchant("0");
+        detailedDto3.setOnConfirmation("15");
         detailedDto3.setReservedBalance("15");
         result.add(detailedDto3);
 
