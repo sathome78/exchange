@@ -8,6 +8,7 @@ import me.exrates.dao.WalletDao;
 import me.exrates.dao.chat.telegram.TelegramChatDao;
 import me.exrates.ngService.BalanceService;
 import me.exrates.ngService.NgOrderService;
+import me.exrates.ngService.RedisUserNotificationService;
 import me.exrates.ngService.UserVerificationService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.service.AuthTokenService;
@@ -150,6 +151,11 @@ public class AngularAppTestConfig {
     @Bean
     public CurrencyService currencyService() {
         return Mockito.mock(CurrencyService.class);
+    }
+
+    @Bean
+    public RedisUserNotificationService redisUserNotificationService() {
+        return Mockito.mock(RedisUserNotificationService.class);
     }
 
     @Bean

@@ -173,7 +173,6 @@ public class FreecoinsServiceImpl implements FreecoinsService {
 
                     return adminClaim;
                 })
-                .sorted(Comparator.comparing(AdminGiveawayResultDto::getDate).reversed())
                 .collect(Collectors.toList());
     }
 }

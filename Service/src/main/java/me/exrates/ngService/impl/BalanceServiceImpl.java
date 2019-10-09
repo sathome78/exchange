@@ -47,6 +47,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -140,7 +141,19 @@ public class BalanceServiceImpl implements BalanceService {
                     .filter(wallet -> wallet.getCurrencyName().contains(currencyName)
                             || wallet.getCurrencyDescription().contains(currencyName));
         }
-        List<MyWalletsDetailedDto> balanceDetails = detailedDtoStream.collect(toList());
+        List<MyWalletsDetailedDto> balanceDetails = detailedDtoStream
+                .peek(walletDetails -> {
+                    BigDecimal activeBalance = new BigDecimal(walletDetails.getActiveBalance());
+                    BigDecimal reservedByOrders = new BigDecimal(walletDetails.getReservedByOrders());
+                    BigDecimal reservedByMerchant = new BigDecimal(walletDetails.getReservedByMerchant());
+                    BigDecimal onConfirmation = new BigDecimal(walletDetails.getOnConfirmation());
+
+                    final BigDecimal total = activeBalance.add(reservedByOrders).add(reservedByMerchant).add(onConfirmation);
+
+                    walletDetails.setTotal(total);
+                })
+                .sorted(Comparator.comparing(MyWalletsDetailedDto::getTotal).reversed())
+                .collect(toList());
 
         PagedResult<MyWalletsDetailedDto> detailsPage = getSafeSubList(balanceDetails, offset, limit);
 

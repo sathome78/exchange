@@ -35,7 +35,7 @@ import java.util.stream.Stream;
 
 @Log4j2(topic = "email_log")
 @Service
-@PropertySource(value = {"classpath:/mail.properties", "classpath:/angular.properties"})
+@PropertySource(value = {"classpath:/mail.properties", "classpath:/angular.properties", "classpath:/env.properties"})
 public class SendMailServiceImpl implements SendMailService {
 
     private final static ExecutorService EXECUTORS = Executors.newCachedThreadPool();
@@ -84,6 +84,9 @@ public class SendMailServiceImpl implements SendMailService {
 
     @Value("${main.email.name}")
     private String mainEmailName;
+
+    @Value("${env.host}")
+    private String host;
 
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -222,7 +225,8 @@ public class SendMailServiceImpl implements SendMailService {
         }
         html = html
                 .replace("{::text::}", email.getMessage())
-                .replace("{::publicId::}", email.getProperties().getProperty("public_id"));
+                .replace("{::publicId::}", email.getProperties().getProperty("public_id"))
+                .replace("{::host::}", host);
         return html;
     }
 }

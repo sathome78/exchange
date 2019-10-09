@@ -22,6 +22,7 @@ import me.exrates.model.dto.merchants.adgroup.responses.AdGroupResponseDto;
 import me.exrates.model.dto.merchants.adgroup.responses.InvoiceDto;
 import me.exrates.model.dto.merchants.adgroup.responses.ResponseListTxDto;
 import me.exrates.model.dto.merchants.adgroup.responses.ResponsePayOutDto;
+import me.exrates.model.dto.merchants.adgroup.responses.TransactionResponseDto;
 import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
@@ -38,7 +39,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,7 +88,7 @@ public class AdgroupServiceImpl implements AdgroupService {
 
     @PostConstruct
     void startAdgroup() {
-        newTxCheckerScheduler.scheduleAtFixedRate(this::regularlyCheckStatusTransactions, 10, 60, TimeUnit.MINUTES);
+        newTxCheckerScheduler.scheduleAtFixedRate(this::regularlyCheckStatusTransactions, 10, 15, TimeUnit.MINUTES);
     }
 
     @Override
@@ -127,10 +127,11 @@ public class AdgroupServiceImpl implements AdgroupService {
         Currency currency = currencyService.findByName(params.get("currency"));
         Merchant merchant = merchantService.findById(Integer.parseInt(params.get("merchantId")));
         int userId = Integer.parseInt(params.get("userId"));
+        int requestId = Integer.parseInt(params.get("requestId"));
 
         String paymentAmount = params.getOrDefault("amount", "0");
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
-                .requestId(0)
+                .requestId(requestId)
                 .merchantId(merchant.getId())
                 .currencyId(currency.getId())
                 .amount(new BigDecimal(paymentAmount))
@@ -138,9 +139,10 @@ public class AdgroupServiceImpl implements AdgroupService {
                 .merchantTransactionId(params.get("paymentId"))
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
-        Integer requestId = refillService.createAndAutoAcceptRefillRequest(requestAcceptDto, userId);
+
+        refillService.autoAcceptRefillRequest(requestAcceptDto);
         log.info("requestId {}", requestId);
-        params.put("request_id", requestId.toString());
+        params.put("request_id", String.valueOf(requestId));
         sendNotification(userId, paymentAmount, currency.getName());
 
         refillRequestDao.setRemarkById(requestId, "SUCCESS");
@@ -158,7 +160,7 @@ public class AdgroupServiceImpl implements AdgroupService {
                 .currency(withdrawMerchantOperationDto.getCurrency())
                 .pin(pin)
                 .platform("YANDEX")
-                .address(withdrawMerchantOperationDto.getDestinationTag())
+                .address(withdrawMerchantOperationDto.getAccountTo())
                 .build();
 
         AdGroupCommonRequestDto requestDto = new AdGroupCommonRequestDto<>(header, requestPayOutDto);
@@ -169,7 +171,11 @@ public class AdgroupServiceImpl implements AdgroupService {
         if (!responseDto.getResponseData().getStatus().equalsIgnoreCase("APPROVED")) {
             throw new MerchantException("Not approved");
         }
-        return Collections.emptyMap();
+
+        Map<String, String> result = new HashMap<>();
+        result.put("hash", responseDto.getResponseData().getId());
+        result.put("params", responseDto.getResponseData().getRefId());
+        return result;
     }
 
     @Override
@@ -194,7 +200,7 @@ public class AdgroupServiceImpl implements AdgroupService {
             log.info("*** Ad_Group stopped check tx, empty list ***");
             return;
         }
-        log.info("Staring check transactions {}", pendingTx);
+        log.info("Staring check transactions size {}", pendingTx.size());
         final String requestUrl = url + "/transfer/get-merchant-tx";
         List<String> txStrings = pendingTx.stream().map(RefillRequestFlatDto::getMerchantTransactionId).collect(Collectors.toList());
 
@@ -210,35 +216,32 @@ public class AdgroupServiceImpl implements AdgroupService {
         AdGroupResponseDto<ResponseListTxDto> responseDto =
                 httpClient.getTransactions(requestUrl, getAuthorizationKey(), requestDto);
 
-        log.info("Response from adgroup {}", responseDto);
+        log.info("Response from adgroup size tx {}", responseDto.getResponseData().getTransactions().size());
         for (RefillRequestFlatDto transaction : pendingTx) {
-            responseDto.getResponseData().getTransactions()
-                    .stream()
-                    .filter(tx -> tx.getRefid().equalsIgnoreCase(transaction.getMerchantTransactionId()))
-                    .peek(tx -> {
-                        switch (TxStatus.valueOf(tx.getTxStatus())) {
-                            case APPROVED:
-                                Map<String, String> params = new HashMap<>();
-                                params.put("amount", tx.getAmount().toString());
-                                params.put("currency", tx.getCurrency());
-                                params.put("paymentId", transaction.getMerchantTransactionId());
-                                params.put("userId", String.valueOf(transaction.getUserId()));
-                                params.put("merchantId", String.valueOf(transaction.getMerchantId()));
-                                try {
-                                    processPayment(params);
-                                } catch (RefillRequestAppropriateNotFoundException e) {
-                                    log.error("Error while processing payment {}, e {}", params, e);
-                                }
-                                break;
-                            case INVOICE:
-                            case PENDING:
-                            case CREATED:
-                                break;
-                            case REJECTED:
-                                refillRequestDao.setRemarkById(transaction.getId(), "REJECTED");
-                                break;
+            for (TransactionResponseDto tx : responseDto.getResponseData().getTransactions()) {
+                if (transaction.getMerchantTransactionId().equalsIgnoreCase(tx.getId())) {
+                    TxStatus txStatus = TxStatus.valueOf(tx.getTxStatus());
+
+                    if (txStatus == TxStatus.APPROVED) {
+                        Map<String, String> params = new HashMap<>();
+                        params.put("amount", tx.getAmount().toString());
+                        params.put("currency", tx.getCurrency());
+                        params.put("paymentId", transaction.getMerchantTransactionId());
+                        params.put("userId", String.valueOf(transaction.getUserId()));
+                        params.put("merchantId", String.valueOf(transaction.getMerchantId()));
+                        params.put("requestId", String.valueOf(transaction.getId()));
+                        try {
+                            processPayment(params);
+                        } catch (RefillRequestAppropriateNotFoundException e) {
+                            log.error("Error while processing payment {}, e {}", params, e);
                         }
-                    });
+                    }
+
+                    if (txStatus == TxStatus.REJECTED) {
+                        refillRequestDao.setRemarkById(transaction.getId(), "REJECTED");
+                    }
+                }
+            }
         }
     }
 
@@ -258,7 +261,7 @@ public class AdgroupServiceImpl implements AdgroupService {
         email.setMessage(msg);
 
         Properties properties = new Properties();
-        properties.put("public_id", user.getPublicId());
+        properties.setProperty("public_id", user.getPublicId());
         email.setProperties(properties);
 
         sendMailService.sendMail(email);

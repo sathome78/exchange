@@ -113,6 +113,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         refillRequestFlatDto.setMerchantTransactionId(rs.getString("merchant_transaction_id"));
         refillRequestFlatDto.setRemark(rs.getString("remark"), "");
         refillRequestFlatDto.setAdminHolderId(rs.getInt("admin_holder_id"));
+        refillRequestFlatDto.setUserId(rs.getInt("user_id"));
         return refillRequestFlatDto;
     };
 

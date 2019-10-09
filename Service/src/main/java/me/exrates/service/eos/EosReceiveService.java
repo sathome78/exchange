@@ -60,20 +60,25 @@ public class EosReceiveService {
 
     @PostConstruct
     private void init() {
-        if (environment.equals("prd")) {
             BasicConfigurator.configure();
             client = EosApiFactory.create("http://127.0.0.1:8900",
                     "https://api.eosnewyork.io",
                     "https://api.eosnewyork.io");
-            scheduler.scheduleAtFixedRate(this::checkRefills, 5, 20, TimeUnit.MINUTES);
-        }
+            scheduler.scheduleWithFixedDelay(() -> {
+                try {
+                  checkRefills();
+               } catch (Exception e) {
+                  log.error(e);
+               }
+        }, 1, 1, TimeUnit.MINUTES);
     }
-
 
     private void checkRefills() {
         long lastBlock = loadLastBlock();
         long blockchainHeight = getLastBlockNum();
-        while (lastBlock < blockchainHeight - CONFIRMATIONS_NEEDED) {
+        int maxRound = 1000;
+
+        for (int i = 0; lastBlock < (blockchainHeight - CONFIRMATIONS_NEEDED) && i < maxRound; i++){
             Block block = client.getBlock(String.valueOf(++lastBlock));
             List<Transaction> transactionList = Arrays.asList(block.getTransactions());
             transactionList.forEach(transaction -> {
@@ -92,8 +97,11 @@ public class EosReceiveService {
                     });
                 }
             });
-            saveLastBlock(lastBlock);
+            if (lastBlock % 500 == 0){
+                saveLastBlock(lastBlock);
+            }
         }
+        saveLastBlock(lastBlock);
     }
 
     private long getLastBlockNum() {

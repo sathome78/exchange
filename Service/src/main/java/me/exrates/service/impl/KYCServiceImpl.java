@@ -308,7 +308,7 @@ public class KYCServiceImpl implements KYCService {
     private void sendStatusNotification(String userEmail, String eventStatus) {
         log.info("SEND TO EMAIL {}, STATUS {}", userEmail, eventStatus);
         Properties properties = new Properties();
-        properties.put("public_id", userService.getPubIdByEmail(userEmail));
+        properties.setProperty("public_id", userService.getPubIdByEmail(userEmail));
 
         Email email = Email.builder()
                 .to(userEmail)

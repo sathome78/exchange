@@ -127,7 +127,7 @@ public class CoinpayApiImpl implements CoinpayApi {
                 throw new CoinpayException("COINPAY - Error while creating withdraw request");
             }
         } catch (Exception ex) {
-            log.error("COINPAY - Error response while create withdraw request");
+            log.error("COINPAY - Error response while create withdraw request, ", ex);
             throw new CoinpayException("COINPAY - Error while creating withdraw request");
         }
 

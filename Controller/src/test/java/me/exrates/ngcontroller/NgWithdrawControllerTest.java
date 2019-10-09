@@ -2,6 +2,7 @@ package me.exrates.ngcontroller;
 
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
+import me.exrates.model.MerchantCurrency;
 import me.exrates.model.dto.PinOrderInfoDto;
 import me.exrates.model.dto.WithdrawRequestParamsDto;
 import me.exrates.model.enums.OperationType;
@@ -41,6 +42,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasValue;
@@ -158,6 +160,7 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         when(userService.findByEmail(anyString())).thenReturn(getMockUser());
         when(g2faService.isGoogleAuthenticatorEnable(anyInt())).thenReturn(Boolean.TRUE);
         when(g2faService.checkGoogle2faVerifyCode(anyString(), anyInt())).thenReturn(Boolean.FALSE);
+        when(merchantService.findByMerchantAndCurrency(anyInt(), anyInt())).thenReturn(Optional.of(getMerchantCurrency()));
 
         mockMvc.perform(post(BASE_URL + "/request/create")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
@@ -181,6 +184,7 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         doNothing().when(merchantService).checkDestinationTag(anyInt(), anyString());
         when(userService.findByEmail(anyString())).thenReturn(getMockUser());
         when(g2faService.isGoogleAuthenticatorEnable(anyInt())).thenReturn(Boolean.FALSE);
+        when(merchantService.findByMerchantAndCurrency(anyInt(), anyInt())).thenReturn(Optional.of(getMerchantCurrency()));
         when(userService.checkPin(anyString(), anyString(), anyObject())).thenReturn(Boolean.FALSE);
         when(secureService.sendWithdrawPinCode(anyObject(), anyString(), anyString())).thenReturn(getMockNotificationResultDto());
         when(currencyService.getById(anyInt())).thenReturn(getCurrency());
@@ -212,6 +216,7 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         when(userService.findByEmail(anyString())).thenReturn(getMockUser());
         when(g2faService.isGoogleAuthenticatorEnable(anyInt())).thenReturn(Boolean.FALSE);
         when(userService.checkPin(anyString(), anyString(), anyObject())).thenReturn(Boolean.TRUE);
+        when(merchantService.findByMerchantAndCurrency(anyInt(), anyInt())).thenReturn(Optional.of(getMerchantCurrency()));
         when(inputOutputService.prepareCreditsOperation(anyObject(), anyString(), anyObject()))
                 .thenReturn(getMockCreditsOperation());
         when(withdrawService.createWithdrawalRequest(anyObject(), anyObject())).thenReturn(response);
@@ -242,6 +247,7 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         when(userService.findByEmail(anyString())).thenReturn(getMockUser());
         when(g2faService.isGoogleAuthenticatorEnable(anyInt())).thenReturn(Boolean.FALSE);
         when(userService.checkPin(anyString(), anyString(), anyObject())).thenReturn(Boolean.TRUE);
+        when(merchantService.findByMerchantAndCurrency(anyInt(), anyInt())).thenReturn(Optional.of(getMerchantCurrency()));
         when(inputOutputService.prepareCreditsOperation(anyObject(), anyString(), anyObject()))
                 .thenThrow(new InvalidAmountException());
 
@@ -532,6 +538,13 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         currency.setHidden(false);
         currency.setId(3);
         return currency;
+    }
+
+    private MerchantCurrency getMerchantCurrency() {
+        MerchantCurrency merchantCurrency = new MerchantCurrency();
+        merchantCurrency.setNeedKycRefill(false);
+        merchantCurrency.setNeedKycWithdraw(false);
+        return merchantCurrency;
     }
 
     private CurrencyLimit getCurrencyLimit() {

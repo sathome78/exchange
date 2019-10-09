@@ -1029,6 +1029,7 @@ public class WalletServiceImpl implements WalletService {
                 .sourceType(TransactionSourceType.FREE_COINS_TRANSFER)
                 .invoiceStatus(FreecoinsStatusEnum.CREATED)
                 .description(description)
+                .provided(true)
                 .build();
     }
 

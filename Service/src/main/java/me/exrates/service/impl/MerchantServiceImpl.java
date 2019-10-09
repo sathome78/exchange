@@ -17,6 +17,7 @@ import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
+import me.exrates.model.enums.MerchantKycToggleField;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
@@ -176,7 +177,7 @@ public class MerchantServiceImpl implements MerchantService {
         mail.setMessage(notification);
 
         Properties properties = new Properties();
-        properties.put("public_id", userService.getPubIdByEmail(email));
+        properties.setProperty("public_id", userService.getPubIdByEmail(email));
         mail.setProperties(properties);
 
         try {
@@ -348,6 +349,18 @@ public class MerchantServiceImpl implements MerchantService {
     @Transactional
     public void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType) {
         merchantDao.toggleMerchantBlock(merchantId, currencyId, operationType);
+    }
+
+    @Override
+    @Transactional
+    public void toggleKycBlock(Integer merchantId, MerchantKycToggleField toggleField) {
+        merchantDao.toggleMerchantKyc(merchantId, toggleField);
+    }
+
+    @Override
+    @Transactional
+    public void updateKycType(Integer merchantId, String kycType) {
+        merchantDao.updateKycType(merchantId, kycType);
     }
 
     @Override

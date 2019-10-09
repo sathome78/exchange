@@ -30,7 +30,7 @@ public class IpUtils {
     public static String getClientIpAddress(HttpServletRequest request) {
         for (String header : HEADERS_TO_TRY) {
             String ip = request.getHeader(header);
-            if (ip != null && ip.length() != 0 && !"unknown".equalsIgnoreCase(ip)) {
+            if (!StringUtils.isEmpty(ip) && !"unknown".equalsIgnoreCase(ip)) {
                 return ip;
             }
         }
@@ -38,16 +38,11 @@ public class IpUtils {
     }
 
     public static String getClientIpAddress(HttpServletRequest request, int maxLength) {
-        for (String header : HEADERS_TO_TRY) {
-            String ip = request.getHeader(header);
-            if (ip != null && ip.length() != 0 && !"unknown".equalsIgnoreCase(ip)) {
-                return StringUtils.abbreviate(ip, maxLength);
-            }
-        }
-        return StringUtils.abbreviate(request.getRemoteAddr(), maxLength);
+        String fullAddress = getClientIpAddress(request);
+        return StringUtils.substring(fullAddress, 0, maxLength);
     }
 
     public static String getIpForDbLog(HttpServletRequest request) {
-        return getClientIpAddress(request, IP_LENGTH_FOR_DB_LOG);
+        return getClientIpAddress(request, IP_LENGTH_FOR_DB_LOG).replaceFirst(",", "");
     }
 }

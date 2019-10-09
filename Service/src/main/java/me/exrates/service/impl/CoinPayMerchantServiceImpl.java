@@ -87,7 +87,7 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
         log.info("Starting refill {}", request);
-        String callBackUrl = serverHost + "/merchant/coinpay/payment/status/" + request.getId();
+        String callBackUrl = serverHost + "/merchants/coinpay/payment/status/" + request.getId();
 
         String token = coinpayApi.authorizeUser();
         CoinPayResponseDepositDto response = coinpayApi.createDeposit(
@@ -98,26 +98,29 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
 
         Properties properties = new Properties();
         if (StringUtils.isNoneEmpty(response.getQr())) {
-            properties.put("qr", response.getQr());
+            properties.setProperty("qr", response.getQr());
         }
         return generateFullUrlMap(response.getAddr(), "GET", properties);
     }
 
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-        Merchant merchant = merchantService.findById(Integer.parseInt(params.get("merchantId")));
+        Merchant merchant = merchantService.findByName("CoinPay");
         int requestId = Integer.parseInt(params.get("id"));
 
         Optional<RefillRequestFlatDto> flat = refillRequestDao.getFlatById(requestId);
         if (!flat.isPresent()) {
+            log.info("Refill request don`t found, id {}", requestId);
             return;
         }
 
         if (!params.containsKey("status")) {
+            log.info("Params not include status, id {}", requestId);
             return;
         }
 
         if (!params.get("status").equalsIgnoreCase("CLOSED")) {
+            log.info("Status is not CLOSED, id {}", requestId);
             refillService.declineMerchantRefillRequest(requestId);
         }
 
@@ -129,6 +132,7 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .merchantTransactionId(params.get("tr_hash"))
                 .build();
+        log.info("requestAcceptDto {}", requestAcceptDto);
         refillService.acceptRefillRequest(requestAcceptDto);
 
         final String gaTag = refillService.getUserGAByRequestId(requestId);
@@ -143,16 +147,17 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
         String amount = withdrawMerchantOperationDto.getAmount();
         String currencyName = withdrawMerchantOperationDto.getCurrency();
         String uuid = UUID.randomUUID().toString();
-        String callBackUrl = serverHost + "/merchant/coinpay/payment/status/withdraw/" + uuid;
+        String callBackUrl = serverHost + "/merchants/coinpay/payment/status/withdraw/" + uuid;
 
         CoinPayCreateWithdrawDto request = CoinPayCreateWithdrawDto.builder()
                 .amount(new BigDecimal(amount))
                 .currency(currencyName)
-                .walletTo(withdrawMerchantOperationDto.getDestinationTag())
+                .walletTo(withdrawMerchantOperationDto.getAccountTo())
                 .withdrawalType(CoinPayCreateWithdrawDto.WithdrawalType.GATEWAY)
                 .callBack(callBackUrl)
                 .build();
 
+        log.info("Starting send request to withdraw");
         CoinPayWithdrawRequestDto response = coinpayApi.createWithdrawRequest(token, request);
 
         Map<String, String> result = new HashMap<>();
@@ -175,6 +180,7 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
         }
 
         if (params.get("status").equalsIgnoreCase("CLOSED")) {
+            log.info("withdraw status for request {} CLOSED", request.getId());
             withdrawService.finalizePostWithdrawalRequest(request.getId());
         } else {
             withdrawService.rejectToReview(request.getId());
@@ -197,7 +203,7 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
         email.setMessage(msg);
 
         Properties properties = new Properties();
-        properties.put("public_id", user.getPublicId());
+        properties.setProperty("public_id", user.getPublicId());
         email.setProperties(properties);
 
         sendMailService.sendMail(email);

@@ -27,6 +27,7 @@ import me.exrates.dao.UserSettingsDao;
 import me.exrates.dao.UserTransferDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.vo.TransactionDescription;
+import me.exrates.ngService.RedisUserNotificationService;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.CommissionService;
 import me.exrates.service.CompanyWalletService;
@@ -410,7 +411,13 @@ public class ServiceTestConfig {
 
     @Bean
     public StompMessenger stompMessenger() {
-        return new StompMessengerImpl();
+        return new StompMessengerImpl(defaultSimpUserRegistry(), objectMapper(), orderService(),
+                redisUserNotificationService(), simpMessagingTemplate(), userService());
+    }
+
+    @Bean
+    public RedisUserNotificationService redisUserNotificationService() {
+        return Mockito.mock(RedisUserNotificationService.class);
     }
 
     @Bean
