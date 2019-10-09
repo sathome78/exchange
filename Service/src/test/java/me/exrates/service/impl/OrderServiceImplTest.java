@@ -21,7 +21,6 @@ import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AdminOrderInfoDto;
 import me.exrates.model.dto.CallBackLogDto;
 import me.exrates.model.dto.CandleChartItemDto;
-import me.exrates.model.dto.CoinmarketcapApiDto;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
@@ -6473,15 +6472,6 @@ public class OrderServiceImplTest {
                 BigDecimal.ONE,
                 LocalDateTime.of(2019, 4, 1, 12, 35, 21),
                 LocalDateTime.of(2019, 4, 1, 15, 35, 21));
-    }
-
-    private CoinmarketcapApiDto getMockCoinmarketApiDto() {
-        CoinmarketcapApiDto dto = new CoinmarketcapApiDto();
-        dto.setCurrencyPairId(100);
-        dto.setCurrencyPairName("BTC/USD");
-        dto.setFirst(BigDecimal.TEN);
-        dto.setLast(BigDecimal.ONE);
-        return dto;
     }
 
     private ExOrder getMockExOrder() {
