@@ -8,7 +8,7 @@ $(function () {
             { 'X-CSRF-TOKEN': $('input[name="_csrf"]').attr('value') }
     });
 
-    loadIeoTable();
+    loadEmailTable();
 
     $.datetimepicker.setDateFormatter({
         parseDate: function (date, format) {
@@ -203,13 +203,13 @@ $(function () {
 
 
 
-    function loadIeoTable() {
-        var url = '/2a8fy7b07dxe44/ieo/all';
-        if ($.fn.dataTable.isDataTable('#ieoTable')) {
-            ieoDataTable = $('#ieoTable').DataTable();
+    function loadEmailTable() {
+        var url = '/2a8fy7b07dxe44/email/all';
+        if ($.fn.dataTable.isDataTable('#emailTable')) {
+            ieoDataTable = $('#emailTable').DataTable();
             ieoDataTable.ajax.url(url).load()
         } else {
-            ieoDataTable = $('#ieoTable').DataTable({
+            ieoDataTable = $('#emailTable').DataTable({
                 "order": [
                     [
                         0,
@@ -224,82 +224,12 @@ $(function () {
                     "dataSrc": ""
                 },
                 "columns": [
-
                     {
-                        "data": "currencyDescription"
+                        "data": "host"
                     },
                     {
-                        "data": "currencyName"
-                    },
-                    {
-                        "data": "status"
-                    },
-                    {
-                        "data": "contributors"
-                    },
-                    {
-                        "data": "priceString"
-                    },
-                    {
-                        "data": "availableBalance"
-                    },
-                    {
-                        "data": "startDate"
-                    },
-                    {
-                        "data": "endDate"
-                    },
-                    {
-                        "data": "amount"
-                    },
-                    {
-                        "data": "minAmount"
-                    },
-                    {
-                        "data": "maxAmountPerClaim"
-                    },
-                    {
-                        "data": "maxAmountPerUser"
-                    },
-                    {
-                        "data": "description"
-                    },
-                    {
-                        "data": "testIeo"
-                    },
-                    {
-                        "data": "soldAt"
-                    },
-                    {
-                        "data": "content",
-                        "visible": false
-                    },
-                    {
-                        "data": "logo",
-                        "visible": false
-                    },
-                    {
-                        "data": "id",
-                        "visible": false
-                    },
-                    {
-                        "data": "createdAt",
-                        "visible": false
-                    },
-                    {
-                        "data": "rate",
-                        "visible": false
-                    },
-                    {
-                        "data": "createdBy",
-                        "visible": false
-                    },
-                    {
-                        "data": "version",
-                        "visible": false
+                        "data": "sender"
                     }
-
-
                 ],
                 "destroy" : true
             });

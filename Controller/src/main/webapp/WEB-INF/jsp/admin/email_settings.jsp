@@ -45,239 +45,69 @@
                 <h4 class="modal-title">Email Settings</h4>
             </div>
             <br><div class="col-md-12 content">
-            <button id="ieo_create" class="btn btn-default" style="cursor: pointer"><loc:message code="ieo.create_new"/></button>
+            <button id="email_create" class="btn btn-default" style="cursor: pointer"><loc:message code="email.add_new"/></button>
             <br>
             <div id="create_ieo" class="collapse" hidden>
-                <form id="create_ieo_form" class="form_full_height_width">
+                <form id="create_email_rule_form" class="form_full_height_width">
 
-                    <%--Description--%>
+                    <%--Email Host--%>
                     <div class="input-block-wrapper">
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
                             <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.description"/>
+                                <loc:message code="email.host"/>
                             </label>
                         </div>
                         <div class="col-md-9 input-block-wrapper__input-wrapper" style="height: auto;">
-                            <textarea name="description"></textarea>
+                            <textarea name="email_host"></textarea>
                         </div>
                     </div>
-                    <%--Currency Description--%>
+                    <%--Email Sender--%>
                     <div class="input-block-wrapper">
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
                             <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.coinDescription"/>
+                                <loc:message code="email.sender"/>
                             </label>
                         </div>
                         <div class="col-md-9 input-block-wrapper__input-wrapper" style="height: auto;">
-                            <textarea name="currencyDescription"></textarea>
-                        </div>
-                    </div>
-                    <%--coin name--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.curName"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="text" name="currencyName">
-                        </div>
-                    </div>
-                    <%--currency pair--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.currencytopairwith"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="text" id="currencyToPairWith" name="currencyToPairWith" disabled>
-                        </div>
-                    </div>
-                    <%--maker email--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.makerEmail"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="text" name="makerEmail">
-                        </div>
-                    </div>
-                    <%--rate--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.price"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="number" name="rate">
-                        </div>
-                    </div>
-                    <%--amount--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.amount"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="number" name="amount">
-                        </div>
-                    </div>
-                    <%--available balance--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.availableBalance"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="number" name="availableBalance">
-                        </div>
-                    </div>
-                    <%--min amount--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.minamount"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="number" name="minAmount">
-                        </div>
-                    </div>
-                    <%--max amount per user--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.maxAmountPerUser"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="number" name="maxAmountPerUser">
-                        </div>
-                    </div>
-                    <%--max amount per claim--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.maxAmountPerClime"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="number" name="maxAmountPerClaim">
-                        </div>
-                    </div>
-                    <%--start date--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.startTime"/> UTC
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input id="start_date_create" name="startDate"  autocomplete="off">
-                        </div>
-                    </div>
-                    <%--end date--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.endTime"/> UTC
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input id="end_date_create" name="endDate" autocomplete="off">
-                        </div>
-                    </div>
-
-                    <%--Is test ieo--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                               <loc:message code="ieo.is_tet_ieo"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="checkbox" value="true" id="isTestIeo" name="isTestIeo">
-                        </div>
-                    </div>
-
-                    <%--Count Test Transactions--%>
-                    <div class="input-block-wrapper" id="testTxCountWrapper" style="display: none">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                 <loc:message code="ieo.count_test_transactions"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="number" id="testTxCount" name="countTestTransaction">
-                        </div>
-                    </div>
-
-                    <%--logo--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.logo"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="text"  name="logo">
-                        </div>
-                    </div>
-
-                    <%--Contents--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.content"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper" style="height: auto;">
-                            <textarea name="content"></textarea>
+                            <textarea name="email_sender"></textarea>
                         </div>
                     </div>
 
                 </form>
-                <button id="ieo_create_send" class="blue-box" style="cursor: pointer"><loc:message
-                        code="ieo.create_new"/></button>
-                <button id="ieo_create_close" class="blue-box" style="cursor: pointer"><loc:message
+                <button id="email_create_rule" class="blue-box" style="cursor: pointer"><loc:message
+                        code="email.create_new_rule"/></button>
+                <button id="email_create_close" class="blue-box" style="cursor: pointer"><loc:message
                         code="ieo.close"/></button>
 
             </div>
             <br>
-            <table id="ieoTable" style="width:100%; cursor: pointer">
+            <table id="emailTable" style="width:100%; cursor: pointer">
                 <thead>
                 <tr>
-                    <th class="col-2 center blue-white"><loc:message code="ieo.coins"/></th>
-                    <th class="col-2 center blue-white"><loc:message code="ieo.curName"/></th>
-                    <th class="col-2 center blue-white"><loc:message code="ieo.status"/></th>
-                    <th class="col-2 center blue-white"><loc:message code="ieo.contributors"/></th>
-                    <th class="col-3 center blue-white"><loc:message code="ieo.price"/></th>
-                    <th class="col-2 center blue-white"><loc:message code="ieo.availableBalance"/></th>
-                    <th class="col-3 center blue-white"><loc:message code="ieo.startTime"/> UTC</th>
-                    <th class="col-3 center blue-white"><loc:message code="ieo.endTime"/> UTC</th>
-                    <th class="col-3 center blue-white"><loc:message code="ieo.amount"/></th>
-                    <th class="col-3 right blue-white"><loc:message code="ieo.minamount"/></th>
-                    <th class="col-3 right blue-white"><loc:message code="ieo.maxAmountPerClime"/></th>
-                    <th class="col-3 right blue-white"><loc:message code="ieo.maxAmountPerUser"/></th>
-                    <th class="col-3 right blue-white"><loc:message code="ieo.description"/></th>
-                    <th class="col-3 right blue-white"><loc:message code="ieo.is_tet_ieo"/></th>
-                    <th class="col-3 right blue-white"><loc:message code="ieo.soldAt"/></th>
+                    <th class="col-2 center blue-white"><loc:message code="email.host"/></th>
+                    <th class="col-2 center blue-white"><loc:message code="email.sender"/></th>
                 </tr>
                 </thead>
             </table>
             <br>
 
-            <div id="update_ieo" class="collapse" hidden>
+            <div id="update_email" class="collapse" hidden>
 
-                <form id="update_ieo-form" class="form_full_height_width">
+                <form id="update_email-form" class="form_full_height_width">
 
                     <input type="text" id="id_upd" name="id" disabled hidden>
+
+                    <%--Email Host--%>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label">
+                                <loc:message code="email.host"/>
+                            </label>
+                        </div>
+                        <div class="col-md-9 input-block-wrapper__input-wrapper" style="height: auto;">
+                            <input type="text" name="email_host" id="email_host">
+                        </div>
+                    </div>
 
                     <%--coin name--%>
                     <div class="input-block-wrapper">

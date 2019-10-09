@@ -1,6 +1,7 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.SettingsEmailRepository;
+import me.exrates.model.EmailRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -8,9 +9,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.sql.ResultSet;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 @Repository
 public class SettingsEmailRepositoryImpl implements SettingsEmailRepository {
@@ -25,14 +24,13 @@ public class SettingsEmailRepositoryImpl implements SettingsEmailRepository {
     private NamedParameterJdbcTemplate masterParameterJdbcTemplate;
 
     @Override
-    public Map<String, String> getAllEmailSenders() {
+    public List<EmailRule> getAllEmailSenders() {
         String sql = "SELECT * FROM EMAIL_SETTING";
-        return slaveParameterJdbcTemplate.query(sql, (ResultSet rs) -> {
-            HashMap<String, String> results = new HashMap<>();
-            while (rs.next()) {
-                results.put(rs.getString("host"), rs.getString("email_sender"));
-            }
-            return results;
+        return slaveParameterJdbcTemplate.query(sql, (rs, row) -> {
+            EmailRule emailRule = new EmailRule();
+            emailRule.setHost(rs.getString("host"));
+            emailRule.setSender(rs.getString("email_sender"));
+            return emailRule;
         });
     }
 
@@ -56,4 +54,23 @@ public class SettingsEmailRepositoryImpl implements SettingsEmailRepository {
             return DEFAULT_SENDER;
         }
     }
+
+    @Override
+    public boolean deleteEmailRule(String host) {
+        String sql = "DELETE FROM EMAIL_SETTING WHERE host = :host";
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("host", host);
+        return masterParameterJdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public boolean updateEmailRule(String host, String emailSender) {
+        String sql = "UPDATE EMAIL_SETTING SET email_sender = :email_sender WHERE host = :host";
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("host", host)
+                .addValue("email_sender", emailSender);
+        return masterParameterJdbcTemplate.update(sql, params) > 0;
+    }
+
+
 }
