@@ -59,7 +59,7 @@ public class MyTradesHandler {
                 log.error("interrupted ", e);
             } finally {
                 semaphore.release();
-                stompMessenger.sendMyTradesToUser(userId, currencyPairId);
+//                stompMessenger.sendMyTradesToUser(userId, currencyPairId);
             }
         }
     }

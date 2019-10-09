@@ -49,6 +49,5 @@ public class TradesEventsHandler {
                 SEMAPHORE.release();
             }
         }
-
     }
 }

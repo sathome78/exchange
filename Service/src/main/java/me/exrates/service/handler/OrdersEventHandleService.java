@@ -108,10 +108,7 @@ public class OrdersEventHandleService {
     private Map<Integer, OrdersEventsHandler> mapBuy = new ConcurrentHashMap<>();
 
     private Map<Integer, TradesEventsHandler> mapTrades = new ConcurrentHashMap<>();
-    private Map<Integer, MyTradesHandler> mapMyTrades = new ConcurrentHashMap<>();
     private Map<Integer, OrdersReFreshHandler> mapOrders = new ConcurrentHashMap<>();
-
-    private Map<Integer, UserPersonalOrdersHandler> personalOrdersHandlerMap = new ConcurrentHashMap<>();
 
     private final static ExecutorService handlersExecutors = Executors.newCachedThreadPool();
     private XSync<Integer> dealsSync = new XSync<>();
@@ -139,25 +136,6 @@ public class OrdersEventHandleService {
         if (!(event instanceof PartiallyAcceptedOrder)) {
             CompletableFuture.runAsync(() -> handleOrdersDetailed(exOrder, event.getOrderEventEnum()), handlersExecutors);
         }
-
-        CompletableFuture.runAsync(() -> openOrdersRefreshHandler.onEvent(exOrder.getUserId(), exOrder.getCurrencyPair().getName()), handlersExecutors);
-
-        if (!DEV_MODE) {
-            handleCallBack(event);
-            if (exOrder.getUserAcceptorId() != 0) {
-                handleAcceptorUserId(exOrder);
-            }
-        }
-    }
-
-    private void handleAcceptorUserId(ExOrder exOrder) {
-        String url = userService.getCallBackUrlByUserAcceptorId(exOrder.getUserAcceptorId(), exOrder.getCurrencyPairId());
-        try {
-            CallBackLogDto callBackLogDto = makeCallBackForAcceptor(exOrder, url, exOrder.getUserAcceptorId());
-            orderService.logCallBackData(callBackLogDto);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
     }
 
     @Async
@@ -168,9 +146,10 @@ public class OrdersEventHandleService {
             List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
             log.info("order accepted " + order.getCurrencyPair().getName());
             completableFutures.add(CompletableFuture.runAsync(() -> rabbitMqService.sendTradeInfo(order), handlersExecutors));
-            completableFutures.add(CompletableFuture.runAsync(() -> handleAllTrades(order), handlersExecutors));
-            completableFutures.add(CompletableFuture.runAsync(() -> handleMyTrades(order), handlersExecutors));
-            completableFutures.add(CompletableFuture.runAsync(() -> onOrdersEvent(order.getCurrencyPairId(), order.getOperationType()), handlersExecutors));
+            completableFutures.add(CompletableFuture.runAsync(() -> {
+                onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
+                handleAllTrades(order);
+                }, handlersExecutors));
             completableFutures.add(CompletableFuture.runAsync(() -> {
                 ratesHolder.onRatesChange(order);
                 currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
@@ -185,88 +164,7 @@ public class OrdersEventHandleService {
         });
     }
 
-    private void handleCallBack(OrderEvent event) throws JsonProcessingException {
-        //TODO check if user have TRADER authority, use userHasAuthority method in this case
-        ExOrder source = (ExOrder) event.getSource();
-        int userId = source.getUserId();
-        String url = userService.getCallBackUrlById(userId, source.getCurrencyPairId());
-
-        processCallBackUrl(event, userId, url);
-    }
-
-    private void processCallBackUrl(OrderEvent event, int userId, String url) throws JsonProcessingException {
-        if (!StringUtils.isEmpty(url)) {
-            CallBackLogDto callBackLogDto = makeCallBack((ExOrder) event.getSource(), url, userId);
-            orderService.logCallBackData(callBackLogDto);
-            log.debug("*** Callback. User userId:" + userId + " | Callback:" + callBackLogDto);
-        } else {
-            log.debug("*** Callback url wasn't set. User userId:" + userId);
-        }
-    }
-
-
-    private CallBackLogDto makeCallBack(ExOrder order, String url, int userId) throws JsonProcessingException {
-        CallBackLogDto callbackLog = new CallBackLogDto();
-        callbackLog.setRequestJson(new ObjectMapper().writeValueAsString(order));
-        callbackLog.setRequestDate(LocalDateTime.now());
-        callbackLog.setUserId(userId);
-
-        ResponseEntity<String> responseEntity;
-        try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<String> entity = new HttpEntity<>(callbackLog.getRequestJson(), headers);
-
-            responseEntity = restTemplate.postForEntity(url, entity, String.class);
-        } catch (Exception e) {
-            e.printStackTrace();
-            callbackLog.setResponseCode(999);
-            callbackLog.setResponseJson(e.getMessage());
-            callbackLog.setResponseDate(LocalDateTime.now());
-            return callbackLog;
-        }
-        callbackLog.setResponseCode(responseEntity.getStatusCodeValue());
-        callbackLog.setResponseJson(responseEntity.getBody());
-        callbackLog.setResponseDate(LocalDateTime.now());
-        return callbackLog;
-    }
-
-    private CallBackLogDto makeCallBackForAcceptor(ExOrder order, String url, int id) throws JsonProcessingException {
-        CallBackLogDto callbackLog = new CallBackLogDto();
-
-        callbackLog.setRequestJson(new ObjectMapper().
-                writeValueAsString(
-                        ExOrderWrapperDTO.
-                                builder()
-                                .exOrder(order)
-                                .message("Your order has been processed")
-                                .userId(id)
-                                .build()))
-        ;
-
-        callbackLog.setRequestDate(LocalDateTime.now());
-        callbackLog.setUserId(id);
-
-        ResponseEntity<String> responseEntity;
-        try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<String> entity = new HttpEntity<>(callbackLog.getRequestJson(), headers);
-
-            responseEntity = restTemplate.postForEntity(url, entity, String.class);
-        } catch (Exception e) {
-            e.printStackTrace();
-            callbackLog.setResponseCode(999);
-            callbackLog.setResponseJson(e.getMessage());
-            callbackLog.setResponseDate(LocalDateTime.now());
-            return callbackLog;
-        }
-        callbackLog.setResponseCode(responseEntity.getStatusCodeValue());
-        callbackLog.setResponseJson(responseEntity.getBody());
-        callbackLog.setResponseDate(LocalDateTime.now());
-        return callbackLog;
-    }
-
+    /*refresh order book ng*/
     private void onOrdersEvent(Integer pairId, OperationType operationType) {
         Map<Integer, OrdersEventsHandler> mapForWork;
         if (operationType.equals(OperationType.BUY)) {
@@ -282,6 +180,7 @@ public class OrdersEventHandleService {
         handler.onOrderEvent();
     }
 
+    /*vinnitsa*/
     void handleOrdersDetailed(ExOrder exOrder, OrderEventEnum orderEvent) {
         try {
             String pairName = currencyService.findCurrencyPairById(exOrder.getCurrencyPairId()).getName().replace("/", "_").toLowerCase();
@@ -293,46 +192,10 @@ public class OrdersEventHandleService {
         }
     }
 
-    private void handlePersonalOrders(List<ExOrder> orders, int pairId) {
-        try {
-            Map<Integer, List<OrderWsDetailDto>> byUserMap = new HashMap<>();
-            orders.forEach(p -> {
-                byUserMap.computeIfAbsent(p.getUserId(), y -> new ArrayList<>()).add(new OrderWsDetailDto(p));
-                if (p.getStatus() == OrderStatus.CLOSED && p.getUserId() != p.getUserAcceptorId()) {
-                    byUserMap.computeIfAbsent(p.getUserAcceptorId(), y -> new ArrayList<>()).add(new OrderWsDetailDto(p));
-                }
-            });
-            String pairName = currencyService.findCurrencyPairById(pairId).getName().replace("/", "_").toLowerCase();
-            UserPersonalOrdersHandler handler = getHandlerSafe(pairId, pairName, stompMessenger);
-            byUserMap.forEach((k, v) -> handler.sendInstant(v, k));
-        } catch (Exception e) {
-            ExceptionUtils.printRootCauseStackTrace(e);
-        }
-    }
-
-    private UserPersonalOrdersHandler getHandlerSafe(int pairId, String pairName, StompMessenger stompMessenger) {
-        if (!personalOrdersHandlerMap.containsKey(pairId)) {
-            synchronized (handlerSync) {
-                return personalOrdersHandlerMap
-                        .computeIfAbsent(pairId, k -> new UserPersonalOrdersHandler(stompMessenger, objectMapper, pairName));
-            }
-        } else {
-            return personalOrdersHandlerMap.get(pairId);
-        }
-    }
-
 
     private void handleAllTrades(ExOrder exOrder) {
         TradesEventsHandler handler = mapTrades
                 .computeIfAbsent(exOrder.getCurrencyPairId(), k -> TradesEventsHandler.init(exOrder.getCurrencyPairId()));
         handler.onAcceptOrderEvent();
-    }
-
-
-    private void handleMyTrades(ExOrder exOrder) {
-        MyTradesHandler handler = mapMyTrades
-                .computeIfAbsent(exOrder.getCurrencyPairId(), k -> MyTradesHandler.init(exOrder.getCurrencyPairId()));
-        handler.onAcceptOrderEvent(exOrder.getUserId());
-        handler.onAcceptOrderEvent(exOrder.getUserAcceptorId());
     }
 }
