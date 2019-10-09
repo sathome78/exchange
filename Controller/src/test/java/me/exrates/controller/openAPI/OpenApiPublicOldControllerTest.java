@@ -50,7 +50,7 @@ public class OpenApiPublicOldControllerTest extends OpenApiCommonTest {
         mockMvc.perform(MockMvcRequestBuilders.get(uriComponents.toUri().toString()))
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
-        verify(orderService, times(1)).getDailyCoinmarketData(null);
+        verify(orderService, times(1)).getDailyCoinmarketcapData(null);
     }
 
     @Test
@@ -65,7 +65,7 @@ public class OpenApiPublicOldControllerTest extends OpenApiCommonTest {
         mockMvc.perform(MockMvcRequestBuilders.get(uriComponents.toUri().toString()))
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
-        verify(orderService, times(1)).getDailyCoinmarketData(OpenApiUtils.transformCurrencyPair(cpName));
+        verify(orderService, times(1)).getDailyCoinmarketcapData(OpenApiUtils.transformCurrencyPair(cpName));
         verify(currencyService, times(1)).findCurrencyPairIdByName(OpenApiUtils.transformCurrencyPair(cpName));
     }
 
