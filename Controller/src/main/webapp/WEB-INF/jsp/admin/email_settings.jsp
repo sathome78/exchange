@@ -1,4 +1,3 @@
-<%@ page import="me.exrates.model.enums.invoice.InvoiceOperationPermission" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib uri="http://www.springframework.org/tags" prefix="loc" %>
@@ -44,344 +43,94 @@
             <div class="text-center">
                 <h4 class="modal-title">Email Settings</h4>
             </div>
-            <br><div class="col-md-12 content">
-            <button id="email_create" class="btn btn-default" style="cursor: pointer"><loc:message code="email.add_new"/></button>
             <br>
-            <div id="create_ieo" class="collapse" hidden>
-                <form id="create_email_rule_form" class="form_full_height_width">
+            <div class="col-md-12 content">
+                <button id="email_create" class="btn btn-default" style="cursor: pointer"><loc:message
+                        code="email.add_new"/></button>
+                <br>
+                <div id="create_email" class="collapse" hidden>
+                    <form id="create_email_rule_form" class="form_full_height_width">
 
-                    <%--Email Host--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="email.host"/>
-                            </label>
+                        <%--Email Host--%>
+                        <div class="input-block-wrapper">
+                            <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label">
+                                    <loc:message code="email.host"/>
+                                </label>
+                            </div>
+                            <div class="col-md-9 input-block-wrapper__input-wrapper" style="height: auto;">
+                                <textarea name="email_host"></textarea>
+                            </div>
                         </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper" style="height: auto;">
-                            <textarea name="email_host"></textarea>
+                        <%--Email Sender--%>
+                        <div class="input-block-wrapper">
+                            <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label">
+                                    <loc:message code="email.sender"/>
+                                </label>
+                            </div>
+                            <div class="col-md-9 input-block-wrapper__input-wrapper" style="height: auto;">
+                                <textarea name="email_sender"></textarea>
+                            </div>
                         </div>
-                    </div>
-                    <%--Email Sender--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="email.sender"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper" style="height: auto;">
-                            <textarea name="email_sender"></textarea>
-                        </div>
-                    </div>
 
-                </form>
-                <button id="email_create_rule" class="blue-box" style="cursor: pointer"><loc:message
-                        code="email.create_new_rule"/></button>
-                <button id="email_create_close" class="blue-box" style="cursor: pointer"><loc:message
-                        code="ieo.close"/></button>
+                    </form>
+                    <button id="email_create_send" class="blue-box" style="cursor: pointer"><loc:message
+                            code="email.create_new_rule"/></button>
+                    <button id="email_create_close" class="blue-box" style="cursor: pointer"><loc:message
+                            code="ieo.close"/></button>
 
+                </div>
+                <br>
+                <table id="emailTable" style="width:100%; cursor: pointer">
+                    <thead>
+                    <tr>
+                        <th class="col-2 center blue-white"><loc:message code="email.host"/></th>
+                        <th class="col-2 center blue-white"><loc:message code="email.sender"/></th>
+                    </tr>
+                    </thead>
+                </table>
+                <br>
+
+                <div id="update_email" class="collapse" hidden>
+
+                    <form id="update_email-form" class="form_full_height_width">
+
+                        <%--Email Host--%>
+                        <div class="input-block-wrapper">
+                            <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label">
+                                    <loc:message code="email.host"/>
+                                </label>
+                            </div>
+                            <div class="col-md-9 input-block-wrapper__input-wrapper" style="height: auto;">
+                                <input type="text" name="email_host" id="email_host" disabled>
+                            </div>
+                        </div>
+
+                        <%--Email sender--%>
+                        <div class="input-block-wrapper">
+                            <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label">
+                                    <loc:message code="email.sender"/>
+                                </label>
+                            </div>
+                            <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                <input type="text" id="email_sender" name="email_sender">
+                            </div>
+                        </div>
+
+                        <br>
+
+                        <a id="email_update_send" class="blue-box" style="cursor: pointer"><loc:message
+                                code="button.update"/></a>
+                        <a id="email_update_close" class="blue-box" style="cursor: pointer"><loc:message
+                                code="ieo.close"/></a>
+                         <a id="email_delete_send" class="red-box" style="cursor: pointer"><loc:message
+                                    code="button.delete"/></a>
+                    </form>
+                </div>
             </div>
-            <br>
-            <table id="emailTable" style="width:100%; cursor: pointer">
-                <thead>
-                <tr>
-                    <th class="col-2 center blue-white"><loc:message code="email.host"/></th>
-                    <th class="col-2 center blue-white"><loc:message code="email.sender"/></th>
-                </tr>
-                </thead>
-            </table>
-            <br>
-
-            <div id="update_email" class="collapse" hidden>
-
-                <form id="update_email-form" class="form_full_height_width">
-
-                    <input type="text" id="id_upd" name="id" disabled hidden>
-
-                    <%--Email Host--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="email.host"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper" style="height: auto;">
-                            <input type="text" name="email_host" id="email_host">
-                        </div>
-                    </div>
-
-                    <%--coin name--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.curName"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="text" id="currencyName" name="currencyName" disabled>
-                        </div>
-                    </div>
-                    <%--coin Description--%>
-                    <div class="input-block-wrapper" hidden>
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.coinDescription"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="text" id="coinDescription" name="coinDescription">
-                        </div>
-                    </div>
-
-                    <%--general Description--%>
-                    <div class="input-block-wrapper" hidden>
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.description"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="text" id="generalDescription" name="description">
-                        </div>
-                    </div>
-                    <%--maker email--%>
-                    <%-- <div class="input-block-wrapper" hidden>
-                         <div class="col-md-3 input-block-wrapper__label-wrapper">
-                             <label class="input-block-wrapper__label">
-                                 <loc:message code="ieo.makerEmail"/>
-                             </label>
-                         </div>
-                         <div class="col-md-9 input-block-wrapper__input-wrapper">
-                             <input type="text" id="makerEmail" name="makerEmail">
-                         </div>
-                     </div>--%>
-                    <%--status--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.status"/>
-                            </label>
-                        </div>
-                        <div class="col-md-3 input-block-wrapper__input-wrapper">
-                            <select id="status" class="input-block-wrapper__input admin-form-input" name="status">
-                                <c:forEach items="${statuses}" var="status">
-                                    <option value="${status}">${status}</option>
-                                </c:forEach>
-                            </select>
-                        </div>
-                    </div>
-                    <%--rate--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.price"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="number" id="rate" name="rate">
-                        </div>
-                    </div>
-                    <%--amount--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.amount"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="number" id="amount" name="amount">
-                        </div>
-                    </div>
-                    <%--available balance--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.availableBalance"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="number" id="available_balance" name="availableBalance" required>
-                        </div>
-                    </div>
-                    <%--min amount--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.minamount"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="number" id="minAmount" name="minAmount">
-                        </div>
-                    </div>
-                    <%--max amount per user--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.maxAmountPerUser"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="number" id="maxAmountPerUser" name="maxAmountPerUser">
-                        </div>
-                    </div>
-                    <%--max amount per claim--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.maxAmountPerClime"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="number" id="maxAmountPerClaim" name="maxAmountPerClaim">
-                        </div>
-                    </div>
-                    <%--start date--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.startTime"/> UTC
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input id="start_date_upd" name="startDate" autocomplete="off">
-                        </div>
-                    </div>
-                    <%--end date--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.endTime"/> UTC
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input id="end_date_upd" name="endDate" autocomplete="off">
-                        </div>
-                    </div>
-                    <%--  &lt;%&ndash;maker email&ndash;%&gt;
-                      <div class="input-block-wrapper">
-                          <div class="col-md-3 input-block-wrapper__label-wrapper">
-                              <label class="input-block-wrapper__label">
-                                  <loc:message code="ieo.makerEmail"/>
-                              </label>
-                          </div>
-                          <div class="col-md-9 input-block-wrapper__input-wrapper">
-                              <input type="text" id="makerEmail" name="makerEmail" disabled>
-                          </div>
-                      </div>--%>
-                    <%--create date--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.creationDate"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="text" id="createdAt" name="createdAt" disabled>
-                        </div>
-                    </div>
-                    <%--created by--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.maxAmountPerClime"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="text" id="createdBy" name="createdBy" disabled>
-                        </div>
-                    </div>
-                    <%--version--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.version"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="number" id="version" name="version" disabled>
-                        </div>
-                    </div>
-
-
-                    <%--is test ieo--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.is_tet_ieo"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="checkbox" value="true" id="is_test_ieo" name="testIeo">
-                        </div>
-                    </div>
-
-
-                    <%--count test transaction--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.count_test_transactions"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="number" id="count_test_transactions" disabled>
-                        </div>
-                    </div>
-
-
-                    <%--Logo--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.logo"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="text" id="logo_upd" name="logo">
-                        </div>
-                    </div>
-
-                    <%--Sold out date--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.soldAt"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input id="soldAt" autocomplete="off" disabled>
-                        </div>
-                    </div>
-
-                    <%--Content--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.content"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper" style="height: auto;">
-                            <textarea id="content_upd" name="content"></textarea>
-                        </div>
-                    </div>
-
-                    <br>
-
-                    <a id="ieo_update_send" class="blue-box" style="cursor: pointer"><loc:message
-                            code="button.update"/></a>
-                    <a id="ieo_update_close" class="blue-box" style="cursor: pointer" ><loc:message
-                            code="ieo.close"/></a>
-                    <a id="ieo_approve_send" class="blue-box" style="cursor: pointer; background-color: green"><loc:message
-                            code="ieo.success_end_ieo"/></a>
-                    <a id="ieo_revert_send" class="blue-box" style="cursor: pointer; background-color: red"><loc:message
-                            code="ieo.revert_ieo"/></a>
-
-                </form>
-
-            </div>
-        </div>
-
-
 
         </div>
 </main>

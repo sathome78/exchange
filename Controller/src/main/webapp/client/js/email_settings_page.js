@@ -10,95 +10,38 @@ $(function () {
 
     loadEmailTable();
 
-    $.datetimepicker.setDateFormatter({
-        parseDate: function (date, format) {
-            var d = moment(date, format);
-            return d.isValid() ? d.toDate() : false;
-        },
-
-        formatDate: function (date, format) {
-            return moment(date).format(format);
-        }
-    });
-
-    $('#start_date_create').datetimepicker({
-        format: 'YYYY-MM-DD HH:mm:ss',
-        formatDate: 'YYYY-MM-DD',
-        formatTime: 'HH:mm:ss',
-        lang: 'ru',
-        value: new Date(),
-        defaultDate: new Date(),
-        defaultTime: '00:00'
-    });
-
-    $('#end_date_create').datetimepicker({
-        format: 'YYYY-MM-DD HH:mm:ss',
-        formatDate: 'YYYY-MM-DD',
-        formatTime: 'HH:mm:ss',
-        lang: 'ru'
-    });
-
-
-    $('#start_date_upd').datetimepicker({
-        format: 'YYYY-MM-DD HH:mm:ss',
-        formatDate: 'YYYY-MM-DD',
-        formatTime: 'HH:mm:ss',
-        lang: 'ru'
-    });
-
-    $('#end_date_upd').datetimepicker({
-        format: 'YYYY-MM-DD HH:mm:ss',
-        formatDate: 'YYYY-MM-DD',
-        formatTime: 'HH:mm:ss',
-        lang: 'ru'
-    });
-
-    $('#soldAt').datetimepicker({
-        format: 'YYYY-MM-DD HH:mm:ss',
-        formatDate: 'YYYY-MM-DD',
-        formatTime: 'HH:mm:ss',
-        lang: 'ru'
-    });
-
-
-    $('#ieoTable').on('click', 'tbody tr', function () {
+    $('#emailTable').on('click', 'tbody tr', function () {
         var row = ieoDataTable.row( this );
         var currentData = row.data();
         showUpdate(currentData);
     });
 
-    $('#ieo_create').click(function () {
-        $('#currencyToPairWith').val('BTC');
-        $('#create_ieo').show();
+    $('#email_create').click(function () {
+        $('#create_email').show();
     });
 
-    $('#ieo_create_close').click(function () {
+    $('#email_create_close').click(function () {
         /*clear data*/
-        $("#update_ieo-form  :input:not(:checkbox):not(:button) textarea").val("");
-        $('#create_ieo').hide();
+        $("#update_email-form  :input:not(:checkbox):not(:button) textarea").val("");
+        $('#create_email').hide();
     });
 
-    $('#ieo_update_send').click(function () {
-        sendUpdateIeo($('#id_upd').val());
+    $('#email_update_send').click(function () {
+        sendUpdateEmail();
     });
 
-    $('#ieo_update_close').click(function () {
+    $('#email_update_close').click(function () {
         /*clear data*/
-        $("#update_ieo-form  :input:not(:checkbox):not(:button) textarea").val("");
-        $('#update_ieo').hide();
+        $("#update_email-form  :input:not(:checkbox):not(:button) textarea").val("");
+        $('#update_email').hide();
     });
 
-    $('#isTestIeo').click(function () {
-        if ($(this).is(':checked')) {
-            $('#testTxCountWrapper').show();
-        } else {
-            $('#testTxCountWrapper').hide();
-            $('#testTxCount').val('')
-        }
+    $('#email_create_send').click(function () {
+        sendCreateEmail()
     });
 
-    $('#ieo_create_send').click(function () {
-        sendCreateIeo()
+    $('#email_delete_send').click(function () {
+        sendDeleteEmail()
     });
 
     $('#ieo_approve_send').click(function () {
@@ -116,92 +59,75 @@ $(function () {
         });
     });
 
-    $('#ieo_revert_send').click(function () {
-        $.ajax({
-            type: "POST",
-            url: "/2a8fy7b07dxe44/ieo/revert/" + $('#id_upd').val(),
-            contentType: "application/json; charset=utf-8",
-            success: function(data) {
-                console.log(data);
-                successNoty("Warning! Ieo reverted");
-                loadIeoTable();
-            },
-            error: function() {
-            }
-        });
-    });
-
     function showUpdate(data) {
-        $('#id_upd').val(data.id);
-        $('#currencyName').val(data.currencyName);
-        $('#coinDescription').val(data.currencyDescription);
-        /*$('#makerEmail').val(data.makerEmail);*/
-        $('#status').val(data.status);
-        $('#rate').val(data.rate);
-        $('#amount').val(data.amount);
-        $('#available_balance').val(data.availableBalance);
-        $('#minAmount').val(data.minAmount);
-        $('#maxAmountPerUser').val(data.maxAmountPerUser);
-        $('#maxAmountPerClaim').val(data.maxAmountPerClaim);
-        $('#start_date_upd').val(data.startDate);
-        $('#end_date_upd').val(data.endDate);
-        $('#createdAt').val(data.createdAt);
-        $('#createdBy').val(data.createdBy);
-        $('#version').val(data.version);
-        $('#count_test_transactions').val(data.countTestTransactions);
-        $('#is_test_ieo').prop('checked', data.testIeo);
-        $('#generalDescription').val(data.description);
-        $('#logo_upd').val(data.logo);
-        $('#content_upd').val(data.content);
-        $('#soldAt').val(data.soldAt);
-        $('#update_ieo').show();
+        $('#email_host').val(data.host);
+        $('#email_sender').val(data.sender);
+        $('#update_email').show();
     }
 
-
-    function sendCreateIeo() {
-        var formData = JSON.stringify($("#create_ieo_form").serializeArray().map(function(x){this[x.name] = x.value; return this;}.bind({}))[0]);
-        $("#ieo_create_send").attr("disabled", true);
+    function sendCreateEmail() {
+        var formData = JSON.stringify($("#create_email_rule_form").serializeArray().map(function(x){this[x.name] = x.value; return this;}.bind({}))[0]);
+        $("#email_create_send").attr("disabled", true);
         $.ajax({
             type: "POST",
-            url: "/2a8fy7b07dxe44/ieo",
+            url: "/2a8fy7b07dxe44/email/",
             data: formData,
             contentType:"application/json; charset=utf-8",
             success: function(data) {
-                $('#ieo_create_send').attr("disabled", false);
-                successNoty("Ieo created!");
-                loadIeoTable();
-                $("#update_ieo-form  :input:not(:checkbox):not(:button) textarea").val("");
-                $('#create_ieo').hide();
+                $('#email_create_send').attr("disabled", false);
+                successNoty("Email rule created!");
+                loadEmailTable();
+                $("#create_email_form  :input:not(:checkbox):not(:button) textarea").val("");
+                $('#create_email').hide();
             },
             error: function(msg) {
-                $('#ieo_create_send').attr("disabled", false);
-                loadIeoTable();
+                $('#email_create_send').attr("disabled", false);
+                loadEmailTable();
             }
         });
     }
 
-    function sendUpdateIeo(id) {
-        var datastring = JSON.stringify($("#update_ieo-form").serializeArray().map(function(x){this[x.name] = x.value; return this;}.bind({}))[0]);
+    function sendDeleteEmail() {
+        var formData = JSON.stringify($("#update_email-form").serializeArray().map(function(x){this[x.name] = x.value; return this;}.bind({}))[0]);
+        $("#email_delete_send").attr("disabled", true);
+        $.ajax({
+            type: "POST",
+            url: "/2a8fy7b07dxe44/email/remove",
+            data: formData,
+            contentType:"application/json; charset=utf-8",
+            success: function(data) {
+                $('#email_create_send').attr("disabled", false);
+                successNoty("Email rule deleted!");
+                loadEmailTable();
+                $("#update_email-form  :input:not(:checkbox):not(:button) textarea").val("");
+                $('#update_email').hide();
+            },
+            error: function(msg) {
+                $('#email_create_send').attr("disabled", false);
+                loadEmailTable();
+            }
+        });
+    }
+
+    function sendUpdateEmail() {
+        var datastring = JSON.stringify($("#update_email-form").serializeArray().map(function(x){this[x.name] = x.value; return this;}.bind({}))[0]);
         $.ajax({
             type: "PUT",
-            url: "/2a8fy7b07dxe44/ieo/" + id,
+            url: "/2a8fy7b07dxe44/email/",
             data: datastring,
             contentType:"application/json; charset=utf-8",
             success: function(data) {
-                successNoty("Ieo updated!");
-                loadIeoTable();
-                $("#update_ieo-form  :input:not(:checkbox):not(:button) textarea").val("");
-                $('#update_ieo').hide();
+                successNoty("Email updated!");
+                loadEmailTable();
+                $("#update_email-form  :input:not(:checkbox):not(:button) textarea").val("");
+                $('#update_email').hide();
             },
             error: function(errMsg) {
                 errorNoty(errMsg);
-                loadIeoTable();
+                loadEmailTable();
             }
         })
     }
-
-
-
 
     function loadEmailTable() {
         var url = '/2a8fy7b07dxe44/email/all';
