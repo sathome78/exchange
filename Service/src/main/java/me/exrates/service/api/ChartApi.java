@@ -33,10 +33,9 @@ public class ChartApi {
     private final RestTemplate restTemplate;
 
     @Autowired
-    public ChartApi(@Value("${api.chart.url}") String url,
-                    @Value("${api.chart.timeout:10000}") int timeout) {
+    public ChartApi(@Value("${api.chart.url}") String url) {
         this.url = url;
-        this.restTemplate = new RestTemplate(getClientHttpRequestFactory(timeout));
+        this.restTemplate = new RestTemplate(getClientHttpRequestFactory());
     }
 
     public List<CandleDto> getCandlesDataByRange(String pairName,
@@ -109,11 +108,11 @@ public class ChartApi {
         return Arrays.asList(responseEntity.getBody());
     }
 
-    private ClientHttpRequestFactory getClientHttpRequestFactory(int timeout) {
+    private ClientHttpRequestFactory getClientHttpRequestFactory() {
         HttpComponentsClientHttpRequestFactory httpRequestFactory = new HttpComponentsClientHttpRequestFactory();
-        httpRequestFactory.setConnectTimeout(timeout);
-        httpRequestFactory.setConnectionRequestTimeout(timeout);
-        httpRequestFactory.setReadTimeout(timeout);
+        httpRequestFactory.setConnectTimeout(10000);
+        httpRequestFactory.setConnectionRequestTimeout(10000);
+        httpRequestFactory.setReadTimeout(10000);
 
         return httpRequestFactory;
     }
