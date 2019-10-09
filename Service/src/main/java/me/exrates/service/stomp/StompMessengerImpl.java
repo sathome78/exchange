@@ -2,7 +2,6 @@ package me.exrates.service.stomp;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
 import lombok.SneakyThrows;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
@@ -16,7 +15,6 @@ import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.PrecissionsEnum;
 import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.ngService.RedisUserNotificationService;
-import me.exrates.ngService.RedisWsSessionService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.util.BiTuple;
@@ -50,7 +48,6 @@ public class StompMessengerImpl implements StompMessenger {
     private final ObjectMapper objectMapper;
     private final OrderService orderService;
     private final RedisUserNotificationService redisUserNotificationService;
-    private final RedisWsSessionService wsSessionService;
     private final SimpMessagingTemplate messagingTemplate;
     private final UserService userService;
 
@@ -59,14 +56,12 @@ public class StompMessengerImpl implements StompMessenger {
                               ObjectMapper objectMapper,
                               OrderService orderService,
                               RedisUserNotificationService redisUserNotificationService,
-                              RedisWsSessionService wsSessionService,
                               SimpMessagingTemplate messagingTemplate,
                               UserService userService) {
         this.registry = registry;
         this.objectMapper = objectMapper;
         this.orderService = orderService;
         this.redisUserNotificationService = redisUserNotificationService;
-        this.wsSessionService = wsSessionService;
         this.messagingTemplate = messagingTemplate;
         this.userService = userService;
     }
@@ -93,30 +88,6 @@ public class StompMessengerImpl implements StompMessenger {
     @Override
     public void sendRefreshTradeOrdersDetailMessage(String pairName, String message) {
         sendMessageToDestination("/app/orders/sfwfrf442fewdf/detailed/".concat(pairName), message);
-    }
-
-    @Override
-    public void sendPersonalOpenOrdersAndDealsToUser(Integer userId, String pairName, String message) {
-        String destination = "/queue/my_orders/".concat(pairName);
-        String userEmail = userService.getEmailById(userId);
-        log.debug("dest {} message {}", destination, message);
-        messagingTemplate.convertAndSendToUser(userEmail, destination, message);
-    }
-
-    @Override
-    public void sendPersonalOpenOrdersToUser(Integer userId, String pairName) {
-        List<OrderWideListDto> message = orderService.getMyOpenOrdersWithState(pairName, userId);
-        String destination = "/queue/open_orders/".concat(OpenApiUtils.transformCurrencyPairBack(pairName));
-        String userEmail = userService.getEmailById(userId);
-        messagingTemplate.convertAndSendToUser(userEmail, destination, message);
-    }
-
-    @Override
-    public void sendMyTradesToUser(final int userId, final Integer currencyPair) {
-        String userEmail = userService.getEmailById(userId);
-        String destination = "/queue/personal/".concat(currencyPair.toString());
-        String message = String.valueOf(orderService.getTradesForRefresh(currencyPair, userEmail, RefreshObjectsEnum.MY_TRADES).right);
-        messagingTemplate.convertAndSendToUser(userEmail, destination, message);
     }
 
     @Override
@@ -152,43 +123,35 @@ public class StompMessengerImpl implements StompMessenger {
         }
     }
 
-    @Override
-    public void sendEventMessage(final String sessionId, final String message) {
-        sendMessageToDestination("/app/ev/".concat(sessionId), message);
-    }
-
-    @Override
-    public void sendAlerts(final String message, final String lang) {
-        log.debug("lang to send {}", lang);
-        sendMessageToDestination("/app/users_alerts/".concat(lang), message);
-    }
-
     @SneakyThrows
     @Override
     public void sendPersonalMessageToUser(String userEmail, UserNotificationMessage message) {
         String destination = "/app/message/private/".concat(userService.getPubIdByEmail(userEmail));
-        final Optional<String> optSessionId = wsSessionService.getSessionId(userEmail);
-        if (optSessionId.isPresent()) {
-            final String sessionId = optSessionId.get();
-            final String body = objectMapper.writeValueAsString(message);
-            sendPersonalMessageToUser(sessionId, destination, body);
-        } else {
-            redisUserNotificationService.saveUserNotification(userEmail, message);
-        }
+//        final Optional<String> optSessionId = wsSessionService.getSessionId(userEmail);
+
+//        if (optSessionId.isPresent()) {
+//            final String sessionId = optSessionId.get();
+//            final String body = objectMapper.writeValueAsString(message);
+//            sendPersonalMessageToUser(sessionId, destination, body);
+//        } else {
+//            redisUserNotificationService.saveUserNotification(userEmail, message);
+//        }
     }
 
     @Override
     public void updateUserOpenOrders(String currencyPairName, String userEmail) {
-        String destination = "/queue/open_orders/".concat(OpenApiUtils.transformCurrencyPairBack(currencyPairName));
-        final Optional<String> optSessionId = wsSessionService.getSessionId(userEmail);
-        optSessionId.ifPresent(id -> {
+        Optional<String> optPublicId = Optional.ofNullable(userService.getPubIdByEmail(userEmail));
+        optPublicId.ifPresent(publicId -> {
+            final String pairName = OpenApiUtils.transformCurrencyPairBack(currencyPairName);
+            String destination = String.format("/app/orders/open/%s/%s", pairName, publicId);
+            final List<OrderWideListDto> orders = orderService.getMyOpenOrdersWithState(currencyPairName, userEmail);
+            String payload;
             try {
-                final List<OrderWideListDto> orders = orderService.getMyOpenOrdersWithState(currencyPairName, userEmail);
-                String body = objectMapper.writeValueAsString(orders);
-                sendPersonalMessageToUser(id, destination, body);
+                payload = objectMapper.writeValueAsString(orders);
             } catch (JsonProcessingException e) {
-                log.warn("Failed to send updated orders: ", e);
+                payload = "[]";
             }
+            sendMessageToDestination(destination, payload);
         });
     }
 

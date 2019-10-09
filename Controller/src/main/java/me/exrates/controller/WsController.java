@@ -1,5 +1,6 @@
 package me.exrates.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import lombok.extern.log4j.Log4j2;
@@ -9,12 +10,12 @@ import me.exrates.model.User;
 import me.exrates.model.dto.OrderBookWrapperDto;
 import me.exrates.model.dto.OrdersListWrapper;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
+import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.PrecissionsEnum;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.ngService.RedisUserNotificationService;
-import me.exrates.ngService.RedisWsSessionService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.IEOService;
 import me.exrates.service.OrderService;
@@ -41,7 +42,6 @@ public class WsController {
     private final ObjectMapper objectMapper;
     private final OrderService orderService;
     private final RedisUserNotificationService redisUserNotificationService;
-    private final RedisWsSessionService redisWsSessionService;
     private final UserService userService;
     private final UsersAlertsService usersAlertsService;
 
@@ -50,7 +50,6 @@ public class WsController {
                         ObjectMapper objectMapper,
                         OrderService orderService,
                         RedisUserNotificationService redisUserNotificationService,
-                        RedisWsSessionService redisWsSessionService,
                         UserService userService,
                         UsersAlertsService usersAlertsService) {
         this.currencyService = currencyService;
@@ -58,7 +57,6 @@ public class WsController {
         this.objectMapper = objectMapper;
         this.orderService = orderService;
         this.redisUserNotificationService = redisUserNotificationService;
-        this.redisWsSessionService = redisWsSessionService;
         this.userService = userService;
         this.usersAlertsService = usersAlertsService;
     }
@@ -123,6 +121,19 @@ public class WsController {
 //        final Collection<UserNotificationMessage> messages = redisUserNotificationService.findAllByUser(principal.getName());
 //        return new WsMessageObject(WsSourceTypeEnum.SUBSCRIBE, messages);
 //    }
+    @SubscribeMapping("/orders/open/{pairName}/{pubId}")
+    public String getUserOpenOrdersByPairName(Principal principal,
+                                              @DestinationVariable String pairName,
+                                              @DestinationVariable String pubId) {
+        Preconditions.checkArgument(userService.getEmailByPubId(pubId).equals(principal.getName()));
+        String currencyPairName = currencyService.getCurrencyPairByName(OpenApiUtils.transformCurrencyPair(pairName)).getName();
+        final List<OrderWideListDto> userOrders = orderService.getMyOpenOrdersWithState(currencyPairName, principal.getName());
+        try {
+            return objectMapper.writeValueAsString(userOrders);
+        } catch (JsonProcessingException e) {
+            return "[]";
+        }
+    }
 
     @SubscribeMapping("/ieo_details/private/{pubId}")
     public Collection<IEODetails> subscribeIeoDetailsPersonal(Principal principal, @DestinationVariable String pubId) {

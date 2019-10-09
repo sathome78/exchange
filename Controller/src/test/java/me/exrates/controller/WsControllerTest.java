@@ -21,7 +21,6 @@ import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.ngService.RedisUserNotificationService;
-import me.exrates.ngService.RedisWsSessionService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.IEOService;
 import me.exrates.service.OrderService;
@@ -74,7 +73,6 @@ public class WsControllerTest {
     private UserService userService;
     private UsersAlertsService usersAlertsService;
     private RedisUserNotificationService redisUserNotificationService;
-    private RedisWsSessionService redisWsSessionService;
     private IEOService ieoService;
 
     private TestMessageChannel clientOutboundChannel;
@@ -86,12 +84,11 @@ public class WsControllerTest {
         this.orderService = Mockito.mock(OrderServiceImpl.class);
         this.objectMapper = Mockito.mock(ObjectMapper.class);
         this.redisUserNotificationService = Mockito.mock(RedisUserNotificationService.class);
-        this.redisWsSessionService = Mockito.mock(RedisWsSessionService.class);
         this.userService = Mockito.mock(UserService.class);
         this.usersAlertsService = Mockito.mock(UsersAlertsService.class);
 
         WsController wsController = new WsController(currencyService, ieoService,
-                objectMapper, orderService, redisUserNotificationService, redisWsSessionService, userService, usersAlertsService);
+                objectMapper, orderService, redisUserNotificationService, userService, usersAlertsService);
 
         this.clientOutboundChannel = new TestMessageChannel();
 

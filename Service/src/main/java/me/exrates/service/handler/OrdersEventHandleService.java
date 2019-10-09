@@ -9,7 +9,6 @@ import me.exrates.model.OrderWsDetailDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderEventEnum;
 import me.exrates.service.CurrencyService;
-import me.exrates.service.OrderService;
 import me.exrates.service.RabbitMqService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
@@ -21,7 +20,6 @@ import me.exrates.service.events.PartiallyAcceptedOrder;
 import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.vo.CurrencyStatisticsHandler;
 import me.exrates.service.vo.OrdersEventsHandler;
-import me.exrates.service.vo.PersonalOrderRefreshDelayHandler;
 import me.exrates.service.vo.TradesEventsHandler;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +28,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -99,6 +96,7 @@ public class OrdersEventHandleService {
         if (!(event instanceof PartiallyAcceptedOrder)) {
             CompletableFuture.runAsync(() -> handleOrdersDetailed(exOrder, event.getOrderEventEnum()), handlersExecutors);
         }
+        sendOrderEventNotification(exOrder).run();
     }
 
     @Async
