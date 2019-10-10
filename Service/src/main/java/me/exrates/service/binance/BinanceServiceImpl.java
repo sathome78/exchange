@@ -22,6 +22,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,7 +77,11 @@ public class BinanceServiceImpl implements BinanceService {
 
     @PostConstruct
     public void init() {
+        log.info("Scheduler start: {}", LocalDateTime.now());
+
         scheduler.scheduleAtFixedRate(this::checkRefills, 5, 20, TimeUnit.MINUTES);
+
+        log.info("Scheduler stop: {}", LocalDateTime.now());
     }
 
     @Override
@@ -165,6 +170,9 @@ public class BinanceServiceImpl implements BinanceService {
 
     private long getLastBaseBlock() {
         MerchantSpecParamDto specParamsDto = specParamsDao.getByMerchantNameAndParamName(merchantName, LAST_BLOCK_PARAM);
+
+        log.info("Get last scan block: {}", specParamsDto);
+
         return specParamsDto == null ? 0 : Long.valueOf(specParamsDto.getParamValue());
     }
 
@@ -174,6 +182,8 @@ public class BinanceServiceImpl implements BinanceService {
 
     private void saveLastBlock(long blockNum) {
         specParamsDao.updateParam(merchantName, LAST_BLOCK_PARAM, String.valueOf(blockNum));
+
+        log.info("Saved last scan block: {}", blockNum);
     }
 
     @PreDestroy
