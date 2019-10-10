@@ -8,7 +8,6 @@ import me.exrates.model.ExOrder;
 import me.exrates.model.OrderWsDetailDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderEventEnum;
-import me.exrates.model.enums.OrderStatus;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.RabbitMqService;
 import me.exrates.service.UserService;
@@ -29,13 +28,11 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
-import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -84,13 +81,15 @@ public class OrdersEventHandleService {
         ExOrder order = (ExOrder) event.getSource();
         CompletableFuture.runAsync(() -> rabbitMqService.sendOrderInfo(order), handlersExecutors);
         onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
+        sendOrderEventNotification(order).run();
     }
 
     @Async
     @TransactionalEventListener
     public void handleOrderEventAsync(CancelOrderEvent event) {
-        ExOrder exOrder = (ExOrder) event.getSource();
-        onOrdersEvent(exOrder.getCurrencyPairId(), exOrder.getOperationType());
+        ExOrder order = (ExOrder) event.getSource();
+        onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
+        sendOrderEventNotification(order).run();
     }
 
     @Async
@@ -101,7 +100,6 @@ public class OrdersEventHandleService {
         if (!(event instanceof PartiallyAcceptedOrder)) {
             CompletableFuture.runAsync(() -> handleOrdersDetailed(exOrder, event.getOrderEventEnum()), handlersExecutors);
         }
-        sendOrderEventNotification(exOrder).run();
     }
 
     @Async
@@ -128,6 +126,7 @@ public class OrdersEventHandleService {
                 ExceptionUtils.printRootCauseStackTrace(e);
             }
         });
+        sendOrderEventNotification(order).run();
     }
 
     /*refresh order book ng*/
@@ -158,15 +157,17 @@ public class OrdersEventHandleService {
         }
     }
 
-    private Runnable sendOrderEventNotification(ExOrder exOrder) {
+    private Runnable sendOrderEventNotification(ExOrder order) {
         return () -> {
-            String pairName = exOrder.getCurrencyPair().getName();
-            String creatorEmail = userService.findEmailById(exOrder.getUserId());
+            String pairName = Objects.nonNull(order.getCurrencyPair())
+                    ? order.getCurrencyPair().getName()
+                    : currencyService.findCurrencyPairById(order.getCurrencyPairId()).getName();
+            String creatorEmail = userService.findEmailById(order.getUserId());
             stompMessenger.updateUserOpenOrders(pairName, creatorEmail);
 
-            if (exOrder.getUserAcceptorId() > 0
-                    && exOrder.getUserAcceptorId() != exOrder.getUserId()) {
-                String acceptorEmail = userService.findEmailById(exOrder.getUserAcceptorId());
+            if (order.getUserAcceptorId() > 0
+                    && order.getUserAcceptorId() != order.getUserId()) {
+                String acceptorEmail = userService.findEmailById(order.getUserAcceptorId());
                 stompMessenger.updateUserOpenOrders(pairName, acceptorEmail);
             }
         };
