@@ -45,7 +45,6 @@ import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.exception.IllegalChatMessageException;
 import me.exrates.service.notifications.G2faService;
-import me.exrates.service.util.DateUtils;
 import me.exrates.service.util.IpUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -139,10 +138,8 @@ public class NgPublicController {
         this.sendMailService = sendMailService;
     }
 
-    @GetMapping(value = "/if_email_exists")
+    @GetMapping(value = "/if_email_exists", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Boolean> checkIfNewUserEmailExists(@RequestParam("email") String email, HttpServletRequest request) {
-        email = DateUtils.decodeStringFromUrl(email);
-
         if (Objects.isNull(email)) {
             throw new NgResponseException(ErrorApiTitles.USER_EMAIL_NOT_DECODED, "User email is not decoded");
         }
@@ -170,11 +167,9 @@ public class NgPublicController {
         return new ResponseEntity<>(Boolean.TRUE, HttpStatus.OK);
     }
 
-    @GetMapping("/is_google_2fa_enabled")
+    @GetMapping(value = "/is_google_2fa_enabled", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public Boolean isGoogleTwoFAEnabled(@RequestParam("email") String email) {
-        email = DateUtils.decodeStringFromUrl(email);
-
         if (Objects.isNull(email)) {
             throw new NgResponseException(ErrorApiTitles.USER_EMAIL_NOT_DECODED, "User email is not decoded");
         }
@@ -434,10 +429,8 @@ public class NgPublicController {
         return new ResponseModel<>(result);
     }
 
-    @GetMapping(value = "/ieo/subscribe", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = "/ieo/subscribe", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseModel<?> checkSubscribe(@RequestParam String email) {
-        email = DateUtils.decodeStringFromUrl(email);
-
         if (Objects.isNull(email)) {
             return new ResponseModel<>(null, new ResponseCustomError("User email is not decoded"));
         }

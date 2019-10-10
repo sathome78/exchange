@@ -2,7 +2,6 @@ package me.exrates.ngcontroller;
 
 import lombok.extern.log4j.Log4j;
 import me.exrates.controller.annotation.CheckActiveUserStatus;
-import me.exrates.service.annotation.LogIp;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.CreditsOperation;
@@ -16,7 +15,11 @@ import me.exrates.model.dto.TransferDto;
 import me.exrates.model.dto.TransferRequestCreateDto;
 import me.exrates.model.dto.TransferRequestFlatDto;
 import me.exrates.model.dto.TransferRequestParamsDto;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.MerchantProcessType;
+import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TransferTypeVoucher;
+import me.exrates.model.enums.UserEventEnum;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
@@ -34,13 +37,13 @@ import me.exrates.service.InputOutputService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.TransferService;
 import me.exrates.service.UserService;
+import me.exrates.service.annotation.LogIp;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.UserOperationAccessException;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.util.CharUtils;
-import me.exrates.service.util.DateUtils;
 import me.exrates.service.util.RateLimitService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -242,10 +245,8 @@ public class NgTransferController {
         return transferService.createTransferRequest(transferRequest);
     }
 
-    @GetMapping("/check_email")
+    @GetMapping(value = "/check_email", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseModel<Boolean> checkEmailForTransfer(@RequestParam("email") String email) {
-        email = DateUtils.decodeStringFromUrl(email);
-
         if (Objects.isNull(email)) {
             return new ResponseModel<>(false, new ResponseCustomError("User email is not decoded"));
         }
