@@ -29,12 +29,15 @@ import static java.util.Objects.nonNull;
 public class ChartApi {
 
     private final String url;
+    private final String coinmarketcapUrl;
 
     private final RestTemplate restTemplate;
 
     @Autowired
-    public ChartApi(@Value("${api.chart.url}") String url) {
+    public ChartApi(@Value("${api.chart.url}") String url,
+                    @Value("${api.chart.coinmarketcap-url}") String coinmarketcapUrl) {
         this.url = url;
+        this.coinmarketcapUrl = coinmarketcapUrl;
         this.restTemplate = new RestTemplate(getClientHttpRequestFactory());
     }
 
@@ -97,7 +100,7 @@ public class ChartApi {
 
         ResponseEntity<CoinmarketcapApiDto[]> responseEntity;
         try {
-            responseEntity = restTemplate.getForEntity(String.format("%s/coinmarketcap?%s", url, queryParams), CoinmarketcapApiDto[].class);
+            responseEntity = restTemplate.getForEntity(String.format("%s?%s", coinmarketcapUrl, queryParams), CoinmarketcapApiDto[].class);
             if (responseEntity.getStatusCodeValue() != 200) {
                 throw new ChartApiException("Chart server is not available");
             }

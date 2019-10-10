@@ -133,6 +133,9 @@ public class ServiceTestConfig {
     @Value("${api.chart.url}")
     String chartUrl;
 
+    @Value("${api.chart.coinmarketcap-url}")
+    String coinmarketcapUrl;
+
     @Bean
     public CurrencyDao currencyDao() {
         return Mockito.mock(CurrencyDao.class);
@@ -469,7 +472,7 @@ public class ServiceTestConfig {
 
     @Bean
     public ChartApi chartApi() {
-        return new ChartApi(chartUrl);
+        return new ChartApi(chartUrl, coinmarketcapUrl);
     }
 
     @Bean
