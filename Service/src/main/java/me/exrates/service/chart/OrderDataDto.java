@@ -20,7 +20,6 @@ import java.util.Objects;
 @AllArgsConstructor
 public class OrderDataDto {
 
-    private int orderId;
     private String currencyPairName;
     private BigDecimal exrate;
     private BigDecimal amountBase;
@@ -35,7 +34,6 @@ public class OrderDataDto {
     private int operationTypeId;
 
     public OrderDataDto(ExOrder order) {
-        this.orderId = order.getId();
         this.currencyPairName = order.getCurrencyPair().getName();
         this.exrate = order.getExRate();
         this.amountBase = order.getAmountBase();
