@@ -447,7 +447,6 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
             request.setId(refillRequestId);
             result = of(refillRequestId);
             Integer refillRequestAddressId = null;
-            Integer refillRequestParamId = null;
             if (!StringUtils.isEmpty(request.getAddress())) {
                 Optional<Integer> addressIdResult = findAnyAddressIdByAddressAndUserAndCurrencyAndMerchant(request.getAddress(),
                         request.getUserId(),
@@ -455,7 +454,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
                         request.getMerchantId());
                 refillRequestAddressId = addressIdResult.orElseGet(() -> storeRefillRequestAddress(request));
             }
-            refillRequestParamId = storeRefillRequestParam(request);
+            Integer refillRequestParamId = storeRefillRequestParam(request);
             final String setKeysSql = "UPDATE REFILL_REQUEST " +
                     " SET refill_request_param_id = :refill_request_param_id," +
                     "     refill_request_address_id = :refill_request_address_id, " +
