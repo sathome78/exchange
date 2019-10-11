@@ -29,7 +29,7 @@ public class QiwiExternalServiceImpl implements QiwiExternalService{
     private final static String URL_GET_TRANSACTIONS = "/transfer/get-merchant-tx";
     private final static String URL_GENERATE_P2P_INVOICE_WITH_UNIQ_MEMO = "/transfer/tx-merchant-wallet";
 
-    @Value("${qiwi.base.production.url}")
+    @Value("${qiwi.base.url}")
     private String baseUrl;
 
     @Value("${qiwi.transaction.position.start}")

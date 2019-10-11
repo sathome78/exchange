@@ -278,7 +278,7 @@ public class IEOServiceImpl implements IEOService {
     public void startRevertIEO(Integer idIeo, String adminEmail) {
         logger.info("Start revert IEO id {}, email {}", idIeo, adminEmail);
         User user = userService.findByEmail(adminEmail);
-        if (user.getRole() != UserRole.ADMIN_USER) {
+        if (user.getRole() != UserRole.ADMIN_USER && user.getRole() != UserRole.ADMINISTRATOR) {
             String message = String.format("Error while start revert IEO, user not ADMIN %s", adminEmail);
             logger.warn(message);
             throw new IeoException(ErrorApiTitles.IEO_USER_NOT_ADMIN, message);
