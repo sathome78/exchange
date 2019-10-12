@@ -1,6 +1,7 @@
 package me.exrates.service.syndex;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,8 +11,10 @@ import me.exrates.model.dto.SyndexOrderDto;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import static java.util.Objects.isNull;
 
 public interface SyndexClient {
 
@@ -31,12 +34,17 @@ public interface SyndexClient {
 
     List<Currency> getCurrencyList();
 
-    List<PaymentSystem> getPaymentSystems(String countryCode);
+    List<PaymentSystemWrapper> getPaymentSystems(String countryCode);
 
     @Data
     class BaseResponse<T> {
         private boolean status;
         private T result;
+        private Error error;
+
+        boolean isError() {
+            return !isNull(error);
+        }
     }
 
     @Data
@@ -104,12 +112,15 @@ public interface SyndexClient {
         private String defaultCurrency;
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     @Data
     class PaymentSystemWrapper {
         private String id;
         private String name;
         @JsonProperty("currency")
         private List<PaymentSystem> paymentSystems;
+        @JsonProperty("min_amount")
+        private Map<String, Double> minAmount;
     }
 
     @Data

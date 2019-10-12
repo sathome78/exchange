@@ -16,8 +16,8 @@ public class CacheConfiguration {
     public static final String CURRENCY_PAIR_BY_NAME_CACHE = "cache.currencyPairByName";
     public static final String CURRENCY_PAIR_BY_ID_CACHE = "cache.currencyPairById";
     public static final String CURRENCY_PAIRS_LIST_BY_TYPE_CACHE = "cache.currencyPairListByType";
-    public static final String SYBEX_COUNTRY_CACHE = "cache.sybex.currencyByName";
-    public static final String SYBEX_CURRENCY_CACHE = "cache.sybex.currencyByName";
+    public static final String SYBEX_COUNTRY_CACHE = "cache.sybex.country";
+    public static final String SYBEX_CURRENCY_CACHE = "cache.sybex.currency";
     public static final String SYBEX_PAYMENT_SYSTEM_BY_COUNTRY_CACHE = "cache.sybex.currencyByName";
 
     @Bean(CURRENCY_BY_NAME_CACHE)

@@ -8,7 +8,6 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Set;
 
 import static me.exrates.configurations.CacheConfiguration.*;
 
@@ -39,7 +38,7 @@ public class SyndexFrontDataServiceImpl implements SyndexFrontDataService {
     }
 
     @Override
-    public Set<SyndexClient.Currency> getCurrencyList() {
+    public List<SyndexClient.Currency> getCurrencyList() {
         try {
             return currencyCache.get("", () -> syndexClient.getCurrencyList());
         } catch (EmptyResultDataAccessException | Cache.ValueRetrievalException ex) {
@@ -48,7 +47,7 @@ public class SyndexFrontDataServiceImpl implements SyndexFrontDataService {
     }
 
     @Override
-    public Set<SyndexClient.PaymentSystem> getPaymentSystemList(String countryCode) {
+    public List<SyndexClient.PaymentSystemWrapper> getPaymentSystemList(String countryCode) {
         try {
             return paymentSystemCache.get(countryCode, () -> syndexClient.getPaymentSystems(countryCode));
         } catch (EmptyResultDataAccessException | Cache.ValueRetrievalException ex) {
