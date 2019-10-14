@@ -385,7 +385,7 @@ public class WavesServiceImpl implements WavesService {
         return BigDecimal.valueOf(unscaled, scale);
     }
 
-    private long unscaleToLong(BigDecimal scaledAmount, int scale) {
+    private static long unscaleToLong(BigDecimal scaledAmount, int scale) {
         return scaledAmount.scaleByPowerOfTen(scale).setScale(0, BigDecimal.ROUND_HALF_UP).longValueExact();
     }
 
@@ -469,5 +469,19 @@ public class WavesServiceImpl implements WavesService {
         System.out.println(Base58.encode("box armed repair shoot grid give slide eagle kite excess fruit earn hill one legal".getBytes(Charset.forName("UTF-8"))));
     }*/
 
+    public static void main(String[] args) {
+        BigDecimal amount = new BigDecimal(4182.3866);
+        int WAVES_AMOUNT_SCALE = 8;
+        long WAVES_DEFAULT_FEE = 100000L;
+
+        long amountScale = unscaleToLong(amount, WAVES_AMOUNT_SCALE);
+        long feeScale = WAVES_DEFAULT_FEE;
+        long amountForTransfer = amountScale - feeScale;
+
+        System.out.println("Amount (scale): " + amountScale);
+        System.out.println("Fee (scale): " + feeScale);
+        System.out.println("******************");
+        System.out.println("Amount divide fee (scale): " + amountForTransfer);
+    }
 
 }

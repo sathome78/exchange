@@ -14,6 +14,8 @@ public class TronTransferDto {
 
     private String assetId;
 
+
+
     public TronTransferDto(String privateKey, String toAddress, Long amount) {
         this.privateKey = privateKey;
         this.toAddress = toAddress;

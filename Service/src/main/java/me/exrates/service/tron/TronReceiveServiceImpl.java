@@ -10,8 +10,6 @@ import me.exrates.model.dto.TronReceivedTransactionDto;
 import me.exrates.model.dto.TronTransactionTypeEnum;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
-import org.apache.commons.lang3.StringUtils;
-import org.bitcoinj.core.Base58;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +19,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,7 +73,7 @@ public class TronReceiveServiceImpl {
     private void checkBlocks() {
         try {
             log.debug("tron start check blocks");
-            long lastScannedBlock = 13029775;//loadLastBlock();
+            long lastScannedBlock = 13428766;//loadLastBlock();
             long blockchainHeight = getLastBlockNum() - 10;
             log.debug("last scanned block {} height {}", lastScannedBlock, blockchainHeight);
             while (lastScannedBlock < blockchainHeight) {

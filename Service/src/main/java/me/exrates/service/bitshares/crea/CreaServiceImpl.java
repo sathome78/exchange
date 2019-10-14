@@ -114,4 +114,11 @@ public class CreaServiceImpl extends BitsharesServiceImpl {
             log.debug(e);
         }
     }
+
+    public static void main(String[] args) {
+        String signature = "";
+        System.out.println(Hashing.sha256()
+                .hashString(signature, StandardCharsets.UTF_8)
+                .toString());
+    }
 }

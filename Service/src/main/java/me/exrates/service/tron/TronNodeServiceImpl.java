@@ -5,6 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.TronNewAddressDto;
 import me.exrates.model.dto.TronTransferDto;
+import me.exrates.model.dto.TronTransferDtoTRC20;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
@@ -55,6 +56,9 @@ public class TronNodeServiceImpl implements TronNodeService {
     private final static String GET_ADDRESS = "/wallet/generateaddress";
     private final static String EASY_TRANSFER = "/wallet/easytransferbyprivate";
     private final static String EASY_TRANSFER_ASSET = "/wallet/easytransferassetbyprivate";
+    private final static String CREATE_TRANSACTION = "/wallet/createtransaction";
+    private final static String SIGN_TRANSACTION = "/wallet/gettransactionsign";
+    private final static String BROADCAST_TRANSACTION = "/wallet/broadcasttransaction ";
     private final static String GET_BLOCK_TX = "/wallet/getblockbynum";
     private final static String GET_TX = "/transaction-info?hash=";
     private final static String GET_LAST_BLOCK = "/wallet/getnowblock";
@@ -78,6 +82,31 @@ public class TronNodeServiceImpl implements TronNodeService {
     public JSONObject transferFunds(TronTransferDto tronTransferDto) {
         String url = FULL_NODE_FOR_SEND_URL.concat(EASY_TRANSFER);
         RequestEntity<TronTransferDto> requestEntity = new RequestEntity<>(tronTransferDto, HttpMethod.POST, new URI(url));
+        return new JSONObject(performRequest(requestEntity));
+    }
+
+    //next 3 methods only for TRON trc20 until developers won`t create id for coin
+    @SneakyThrows
+    @Override
+    public JSONObject transferFundsTRC20(TronTransferDtoTRC20 tronTransferDto) {
+        String url = FULL_NODE_FOR_SEND_URL.concat(CREATE_TRANSACTION);
+        RequestEntity<TronTransferDtoTRC20> requestEntity = new RequestEntity<>(tronTransferDto, HttpMethod.POST, new URI(url));
+        return new JSONObject(performRequest(requestEntity));
+    }
+
+    @SneakyThrows
+    @Override
+    public JSONObject signTransferFundsTRC20(JSONObject jsonObject) {
+        String url = FULL_NODE_FOR_SEND_URL.concat(SIGN_TRANSACTION);
+        RequestEntity<JSONObject> requestEntity = new RequestEntity<>(jsonObject, HttpMethod.POST, new URI(url));
+        return new JSONObject(performRequest(requestEntity));
+    }
+
+    @SneakyThrows
+    @Override
+    public JSONObject broadcastTransferFundsTRC20(JSONObject jsonObject) {
+        String url = FULL_NODE_FOR_SEND_URL.concat(BROADCAST_TRANSACTION);
+        RequestEntity<JSONObject> requestEntity = new RequestEntity<>(jsonObject, HttpMethod.POST, new URI(url));
         return new JSONObject(performRequest(requestEntity));
     }
 
