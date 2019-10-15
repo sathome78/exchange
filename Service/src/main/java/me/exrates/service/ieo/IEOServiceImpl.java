@@ -49,6 +49,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -174,8 +175,8 @@ public class IEOServiceImpl implements IEOService {
         String email = claimDto.getEmail();
         IEODetails ieoDetails = ieoDetailsRepository.findOpenIeoByCurrencyName(claimDto.getCurrencyName());
         if (ieoDetails == null) {
-            String message = String.format("Failed to create claim %s while IEO for %s not started or already finished",
-                    claimDto.getUuid(), claimDto.getCurrencyName());
+            String message = String.format("<p style=\"MAX-WIDTH: 387px; FONT-FAMILY: Roboto; COLOR: #000000; MARGIN: auto auto 2.15em;font-weight: normal; font-size: 16px; line-height: 19px; text-align: center;\">" +
+                            "Failed to create claim <br>%s<br> while IEO for %s not started or already finished</p>", claimDto.getUuid(), claimDto.getCurrencyName());
             logger.warn(message);
             sendErrorEmail(message, claimDto.getEmail());
             return;
@@ -277,7 +278,7 @@ public class IEOServiceImpl implements IEOService {
     public void startRevertIEO(Integer idIeo, String adminEmail) {
         logger.info("Start revert IEO id {}, email {}", idIeo, adminEmail);
         User user = userService.findByEmail(adminEmail);
-        if (user.getRole() != UserRole.ADMIN_USER) {
+        if (user.getRole() != UserRole.ADMIN_USER && user.getRole() != UserRole.ADMINISTRATOR) {
             String message = String.format("Error while start revert IEO, user not ADMIN %s", adminEmail);
             logger.warn(message);
             throw new IeoException(ErrorApiTitles.IEO_USER_NOT_ADMIN, message);
@@ -309,6 +310,11 @@ public class IEOServiceImpl implements IEOService {
         email.setTo(user.getEmail());
         email.setMessage("Revert IEO");
         email.setSubject(String.format("Revert ieo for %s finish successful!", ieoEntity.getCurrencyName()));
+
+        Properties properties = new Properties();
+        properties.setProperty("public_id", user.getPublicId());
+        email.setProperties(properties);
+
         sendMailService.sendMail(email);
     }
 
@@ -406,6 +412,11 @@ public class IEOServiceImpl implements IEOService {
             email.setMessage("Success finish IEO");
             email.setSubject(String.format("The IEO procedure for a currency %s has ended successfully, congratulations!",
                     ieoDetails.getCurrencyName()));
+
+            Properties properties = new Properties();
+            properties.setProperty("public_id", maker.getPublicId());
+            email.setProperties(properties);
+
             sendMailService.sendMail(email);
         }
 
@@ -513,6 +524,11 @@ public class IEOServiceImpl implements IEOService {
         emailError.setSubject("IEO claim save error");
         emailError.setMessage(message);
         emailError.setTo(email);
+
+        Properties properties = new Properties();
+        properties.setProperty("public_id", userService.getPubIdByEmail(email));
+        emailError.setProperties(properties);
+
         sendMailService.sendMail(emailError);
     }
 

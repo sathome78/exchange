@@ -1,12 +1,15 @@
 package me.exrates.model.dto.onlineTableDto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
 
+import java.math.BigDecimal;
 import java.util.List;
 
-@Getter@Setter
+@Getter
+@Setter
 public class MyWalletsDetailedDto extends OnlineTableDto {
 
     private Integer id;
@@ -25,6 +28,9 @@ public class MyWalletsDetailedDto extends OnlineTableDto {
     private String btcAmount;
     private String usdAmount;
     private List<RefillOnConfirmationDto> confirmations;
+
+    @JsonIgnore
+    private BigDecimal total;
 
     public MyWalletsDetailedDto() {
         this.needRefresh = true;

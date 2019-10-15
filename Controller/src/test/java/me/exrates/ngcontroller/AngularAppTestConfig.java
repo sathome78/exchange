@@ -8,6 +8,7 @@ import me.exrates.dao.WalletDao;
 import me.exrates.dao.chat.telegram.TelegramChatDao;
 import me.exrates.ngService.BalanceService;
 import me.exrates.ngService.NgOrderService;
+import me.exrates.ngService.RedisUserNotificationService;
 import me.exrates.ngService.UserVerificationService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.service.AuthTokenService;
@@ -40,6 +41,8 @@ import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.chart.CandleDataProcessingService;
+import me.exrates.service.freecoins.FreecoinsService;
+import me.exrates.service.freecoins.FreecoinsSettingsService;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.G2faService;
@@ -148,6 +151,11 @@ public class AngularAppTestConfig {
     @Bean
     public CurrencyService currencyService() {
         return Mockito.mock(CurrencyService.class);
+    }
+
+    @Bean
+    public RedisUserNotificationService redisUserNotificationService() {
+        return Mockito.mock(RedisUserNotificationService.class);
     }
 
     @Bean
@@ -348,5 +356,15 @@ public class AngularAppTestConfig {
     @Bean
     public CandleDataProcessingService candleDataProcessingService() {
         return Mockito.mock(CandleDataProcessingService.class);
+    }
+
+    @Bean
+    public FreecoinsService freecoinsService() {
+        return Mockito.mock(FreecoinsService.class);
+    }
+
+    @Bean
+    public FreecoinsSettingsService freecoinsSettingsService() {
+        return Mockito.mock(FreecoinsSettingsService.class);
     }
 }

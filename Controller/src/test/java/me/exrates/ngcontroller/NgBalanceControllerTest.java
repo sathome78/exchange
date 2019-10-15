@@ -338,7 +338,7 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
                 .path(BASE_URL + "/totalBalance")
                 .build();
 
-        Mockito.when(walletService.getAllWalletsForUserReduced(anyObject(), anyString(), anyObject(), anyObject()))
+        Mockito.when(walletService.getAllWalletsForUserReduced(anyObject(), anyString(), anyObject()))
                 .thenReturn(Collections.singletonList(getMockMyWalletsStatisticsDto("USD")));
 
         mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
@@ -353,7 +353,7 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$.mapWallets.[0].activeBalance", is("TEST_ACTIVE_BALANCE")))
                 .andExpect(jsonPath("$.mapWallets.[0].totalBalance", is("125")));
 
-        verify(walletService, times(1)).getAllWalletsForUserReduced(anyObject(), anyString(), anyObject(), anyObject());
+        verify(walletService, times(1)).getAllWalletsForUserReduced(anyObject(), anyString(), anyObject());
     }
 
     @Test
@@ -362,7 +362,7 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
                 .path(BASE_URL + "/totalBalance")
                 .build();
 
-        Mockito.when(walletService.getAllWalletsForUserReduced(anyObject(), anyString(), anyObject(), anyObject()))
+        Mockito.when(walletService.getAllWalletsForUserReduced(anyObject(), anyString(), anyObject()))
                 .thenReturn(Arrays.asList(
                         getMockMyWalletsStatisticsDto("USD")
                         , getMockMyWalletsStatisticsDto("BTC")
@@ -400,7 +400,7 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$.mapWallets.[2].activeBalance", is("TEST_ACTIVE_BALANCE")))
                 .andExpect(jsonPath("$.mapWallets.[2].totalBalance", is("125")));
 
-        verify(walletService, times(1)).getAllWalletsForUserReduced(anyObject(), anyString(), anyObject(), anyObject());
+        verify(walletService, times(1)).getAllWalletsForUserReduced(anyObject(), anyString(), anyObject());
         verify(exchangeRatesHolder, times(1)).getAllRates();
     }
 

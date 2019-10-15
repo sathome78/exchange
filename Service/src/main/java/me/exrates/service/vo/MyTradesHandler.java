@@ -29,7 +29,7 @@ public class MyTradesHandler {
 
     private static final long LOCKS_CLEAR_DELAY = 1000 * 60 * 60 * 24;
 
-    private static final int LATENCY = 1000;
+    private static final int LATENCY = 800;
 
 
     private MyTradesHandler(int currencyPairId) {
@@ -59,7 +59,7 @@ public class MyTradesHandler {
                 log.error("interrupted ", e);
             } finally {
                 semaphore.release();
-                stompMessenger.sendMyTradesToUser(userId, currencyPairId);
+//                stompMessenger.sendMyTradesToUser(userId, currencyPairId);
             }
         }
     }

@@ -9,6 +9,7 @@ import me.exrates.dao.StopOrderDao;
 import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.ExOrder;
 import me.exrates.model.StopOrder;
 import me.exrates.model.User;
@@ -21,14 +22,17 @@ import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.ChartPeriodsEnum;
+import me.exrates.model.enums.CurrencyPairRestrictionsEnum;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.enums.RestrictedCountrys;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngExceptions.NgOrderValidationException;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.util.BigDecimalToStringSerializer;
 import me.exrates.ngService.NgOrderService;
@@ -38,7 +42,10 @@ import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.cache.ExchangeRatesHolder;
+import me.exrates.service.exception.NeedVerificationException;
+import me.exrates.service.exception.OrderCreationRestrictedException;
 import me.exrates.service.stopOrder.StopOrderService;
+import me.exrates.service.userOperation.UserOperationService;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +56,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -69,6 +77,7 @@ public class NgOrderServiceImpl implements NgOrderService {
     private final StopOrderService stopOrderService;
     private final UserService userService;
     private final WalletService walletService;
+    private final UserOperationService userOperationService;
 
     @Autowired
     public NgOrderServiceImpl(CurrencyService currencyService,
@@ -81,7 +90,7 @@ public class NgOrderServiceImpl implements NgOrderService {
                               StopOrderService stopOrderService,
                               UserService userService,
                               WalletService walletService,
-                              ExchangeRatesHolder exchangeRatesHolder) {
+                              ExchangeRatesHolder exchangeRatesHolder, UserOperationService userOperationService) {
         this.currencyService = currencyService;
         this.orderService = orderService;
         this.orderDao = orderDao;
@@ -91,6 +100,7 @@ public class NgOrderServiceImpl implements NgOrderService {
         this.stopOrderService = stopOrderService;
         this.userService = userService;
         this.walletService = walletService;
+        this.userOperationService = userOperationService;
     }
 
     @Override
@@ -111,7 +121,17 @@ public class NgOrderServiceImpl implements NgOrderService {
 
         String email = userService.getUserEmailFromSecurityContext();
         User user = userService.findByEmail(email);
-        CurrencyPair currencyPair = currencyService.findCurrencyPairById(inputOrder.getCurrencyPairId());
+        CurrencyPairWithRestriction currencyPair = currencyService.findCurrencyPairByIdWithRestrictions(inputOrder.getCurrencyPairId());
+
+        if (currencyPair.hasTradeRestriction()) {
+            if (currencyPair.getTradeRestriction().contains(CurrencyPairRestrictionsEnum.ESCAPE_USA) && user.getVerificationRequired()) {
+                if (Objects.isNull(user.getCountry())) {
+                    throw new NeedVerificationException("Sorry, you must pass verification to trade this pair.");
+                } else if(user.getCountry().equalsIgnoreCase(RestrictedCountrys.USA.name())) {
+                    throw new OrderCreationRestrictedException("Sorry, you are not allowed to trade this pair");
+                }
+            }
+        }
 
         OrderCreateDto prepareNewOrder = orderService.prepareNewOrder(currencyPair, operationType, user.getEmail(),
                 inputOrder.getAmount(), inputOrder.getRate(), baseType);

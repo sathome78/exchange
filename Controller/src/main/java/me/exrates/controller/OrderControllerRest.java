@@ -8,6 +8,7 @@ import me.exrates.controller.exception.NotAcceptableOrderException;
 import me.exrates.controller.exception.NotEnoughMoneyException;
 import me.exrates.dao.exception.notfound.OrderNotFoundException;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.ExOrder;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderCreateSummaryDto;
@@ -118,7 +119,8 @@ public class OrderControllerRest {
             if (baseType == OrderBaseType.STOP_LIMIT && stop == null) {
                 throw new RuntimeException("Try to create stop-order without stop rate");
             }
-            OrderCreateDto orderCreateDto = orderService.prepareNewOrder(activeCurrencyPair, orderType, principal.getName(), amount, rate, baseType);
+            CurrencyPairWithRestriction cpwr = currencyService.findCurrencyPairByIdWithRestrictions(activeCurrencyPair.getId());
+            OrderCreateDto orderCreateDto = orderService.prepareNewOrder(cpwr, orderType, principal.getName(), amount, rate, baseType);
             orderCreateDto.setOrderBaseType(baseType);
             orderCreateDto.setStop(stop);
             /**/

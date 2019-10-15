@@ -379,6 +379,7 @@ public class EntryController {
                 UpdateUserDto updateUserDto = new UpdateUserDto(userPrincipal.getId());
                 updateUserDto.setPassword(changePasswordDto.getConfirmPassword());
                 updateUserDto.setEmail(principal.getName());
+                updateUserDto.setPublicId(userPrincipal.getPublicId());
                 userService.update(updateUserDto, localeResolver.resolveLocale(request));
                 message = messageSource.getMessage("user.settings.changePassword.successful", null, localeResolver.resolveLocale(request));
                 userSessionService.invalidateUserSessionExceptSpecific(principal.getName(), RequestContextHolder.currentRequestAttributes().getSessionId());

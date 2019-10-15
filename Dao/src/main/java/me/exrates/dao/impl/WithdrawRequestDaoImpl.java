@@ -589,7 +589,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     }
 
     @Override
-    public List<WithdrawRequestFlatDto> findByMerchantIdAndAdditionParam(int merchantId, String additionalParam) {
+    public List<WithdrawRequestFlatDto> findListByMerchantIdAndAdditionParam(int merchantId, String additionalParam) {
         String sql = "SELECT WITHDRAW_REQUEST.* " +
                 " FROM WITHDRAW_REQUEST " +
                 " WHERE WITHDRAW_REQUEST.merchant_id = :merchant_id  AND WITHDRAW_REQUEST.additional_params = :param";
@@ -598,6 +598,20 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
             put("param", additionalParam);
         }};
         return jdbcTemplate.query(sql, params, (rs, i) -> {
+            return withdrawRequestFlatDtoRowMapper.mapRow(rs, i);
+        });
+    }
+
+    @Override
+    public WithdrawRequestFlatDto findByMerchantIdAndAdditionParam(int merchantId, String additionalParam) {
+        String sql = "SELECT WITHDRAW_REQUEST.* " +
+                " FROM WITHDRAW_REQUEST " +
+                " WHERE WITHDRAW_REQUEST.merchant_id = :merchant_id  AND WITHDRAW_REQUEST.additional_params = :param";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("merchant_id", merchantId);
+            put("param", additionalParam);
+        }};
+        return jdbcTemplate.queryForObject(sql, params, (rs, i) -> {
             return withdrawRequestFlatDtoRowMapper.mapRow(rs, i);
         });
     }

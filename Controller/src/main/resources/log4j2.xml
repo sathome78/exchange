@@ -663,7 +663,7 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="adgroup_log" fileName="${sys:catalina.home}/logs/merchants/adgroup.log"
+        <RollingFile name="adgroup_log" fileName="${sys:catalina.home}/logs/merchants/adgroup_log.log"
                      filePattern="${sys:catalina.home}/logs/merchants/adgroup_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
             <Policies>
@@ -726,6 +726,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="qubera_log" fileName="${sys:catalina.home}/logs/merchants/qubera_log.log"
+                     filePattern="${sys:catalina.home}/logs/merchants/qubera_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="coin_pay_log" fileName="${sys:catalina.home}/logs/merchants/coin_pay_log.log"
                      filePattern="${sys:catalina.home}/logs/merchants/coin_pay_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
@@ -737,6 +746,15 @@
         </RollingFile>
         <RollingFile name="inout" fileName="${sys:catalina.home}/logs/inout/inout.log"
                      filePattern="${sys:catalina.home}/logs/inout/inout%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="free-coins" fileName="${sys:catalina.home}/logs/free-coins/free-coins.log"
+                     filePattern="${sys:catalina.home}/logs/free-coins/free-coins%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -1074,6 +1092,15 @@
         <logger name="nixmoney_log" level="ALL" additivity="false">
             <AppenderRef ref="nixmoney_log"/>
         </logger>
+        <logger name="adgroup_log" level="ALL" additivity="false">
+            <AppenderRef ref="adgroup_log"/>
+        </logger>
+        <logger name="qubera_log" level="ALL" additivity="false">
+            <AppenderRef ref="qubera_log"/>
+        </logger>
+        <logger name="coin_pay_log" level="ALL" additivity="false">
+            <AppenderRef ref="coin_pay_log"/>
+        </logger>
         <logger name="ordersTxLogger" level="ALL" additivity="false">
             <AppenderRef ref="ordersTxLogger"/>
         </logger>
@@ -1082,6 +1109,9 @@
         </logger>
         <logger name="inout" level="ALL" additivity="false">
             <AppenderRef ref="inout"/>
+        </logger>
+        <logger name="free-coins" level="ALL" additivity="false">
+            <AppenderRef ref="free-coins"/>
         </logger>
         <Root level="INFO">
             <AppenderRef ref="Console"/>

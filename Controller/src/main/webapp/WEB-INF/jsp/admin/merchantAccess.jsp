@@ -57,6 +57,9 @@
                                         <th><loc:message code="withdrawal.currency"/> </th>
                                         <th data-operationtype="INPUT"><loc:message code="transaction.operationTypeINPUT"/></th>
                                         <th><loc:message code="transaction.operationTypeOUTPUT"/></th>
+                                        <th><loc:message code="merchant.refillKyc"/></th>
+                                        <th><loc:message code="merchant.withdrawKyc"/></th>
+                                        <th><loc:message code="merchant.kycType"/></th>
                                         <th><loc:message code="merchant.withdrawAuto"/></th>
                                         <th><loc:message code="merchant.withdrawAutoDelay"/></th>
                                         <th><loc:message code="merchant.withdrawAutoThreshold"/></th>
@@ -100,6 +103,8 @@
                 </div>
 
                 <div id="panel3" class="tab-pane">
+                    <div hidden id="pairs_restrictions">${pairsRestrictions}</div>
+                    <div hidden id="verif_types">${kyc_types}</div>
                     <div class="col-sm-8 col-sm-offset-2">
 
                         <table id="currency-pairs-visibility-options-table">
@@ -108,6 +113,7 @@
                                 <th><loc:message code="admin.currency.pair.id"/> </th>
                                 <th><loc:message code="title.hide.currency.pair"/> </th>
                                 <th><loc:message code="title.visibility"/></th>
+                                <th><loc:message code="title.tradeRestriction"/></th>
                                 <th><loc:message code="title.top_market_volume"/></th>
                                 <th><loc:message code="title.action"/></th>
                             </tr>

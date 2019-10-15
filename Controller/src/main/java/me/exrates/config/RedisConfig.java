@@ -1,8 +1,9 @@
-package me.exrates.service.cache;
+package me.exrates.config;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Qualifier;
 import me.exrates.service.impl.RedisMessageSubscriber;
 import me.exrates.service.stomp.StompMessenger;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,7 +11,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.Topic;
@@ -24,8 +27,10 @@ import redis.clients.jedis.Protocol;
 @Configuration
 public class RedisConfig {
 
-    private @Value("${redis.host}") String host;
-    private @Value("${redis.port}") Integer port;
+    @Value("${redis.host}")
+    private String host;
+    @Value("${redis.port}")
+    private int port;
 
     private static final String SUBSCRIBE_PATTERN = "candles.*";
 
@@ -74,21 +79,43 @@ public class RedisConfig {
     }
 
     @Bean
+    @Qualifier("exratesRedisTemplate")
     RedisTemplate<String, Object> redisTemplate() {
         final RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(jedisConnFactory());
         template.setKeySerializer(new StringRedisSerializer());
         template.setHashKeySerializer(new StringRedisSerializer());
-
         Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
-        ObjectMapper om = new ObjectMapper();
-        om.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
-        om.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
-        jackson2JsonRedisSerializer.setObjectMapper(om);
-
+        jackson2JsonRedisSerializer.setObjectMapper(buildRedisObjectMapper());
         template.setHashValueSerializer(jackson2JsonRedisSerializer);
         template.setValueSerializer(jackson2JsonRedisSerializer);
         template.afterPropertiesSet();
         return template;
+    }
+
+    @Bean
+    @Qualifier("stringRedisTemplate")
+    public StringRedisTemplate stringRedisTemplate() {
+        final StringRedisTemplate template = new StringRedisTemplate(jedisConnFactory());
+        template.setKeySerializer(new StringRedisSerializer());
+        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
+        jackson2JsonRedisSerializer.setObjectMapper(buildRedisObjectMapper());
+        template.setHashValueSerializer(jackson2JsonRedisSerializer);
+        template.setValueSerializer(jackson2JsonRedisSerializer);
+        template.afterPropertiesSet();
+        return template;
+    }
+
+    @Bean
+    @Qualifier("hashOperations")
+    public HashOperations<String, String, String> hashOperations() {
+        return stringRedisTemplate().opsForHash();
+    }
+
+    private ObjectMapper buildRedisObjectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+        objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+        return objectMapper;
     }
 }

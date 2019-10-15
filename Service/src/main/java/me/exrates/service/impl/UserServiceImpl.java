@@ -93,6 +93,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -390,6 +391,7 @@ public class UserServiceImpl implements UserService {
             User u = new User();
             u.setId(user.getId());
             u.setEmail(user.getEmail());
+            u.setPublicId(user.getPublicId());
             if (changePassword) {
                 sendUnfamiliarIpNotificationEmail(u, "admin.changePasswordTitle", "user.settings.changePassword.successful", locale);
             } else if (changeFinPassword) {
@@ -445,13 +447,18 @@ public class UserServiceImpl implements UserService {
         }
         email.setMessage(
                 messageSource.getMessage(emailText, null, locale) +
-                        " <a href='" +
+                        " </p><a href=\"" +
                         rootUrl +
                         confirmationUrl.toString() +
-                        "'>" + messageSource.getMessage("admin.ref", null, locale) + "</a>"
+                        "\" style=\"display: block;MAX-WIDTH: 347px; FONT-FAMILY: Roboto; COLOR: #237BEF; MARGIN: auto auto .8em; font-size: 36px; line-height: 1.37; text-align: center; font-weight: 600;\">" + messageSource.getMessage("admin.ref", null, locale) + "</a>"
         );
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
         email.setTo(user.getEmail());
+
+        Properties properties = new Properties();
+        properties.setProperty("public_id", user.getPublicId());
+        email.setProperties(properties);
+
         sendMailService.sendMail(email);
 
     }
@@ -462,6 +469,11 @@ public class UserServiceImpl implements UserService {
         email.setTo(user.getEmail());
         email.setMessage(messageSource.getMessage(emailText, new Object[]{user.getIp()}, locale));
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
+
+        Properties properties = new Properties();
+        properties.setProperty("public_id", user.getPublicId());
+        email.setProperties(properties);
+
         sendMailService.sendMail(email);
     }
 
@@ -1104,5 +1116,15 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteTemporalTokenByUserIdAndTokenType(int userId, TokenType tokenType) {
         userDao.deleteTemporalTokenByUserIdAndTokenType(userId, tokenType);
+    }
+
+    @Override
+    public boolean subscribeToMailingByPublicId(String publicId, boolean subscribe) {
+        return userDao.subscribeToMailingByPublicId(publicId, subscribe);
+    }
+
+    @Override
+    public boolean subscribeToMailingByEmail(String email, boolean subscribe) {
+        return userDao.subscribeToMailingByEmail(email, subscribe);
     }
 }

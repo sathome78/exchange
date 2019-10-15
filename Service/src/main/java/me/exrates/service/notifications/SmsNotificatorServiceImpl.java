@@ -8,10 +8,24 @@ import me.exrates.model.Email;
 import me.exrates.model.dto.NotificationPayEventEnum;
 import me.exrates.model.dto.NotificatorSubscription;
 import me.exrates.model.dto.SmsSubscriptionDto;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.ActionType;
+import me.exrates.model.enums.NotificationTypeEnum;
+import me.exrates.model.enums.NotificatorSubscriptionStateEnum;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.vo.WalletOperationData;
-import me.exrates.service.*;
-import me.exrates.service.exception.*;
+import me.exrates.service.CompanyWalletService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.SendMailService;
+import me.exrates.service.UserService;
+import me.exrates.service.WalletService;
+import me.exrates.service.exception.IncorrectSmsPinException;
+import me.exrates.service.exception.MessageUndeliweredException;
+import me.exrates.service.exception.PaymentException;
+import me.exrates.service.exception.ServiceUnavailableException;
+import me.exrates.service.exception.UnoperableNumberException;
 import me.exrates.service.notifications.sms.epochta.EpochtaApi;
 import me.exrates.service.notifications.sms.epochta.Phones;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +36,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Random;
 
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
@@ -94,7 +113,7 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
         String xml = send(subscriptionDto.getContact(), message);
         try {
             BigDecimal cost = new BigDecimal(smsService.getValueFromXml(xml, "amount"));
-            log.debug("last cost for number {} is {}", subscriptionDto.getContact(),cost);
+            log.debug("last cost for number {} is {}", subscriptionDto.getContact(), cost);
             if (cost.compareTo(subscriptionDto.getPriceForContact()) != 0 && cost.compareTo(BigDecimal.ZERO) > 0) {
                 subscriptionDao.updateDeliveryPrice(userId, cost);
             }
@@ -108,7 +127,9 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
     private String send(String contact, String message) {
         log.debug("send sms to {}, message {}", contact, message);
         String xml = smsService.sendSms(SENDER, message,
-                new ArrayList<Phones>(){{add(new Phones("id1","", contact));}});
+                new ArrayList<Phones>() {{
+                    add(new Phones("id1", "", contact));
+                }});
         log.debug("send sms status {}", xml);
         String status;
         try {
@@ -149,7 +170,7 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
             subscriptionDto.setStateEnum(oldDto.getStateEnum());
             subscriptionDto.setPriceForContact(oldDto.getPriceForContact());
             subscriptionDto.setContact(oldDto.getContact());
-        } else  {
+        } else {
             subscriptionDto.setStateEnum(NotificatorSubscriptionStateEnum.getBeginState());
         }
         subscriptionDto.setNewPrice(cost);
@@ -237,7 +258,7 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
         walletOperationData.setSourceType(TransactionSourceType.NOTIFICATIONS);
         walletOperationData.setDescription(description);
         WalletTransferStatus walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
-        if(!walletTransferStatus.equals(WalletTransferStatus.SUCCESS)) {
+        if (!walletTransferStatus.equals(WalletTransferStatus.SUCCESS)) {
             throw new PaymentException(walletTransferStatus);
         }
         CompanyWallet companyWallet = companyWalletService.findByCurrency(currencyService.findByName(CURRENCY_NAME));
@@ -251,6 +272,8 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
         email.setTo("sell@exrates.top");
         email.setMessage("Insuficcience Service Balance Exception on 1s2u numbers lookup, need to refund balance!");
         email.setSubject("Allert! InsuficcienceServiceBalanceException");
+        email.setProperties(new Properties());
+
         sendMailService.sendMail(email);
     }
 

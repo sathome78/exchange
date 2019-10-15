@@ -184,6 +184,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(POST, "/2a8fy7b07dxe44/autoTrading/**")
             .hasAnyAuthority(UserRole.BOT_TRADER.name(), UserRole.ADMINISTRATOR.name())
             .antMatchers("/2a8fy7b07dxe44/ieo/**").hasAnyAuthority(UserRole.ADMINISTRATOR.name())
+            .antMatchers("/2a8fy7b07dxe44/free-coins/**").hasAnyAuthority(UserRole.ADMINISTRATOR.name())
             /*... ADMIN */
             .antMatchers("/2a8fy7b07dxe44/**",
                     "/2a8fy7b07dxe44").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.FIN_OPERATOR.name())
@@ -226,6 +227,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     "/merchants/payeer/payment/success").permitAll()
             .antMatchers(POST, "/merchants/qubera/payment/status",
                     "/merchants/qubera/success").permitAll()
+            .antMatchers(POST, "/merchants/coinpay/payment/status/**",
+                    "/merchants/coinpay/payment/status/withdraw/**").permitAll()
             .antMatchers(POST, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**", "/chat-ko/**").permitAll()
             .antMatchers(GET, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**", "/chat-ko/**",  "/chat/history").permitAll()
             .antMatchers(POST, "/public_socket/", "/public_socket/**").permitAll()
@@ -353,6 +356,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     "/merchants/payeer/payment/status",
                     "/merchants/qubera/payment/success",
                     "/merchants/qubera/payment/status",
+                    "/merchants/coinpay/payment/status/**",
+                    "/merchants/coinpay/payment/status/withdraw/**",
                     "/test/**",
                     "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword", "/afgssr/call/refill");
     http

@@ -15,6 +15,8 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngModel.PasswordCreateDto;
+import me.exrates.model.userOperation.UserOperationAuthorityOption;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.security.service.NgUserService;
@@ -22,6 +24,7 @@ import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.TemporalTokenService;
 import me.exrates.service.UserService;
+import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.util.IpUtils;
 import me.exrates.service.util.RestApiUtilComponent;
 import org.apache.commons.lang.StringUtils;
@@ -38,6 +41,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.UUID;
 
 import static me.exrates.service.util.RestUtil.getUrlFromRequest;
@@ -57,6 +61,7 @@ public class NgUserServiceImpl implements NgUserService {
     private final TemporalTokenService temporalTokenService;
     private final HttpServletRequest request;
     private final RestApiUtilComponent restApiUtilComponent;
+    private final UserOperationService userOperationService;
 
     @Value("${dev.mode}")
     private boolean DEV_MODE;
@@ -78,7 +83,7 @@ public class NgUserServiceImpl implements NgUserService {
                              IpBlockingService ipBlockingService,
                              TemporalTokenService temporalTokenService,
                              HttpServletRequest request,
-                             RestApiUtilComponent restApiUtilComponent) {
+                             RestApiUtilComponent restApiUtilComponent, UserOperationService userOperationService) {
         this.userDao = userDao;
         this.userService = userService;
         this.messageSource = messageSource;
@@ -89,6 +94,7 @@ public class NgUserServiceImpl implements NgUserService {
         this.temporalTokenService = temporalTokenService;
         this.request = request;
         this.restApiUtilComponent = restApiUtilComponent;
+        this.userOperationService = userOperationService;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -102,19 +108,25 @@ public class NgUserServiceImpl implements NgUserService {
         user.setEmail(userEmailDto.getEmail());
         if (!StringUtils.isEmpty(userEmailDto.getParentEmail())) user.setParentEmail(userEmailDto.getParentEmail());
         user.setIp(IpUtils.getClientIpAddress(request));
+        user.setVerificationRequired(userEmailDto.getIsUsa());
 
         if (!(userDao.create(user) && userDao.insertIp(user.getEmail(), user.getIp()))) {
             return false;
         }
 
         int idUser = userDao.getIdByEmail(userEmailDto.getEmail());
+        user.setPublicId(userDao.getPubIdByEmail(userEmailDto.getEmail()));
         user.setId(idUser);
+
         userService.logIP(idUser, user.getIp(), UserEventEnum.REGISTER, getUrlFromRequest(request));
         sendEmailWithToken(user,
                 TokenType.REGISTRATION,
                 "emailsubmitregister.subject",
                 "emailsubmitregister.text",
-                Locale.ENGLISH, getHost(), "final-registration/token?t=");
+                Locale.ENGLISH, getHost(),
+                "final-registration/token?t=",
+                userEmailDto.getIsUsa()
+        );
 
 
         return true;
@@ -171,7 +183,8 @@ public class NgUserServiceImpl implements NgUserService {
                 "emailsubmitResetPassword.subject",
                 "emailsubmitResetPassword.text",
                 Locale.ENGLISH, getHost(),
-                "recovery-password?t=");
+                "recovery-password?t=",
+                false);
 
         return true;
     }
@@ -216,6 +229,10 @@ public class NgUserServiceImpl implements NgUserService {
                 "If this was not you, please change your password and contact us.");
         email.setSubject("Notification of disable 2FA");
 
+        Properties properties = new Properties();
+        properties.setProperty("public_id", userService.getPubIdByEmail(userEmail));
+        email.setProperties(properties);
+
         sendMailService.sendMail(email);
     }
 
@@ -230,6 +247,10 @@ public class NgUserServiceImpl implements NgUserService {
                 "If this was not you, please change your password and contact us.");
         email.setSubject("Notification of enable 2FA");
 
+        Properties properties = new Properties();
+        properties.setProperty("public_id", userService.getPubIdByEmail(userEmail));
+        email.setProperties(properties);
+
         sendMailService.sendMail(email);
     }
 
@@ -242,7 +263,8 @@ public class NgUserServiceImpl implements NgUserService {
                 TokenType.REGISTRATION,
                 "emailsubmitregister.subject",
                 "emailsubmitregister.text",
-                Locale.ENGLISH, getHost(), "final-registration/token?t=");
+                Locale.ENGLISH, getHost(), "final-registration/token?t=",
+                user.getVerificationRequired());
 
     }
 
@@ -261,7 +283,8 @@ public class NgUserServiceImpl implements NgUserService {
                                    String emailText,
                                    Locale locale,
                                    String host,
-                                   String confirmationUrl) {
+                                   String confirmationUrl,
+                                   Boolean needVerification) {
         TemporalToken token = new TemporalToken();
         token.setUserId(user.getId());
         token.setValue(UUID.randomUUID().toString());
@@ -274,28 +297,35 @@ public class NgUserServiceImpl implements NgUserService {
 
         Email email = new Email();
 
-        confirmationUrl = confirmationUrl + token.getValue();
+        confirmationUrl = confirmationUrl + token.getValue() + "&needVerification=" + needVerification;
 
         email.setMessage(
                 messageSource.getMessage(emailText, null, locale) +
-                        " <a href='" +
+                        " </p><a href=\"" +
                         host + "/" + confirmationUrl +
-                        "'>" + messageSource.getMessage("admin.ref", null, locale) + "</a>"
+                        "\" style=\"display: block;MAX-WIDTH: 347px; FONT-FAMILY: Roboto; COLOR: #237BEF; MARGIN: auto auto .8em; font-size: 36px; line-height: 1.37; text-align: center; font-weight: 600;\">" + messageSource.getMessage("admin.ref", null, locale) + "</a>"
         );
 
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
         email.setTo(user.getEmail());
+
+        Properties properties = new Properties();
+        properties.setProperty("public_id", user.getPublicId());
+        email.setProperties(properties);
+
         sendMailService.sendMail(email);
     }
 
     @Override
     public void sendErrorReportEmail(ErrorReportDto dto) {
         Preconditions.checkNotNull(dto);
+
         sendMailService.sendMailMandrill(Email.builder()
                 .from(mandrillEmail)
                 .to(supportEmail)
                 .message(dto.toString())
                 .subject("Error report")
+                .properties(new Properties())
                 .build());
     }
 

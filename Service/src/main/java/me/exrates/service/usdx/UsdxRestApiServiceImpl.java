@@ -27,8 +27,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.annotation.PostConstruct;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -45,7 +43,7 @@ public class UsdxRestApiServiceImpl implements UsdxRestApiService {
 
     private final static String EXCHANGE_ID_TEXT_FOR_REPLACE = ":exchangeId";
 
-    private final static String SECURITY_HEADER_NAME = "X-Usdx-Signature";
+    private final static String SECURITY_HEADER_NAME = "x-usdx-signature";
 
     private final static ObjectMapper objectMapper = new ObjectMapper();
 

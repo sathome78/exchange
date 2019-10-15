@@ -26,6 +26,7 @@ import javax.annotation.PreDestroy;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -133,6 +134,11 @@ public class withdrawRequestJob {
       Locale locale = new Locale(userLanguage);
       email.setSubject(messageSource.getMessage("withdraw.wallet.insufficientCosts.title", null, locale));
       email.setMessage(messageSource.getMessage("withdraw.wallet.insufficientCosts.body", new Object[]{currencyName}, locale));
+
+      Properties properties = new Properties();
+      properties.setProperty("public_id", userService.getPubIdByEmail(emailAddress));
+      email.setProperties(properties);
+
       sendMailService.sendMail(email);
 
     }

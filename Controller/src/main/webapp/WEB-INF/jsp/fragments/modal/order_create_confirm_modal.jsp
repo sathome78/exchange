@@ -140,6 +140,9 @@
                             <div for="totalwc" class="col-md-12 input-block-wrapper__error-wrapper">
                                 <div class="input-block-wrapper__error"></div>
                             </div>
+                            <div for="permission" class="col-md-12 input-block-wrapper__error-wrapper">
+                                <div class="input-block-wrapper__error"></div>
+                            </div>
                         </div>
                     </form>
 

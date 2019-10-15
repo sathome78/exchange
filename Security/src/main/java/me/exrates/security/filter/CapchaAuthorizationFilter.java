@@ -10,7 +10,6 @@ import me.exrates.security.exception.UnconfirmedUserException;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.UserService;
-import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.util.IpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,7 +26,6 @@ import org.springframework.web.servlet.LocaleResolver;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.util.HashMap;
 
 /**
  * Created by Valk on 31.03.16.
@@ -51,7 +49,7 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
     private IpBlockingService ipBlockingService;
 
     @Autowired
-    private GeetestLib geetest;
+    private VerifyReCaptchaSec verifyReCaptchaSec;
 
     private @Value("${session.checkPinParam}") String checkPinParam;
     private @Value("${session.pinParam}") String pinParam;
@@ -96,32 +94,10 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
                     String.valueOf(session.getAttribute(passwordParam)),request, response);
         } else {
 
-            String challenge = request.getParameter(GeetestLib.fn_geetest_challenge);
-            String validate = request.getParameter(GeetestLib.fn_geetest_validate);
-            String seccode = request.getParameter(GeetestLib.fn_geetest_seccode);
+            String recapchaResponse = request.getParameter("g-recaptcha-response");
 
-            int gt_server_status_code = (Integer) request.getSession().getAttribute(geetest.gtServerStatusSessionKey);
-            logger.info("gt_server_status_code " + gt_server_status_code);
-            String userid = (String)request.getSession().getAttribute("userid");
-
-            HashMap<String, String> param = new HashMap<>();
-            param.put("user_id", userid);
-
-            int gtResult = 0;
-            String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
-
-            if (gt_server_status_code == 1) {
-                gtResult = geetest.enhencedValidateRequest(challenge, validate, seccode, param);
-                logger.error("gtResult " +  gtResult);
-            } else {
-                logger.error("failback:use your own server captcha validate");
-                gtResult = geetest.failbackValidateRequest(challenge, validate, seccode);
-                logger.error(gtResult);
-                throw new NotVerifiedCaptchaError(correctCapchaRequired);
-            }
-
-            if (gtResult != 1) {
-                logger.error(gtResult);
+            if (!verifyReCaptchaSec.verify(recapchaResponse)) {
+                String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
                 throw new NotVerifiedCaptchaError(correctCapchaRequired);
             }
         }

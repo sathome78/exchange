@@ -607,6 +607,7 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         UserEmailDto userEmailDto = new UserEmailDto();
         userEmailDto.setEmail("testemail@gmail.com");
         userEmailDto.setParentEmail("testparentemail@gmail.com");
+        userEmailDto.setIsUsa(false);
         return userEmailDto;
     }
 

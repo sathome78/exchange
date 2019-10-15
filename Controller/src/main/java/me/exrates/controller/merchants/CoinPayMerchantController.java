@@ -1,40 +1,64 @@
 package me.exrates.controller.merchants;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.service.CoinPayMerchantService;
 import me.exrates.service.exception.RefillRequestAlreadyAcceptedException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import me.exrates.service.exception.WithdrawRequestNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.OK;
 
-@Controller
-@RequestMapping("/merchant/coinpay")
+@Log4j2(topic = "coin_pay_log")
+@RestController
+@RequestMapping("/merchants/coinpay")
 public class CoinPayMerchantController {
 
-    private static final Logger logger = LogManager.getLogger("merchant");
     @Autowired
     private CoinPayMerchantService coinPayMerchantService;
 
-    @RequestMapping(value = "/payment/status/{id}", method = RequestMethod.GET)
-    public ResponseEntity<Void> statusPayment(@PathVariable("id") String id) throws RefillRequestAppropriateNotFoundException {
-        Map<String, String> params = Collections.singletonMap("id", id);
+    @RequestMapping(value = "/payment/status/{id}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> statusPayment(@PathVariable("id") String id,
+                                              @RequestBody Map<String, String> params
+    ) throws RefillRequestAppropriateNotFoundException {
+        params.put("id", id);
         final ResponseEntity<Void> responseOK = new ResponseEntity<>(OK);
-        logger.info("Response: " + params);
+        log.info("Response from deposit callback: {}", params);
         try {
             coinPayMerchantService.processPayment(params);
             return responseOK;
         } catch (RefillRequestAlreadyAcceptedException e) {
+            return responseOK;
+        } catch (Exception e) {
+            return new ResponseEntity<>(BAD_REQUEST);
+        }
+    }
+
+    @RequestMapping(value = "/payment/status/withdraw/{id}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> statusPaymentWithdraw(@PathVariable("id") String id,
+                                                      @RequestBody Map<String, Object> params) throws RefillRequestAppropriateNotFoundException {
+        final ResponseEntity<Void> responseOK = new ResponseEntity<>(OK);
+        log.info("Response from withdraw callback: id {}, params {}", id, params);
+        Map<String, String> param = new HashMap<>();
+        if (params.get("status") == null) {
+            return responseOK;
+        }
+        param.put("status", (String) params.get("status"));
+        try {
+            coinPayMerchantService.withdrawProcessCallBack(id, param);
+            return responseOK;
+        } catch (WithdrawRequestNotFoundException e) {
             return responseOK;
         } catch (Exception e) {
             return new ResponseEntity<>(BAD_REQUEST);

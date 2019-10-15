@@ -11,6 +11,7 @@ import me.exrates.model.Commission;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.ExOrder;
 import me.exrates.model.PagingData;
 import me.exrates.model.User;
@@ -105,6 +106,7 @@ import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.util.BiTuple;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.json.JSONArray;
 import org.junit.Before;
@@ -472,7 +474,7 @@ public class OrderServiceImplTest {
                 any(UserRole.class))).thenReturn(getMockWalletsAndCommissionsForOrderCreationDto());
 
         OrderCreateDto orderCreateDto = orderService.prepareNewOrder(
-                new CurrencyPair("BTC/USD"),
+                new CurrencyPairWithRestriction("BTC/USD"),
                 OperationType.SELL,
                 USER_EMAIL,
                 BigDecimal.ONE,
@@ -509,7 +511,7 @@ public class OrderServiceImplTest {
                 any(UserRole.class))).thenReturn(getMockWalletsAndCommissionsForOrderCreationDto());
 
         OrderCreateDto orderCreateDto = orderService.prepareNewOrder(
-                new CurrencyPair("BTC/USD"),
+                new CurrencyPairWithRestriction("BTC/USD"),
                 OperationType.SELL,
                 USER_EMAIL,
                 BigDecimal.ONE,
@@ -544,7 +546,7 @@ public class OrderServiceImplTest {
                 any(UserRole.class))).thenReturn(getMockWalletsAndCommissionsForOrderCreationDto());
 
         OrderCreateDto orderCreateDto = orderService.prepareNewOrder(
-                new CurrencyPair("BTC/USD"),
+                new CurrencyPairWithRestriction("BTC/USD"),
                 OperationType.BUY,
                 USER_EMAIL,
                 BigDecimal.ONE,
@@ -1857,7 +1859,7 @@ public class OrderServiceImplTest {
         dto.setAmount(BigDecimal.TEN);
         dto.setRate(BigDecimal.ONE);
         when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
-        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(new CurrencyPair("BTC/USD"));
+        when(currencyService.findCurrencyPairByIdWithRestrictions(anyInt())).thenReturn(new CurrencyPairWithRestriction("BTC/USD"));
         when(orderDao.getWalletAndCommission(
                 anyString(),
                 any(Currency.class),
@@ -1871,7 +1873,7 @@ public class OrderServiceImplTest {
             assertTrue(e instanceof InsufficientCostsInWalletException);
             assertEquals("Failed as user has insufficient funds for this operation!", e.getMessage());
         }
-        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+        verify(currencyService, atLeastOnce()).findCurrencyPairByIdWithRestrictions(anyInt());
         verify(orderDao, atLeastOnce()).getWalletAndCommission(
                 anyString(),
                 any(Currency.class),
@@ -1892,7 +1894,7 @@ public class OrderServiceImplTest {
         mockCurrencyPairLimitDto.setMinAmount(BigDecimal.ZERO);
         mockCurrencyPairLimitDto.setMinRate(BigDecimal.ZERO);
         when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("1"));
-        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(new CurrencyPair("BTC/USD"));
+        when(currencyService.findCurrencyPairByIdWithRestrictions(anyInt())).thenReturn(new CurrencyPairWithRestriction("BTC/USD"));
         when(orderDao.getWalletAndCommission(
                 anyString(),
                 any(Currency.class),
@@ -1913,7 +1915,7 @@ public class OrderServiceImplTest {
         assertEquals(dto.getAmount(), orderCreateDto.getAmount());
         assertEquals(dto.getRate(), orderCreateDto.getExchangeRate());
 
-        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+        verify(currencyService, atLeastOnce()).findCurrencyPairByIdWithRestrictions(anyInt());
         verify(orderDao, atLeastOnce()).getWalletAndCommission(
                 anyString(),
                 any(Currency.class),
@@ -2914,7 +2916,7 @@ public class OrderServiceImplTest {
     public void testPrepareMarketOrder() {
         InputCreateOrderDto inputOrder = getTestInputCreateOrderDto();
         when(userService.getUserEmailFromSecurityContext()).thenReturn("test@test.com");
-        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(new CurrencyPair("BTC/USD"));
+        when(currencyService.findCurrencyPairByIdWithRestrictions(anyInt())).thenReturn(new CurrencyPairWithRestriction("BTC/USD"));
         when(userService.getUserRoleFromDB(anyString())).thenReturn(UserRole.USER);
         when(orderDao.getWalletAndCommission(anyString(), any(Currency.class), any(OperationType.class), any(UserRole.class)))
                 .thenReturn(new WalletsAndCommissionsForOrderCreationDto());
@@ -5333,26 +5335,23 @@ public class OrderServiceImplTest {
 
     @Test
     public void getAllCurrenciesStatForRefreshForAllPairs() throws Exception {
-        Object[] data = {getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.ICO)};
-        OrdersListWrapper ordersListWrapper = new OrdersListWrapper(data, "CURRENCIES_STATISTIC", 0);
+        List<ExOrderStatisticsShortByPairsDto> data = ImmutableList.of(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.ICO));
 
-        String wrapper = new ObjectMapper().writeValueAsString(ordersListWrapper);
-        String expected = new JSONArray() {{
-            put(new ObjectMapper().writeValueAsString(ordersListWrapper));
-        }}.toString();
-        when(currencyService.getAllCurrencyPairCached()).thenReturn(Collections.singletonMap(1, getMockCurrencyPair(CurrencyPairType.MAIN)));
-
+        String expected = responseJson();
+        when(currencyService.getAllCurrencyPairCached())
+                .thenReturn(Collections.singletonMap(1, getMockCurrencyPair(CurrencyPairType.MAIN)));
         when(exchangeRatesHolder.getAllRates())
                 .thenReturn(Collections.singletonList(getExOrderStatisticsShortByPairsDto(CurrencyPairType.ICO)));
-        when(objectMapper.writeValueAsString(any(OrdersListWrapper.class))).thenReturn(wrapper);
+        when(objectMapper.writeValueAsString(any()))
+                .thenReturn(expected);
 
         String allCurrenciesStatForRefreshForAllPairs = orderService.getAllCurrenciesStatForRefreshForAllPairs();
-
         assertNotNull(allCurrenciesStatForRefreshForAllPairs);
         assertEquals(expected, allCurrenciesStatForRefreshForAllPairs);
-
-        verify(exchangeRatesHolder, atLeastOnce()).getAllRates();
-        verify(objectMapper, atLeastOnce()).writeValueAsString(any(OrdersListWrapper.class));
+        verify(exchangeRatesHolder, atLeastOnce())
+                .getAllRates();
+        verify(objectMapper, atLeastOnce())
+                .writeValueAsString(any(OrdersListWrapper.class));
     }
 
     @Test
@@ -5364,7 +5363,7 @@ public class OrderServiceImplTest {
         doThrow(JsonProcessingException.class).when(objectMapper).writeValueAsString(any(OrdersListWrapper.class));
 
         String allCurrenciesStatForRefreshForAllPairs = orderService.getAllCurrenciesStatForRefreshForAllPairs();
-        assertNull(allCurrenciesStatForRefreshForAllPairs);
+        assertEquals("[]", allCurrenciesStatForRefreshForAllPairs);
 
         verify(exchangeRatesHolder, atLeastOnce()).getAllRates();
         verify(objectMapper, atLeastOnce()).writeValueAsString(any(OrdersListWrapper.class));
@@ -5391,18 +5390,12 @@ public class OrderServiceImplTest {
         Set<Integer> currencyIds = new HashSet<>(Collections.singletonList(1));
         List<ExOrderStatisticsShortByPairsDto> exOrderStatisticsShortByPairsDtos = Collections
                 .singletonList(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.ICO));
-        OrdersListWrapper ordersListWrapper = new OrdersListWrapper(
-                exOrderStatisticsShortByPairsDtos,
-                "ICO_CURRENCY_STATISTIC");
 
-        String wrapper = new ObjectMapper().writeValueAsString(ordersListWrapper);
-        String expected = new JSONArray() {{
-            put(new ObjectMapper().writeValueAsString(ordersListWrapper));
-        }}.toString();
+        String expected = responseJson();
 
         when(exchangeRatesHolder.getCurrenciesRates(anySetOf(Integer.class)))
                 .thenReturn(exOrderStatisticsShortByPairsDtos);
-        when(objectMapper.writeValueAsString(any(OrdersListWrapper.class))).thenReturn(wrapper);
+        when(objectMapper.writeValueAsString(any())).thenReturn(responseJson());
 
         RefreshStatisticDto someCurrencyStatForRefresh = orderService.getSomeCurrencyStatForRefresh(currencyIds);
 
@@ -5411,7 +5404,7 @@ public class OrderServiceImplTest {
         assertNull(someCurrencyStatForRefresh.getMainCurrenciesData());
         assertEquals(1, someCurrencyStatForRefresh.getStatisticInfoDtos().size());
         assertTrue(someCurrencyStatForRefresh.getStatisticInfoDtos().containsKey("BTC/USD"));
-        assertTrue(someCurrencyStatForRefresh.getStatisticInfoDtos().containsValue(wrapper));
+        assertTrue(someCurrencyStatForRefresh.getStatisticInfoDtos().containsValue(responseJson()));
 
         verify(exchangeRatesHolder, atLeastOnce()).getCurrenciesRates(anySetOf(Integer.class));
         verify(objectMapper, atLeastOnce()).writeValueAsString(any(OrdersListWrapper.class));
@@ -5444,18 +5437,12 @@ public class OrderServiceImplTest {
         Set<Integer> currencyIds = new HashSet<>(Collections.singletonList(1));
         List<ExOrderStatisticsShortByPairsDto> exOrderStatisticsShortByPairsDtos = Collections
                 .singletonList(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.MAIN));
-        OrdersListWrapper ordersListWrapper = new OrdersListWrapper(
-                exOrderStatisticsShortByPairsDtos,
-                "MAIN_CURRENCY_STATISTIC");
 
-        String wrapper = new ObjectMapper().writeValueAsString(ordersListWrapper);
-        String expected = new JSONArray() {{
-            put(new ObjectMapper().writeValueAsString(ordersListWrapper));
-        }}.toString();
+        String expected = responseJson();
 
         when(exchangeRatesHolder.getCurrenciesRates(anySetOf(Integer.class)))
                 .thenReturn(exOrderStatisticsShortByPairsDtos);
-        when(objectMapper.writeValueAsString(any(OrdersListWrapper.class))).thenReturn(wrapper);
+        when(objectMapper.writeValueAsString(any())).thenReturn(responseJson());
 
         RefreshStatisticDto someCurrencyStatForRefresh = orderService.getSomeCurrencyStatForRefresh(currencyIds);
 
@@ -5464,7 +5451,7 @@ public class OrderServiceImplTest {
         assertEquals(expected, someCurrencyStatForRefresh.getMainCurrenciesData());
         assertEquals(1, someCurrencyStatForRefresh.getStatisticInfoDtos().size());
         assertTrue(someCurrencyStatForRefresh.getStatisticInfoDtos().containsKey("BTC/USD"));
-        assertTrue(someCurrencyStatForRefresh.getStatisticInfoDtos().containsValue(wrapper));
+        assertTrue(someCurrencyStatForRefresh.getStatisticInfoDtos().containsValue(responseJson()));
 
         verify(exchangeRatesHolder, atLeastOnce()).getCurrenciesRates(anySetOf(Integer.class));
         verify(objectMapper, atLeastOnce()).writeValueAsString(any(OrdersListWrapper.class));
@@ -6761,6 +6748,7 @@ public class OrderServiceImplTest {
         dto.setHidden(Boolean.FALSE);
         dto.setLastUpdateCache("2019-04-03 14:52:14");
         dto.setTopMarket(true);
+        dto.setValueChange("0");
 
         return dto;
     }
@@ -6832,5 +6820,32 @@ public class OrderServiceImplTest {
         List<ExOrder> candidates = new ArrayList<>();
         IntStream.range(0, 6).forEach(i -> candidates.add(getTestExOrder(i, BigDecimal.valueOf(3.0))));
         return candidates;
+    }
+
+    private String responseJson() {
+        return "[" +
+                "{" +
+                "\"currencyPairId\":1," +
+                "\"currencyPairName\":\"BTC/USD\"," +
+                "\"currencyPairPrecision\":2," +
+                "\"lastOrderRate\":\"0\"," +
+                "\"predLastOrderRate\":\"0\"," +
+                "\"percentChange\":\"0\"," +
+                "\"valueChange\":\"0\"," +
+                "\"market\":\"FIAT\"," +
+                "\"priceInUSD\":\"0\"," +
+                "\"type\":\"ICO\"," +
+                "\"volume\":\"0.000000000\"," +
+                "\"currencyVolume\":\"0.000000000\"," +
+                "\"high24hr\":\"0.000000000\"," +
+                "\"low24hr\":\"0.000000000\"," +
+                "\"lastOrderRate24hr\":\"0.000000000\"," +
+                "\"hidden\":false," +
+                "\"lastUpdateCache\":\"2019-04-03 14:52:14\"," +
+                "\"needRefresh\":false," +
+                "\"page\":0," +
+                "\"topMarket\":true" +
+                "}" +
+                "]";
     }
 }
