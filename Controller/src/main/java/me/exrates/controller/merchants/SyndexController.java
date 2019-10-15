@@ -1,5 +1,6 @@
 package me.exrates.controller.merchants;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.dto.SyndexOrderDto;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
@@ -92,7 +94,9 @@ public class SyndexController {
     }
 
     @PostMapping("/public/v2/syndex/result_callback")
-    public ResponseEntity callbackHandler(@RequestParam @NotNull SyndexClient.OrderInfo order) {
+    public ResponseEntity callbackHandler(@RequestBody String income /*@NotNull SyndexClient.OrderInfo order*/) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        SyndexClient.OrderInfo order = objectMapper.readValue(income, SyndexClient.OrderInfo.class);
         log.debug("syndex callback {}", order);
         syndexService.onCallbackEvent(order);
         return ResponseEntity.ok()
