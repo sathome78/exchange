@@ -1,8 +1,7 @@
 package me.exrates.api.service;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.api.dao.UserDao;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,10 +19,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * Created by Yuriy Berezin on 14.09.2018.
  */
+@Log4j2
 @Service
 public class ApiRateLimitService {
-
-    private static final Logger log = LogManager.getLogger(ApiRateLimitService.class);
 
     private static final int TIME_LIMIT_SECONDS = 3600;
 
