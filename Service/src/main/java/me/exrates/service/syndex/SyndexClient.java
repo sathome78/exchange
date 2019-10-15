@@ -165,4 +165,25 @@ public interface SyndexClient {
         @JsonProperty("order_id")
         private String orderId;
     }
+
+    @Getter@Setter
+    class SyndexCallback{
+        @JsonProperty("merchant_id")
+        private String merchantId;
+        @JsonProperty("txid")
+        private String txid;
+        @JsonProperty("transfer_id")
+        private String transferId;
+        private String amount;
+        private String address;
+        @JsonProperty("id_address")
+        private String idAddress;
+        @JsonProperty("time_create")
+        private String timeCreate;
+        private String status;
+        private String currency;
+        private String signature;
+
+
+    }
 }

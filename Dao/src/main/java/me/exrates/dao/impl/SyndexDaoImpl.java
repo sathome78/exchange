@@ -117,7 +117,8 @@ public class SyndexDaoImpl implements SyndexDao {
     @Override
     public List<SyndexOrderDto> getAllorders(@Nullable List<Integer> statuses, @Nullable Integer userId) {
         final String sql = "SELECT * FROM SYNDEX_ORDER " +
-                           " WHERE status_id IN (:statuses) " +
+                           " WHERE 1 " +
+                            (isNull(statuses) ? "" : " and status_id IN (:statuses)") +
                             (isNull(userId) ? "" : " AND user_id = :user_id");
 
         MapSqlParameterSource parameters = new MapSqlParameterSource()

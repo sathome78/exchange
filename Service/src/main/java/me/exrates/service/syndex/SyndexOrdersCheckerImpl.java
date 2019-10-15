@@ -23,6 +23,10 @@ public class SyndexOrdersCheckerImpl implements SyndexOrderChecker {
 
     private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
     private final ExecutorService checkerThreads = Executors.newFixedThreadPool(10);
+    private final List<Integer> inPendingStatuses = Arrays.stream(SyndexOrderStatusEnum.values())
+                                                            .filter(SyndexOrderStatusEnum::isInPendingStatus)
+                                                            .map(SyndexOrderStatusEnum::getStatusId)
+                                                            .collect(Collectors.toList());
 
     public SyndexOrdersCheckerImpl(SyndexService syndexService) {
         this.syndexService = syndexService;
@@ -30,17 +34,14 @@ public class SyndexOrdersCheckerImpl implements SyndexOrderChecker {
 
     @PostConstruct
     private void init() {
-        executorService.scheduleWithFixedDelay(this::check, 10, 20, TimeUnit.MINUTES);
+        executorService.scheduleWithFixedDelay(this::check, 1, 2, TimeUnit.MINUTES);
     }
 
     @Override
     public void check() {
-        List<Integer> inPendingStatuses = Arrays.stream(SyndexOrderStatusEnum.values())
-                .filter(SyndexOrderStatusEnum::isInPendingStatus)
-                .map(SyndexOrderStatusEnum::getStatusId)
-                .collect(Collectors.toList());
 
-        List<SyndexOrderDto> orderDtos = syndexService.getAllPendingPayments(inPendingStatuses, null);
+        /*todo: get abck statuses*/
+        List<SyndexOrderDto> orderDtos = syndexService.getAllPendingPayments(null, null);
 
         orderDtos.forEach(p -> {
             try {

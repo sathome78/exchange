@@ -51,7 +51,7 @@ public class SyndexClientImpl implements SyndexClient {
     private static final String POST_OPEN_DISPUTE = "https://api.syndex.io/merchant/api/open-dispute";
     private static final String POST_ORDER_INFO = "https://api.syndex.io/merchant/api/info-order";
 
-    private final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
 
     @PostConstruct
@@ -83,8 +83,9 @@ public class SyndexClientImpl implements SyndexClient {
     @SneakyThrows
     private String getFieldsForSign(Request request) {
         if (request.body().contentType().type().equals(JSON.type())) {
-
-            Map<String, String> result = new ObjectMapper().readValue(bodyToString(request), new TypeReference<Map<String, String>>() {});
+            String body = bodyToString(request);
+            log.debug(body);
+            Map<String, String> result = new ObjectMapper().readValue(body, new TypeReference<Map<String, String>>() {});
             return result.entrySet()
                     .stream()
                     .sorted(Map.Entry.comparingByKey())
@@ -246,6 +247,36 @@ public class SyndexClientImpl implements SyndexClient {
             log.debug("error code {}, body {}", response.code(), response.body() != null ? response.body().string() : "");
             throw new SyndexCallUnknownException();
         }
+    }
+
+    public static void main(String[] args) {
+        SyndexClientImpl syndexClient = new SyndexClientImpl();
+        syndexClient.objectMapper = new ObjectMapper();
+        syndexClient.client =  new OkHttpClient
+                .Builder()
+                .connectTimeout(20, TimeUnit.SECONDS)
+                .readTimeout(15, TimeUnit.SECONDS)
+                .retryOnConnectionFailure(false)
+                .addInterceptor(chain -> {
+                    Request original = chain.request();
+                    String fieldsForSign = syndexClient.getFieldsForSign(original);
+
+                    Request request = original.newBuilder()
+                            .header("X-Auth-Token", "579802d19d191598daf828ba99cfc4075296ffee8fc0c14b6613b0bc1592050f")
+                            .header("X-Auth-Sign", DigestUtils.sha256Hex(fieldsForSign.concat("9e20266ed1442e7dfd227ec2bb8a4c431d16416fa56a9888dfbe17819bb24ca3")))
+                            .method(original.method(), original.body())
+                            .build();
+
+                    return chain.proceed(request);
+                })
+                .build();
+
+        Request request = new Request.Builder()
+                .post(syndexClient.buildRequestBody(new BaseRequestEntity()))
+                .url("https://api.syndex.io/merchant/api/get-list")
+                .build();
+        String response = syndexClient.executeRequest(request, String.class);
+        System.out.println(response);
     }
 
     @SneakyThrows
