@@ -1,6 +1,7 @@
 package me.exrates.service.syndex;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
@@ -14,6 +15,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -22,6 +24,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import static java.util.Objects.isNull;
 
 
 @PropertySource(value = "classpath:/merchants/syndex.properties")
@@ -58,8 +62,8 @@ public class SyndexClientImpl implements SyndexClient {
 
         client = new OkHttpClient
                 .Builder()
-                .connectTimeout(10, TimeUnit.SECONDS)
-                .readTimeout(10, TimeUnit.SECONDS)
+                .connectTimeout(20, TimeUnit.SECONDS)
+                .readTimeout(15, TimeUnit.SECONDS)
                 .retryOnConnectionFailure(false)
                 .addInterceptor(chain -> {
                     Request original = chain.request();
@@ -109,7 +113,11 @@ public class SyndexClientImpl implements SyndexClient {
                 .url(POST_CREATE_ORDER)
                 .build();
 
-        return executeRequest(request);
+        try {
+            return executeRequest(request, OrderInfo.class);
+        } catch (SyndexCallUnknownException e) {
+            throw new SyndexCallUnknownException("Error creating sybex order");
+        }
     }
 
     @Override
@@ -119,7 +127,7 @@ public class SyndexClientImpl implements SyndexClient {
                 .url(POST_ORDER_INFO)
                 .build();
 
-        return executeRequest(request);
+        return executeRequest(request, OrderInfo.class);
     }
 
     @Override
@@ -129,7 +137,11 @@ public class SyndexClientImpl implements SyndexClient {
                 .url((POST_CANCEL_ORDER))
                 .build();
 
-        return executeRequest(request);
+        try {
+            return executeRequest(request);
+        } catch (SyndexCallUnknownException e) {
+            throw new SyndexCallUnknownException("Error cancel order");
+        }
     }
 
     @Override
@@ -139,7 +151,11 @@ public class SyndexClientImpl implements SyndexClient {
                 .url(POST_CONFIRM_ORDER)
                 .build();
 
-        return executeRequest(request);
+        try {
+            return executeRequest(request);
+        } catch (SyndexCallUnknownException e) {
+            throw new SyndexCallUnknownException("Error confirm order");
+        }
     }
 
 
@@ -149,7 +165,11 @@ public class SyndexClientImpl implements SyndexClient {
                 .post(buildRequestBody(new OpenDisputeRequest(String.valueOf(orderId), comment)))
                 .url(POST_OPEN_DISPUTE)
                 .build();
-        return executeRequest(request);
+        try {
+            return executeRequest(request);
+        } catch (SyndexCallUnknownException e) {
+            throw new SyndexCallUnknownException("Error open dispute exception");
+        }
     }
 
     @Override
@@ -184,11 +204,15 @@ public class SyndexClientImpl implements SyndexClient {
     }
 
     private <T> T executeRequest(Request request) {
+        return executeRequest(request, null);
+    }
+
+    private <T> T executeRequest(Request request, Class<T> classType) {
         try {
             Response response = client
                     .newCall(request)
                     .execute();
-            return handleResponse(response);
+            return handleResponse(response, classType);
 
         } catch (SyndexCallException e) {
             log.error(e);
@@ -199,11 +223,18 @@ public class SyndexClientImpl implements SyndexClient {
         }
     }
 
-    private <T> T handleResponse(Response response) throws IOException {
+    private <T> T handleResponse(Response response, Class<T> classType) throws IOException {
         if (response.isSuccessful()) {
             String body = Objects.requireNonNull(response.body()).string();
             log.debug(body);
-            BaseResponse<T> baseResponse = objectMapper.readValue(body, new TypeReference<BaseResponse<T>>() {});
+            BaseResponse<T> baseResponse;
+            if (isNull(classType)) {
+                baseResponse = objectMapper.readValue(body, new TypeReference<BaseResponse<T>>(){});
+            } else {
+                JavaType javaType = objectMapper.getTypeFactory().constructParametricType(BaseResponse.class, classType);
+                baseResponse = objectMapper.readValue(body, javaType);
+            }
+
             if (baseResponse.isError()) {
                 throw new SyndexCallException(baseResponse.getError());
             }
@@ -212,7 +243,8 @@ public class SyndexClientImpl implements SyndexClient {
         } else if (response.code() == 400) {
             throw new SyndexCallException(objectMapper.readValue(Objects.requireNonNull(response.body()).string(), new TypeReference<BaseError<Error>>() {}));
         } else {
-            throw new RuntimeException();
+            log.debug("error code {}, body {}", response.code(), response.body() != null ? response.body().string() : "");
+            throw new SyndexCallUnknownException();
         }
     }
 
@@ -224,9 +256,4 @@ public class SyndexClientImpl implements SyndexClient {
     private String getSignature(String requestValues) {
         return DigestUtils.sha256Hex(requestValues.concat(secretKey));
     }
-
-    public static void main(String[] args) {
-        System.out.println(DigestUtils.sha256Hex("1570798566297900".concat("9e20266ed1442e7dfd227ec2bb8a4c431d16416fa56a9888dfbe17819bb24ca3")));
-    }
-
 }

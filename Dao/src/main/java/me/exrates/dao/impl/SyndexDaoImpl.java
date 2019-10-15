@@ -6,12 +6,15 @@ import me.exrates.model.dto.SyndexOrderDto;
 import me.exrates.model.enums.SyndexOrderStatusEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 
 import static java.util.Objects.isNull;
@@ -23,7 +26,8 @@ public class SyndexDaoImpl implements SyndexDao {
     private final NamedParameterJdbcTemplate slaveNamedParameterJdbcTemplate;
 
     @Autowired
-    public SyndexDaoImpl(@Qualifier(value = "masterTemplate") NamedParameterJdbcTemplate namedParameterJdbcTemplate, @Qualifier(value = "slaveTemplate") NamedParameterJdbcTemplate slaveNamedParameterJdbcTemplate) {
+    public SyndexDaoImpl(@Qualifier(value = "masterTemplate") NamedParameterJdbcTemplate namedParameterJdbcTemplate,
+                         @Qualifier(value = "slaveTemplate") NamedParameterJdbcTemplate slaveNamedParameterJdbcTemplate) {
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
         this.slaveNamedParameterJdbcTemplate = slaveNamedParameterJdbcTemplate;
     }
@@ -31,10 +35,11 @@ public class SyndexDaoImpl implements SyndexDao {
     @Override
     public void saveOrder(SyndexOrderDto orderDto) {
         final String sql = "INSERT INTO SYNDEX_ORDER " +
-                "(refill_request_id, syndex_id, amount, status_id, commission, payment_system_id, currency, country_id, payment_details) " +
-                "values (:refill_request_id, :syndex_id, :amount, :status, :commission, :payment_system_id, :currency, :country_id, :payment_details)";
+                "(refill_request_id, user_id, syndex_id, amount, status_id, commission, payment_system_id, currency, country_id, payment_details) " +
+                "values (:refill_request_id, :user_id, :syndex_id, :amount, :status_id, :commission, :payment_system_id, :currency, :country_id, :payment_details)";
 
         MapSqlParameterSource parameters = new MapSqlParameterSource()
+                .addValue("user_id", orderDto.getUserId())
                 .addValue("refill_request_id", orderDto.getId())
                 .addValue("amount", orderDto.getAmount())
                 .addValue("commission", orderDto.getCommission())
@@ -45,7 +50,7 @@ public class SyndexDaoImpl implements SyndexDao {
                 .addValue("syndex_id", orderDto.getSyndexId())
                 .addValue("payment_system_id", orderDto.getPaymentSystemId());
 
-        if (namedParameterJdbcTemplate.update(sql, parameters) < 1) {
+        if (namedParameterJdbcTemplate.update(sql, parameters, new GeneratedKeyHolder()) < 1) {
             throw new RuntimeException("Order not saved");
         }
     }
@@ -119,7 +124,11 @@ public class SyndexDaoImpl implements SyndexDao {
                 .addValue("statuses", statuses)
                 .addValue("user_id", userId);
 
-        return slaveNamedParameterJdbcTemplate.query(sql, parameters, rowMapper);
+        try {
+            return slaveNamedParameterJdbcTemplate.query(sql, parameters, rowMapper);
+        } catch (DataAccessException e) {
+            return Collections.emptyList();
+        }
     }
 
     @Override
@@ -129,10 +138,14 @@ public class SyndexDaoImpl implements SyndexDao {
                            (isNull(userId) ? "" : " AND user_id = :user_id");
 
         MapSqlParameterSource parameters = new MapSqlParameterSource()
-                .addValue("refill_request_id", id)
+                .addValue("id", id)
                 .addValue("user_id", userId);
 
-        return slaveNamedParameterJdbcTemplate.queryForObject(sql, parameters, rowMapper);
+        try {
+            return namedParameterJdbcTemplate.queryForObject(sql, parameters, rowMapper);
+        } catch (DataAccessException e) {
+            throw new RuntimeException("Syndex order not found");
+        }
     }
 
     @Override
@@ -143,33 +156,45 @@ public class SyndexDaoImpl implements SyndexDao {
                 " FOR UPDATE ";
 
         MapSqlParameterSource parameters = new MapSqlParameterSource()
-                .addValue("refill_request_id", id)
+                .addValue("id", id)
                 .addValue("user_id", userId);
 
-        return namedParameterJdbcTemplate.queryForObject(sql, parameters, rowMapper);
+        try {
+            return namedParameterJdbcTemplate.queryForObject(sql, parameters, rowMapper);
+        } catch (DataAccessException e) {
+            throw new RuntimeException("Syndex order not found");
+        }
     }
 
     @Override
     public SyndexOrderDto getBySyndexId(long id) {
         final String sql = "SELECT * FROM SYNDEX_ORDER" +
-                " WHERE syndex_id = :id ";
+                " WHERE syndex_id = :syndex_id ";
 
         MapSqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("syndex_id", id);
 
-        return slaveNamedParameterJdbcTemplate.queryForObject(sql, parameters, rowMapper);
+        try {
+            return namedParameterJdbcTemplate.queryForObject(sql, parameters, rowMapper);
+        } catch (DataAccessException e) {
+            throw new RuntimeException("Syndex order not found");
+        }
     }
 
     @Override
     public SyndexOrderDto getBySyndexIdForUpdate(long id) {
         final String sql = "SELECT * FROM SYNDEX_ORDER" +
-                " WHERE syndex_id = :id " +
+                " WHERE syndex_id = :syndex_id " +
                 " FOR UPDATE ";
 
         MapSqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("syndex_id", id);
 
-        return slaveNamedParameterJdbcTemplate.queryForObject(sql, parameters, rowMapper);
+        try {
+            return namedParameterJdbcTemplate.queryForObject(sql, parameters, rowMapper);
+        } catch (DataAccessException e) {
+            throw new RuntimeException("Syndex order not found");
+        }
     }
 
     private RowMapper<SyndexOrderDto> rowMapper = (rs, rowNum) ->
@@ -177,12 +202,15 @@ public class SyndexDaoImpl implements SyndexDao {
             .id(rs.getInt("refill_request_id"))
             .amount(rs.getBigDecimal("amount"))
             .commission(rs.getBigDecimal("commission"))
-            .status(SyndexOrderStatusEnum.convert(rs.getInt("status")))
+            .status(SyndexOrderStatusEnum.convert(rs.getInt("status_id")))
             .syndexId(rs.getLong("syndex_id"))
             .currency(rs.getString("currency"))
             .countryId(rs.getString("country_id"))
             .paymentSystemId(rs.getString("payment_system_id"))
             .paymentDetails(rs.getString("payment_details"))
+            .isConfirmed(rs.getBoolean("confirmed"))
+            .userId(rs.getInt("user_id"))
+            .lastModifDate(rs.getTimestamp("modification_date").toLocalDateTime())
             .build();
 
 }

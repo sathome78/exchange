@@ -60,8 +60,7 @@ public interface SyndexClient {
     }
 
     @Data
-    class CreateOrderRequest {
-        private long requestId = System.currentTimeMillis();
+    class CreateOrderRequest extends BaseRequestEntity {
         private int type = 0;
         @JsonProperty("country_code")
         private String countryCode;

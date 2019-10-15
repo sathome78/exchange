@@ -23,9 +23,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
+import java.time.temporal.TemporalAccessor;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Log4j2(topic = "syndex")
@@ -71,7 +77,7 @@ public class SyndexServiceImpl implements SyndexService {
     }
 
     @SneakyThrows
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.NESTED)
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
         SyndexOrderDto orderDto = new SyndexOrderDto(request);
@@ -80,6 +86,7 @@ public class SyndexServiceImpl implements SyndexService {
         SyndexClient.OrderInfo orderInfo = syndexClient.createOrder(new SyndexClient.CreateOrderRequest(orderDto));
         syndexDao.updateStatus(orderDto.getId(), orderInfo.getStatus());
         syndexDao.updatePaymentDetails(orderDto.getId(), orderInfo.getPaymentDetails());
+        syndexDao.updateSyndexId(orderDto.getId(), orderInfo.getId());
         return new HashMap<String, String>() {{
             put("$__response_object",  objectMapper.writeValueAsString(orderInfo));
         }};
@@ -105,7 +112,6 @@ public class SyndexServiceImpl implements SyndexService {
         final String gaTag = refillService.getUserGAByRequestId(requestId);
         log.debug("Process of sending data to Google Analytics...");
         gtagService.sendGtagEvents(amount.toString(), currency.getName(), gaTag);
-
     }
 
     @Transactional
@@ -145,7 +151,7 @@ public class SyndexServiceImpl implements SyndexService {
         SyndexOrderDto currentOrder = syndexDao.getByIdForUpdate(id, userService.getIdByEmail(email));
 
         if (currentOrder.getStatus() != SyndexOrderStatusEnum.MODERATION) {
-            throw new SyndexOrderException("Current status not suiatable for Cancelling order");
+            throw new SyndexOrderException("Current status not suiatable for confirming order");
         }
 
         syndexDao.setConfirmed(id);

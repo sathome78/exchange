@@ -1,10 +1,12 @@
 package me.exrates.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Tolerate;
 import me.exrates.model.enums.SyndexOrderStatusEnum;
+import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -16,7 +18,7 @@ public class SyndexOrderDto {
 
     private int id;
     @JsonIgnore
-    private long syndexId;
+    private Long syndexId;
     @JsonIgnore
     private int userId;
     private BigDecimal amount;
@@ -26,6 +28,7 @@ public class SyndexOrderDto {
     private String currency;
     private String countryId;
     private String paymentDetails;
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime lastModifDate;
     private boolean isConfirmed;
 
@@ -34,6 +37,7 @@ public class SyndexOrderDto {
         this.id = dto.getId();
         this.userId = dto.getUserId();
         this.amount = dto.getAmount();
+        this.commission = dto.getCommission();
         this.paymentSystemId = dto.getSyndexOrderParams().getPaymentSystem();
         this.currency = dto.getSyndexOrderParams().getCurrency();
         this.countryId = dto.getSyndexOrderParams().getCountry();
