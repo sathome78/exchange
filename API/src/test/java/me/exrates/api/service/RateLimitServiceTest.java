@@ -1,8 +1,7 @@
 package me.exrates.api.service;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.api.TestUtil;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -17,12 +16,11 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
 /**
  * Created by Yuriy Berezin on 14.09.2018.
  */
+@Log4j2
 @Ignore
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath*:spring/api-test-context.xml"})
 public class RateLimitServiceTest {
-
-    private static final Logger log = LogManager.getLogger(RateLimitServiceTest.class);
 
 
     @Autowired

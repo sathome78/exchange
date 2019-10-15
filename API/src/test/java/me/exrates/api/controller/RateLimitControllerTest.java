@@ -1,10 +1,9 @@
 package me.exrates.api.controller;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.api.ApiRequestsLimitExceedException;
 import me.exrates.api.TestUtil;
 import me.exrates.api.service.ApiRateLimitService;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -31,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Created by Yuriy Berezin on 17.09.2018.
  */
+@Log4j2
 @Ignore
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
@@ -45,8 +45,6 @@ public class RateLimitControllerTest {
 
     @Autowired
     private WebApplicationContext wac;
-
-    private static final Logger log = LogManager.getLogger(RateLimitControllerTest.class);
 
     @PostConstruct
     public void setup() {
