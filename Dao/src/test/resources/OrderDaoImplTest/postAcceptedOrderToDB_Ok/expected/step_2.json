@@ -51,7 +51,7 @@
     "user_acceptor_id" : "2",
     "date_creation" : "p(any)",
     "date_acception" : "p(any)",
-    "status_id" : "3",
+    "status_id" : "2",
     "status_modification_date" : "p(any)",
     "order_source_id" : "1",
     "counter_order_id" : null,
