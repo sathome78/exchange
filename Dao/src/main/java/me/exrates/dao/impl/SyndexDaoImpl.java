@@ -58,12 +58,12 @@ public class SyndexDaoImpl implements SyndexDao {
     @Override
     public void updateStatus(int refillRequestId, int newStatus) {
         final String sql = "UPDATE SYNDEX_ORDER " +
-                "SET status_id = :status, modification_date = NOW() " +
+                "SET status_id = :status_id, modification_date = NOW() " +
                 "WHERE refill_request_id = :refill_request_id";
 
         MapSqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("refill_request_id", refillRequestId)
-                .addValue("status", newStatus);
+                .addValue("status_id", newStatus);
 
         if (namedParameterJdbcTemplate.update(sql, parameters) < 1) {
             throw new RuntimeException("Order not updated");

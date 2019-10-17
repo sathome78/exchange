@@ -140,6 +140,7 @@ public class SyndexServiceImpl implements SyndexService {
         syndexClient.openDispute(currentOrder.getSyndexId(), data.getText());
     }
 
+    @Transactional
     @Override
     public void confirmOrder(Integer id, String email) {
         SyndexOrderDto currentOrder = syndexDao.getByIdForUpdate(id, userService.getIdByEmail(email));
@@ -178,7 +179,8 @@ public class SyndexServiceImpl implements SyndexService {
         } else if (lastSavedStatus.isInPendingStatus() && newStatus == SyndexOrderStatusEnum.CANCELLED) {
             refillService.revokeRefillRequest(currentOrderFromDb.getId());
 
-        } else if (lastSavedStatus == SyndexOrderStatusEnum.CREATED && newStatus == SyndexOrderStatusEnum.MODERATION) {
+        } else if ((lastSavedStatus == SyndexOrderStatusEnum.CREATED || lastSavedStatus == SyndexOrderStatusEnum.MODERATION )
+                                    && newStatus == SyndexOrderStatusEnum.MODERATION) {
             syndexDao.updatePaymentDetails(currentOrderFromDb.getId(), retrievedOrder.getPaymentDetails());
 
         } else {

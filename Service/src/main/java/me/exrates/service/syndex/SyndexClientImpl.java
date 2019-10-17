@@ -1,5 +1,6 @@
 package me.exrates.service.syndex;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -58,8 +60,6 @@ public class SyndexClientImpl implements SyndexClient {
     private void init() {
         objectMapper = new ObjectMapper();
 
-
-
         client = new OkHttpClient
                 .Builder()
                 .connectTimeout(20, TimeUnit.SECONDS)
@@ -85,7 +85,7 @@ public class SyndexClientImpl implements SyndexClient {
         if (request.body().contentType().type().equals(JSON.type())) {
             String body = bodyToString(request);
             log.debug(body);
-            Map<String, String> result = new ObjectMapper().readValue(body, new TypeReference<Map<String, String>>() {});
+            Map<String, String> result = objectMapper.readValue(body, new TypeReference<Map<String, String>>() {});
             return result.entrySet()
                     .stream()
                     .sorted(Map.Entry.comparingByKey())
@@ -102,7 +102,7 @@ public class SyndexClientImpl implements SyndexClient {
             copy.body().writeTo(buffer);
             return buffer.readUtf8();
         } catch (final IOException e) {
-            return "did not work";
+            return "crap, it's didn't work";
         }
     }
 
@@ -226,7 +226,7 @@ public class SyndexClientImpl implements SyndexClient {
 
     private <T> T handleResponse(Response response, Class<T> classType) throws IOException {
         if (response.isSuccessful()) {
-            String body = Objects.requireNonNull(response.body()).string();
+            String body = new String(Objects.requireNonNull(response.body()).bytes(), StandardCharsets.UTF_8);
             log.debug(body);
             BaseResponse<T> baseResponse;
             if (isNull(classType)) {

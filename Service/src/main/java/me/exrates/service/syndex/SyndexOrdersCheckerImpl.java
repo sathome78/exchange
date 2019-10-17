@@ -22,7 +22,7 @@ public class SyndexOrdersCheckerImpl implements SyndexOrderChecker {
     private final SyndexService syndexService;
 
     private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
-    private final ExecutorService checkerThreads = Executors.newFixedThreadPool(10);
+    private final ExecutorService checkerThreads = Executors.newFixedThreadPool(1);
     private final List<Integer> inPendingStatuses = Arrays.stream(SyndexOrderStatusEnum.values())
                                                             .filter(SyndexOrderStatusEnum::isInPendingStatus)
                                                             .map(SyndexOrderStatusEnum::getStatusId)
@@ -39,10 +39,8 @@ public class SyndexOrdersCheckerImpl implements SyndexOrderChecker {
 
     @Override
     public void check() {
-
-        /*todo: get abck statuses*/
-        List<SyndexOrderDto> orderDtos = syndexService.getAllPendingPayments(null, null);
-
+        List<SyndexOrderDto> orderDtos = syndexService.getAllPendingPayments(inPendingStatuses, null);
+        log.debug("check syndex orders");
         orderDtos.forEach(p -> {
             try {
                 CompletableFuture.runAsync(() -> syndexService.checkOrder(p.getSyndexId()), checkerThreads);

@@ -95,6 +95,8 @@ public interface SyndexClient {
         private String countryId;
         @JsonProperty("payment_details")
         private String paymentDetails;
+        @JsonProperty("close_payment_time")
+        private String closePaymentTime;
     }
 
     @Data
