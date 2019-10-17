@@ -366,7 +366,7 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>comparator</groupId>
+            <groupId>org.imagination</groupId>
             <artifactId>comparator</artifactId>
             <version>1.1</version>
         </dependency>
@@ -758,11 +758,11 @@
                 <updatePolicy>always</updatePolicy>
             </snapshots>
         </repository>
-        <repository>
-            <id>ProjectRepo</id>
-            <name>ProjectRepo</name>
-            <url>file://${project.basedir}/Service/libs</url>
-        </repository>
+<!--        <repository>-->
+<!--            <id>ProjectRepo</id>-->
+<!--            <name>ProjectRepo</name>-->
+<!--            <url>file://${project.basedir}/Service/libs</url>-->
+<!--        </repository>-->
         <repository>
             <id>oss.sonatype.org-snapshot</id>
             <url>http://oss.sonatype.org/content/repositories/snapshots</url>
