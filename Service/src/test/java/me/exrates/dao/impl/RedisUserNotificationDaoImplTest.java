@@ -11,6 +11,7 @@ import me.exrates.ngDao.RedisUserNotificationDao;
 import me.exrates.ngDao.impl.RedisUserNotificationDaoImpl;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,6 +94,7 @@ public class RedisUserNotificationDaoImplTest {
         assertEquals(2, found.size());
     }
 
+    @Ignore
     @Test
     public void findAll_sorted() {
         String key1 = USER_PUBLIC_ID + ":03765327645";

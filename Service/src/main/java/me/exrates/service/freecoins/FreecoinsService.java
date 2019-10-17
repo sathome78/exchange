@@ -3,6 +3,7 @@ package me.exrates.service.freecoins;
 import me.exrates.model.dto.freecoins.AdminGiveawayResultDto;
 import me.exrates.model.dto.freecoins.GiveawayResultDto;
 import me.exrates.model.dto.freecoins.ReceiveResultDto;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -18,7 +19,7 @@ public interface FreecoinsService {
 
     List<GiveawayResultDto> getAllGiveaways();
 
-    ReceiveResultDto processReceive(int giveawayId, String receiverEmail);
+    Pair<Boolean, ReceiveResultDto> processReceive(int giveawayId, String receiverEmail);
 
     List<ReceiveResultDto> getAllReceives(String receiverEmail);
 
