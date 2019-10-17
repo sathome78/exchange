@@ -27,6 +27,7 @@ import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @Log4j2(topic = "Qiwi")
 @Service
@@ -66,14 +67,13 @@ public class QiwiServiceImpl implements QiwiService {
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
-        String destinationTag = qiwiExternalService.generateUniqMemo(request.getUserId());
-        String message = messageSource.getMessage("merchants.refill.qiwi",
-                new Object[]{mainAddress, destinationTag}, request.getLocale());
-        return new HashMap<String, String>() {{
-            put("address", destinationTag);
-            put("message", message);
-            put("qr", mainAddress);
-        }};
+        Map<String, String> responseParams = qiwiExternalService.getResponseParams(request.getUserId());
+
+        responseParams.put("main_address", mainAddress);
+        responseParams.put("qr", responseParams.get("payment_link"));
+        responseParams.put("message", messageSource.getMessage("merchants.refill.qiwi", new Object[]{mainAddress, responseParams.get("address")}, request.getLocale()));
+
+        return responseParams;
     }
 
     @Override
@@ -91,14 +91,15 @@ public class QiwiServiceImpl implements QiwiService {
         }
         Map<String, String> paramsMap = new HashMap<>();
         paramsMap.put("hash", transaction.get_id());
-        String memo = transaction.getNote().substring(transaction.getNote().indexOf(":") + 1);
-        if (memo == null) {
+
+        String note = transaction.getNote();
+        if (Objects.isNull(note)) {
             log.warn("*** Qiwi *** Memo is null");
             return;
         }
         paramsMap.put("currency", currencyName);
         paramsMap.put("merchant", merchant);
-        paramsMap.put("address", memo);
+        paramsMap.put("address", note.substring(note.indexOf(":") + 1));
         paramsMap.put("amount", amount);
         try {
             this.processPayment(paramsMap);

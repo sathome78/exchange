@@ -1,7 +1,11 @@
 package me.exrates.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import me.exrates.model.enums.MerchantVerificationType;
 import me.exrates.model.util.BigDecimalToStringSerializer;
 
@@ -45,4 +49,6 @@ public class MerchantCurrency {
     private Boolean needKycWithdraw;
     private Boolean needVerification;
     private MerchantVerificationType verificationType;
+
+    private String paymentLink;
 }
