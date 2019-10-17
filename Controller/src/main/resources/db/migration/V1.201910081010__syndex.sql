@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS SYNDEX_ORDER (
     currency                   VARCHAR(20)                  NOT NULL,
     country_id                 VARCHAR(20)                  NOT NULL,
     payment_details            VARCHAR(2000)                CHARACTER SET utf8 COLLATE utf8_unicode_ci,
+    payment_time_end           TIMESTAMP NULL,
     FOREIGN KEY syndex_order_ref_req_fk(refill_request_id) REFERENCES REFILL_REQUEST(id),
     FOREIGN KEY syndex_order_user_id_fk(user_id) REFERENCES USER(id),
     index (syndex_id)

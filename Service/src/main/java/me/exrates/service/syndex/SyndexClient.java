@@ -3,13 +3,16 @@ package me.exrates.service.syndex;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import me.exrates.model.dto.SyndexOrderDto;
+import me.exrates.model.serializer.LocalDateTimeFromTimestampDeserializer;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -95,8 +98,9 @@ public interface SyndexClient {
         private String countryId;
         @JsonProperty("payment_details")
         private String paymentDetails;
+        @JsonDeserialize(using = LocalDateTimeFromTimestampDeserializer.class)
         @JsonProperty("close_payment_time")
-        private String closePaymentTime;
+        private LocalDateTime endPaymentTime;
     }
 
     @Data

@@ -16,7 +16,11 @@ import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.Cache;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +31,8 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static me.exrates.configurations.CacheConfiguration.SYNDEX_ORDER_CACHE;
 
 @Log4j2(topic = "syndex")
 @Service
@@ -48,8 +54,19 @@ public class SyndexServiceImpl implements SyndexService {
     private final RefillService refillService;
     private final GtagService gtagService;
 
+    private final Cache syndexOrdersCache;
+
     @Autowired
-    public SyndexServiceImpl(SyndexDao syndexDao, SyndexClient syndexClient, ObjectMapper objectMapper, UserService userService, RefillService refillService, GtagService gtagService, MerchantService merchantService, CurrencyService currencyService) {
+    public SyndexServiceImpl(SyndexDao syndexDao,
+                             SyndexClient syndexClient,
+                             ObjectMapper objectMapper,
+                             UserService userService,
+                             RefillService refillService,
+                             GtagService gtagService,
+                             MerchantService merchantService,
+                             CurrencyService currencyService,
+                             @Qualifier(SYNDEX_ORDER_CACHE) Cache syndexOrdersCache) {
+
         this.syndexDao = syndexDao;
         this.syndexClient = syndexClient;
         this.objectMapper = objectMapper;
@@ -58,6 +75,7 @@ public class SyndexServiceImpl implements SyndexService {
         this.gtagService = gtagService;
         currency = currencyService.findByName(CURRENCY_NAME);
         merchant = merchantService.findByName(MERCHANT_NAME);
+        this.syndexOrdersCache = syndexOrdersCache;
     }
 
     @Override
@@ -67,7 +85,17 @@ public class SyndexServiceImpl implements SyndexService {
 
     @Override
     public SyndexOrderDto getOrderInfo(int orderId, String email) {
-        return syndexDao.getById(orderId, userService.getIdByEmail(email));
+        SyndexOrderDto dto = syndexDao.getById(orderId, userService.getIdByEmail(email));
+
+        try {
+            return syndexOrdersCache.get(dto.getId(), () -> {
+                checkOrder(dto.getSyndexId());
+                return syndexDao.getById(orderId, userService.getIdByEmail(email));
+            });
+
+        } catch (EmptyResultDataAccessException | Cache.ValueRetrievalException ex) {
+            throw new SyndexCallException("countries list not found", ex);
+        }
     }
 
     @SneakyThrows
@@ -77,10 +105,15 @@ public class SyndexServiceImpl implements SyndexService {
         SyndexOrderDto orderDto = new SyndexOrderDto(request);
         orderDto.setStatus(SyndexOrderStatusEnum.CREATED);
         syndexDao.saveOrder(orderDto);
+
         SyndexClient.OrderInfo orderInfo = syndexClient.createOrder(new SyndexClient.CreateOrderRequest(orderDto));
         syndexDao.updateStatus(orderDto.getId(), orderInfo.getStatus());
-        syndexDao.updatePaymentDetails(orderDto.getId(), orderInfo.getPaymentDetails());
         syndexDao.updateSyndexId(orderDto.getId(), orderInfo.getId());
+
+        if (!StringUtils.isEmpty(orderInfo.getPaymentDetails())) {
+            syndexDao.updatePaymentDetailsAndEndDate(orderDto.getId(), orderInfo.getPaymentDetails(), orderInfo.getEndPaymentTime());
+        }
+
         return new HashMap<String, String>() {{
             put("$__response_object",  objectMapper.writeValueAsString(orderInfo));
         }};
@@ -146,7 +179,7 @@ public class SyndexServiceImpl implements SyndexService {
         SyndexOrderDto currentOrder = syndexDao.getByIdForUpdate(id, userService.getIdByEmail(email));
 
         if (currentOrder.getStatus() != SyndexOrderStatusEnum.MODERATION) {
-            throw new SyndexOrderException("Current status not suiatable for confirming order");
+            throw new SyndexOrderException("Current status not suitable for confirming order");
         }
 
         syndexDao.setConfirmed(id);
@@ -173,17 +206,17 @@ public class SyndexServiceImpl implements SyndexService {
             syndexDao.updateStatus(currentOrderFromDb.getId(), newStatus.getStatusId());
         }
 
+        if (StringUtils.isEmpty(currentOrderFromDb.getPaymentDetails()) && !StringUtils.isEmpty(retrievedOrder.getPaymentDetails())) {
+            syndexDao.updatePaymentDetailsAndEndDate(currentOrderFromDb.getId(), retrievedOrder.getPaymentDetails(), retrievedOrder.getEndPaymentTime());
+        }
+
         if (lastSavedStatus.isInPendingStatus() && newStatus == SyndexOrderStatusEnum.COMPLETE) {
             tryToRefill(currentOrderFromDb);
 
         } else if (lastSavedStatus.isInPendingStatus() && newStatus == SyndexOrderStatusEnum.CANCELLED) {
             refillService.revokeRefillRequest(currentOrderFromDb.getId());
 
-        } else if ((lastSavedStatus == SyndexOrderStatusEnum.CREATED || lastSavedStatus == SyndexOrderStatusEnum.MODERATION )
-                                    && newStatus == SyndexOrderStatusEnum.MODERATION) {
-            syndexDao.updatePaymentDetails(currentOrderFromDb.getId(), retrievedOrder.getPaymentDetails());
-
-        } else {
+        }  else {
             log.debug("do nothing on order {}", retrievedOrder);
         }
     }

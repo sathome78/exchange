@@ -31,6 +31,8 @@ public class SyndexOrderDto {
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime lastModifDate;
     private boolean isConfirmed;
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    private LocalDateTime paymentEndTime;
 
     @Tolerate
     public SyndexOrderDto(RefillRequestCreateDto dto) {

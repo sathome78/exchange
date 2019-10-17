@@ -14,6 +14,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Nullable;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -35,8 +36,8 @@ public class SyndexDaoImpl implements SyndexDao {
     @Override
     public void saveOrder(SyndexOrderDto orderDto) {
         final String sql = "INSERT INTO SYNDEX_ORDER " +
-                "(refill_request_id, user_id, syndex_id, amount, status_id, commission, payment_system_id, currency, country_id, payment_details) " +
-                "values (:refill_request_id, :user_id, :syndex_id, :amount, :status_id, :commission, :payment_system_id, :currency, :country_id, :payment_details)";
+                "(refill_request_id, user_id, syndex_id, amount, status_id, commission, payment_system_id, currency, country_id) " +
+                "values (:refill_request_id, :user_id, :syndex_id, :amount, :status_id, :commission, :payment_system_id, :currency, :country_id)";
 
         MapSqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("user_id", orderDto.getUserId())
@@ -45,7 +46,6 @@ public class SyndexDaoImpl implements SyndexDao {
                 .addValue("commission", orderDto.getCommission())
                 .addValue("country_id", orderDto.getCountryId())
                 .addValue("currency", orderDto.getCurrency())
-                .addValue("payment_details", orderDto.getPaymentDetails())
                 .addValue("status_id", orderDto.getStatus().getStatusId())
                 .addValue("syndex_id", orderDto.getSyndexId())
                 .addValue("payment_system_id", orderDto.getPaymentSystemId());
@@ -71,14 +71,15 @@ public class SyndexDaoImpl implements SyndexDao {
     }
 
     @Override
-    public void updatePaymentDetails(int refillRequestId, String details) {
+    public void updatePaymentDetailsAndEndDate(int refillRequestId, String details, LocalDateTime endPaymentTime) {
         final String sql = "UPDATE SYNDEX_ORDER " +
-                "SET payment_details = :details, modification_date = NOW() " +
+                "SET payment_details = :details, payment_time_end = :end_time, modification_date = NOW() " +
                 "WHERE refill_request_id = :refill_request_id";
 
         MapSqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("refill_request_id", refillRequestId)
-                .addValue("details", details);
+                .addValue("details", details)
+                .addValue("end_time", endPaymentTime.minusMinutes(1));
 
         if (namedParameterJdbcTemplate.update(sql, parameters) < 1) {
             throw new RuntimeException("Order not updated");
@@ -212,6 +213,8 @@ public class SyndexDaoImpl implements SyndexDao {
             .isConfirmed(rs.getBoolean("confirmed"))
             .userId(rs.getInt("user_id"))
             .lastModifDate(rs.getTimestamp("modification_date").toLocalDateTime())
+            .paymentEndTime(rs.getTimestamp("payment_time_end") == null ?
+                    null : rs.getTimestamp("payment_time_end").toLocalDateTime())
             .build();
 
 }

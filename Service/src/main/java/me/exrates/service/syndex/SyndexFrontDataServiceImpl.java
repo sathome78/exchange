@@ -15,17 +15,21 @@ import static me.exrates.configurations.CacheConfiguration.*;
 @Component
 public class SyndexFrontDataServiceImpl implements SyndexFrontDataService {
 
-    @Autowired
-    @Qualifier(SYBEX_COUNTRY_CACHE)
-    private Cache countriesCache;
-    @Autowired
-    @Qualifier(SYBEX_CURRENCY_CACHE)
-    private Cache currencyCache;
-    @Autowired
-    @Qualifier(SYBEX_PAYMENT_SYSTEM_BY_COUNTRY_CACHE)
-    private Cache paymentSystemCache;
-    @Autowired
-    private SyndexClient syndexClient;
+    private final Cache countriesCache;
+    private final Cache currencyCache;
+    private final Cache paymentSystemCache;
+    private final SyndexClient syndexClient;
+
+    public SyndexFrontDataServiceImpl(@Qualifier(SYNDEX_COUNTRY_CACHE) Cache countriesCache,
+                                      @Qualifier(SYNDEX_CURRENCY_CACHE) Cache currencyCache,
+                                      @Qualifier(SYNDEX_PAYMENT_SYSTEM_BY_COUNTRY_CACHE) Cache paymentSystemCache,
+                                      SyndexClient syndexClient) {
+
+        this.countriesCache = countriesCache;
+        this.currencyCache = currencyCache;
+        this.paymentSystemCache = paymentSystemCache;
+        this.syndexClient = syndexClient;
+    }
 
 
     @Override

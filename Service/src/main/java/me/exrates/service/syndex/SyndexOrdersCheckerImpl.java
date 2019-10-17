@@ -22,7 +22,6 @@ public class SyndexOrdersCheckerImpl implements SyndexOrderChecker {
     private final SyndexService syndexService;
 
     private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
-    private final ExecutorService checkerThreads = Executors.newFixedThreadPool(1);
     private final List<Integer> inPendingStatuses = Arrays.stream(SyndexOrderStatusEnum.values())
                                                             .filter(SyndexOrderStatusEnum::isInPendingStatus)
                                                             .map(SyndexOrderStatusEnum::getStatusId)
@@ -34,19 +33,23 @@ public class SyndexOrdersCheckerImpl implements SyndexOrderChecker {
 
     @PostConstruct
     private void init() {
-        executorService.scheduleWithFixedDelay(this::check, 1, 2, TimeUnit.MINUTES);
+        executorService.scheduleWithFixedDelay(this::check, 0, 1, TimeUnit.MINUTES);
     }
 
     @Override
     public void check() {
-        List<SyndexOrderDto> orderDtos = syndexService.getAllPendingPayments(inPendingStatuses, null);
-        log.debug("check syndex orders");
-        orderDtos.forEach(p -> {
-            try {
-                CompletableFuture.runAsync(() -> syndexService.checkOrder(p.getSyndexId()), checkerThreads);
-            } catch (Exception e) {
-                log.error(e);
-            }
-        });
+        try {
+            List<SyndexOrderDto> orderDtos = syndexService.getAllPendingPayments(inPendingStatuses, null);
+            log.debug("check syndex orders");
+            orderDtos.forEach(p -> {
+                try {
+                    syndexService.checkOrder(p.getSyndexId());
+                } catch (Exception e) {
+                    log.error(e);
+                }
+            });
+        } catch (Exception e) {
+            log.error(e);
+        }
     }
 }

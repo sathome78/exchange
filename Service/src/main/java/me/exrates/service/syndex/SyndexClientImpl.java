@@ -220,14 +220,16 @@ public class SyndexClientImpl implements SyndexClient {
             throw e;
         } catch (Exception e) {
             log.error(e);
-            throw new SyndexCallException("Error getting payment-systems", e);
+            throw new SyndexCallException("Merchant error", e);
         }
     }
 
     private <T> T handleResponse(Response response, Class<T> classType) throws IOException {
         if (response.isSuccessful()) {
+
             String body = new String(Objects.requireNonNull(response.body()).bytes(), StandardCharsets.UTF_8);
-            log.debug(body);
+            log.debug("url {}, response {}", response.request().url().toString(), body);
+
             BaseResponse<T> baseResponse;
             if (isNull(classType)) {
                 baseResponse = objectMapper.readValue(body, new TypeReference<BaseResponse<T>>(){});

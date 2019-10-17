@@ -3,6 +3,7 @@ package me.exrates.dao;
 import me.exrates.model.dto.SyndexOrderDto;
 
 import javax.annotation.Nullable;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface SyndexDao {
@@ -10,7 +11,7 @@ public interface SyndexDao {
 
     void updateStatus(int refillRequestId, int newStatus);
 
-    void updatePaymentDetails(int refillRequestId, String details);
+    void updatePaymentDetailsAndEndDate(int refillRequestId, String details, LocalDateTime endPaymentTime);
 
     void updateSyndexId(int refillRequestId, long sybexId);
 
