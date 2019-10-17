@@ -40,7 +40,6 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.IEOService;
 import me.exrates.service.NewsParser;
 import me.exrates.service.OrderService;
-import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.exception.IllegalChatMessageException;
@@ -86,9 +85,7 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 @RestController
 @RequestMapping(value = "/api/public/v2",
-        consumes = MediaType.APPLICATION_JSON_VALUE,
-        produces = MediaType.APPLICATION_JSON_UTF8_VALUE
-)
+        produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class NgPublicController {
 
     private static final Logger logger = LogManager.getLogger(NgPublicController.class);
@@ -106,7 +103,6 @@ public class NgPublicController {
     private final TelegramChatDao telegramChatDao;
     private final ExchangeRatesHolder exchangeRatesHolder;
     private final NewsParser newsParser;
-    private final SendMailService sendMailService;
 
     @Autowired
     public NgPublicController(ChatService chatService,
@@ -121,7 +117,7 @@ public class NgPublicController {
                               NgOrderService ngOrderService,
                               TelegramChatDao telegramChatDao,
                               ExchangeRatesHolder exchangeRatesHolder,
-                              NewsParser newsParser, SendMailService sendMailService) {
+                              NewsParser newsParser) {
         this.chatService = chatService;
         this.currencyService = currencyService;
         this.ipBlockingService = ipBlockingService;
@@ -135,10 +131,9 @@ public class NgPublicController {
         this.exchangeRatesHolder = exchangeRatesHolder;
         this.telegramChatDao = telegramChatDao;
         this.newsParser = newsParser;
-        this.sendMailService = sendMailService;
     }
 
-    @GetMapping(value = "/if_email_exists", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping("/if_email_exists")
     public ResponseEntity<Boolean> checkIfNewUserEmailExists(@RequestParam("email") String email, HttpServletRequest request) {
         if (Objects.isNull(email)) {
             throw new NgResponseException(ErrorApiTitles.USER_EMAIL_NOT_DECODED, "User email is not decoded");
@@ -167,8 +162,7 @@ public class NgPublicController {
         return new ResponseEntity<>(Boolean.TRUE, HttpStatus.OK);
     }
 
-    @GetMapping(value = "/is_google_2fa_enabled", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    @ResponseBody
+    @GetMapping("/is_google_2fa_enabled")
     public Boolean isGoogleTwoFAEnabled(@RequestParam("email") String email) {
         if (Objects.isNull(email)) {
             throw new NgResponseException(ErrorApiTitles.USER_EMAIL_NOT_DECODED, "User email is not decoded");
@@ -192,12 +186,11 @@ public class NgPublicController {
     }
 
     @GetMapping("/ieo")
-    @ResponseBody
     public Collection<IEODetails> getAllIeo() {
         return ieoService.findAll(null);
     }
 
-    @GetMapping(value = "/if_username_exists")
+    @GetMapping("/if_username_exists")
     public ResponseEntity<Boolean> checkIfNewUserUsernameExists(@RequestParam("username") String username, HttpServletRequest request) {
         Boolean unique = processIpBlocking(request, "username", username,
                 () -> userService.ifNicknameIsUnique(username));
@@ -205,8 +198,7 @@ public class NgPublicController {
         return new ResponseEntity<>(!unique, HttpStatus.OK);
     }
 
-    @GetMapping(value = "/chat/history")
-    @ResponseBody
+    @GetMapping("/chat/history")
     public List<ChatHistoryDateWrapperDto> getChatMessages(final @RequestParam("lang") String lang) {
         try {
             List<ChatHistoryDto> msgs = Lists.newArrayList(telegramChatDao.getChatHistoryQuick(ChatLang.EN));
@@ -218,7 +210,6 @@ public class NgPublicController {
 
     // /info/public/v2/all-pairs
     @GetMapping("/all-pairs")
-    @ResponseBody
     public List<CurrencyPair> getAllPairs() {
         try {
             return currencyService.getAllCurrencyPairs(CurrencyPairType.MAIN);
@@ -227,7 +218,7 @@ public class NgPublicController {
         }
     }
 
-    @PostMapping(value = "/chat")
+    @PostMapping(value = "/chat", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> sendChatMessage(@RequestBody Map<String, String> body) {
         String language = body.getOrDefault("LANG", "EN");
         ChatLang chatLang = ChatLang.toInstance(language);
@@ -253,8 +244,7 @@ public class NgPublicController {
 
     // apiUrl/info/public/v2/open-orders/0/5
 
-    @GetMapping(value = "/open-orders/{pairId}/{precision}")
-    @ResponseBody
+    @GetMapping("/open-orders/{pairId}/{precision}")
     public List<OrderBookWrapperDto> getOpenOrders(@PathVariable Integer pairId, @PathVariable Integer precision) {
         return ImmutableList.of(
                 orderService.findAllOrderBookItems(OrderType.SELL, pairId, precision),
@@ -303,14 +293,12 @@ public class NgPublicController {
     }
 
     @GetMapping("/currencies/fast")
-    @ResponseBody
     public List<ExOrderStatisticsShortByPairsDto> getCurrencyPairInfoAll() {
         return orderService.getAllCurrenciesMarkersForAllPairsModel();
     }
 
     // /info/public/v2//accepted-orders/fast?pairId=1
     @GetMapping("/accepted-orders/fast")
-    @ResponseBody
     public List<OrderAcceptedHistoryDto> getLastAcceptedOrders(@RequestParam(value = "pairId") Integer pairId) {
         CurrencyPair cp = currencyService.findCurrencyPairById(pairId);
         return orderService.getOrderAcceptedForPeriodEx(null, new BackDealInterval("24 HOUR"),
@@ -385,7 +373,6 @@ public class NgPublicController {
     }
 
     @GetMapping("/crypto-currencies")
-    @ResponseBody
     public List<Currency> getCryptoCurrencies() {
         try {
             List<Currency> currencies = currencyService.getCurrencies(MerchantProcessType.CRYPTO);
@@ -405,7 +392,6 @@ public class NgPublicController {
      * @return set of unique currencies names which market is FIAT
      */
     @GetMapping("/fiat-currencies")
-    @ResponseBody
     public List<Currency> getFiatCurrencies() {
         try {
             return currencyService.getCurrencies(MerchantProcessType.MERCHANT, MerchantProcessType.INVOICE);
@@ -415,21 +401,19 @@ public class NgPublicController {
         }
     }
 
-    @PostMapping(value = "/ieo/subscribe/email", produces = MediaType.APPLICATION_JSON_UTF8_VALUE,
-            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @PostMapping(value = "/ieo/subscribe/email", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseModel<?> ieoSubscribeEmail(@RequestBody @Valid EmailIEORequestDTO requestDTO) {
         boolean result = ieoService.subscribeEmail(requestDTO.getEmail());
         return new ResponseModel<>(result);
     }
 
-    @PostMapping(value = "/ieo/subscribe/telegram", produces = MediaType.APPLICATION_JSON_UTF8_VALUE,
-            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @PostMapping(value = "/ieo/subscribe/telegram", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseModel<?> ieoSubscribeTelegram(@RequestBody @Valid EmailIEORequestDTO requestDTO) {
         boolean result = ieoService.subscribeTelegram(requestDTO.getEmail());
         return new ResponseModel<>(result);
     }
 
-    @GetMapping(value = "/ieo/subscribe", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping("/ieo/subscribe")
     public ResponseModel<?> checkSubscribe(@RequestParam String email) {
         if (Objects.isNull(email)) {
             return new ResponseModel<>(null, new ResponseCustomError("User email is not decoded"));
@@ -441,14 +425,13 @@ public class NgPublicController {
         return new ResponseModel<>(result);
     }
 
-    @PostMapping(value = "/error_report", produces = MediaType.APPLICATION_JSON_UTF8_VALUE,
-            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @PostMapping(value = "/error_report", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseModel<?> sendErrorReposrt(@RequestBody @Valid ErrorReportDto dto) {
         ngUserService.sendErrorReportEmail(dto);
         return new ResponseModel<>();
     }
 
-    @PostMapping(value = "/mailing-subscription")
+    @PostMapping("/mailing-subscription")
     public ResponseEntity<Boolean> subscribe(@RequestParam(value = "public_id", required = false) String publicId,
                                              @RequestParam(value = "token", required = false) String token,
                                              @RequestParam boolean subscribe) {
