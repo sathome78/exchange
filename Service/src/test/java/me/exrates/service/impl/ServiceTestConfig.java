@@ -23,6 +23,7 @@ import me.exrates.dao.StopOrderDao;
 import me.exrates.dao.TelegramSubscriptionDao;
 import me.exrates.dao.TransactionDao;
 import me.exrates.dao.UserDao;
+import me.exrates.dao.UserPinDao;
 import me.exrates.dao.UserRoleDao;
 import me.exrates.dao.UserSettingsDao;
 import me.exrates.dao.UserTransferDao;
@@ -164,6 +165,10 @@ public class ServiceTestConfig {
         return Mockito.mock(IEOClaimRepository.class);
     }
 
+    @Bean
+    public UserPinDao userPinDao() {
+        return Mockito.mock(UserPinDao.class);
+    }
 
     @Bean("ExratesSessionRegistry")
     public SessionRegistry sessionRegistry() {

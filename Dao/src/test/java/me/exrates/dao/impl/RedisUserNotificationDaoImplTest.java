@@ -1,9 +1,8 @@
 package me.exrates.dao.impl;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import config.TestRedisConfig;
 import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.WsSourceTypeEnum;
@@ -16,18 +15,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import redis.clients.jedis.JedisPoolConfig;
-import redis.clients.jedis.Protocol;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,11 +28,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static config.TestRedisConfig.TEST_STRING_REDIS_TEMPLATE;
 import static org.junit.Assert.assertEquals;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {RedisUserNotificationDaoImplTest.TestReddisConfig.class})
+@ContextConfiguration(classes = {
+        RedisUserNotificationDaoImplTest.InnerConfig.class,
+        TestRedisConfig.class
+})
 public class RedisUserNotificationDaoImplTest {
 
     private final String USER_PUBLIC_ID = "01";
@@ -54,7 +50,7 @@ public class RedisUserNotificationDaoImplTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    @Qualifier("testRedisTemplate")
+    @Qualifier(TEST_STRING_REDIS_TEMPLATE)
     private StringRedisTemplate redisTemplate;
 
     @Before
@@ -153,52 +149,12 @@ public class RedisUserNotificationDaoImplTest {
     }
 
     @Configuration
-    @PropertySource("classpath:redis.properties")
-    static class TestReddisConfig {
+    static class InnerConfig {
 
-        private @Value("${redis.host}")
-        String host;
-        private @Value("${redis.port}")
-        Integer port;
+        @Autowired
+        @Qualifier(TEST_STRING_REDIS_TEMPLATE)
+        StringRedisTemplate stringRedisTemplate;
 
-        @Bean
-        public JedisPoolConfig poolConfig() {
-            final JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
-            jedisPoolConfig.setTestOnBorrow(true);
-            jedisPoolConfig.setMaxTotal(30);
-            return jedisPoolConfig;
-        }
-
-        @Bean
-        @Qualifier("testJedisConnectionFactory")
-        public JedisConnectionFactory notificationsJedisConnectionFactory() {
-            JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory(poolConfig());
-            jedisConnFactory.setUsePool(true);
-            jedisConnFactory.setHostName(host);
-            jedisConnFactory.setDatabase(Protocol.DEFAULT_DATABASE);
-            jedisConnFactory.setTimeout(3000);
-            jedisConnFactory.setPort(port);
-            return jedisConnFactory;
-        }
-
-        @Bean
-        @Qualifier("testRedisTemplate")
-        public StringRedisTemplate testRedisTemplate() {
-            final StringRedisTemplate template = new StringRedisTemplate(notificationsJedisConnectionFactory());
-            template.setKeySerializer(new StringRedisSerializer());
-            template.setHashKeySerializer(new StringRedisSerializer());
-
-            Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
-            ObjectMapper om = new ObjectMapper();
-            om.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
-            om.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
-            jackson2JsonRedisSerializer.setObjectMapper(om);
-
-            template.setHashValueSerializer(jackson2JsonRedisSerializer);
-            template.setValueSerializer(jackson2JsonRedisSerializer);
-            template.afterPropertiesSet();
-            return template;
-        }
 
         @Bean
         ObjectMapper objectMapper() {
@@ -207,7 +163,7 @@ public class RedisUserNotificationDaoImplTest {
 
         @Bean
         public RedisUserNotificationDao redisUserNotificationDao() {
-            return new RedisUserNotificationDaoImpl(testRedisTemplate(), objectMapper());
+            return new RedisUserNotificationDaoImpl(stringRedisTemplate, objectMapper());
         }
     }
 }
