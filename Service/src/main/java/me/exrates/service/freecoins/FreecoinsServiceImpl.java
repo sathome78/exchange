@@ -9,6 +9,7 @@ import me.exrates.model.dto.freecoins.ReceiveResultDto;
 import me.exrates.service.WalletService;
 import me.exrates.service.exception.FreecoinsException;
 import me.exrates.service.util.CollectionUtil;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -103,7 +103,7 @@ public class FreecoinsServiceImpl implements FreecoinsService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public ReceiveResultDto processReceive(int giveawayId, String receiverEmail) {
+    public Pair<Boolean, ReceiveResultDto> processReceive(int giveawayId, String receiverEmail) {
         GiveawayResultDto giveawayResultDto = freecoinsRepository.getClaim(giveawayId);
         if (giveawayResultDto.getTotalQuantity() == 0) {
             throw new FreecoinsException("Free coins have been ran out");
@@ -111,6 +111,12 @@ public class FreecoinsServiceImpl implements FreecoinsService {
         ReceiveResultDto receiveResultDto = freecoinsRepository.getProcess(giveawayId, receiverEmail);
         if (Objects.nonNull(receiveResultDto) && receiveResultDto.isReceived()) {
             throw new FreecoinsException("Free coins receive process was failed: receiving for this giveaway not allowed for you any more");
+        }
+
+        if (Objects.nonNull(receiveResultDto)
+                && Objects.nonNull(receiveResultDto.getLastReceived())
+                && receiveResultDto.getLastReceived().plusMinutes(giveawayResultDto.getTimeRange()).isAfter(LocalDateTime.now())) {
+            return Pair.of(false, receiveResultDto);
         }
 
         if (!walletService.performFreecoinsReceiveProcess(
@@ -149,7 +155,7 @@ public class FreecoinsServiceImpl implements FreecoinsService {
         if (!updated) {
             throw new FreecoinsException("Free coins claim total quantity have not been updated");
         }
-        return receiveResultDto;
+        return Pair.of(true, receiveResultDto);
     }
 
     @Transactional(readOnly = true)

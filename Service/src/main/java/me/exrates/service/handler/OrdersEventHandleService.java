@@ -32,6 +32,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -79,6 +80,7 @@ public class OrdersEventHandleService {
     public void handleOrderEventAsync(CreateOrderEvent event) {
         ExOrder exOrder = (ExOrder) event.getSource();
         onOrdersEvent(exOrder.getCurrencyPairId(), exOrder.getOperationType());
+        sendOrderEventNotification(exOrder).run();
     }
 
     @Async
@@ -86,6 +88,7 @@ public class OrdersEventHandleService {
     public void handleOrderEventAsync(CancelOrderEvent event) {
         ExOrder exOrder = (ExOrder) event.getSource();
         onOrdersEvent(exOrder.getCurrencyPairId(), exOrder.getOperationType());
+        sendOrderEventNotification(exOrder).run();
     }
 
     @Async
@@ -96,7 +99,6 @@ public class OrdersEventHandleService {
         if (!(event instanceof PartiallyAcceptedOrder)) {
             CompletableFuture.runAsync(() -> handleOrdersDetailed(exOrder, event.getOrderEventEnum()), handlersExecutors);
         }
-        sendOrderEventNotification(exOrder).run();
     }
 
     @Async
@@ -123,6 +125,7 @@ public class OrdersEventHandleService {
                 ExceptionUtils.printRootCauseStackTrace(e);
             }
         });
+        sendOrderEventNotification(order).run();
     }
 
     /*refresh order book ng*/
@@ -155,7 +158,9 @@ public class OrdersEventHandleService {
 
     private Runnable sendOrderEventNotification(ExOrder exOrder) {
         return () -> {
-            String pairName = exOrder.getCurrencyPair().getName();
+            String pairName = Objects.nonNull(exOrder.getCurrencyPair())
+                    ? exOrder.getCurrencyPair().getName()
+                    : currencyService.findCurrencyPairById(exOrder.getCurrencyPairId()).getName();
             String creatorEmail = userService.findEmailById(exOrder.getUserId());
             stompMessenger.updateUserOpenOrders(pairName, creatorEmail);
 

@@ -278,7 +278,7 @@ public class IEOServiceImpl implements IEOService {
     public void startRevertIEO(Integer idIeo, String adminEmail) {
         logger.info("Start revert IEO id {}, email {}", idIeo, adminEmail);
         User user = userService.findByEmail(adminEmail);
-        if (user.getRole() != UserRole.ADMIN_USER) {
+        if (user.getRole() != UserRole.ADMIN_USER && user.getRole() != UserRole.ADMINISTRATOR) {
             String message = String.format("Error while start revert IEO, user not ADMIN %s", adminEmail);
             logger.warn(message);
             throw new IeoException(ErrorApiTitles.IEO_USER_NOT_ADMIN, message);
@@ -309,8 +309,8 @@ public class IEOServiceImpl implements IEOService {
         Email email = new Email();
         email.setTo(user.getEmail());
         email.setMessage("Revert IEO");
-        email.setSubject(String.format("Revert ieo for %s finish successful!", ieoEntity.getCurrencyName()));
-
+        email.setSubject(String.format("<p style=\"MAX-WIDTH: 347px; FONT-FAMILY: Roboto; COLOR: #000000; MARGIN: auto auto 2.15em;font-weight: normal; font-size: 16px; line-height: 19px; text-align: center;\">" +
+                "<span style=\"font-weight: 600;\">IEO</span> for %s has been canceled. All funds returned</p>", ieoEntity.getCurrencyName()));
         Properties properties = new Properties();
         properties.setProperty("public_id", user.getPublicId());
         email.setProperties(properties);

@@ -808,10 +808,12 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public void postBotOrderToDb(OrderCreateDto orderCreateDto) {
-        ExOrder exOrder = new ExOrder(orderCreateDto);
-        exOrder.setUserAcceptorId(orderCreateDto.getUserId());
-        orderDao.postAcceptedOrderToDB(exOrder);
-        eventPublisher.publishEvent(new AcceptOrderEvent(exOrder));
+        ExOrder order = new ExOrder(orderCreateDto);
+        order.setUserAcceptorId(orderCreateDto.getUserId());
+        order.setStatus(OrderStatus.CLOSED);
+        orderDao.postAcceptedOrderToDB(order);
+
+        eventPublisher.publishEvent(new AcceptOrderEvent(order));
     }
 
     @Override
