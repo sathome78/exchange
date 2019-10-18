@@ -41,6 +41,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.UUID;
 
 import static me.exrates.service.util.RestUtil.getUrlFromRequest;
@@ -114,8 +115,9 @@ public class NgUserServiceImpl implements NgUserService {
         }
 
         int idUser = userDao.getIdByEmail(userEmailDto.getEmail());
-
+        user.setPublicId(userDao.getPubIdByEmail(userEmailDto.getEmail()));
         user.setId(idUser);
+
         userService.logIP(idUser, user.getIp(), UserEventEnum.REGISTER, getUrlFromRequest(request));
         sendEmailWithToken(user,
                 TokenType.REGISTRATION,
@@ -227,6 +229,10 @@ public class NgUserServiceImpl implements NgUserService {
                 "If this was not you, please change your password and contact us.");
         email.setSubject("Notification of disable 2FA");
 
+        Properties properties = new Properties();
+        properties.setProperty("public_id", userService.getPubIdByEmail(userEmail));
+        email.setProperties(properties);
+
         sendMailService.sendMail(email);
     }
 
@@ -240,6 +246,10 @@ public class NgUserServiceImpl implements NgUserService {
                 "\n" +
                 "If this was not you, please change your password and contact us.");
         email.setSubject("Notification of enable 2FA");
+
+        Properties properties = new Properties();
+        properties.setProperty("public_id", userService.getPubIdByEmail(userEmail));
+        email.setProperties(properties);
 
         sendMailService.sendMail(email);
     }
@@ -291,24 +301,31 @@ public class NgUserServiceImpl implements NgUserService {
 
         email.setMessage(
                 messageSource.getMessage(emailText, null, locale) +
-                        " <a href='" +
+                        " </p><a href=\"" +
                         host + "/" + confirmationUrl +
-                        "'>" + messageSource.getMessage("admin.ref", null, locale) + "</a>"
+                        "\" style=\"display: block;MAX-WIDTH: 347px; FONT-FAMILY: Roboto; COLOR: #237BEF; MARGIN: auto auto .8em; font-size: 36px; line-height: 1.37; text-align: center; font-weight: 600;\">" + messageSource.getMessage("admin.ref", null, locale) + "</a>"
         );
 
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
         email.setTo(user.getEmail());
+
+        Properties properties = new Properties();
+        properties.setProperty("public_id", user.getPublicId());
+        email.setProperties(properties);
+
         sendMailService.sendMail(email);
     }
 
     @Override
     public void sendErrorReportEmail(ErrorReportDto dto) {
         Preconditions.checkNotNull(dto);
+
         sendMailService.sendMailMandrill(Email.builder()
                 .from(mandrillEmail)
                 .to(supportEmail)
                 .message(dto.toString())
                 .subject("Error report")
+                .properties(new Properties())
                 .build());
     }
 

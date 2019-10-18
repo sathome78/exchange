@@ -25,7 +25,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 
-@Log4j2
+@Log4j2(topic = "adgroup_log")
 @Service
 public class AdGroupHttpClient {
 
@@ -55,7 +55,7 @@ public class AdGroupHttpClient {
                     new ParameterizedTypeReference<AdGroupResponseDto<InvoiceDto>>() {
                     });
         } catch (Exception e) {
-            log.error("Error http request while create invoice {}", e);
+            log.error("Error http request while create invoice", e);
             throw new NgDashboardException(ErrorApiTitles.AD_GROUP_ERROR_HTTP_CLIENT);
         }
 
@@ -87,7 +87,7 @@ public class AdGroupHttpClient {
                             new ParameterizedTypeReference<AdGroupResponseDto<ResponseListTxDto>>() {
                             });
         } catch (Exception e) {
-            log.error("Error http request while fetch list transactions {}", e);
+            log.error("Error http request while fetch list transactions", e);
             throw new NgDashboardException(ErrorApiTitles.AD_GROUP_ERROR_HTTP_CLIENT);
         }
 
@@ -120,7 +120,7 @@ public class AdGroupHttpClient {
                             new ParameterizedTypeReference<AdGroupResponseDto<ResponsePayOutDto>>() {
                             });
         } catch (Exception e) {
-            log.error("Error http request while createPayOut {}", e);
+            log.error("Error http request while createPayOut", e);
             throw new NgDashboardException(ErrorApiTitles.AD_GROUP_ERROR_HTTP_CLIENT);
         }
 
@@ -128,10 +128,10 @@ public class AdGroupHttpClient {
 
         if (!httpStatus.is2xxSuccessful()) {
             String errorString = "Error while createPayOut ";
-            log.error(errorString + " {}", responseEntity);
+            log.error(errorString + " {}", toJson(responseEntity));
             throw new NgDashboardException(ErrorApiTitles.AD_GROUP_HTTP_CLIENT_RESPONSE_NOT_200);
         }
-        log.info("Response: {}", responseEntity.getBody());
+        log.info("Response from createPayOut(): {}", toJson(responseEntity.getBody()));
         return responseEntity.getBody();
     }
 

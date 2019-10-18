@@ -40,37 +40,37 @@ public class SystemEventsHandler {
     @Autowired
     private UserService userService;
 
-    @Async
-    @TransactionalEventListener
-    public void handleAlertUsers(AlertDto alertDto) {
-        userService.getLocalesList().forEach(p->{
-            try {
-                Locale locale = Locale.forLanguageTag(p);
-                stompMessenger.sendAlerts(objectMapper
-                        .writeValueAsString(usersAlertsService.getAllAlerts(locale)), p.toUpperCase());
-            } catch (Exception e) {
-                log.error(e);
-            }
-        });
+//    @Async
+//    @TransactionalEventListener
+//    public void handleAlertUsers(AlertDto alertDto) {
+//        userService.getLocalesList().forEach(p->{
+//            try {
+//                Locale locale = Locale.forLanguageTag(p);
+//                stompMessenger.sendAlerts(objectMapper
+//                        .writeValueAsString(usersAlertsService.getAllAlerts(locale)), p.toUpperCase());
+//            } catch (Exception e) {
+//                log.error(e);
+//            }
+//        });
+//
+//    }
 
-    }
-
-    @EventListener
-    public void handleQRLogin(QRLoginEvent qrLoginEvent) {
-        log.debug("login via qr");
-        HttpServletRequest request = (HttpServletRequest)qrLoginEvent.getSource();
-        HashMap hashMap = new HashMap<String, HashMap<String, String>>() {{
-            put("redirect", new HashMap<String, String>() {{
-                put("url", "/dashboard?qrLogin");
-              /*  put("successQR", messageSource
-                        .getMessage("dashboard.qrLogin.successful", null,
-                                localeResolver.resolveLocale(request)));*/
-            }});
-        }};
-        try {
-            stompMessenger.sendEventMessage(request.getSession().getId(), objectMapper.writeValueAsString(hashMap));
-        } catch (JsonProcessingException e) {
-            log.error("error qr login {}", e);
-        }
-    }
+//    @EventListener
+//    public void handleQRLogin(QRLoginEvent qrLoginEvent) {
+//        log.debug("login via qr");
+//        HttpServletRequest request = (HttpServletRequest)qrLoginEvent.getSource();
+//        HashMap hashMap = new HashMap<String, HashMap<String, String>>() {{
+//            put("redirect", new HashMap<String, String>() {{
+//                put("url", "/dashboard?qrLogin");
+//              /*  put("successQR", messageSource
+//                        .getMessage("dashboard.qrLogin.successful", null,
+//                                localeResolver.resolveLocale(request)));*/
+//            }});
+//        }};
+//        try {
+//            stompMessenger.sendEventMessage(request.getSession().getId(), objectMapper.writeValueAsString(hashMap));
+//        } catch (JsonProcessingException e) {
+//            log.error("error qr login {}", e);
+//        }
+//    }
 }

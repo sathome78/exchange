@@ -8,6 +8,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.UserDao;
+import me.exrates.dao.UserPinDao;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.AdminAuthorityOption;
 import me.exrates.model.Comment;
@@ -16,6 +17,7 @@ import me.exrates.model.PagingData;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
+import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.CallbackURL;
 import me.exrates.model.dto.IpLogDto;
 import me.exrates.model.dto.NotificationsUserSetting;
@@ -44,6 +46,7 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
+import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.service.NotificationService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
@@ -93,6 +96,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -150,6 +154,8 @@ public class UserServiceImpl implements UserService {
     private ExchangeApi exchangeApi;
     @Autowired
     private UserSettingService userSettingService;
+    @Autowired
+    private UserPinDao userPinDao;
     private Cache<String, UsersInfoDto> usersInfoCache = CacheBuilder.newBuilder()
             .expireAfterWrite(5, TimeUnit.MINUTES)
             .build();
@@ -390,6 +396,7 @@ public class UserServiceImpl implements UserService {
             User u = new User();
             u.setId(user.getId());
             u.setEmail(user.getEmail());
+            u.setPublicId(user.getPublicId());
             if (changePassword) {
                 sendUnfamiliarIpNotificationEmail(u, "admin.changePasswordTitle", "user.settings.changePassword.successful", locale);
             } else if (changeFinPassword) {
@@ -445,13 +452,18 @@ public class UserServiceImpl implements UserService {
         }
         email.setMessage(
                 messageSource.getMessage(emailText, null, locale) +
-                        " <a href='" +
+                        " </p><a href=\"" +
                         rootUrl +
                         confirmationUrl.toString() +
-                        "'>" + messageSource.getMessage("admin.ref", null, locale) + "</a>"
+                        "\" style=\"display: block;MAX-WIDTH: 347px; FONT-FAMILY: Roboto; COLOR: #237BEF; MARGIN: auto auto .8em; font-size: 36px; line-height: 1.37; text-align: center; font-weight: 600;\">" + messageSource.getMessage("admin.ref", null, locale) + "</a>"
         );
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
         email.setTo(user.getEmail());
+
+        Properties properties = new Properties();
+        properties.setProperty("public_id", user.getPublicId());
+        email.setProperties(properties);
+
         sendMailService.sendMail(email);
 
     }
@@ -462,6 +474,11 @@ public class UserServiceImpl implements UserService {
         email.setTo(user.getEmail());
         email.setMessage(messageSource.getMessage(emailText, new Object[]{user.getIp()}, locale));
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
+
+        Properties properties = new Properties();
+        properties.setProperty("public_id", user.getPublicId());
+        email.setProperties(properties);
+
         sendMailService.sendMail(email);
     }
 
@@ -778,10 +795,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public String updatePinForUserForEvent(String userEmail, NotificationMessageEventEnum event) {
         String pin = String.valueOf(10000000 + new Random().nextInt(90000000));
-        userDao.updatePinByUserEmail(userEmail, passwordEncoder.encode(pin), event);
-        return pin;
+        return userPinDao.save(pin, userEmail, event);
     }
-
 
     /*todo refator it*/
     @Override
@@ -798,11 +813,12 @@ public class UserServiceImpl implements UserService {
         if (setting.getNotificatorId().equals(NotificationTypeEnum.GOOGLE2FA.getCode())) {
             return g2faService.checkGoogle2faVerifyCode(pin, userId);
         }
-        return passwordEncoder.matches(pin, getPinForEvent(email, event));
+        return pin.equals(getPinForEvent(email, event));
     }
 
     private String getPinForEvent(String email, NotificationMessageEventEnum event) {
-        return userDao.getPinByEmailAndEvent(email, event);
+        String message = String.format("Invalid email auth code from user %s", email);
+        return userPinDao.findPin(email, event).orElseThrow(() -> new NgResponseException(ErrorApiTitles.EMAIL_AUTHORIZATION_FAILED, message));
     }
 
     @Override
@@ -1104,5 +1120,20 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteTemporalTokenByUserIdAndTokenType(int userId, TokenType tokenType) {
         userDao.deleteTemporalTokenByUserIdAndTokenType(userId, tokenType);
+    }
+
+    @Override
+    public boolean subscribeToMailingByPublicId(String publicId, boolean subscribe) {
+        return userDao.subscribeToMailingByPublicId(publicId, subscribe);
+    }
+
+    @Override
+    public boolean subscribeToMailingByEmail(String email, boolean subscribe) {
+        return userDao.subscribeToMailingByEmail(email, subscribe);
+    }
+
+    @Override
+    public void deleteUserPin(String email, NotificationMessageEventEnum login) {
+        userPinDao.delete(email, login);
     }
 }

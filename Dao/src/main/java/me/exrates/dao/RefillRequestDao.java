@@ -62,6 +62,8 @@ public interface RefillRequestDao {
 
     Optional<String> findLastValidAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId);
 
+    Optional<String> findLastValidPaymentLinkByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId);
+
     List<String> getListOfValidAddressByMerchantIdAndCurrency(
             Integer merchantId,
             Integer currencyId);

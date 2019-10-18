@@ -14,9 +14,7 @@ import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.lisk.*;
 import me.exrates.service.neo.NeoService;
 import me.exrates.service.neo.NeoServiceImpl;
-import me.exrates.service.tron.Trc20TokenService;
 import me.exrates.service.tron.TronTrc10Token;
-import me.exrates.service.tron.Trc20TokenServiceImpl;
 import me.exrates.service.waves.WavesService;
 import me.exrates.service.waves.WavesServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -369,6 +367,11 @@ public class CryptocurrencyConfig {
 		return new BitcoinServiceImpl("merchants/tsl_wallet.properties","TSL","TSL", 30, 20, false, false);
 	}
 
+	@Bean(name = "estServiceImpl")
+	public BitcoinService estServiceImpl() {
+		return new BitcoinServiceImpl("merchants/est_wallet.properties","EST","EST", 1, 20, false, true);
+	}
+
 	// LISK-like cryptos
     @Bean(name = "liskServiceImpl")
     public LiskService liskService() {
@@ -456,16 +459,6 @@ public class CryptocurrencyConfig {
     @Bean(name = "bitTorrentServiceImpl")
     public TronTrc10Token bitTorrentService() {
        return new TronTrc10Token("BTT", "BTT", 6, "1002000", "31303032303030", "1002000");
-    }
-
-    @Bean(name = "usdttrc20ServiceImpl")
-    public Trc20TokenService usdttrcService() {
-        return new Trc20TokenServiceImpl("USDTTRC20", "USDTTRC20");
-    }
-
-    @Bean(name = "winServiceImpl")
-    public Trc20TokenService winService() {
-        return new Trc20TokenServiceImpl("WIN", "WIN");
     }
 
 

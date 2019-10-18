@@ -1,5 +1,6 @@
 package me.exrates.config;
 
+import co.elastic.apm.attach.ElasticApmAttacher;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.zaxxer.hikari.HikariConfig;
@@ -45,6 +46,7 @@ import me.exrates.service.qtum.QtumTokenServiceImpl;
 import me.exrates.service.stellar.StellarAsset;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
+import me.exrates.service.util.RequestUtil;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -283,6 +285,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     @PostConstruct
     public void init() {
+        ElasticApmAttacher.attach();
         RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
         List<String> arguments = runtimeMxBean.getInputArguments();
         log.debug(String.join("; ", arguments));
@@ -2036,7 +2039,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Conditional(MonolitConditional.class)
     public EthTokenService fstServiceImpl() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0xa1a6f16d26aa53aec17e4001fd8cb6e6d5b17ff7");
+        tokensList.add("0x310c93dfc1c5e34cdf51678103f63c41762089cd");
         return new EthTokenServiceImpl(tokensList, "FST", "FST", true, ExConvert.Unit.MWEI);
     }
 
@@ -2106,6 +2109,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public EthTokenService mexcServiceImpl() {
         List<String> tokensList = ImmutableList.of("0x7de2d123042994737105802d2abd0a10a7bde276");
         return new EthTokenServiceImpl(tokensList, "MEXC", "MEXC", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "czoServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService czoServiceImpl() {
+        List<String> tokensList = ImmutableList.of("0x029e7fe6fe4674af2f82c46f99b7a5cffe8041d4");
+        return new EthTokenServiceImpl(tokensList, "CZO", "CZO", false, ExConvert.Unit.ETHER);
     }
 
     @Bean
@@ -2327,6 +2337,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Conditional(MonolitConditional.class)
     public RestTemplate qiwiRestTemplate() {
         RestTemplate restTemplate = new RestTemplate();
+        restTemplate.setRequestFactory(RequestUtil.getSSlFactory());
         restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(qiwiClientId, qiwiClientSecret));
         return restTemplate;
     }

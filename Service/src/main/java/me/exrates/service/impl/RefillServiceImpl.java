@@ -13,6 +13,7 @@ import me.exrates.model.Merchant;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.PagingData;
 import me.exrates.model.Payment;
+import me.exrates.model.QuberaUserData;
 import me.exrates.model.RefillRequestAddressShortDto;
 import me.exrates.model.User;
 import me.exrates.model.condition.MonolitConditional;
@@ -57,6 +58,7 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.InputOutputService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.NotificationService;
+import me.exrates.service.QuberaService;
 import me.exrates.service.RefillService;
 import me.exrates.service.RequestLimitExceededException;
 import me.exrates.service.UserFilesService;
@@ -171,6 +173,8 @@ public class RefillServiceImpl implements RefillService {
     private CommissionService commissionService;
     @Autowired
     private UserFilesService userFilesService;
+    @Autowired
+    private QuberaService quberaService;
 
     @Override
     public Map<String, String> callRefillIRefillable(RefillRequestCreateDto request) {
@@ -226,6 +230,7 @@ public class RefillServiceImpl implements RefillService {
             request.setPrivKey(((Map<String, String>) result.get("params")).get("privKey"));
             request.setPubKey(((Map<String, String>) result.get("params")).get("pubKey"));
             request.setBrainPrivKey(((Map<String, String>) result.get("params")).get("brainPrivKey"));
+            request.setPaymentLink(((Map<String, String>) result.get("params")).get("payment_link"));
             profileData.setTime2();
             if (request.getId() == null) {
                 Integer requestId = createRefill(request).orElse(null);
@@ -273,28 +278,49 @@ public class RefillServiceImpl implements RefillService {
     @Override
     @Transactional
     public List<MerchantCurrency> retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies, String userEmail) {
-        Integer userId = userService.getIdByEmail(userEmail);
-        merchantCurrencies.forEach(e -> {
+        User user = userService.findByEmail(userEmail);
 
-            e.setAddress(refillRequestDao.findLastValidAddressByMerchantIdAndCurrencyIdAndUserId(e.getMerchantId(), e.getCurrencyId(), userId).orElse(""));
+        merchantCurrencies.forEach(merchantCurrency -> {
+            merchantCurrency.setAddress(refillRequestDao.findLastValidAddressByMerchantIdAndCurrencyIdAndUserId(merchantCurrency.getMerchantId(), merchantCurrency.getCurrencyId(), user.getId()).orElse(StringUtils.EMPTY));
+            merchantCurrency.setPaymentLink(refillRequestDao.findLastValidPaymentLinkByMerchantIdAndCurrencyIdAndUserId(merchantCurrency.getMerchantId(), merchantCurrency.getCurrencyId(), user.getId()).orElse(StringUtils.EMPTY));
             /**/
             //TODO: Temporary fix
-            if (e.getMerchantId() == merchantService.findByName("EDC").getId()) {
-                e.setAddress("");
+            if (merchantCurrency.getMerchantId() == merchantService.findByName("EDC").getId()) {
+                merchantCurrency.setAddress(StringUtils.EMPTY);
             }
-            IRefillable merchantService = (IRefillable) merchantServiceContext.getMerchantService(e.getMerchantId());
-            e.setGenerateAdditionalRefillAddressAvailable(merchantService.generatingAdditionalRefillAddressAvailable());
-            e.setAdditionalTagForWithdrawAddressIsUsed(((IWithdrawable) merchantService).additionalTagForWithdrawAddressIsUsed());
-            e.setAdditionalTagForRefillIsUsed(merchantService.additionalFieldForRefillIsUsed());
-            if (e.getAdditionalTagForWithdrawAddressIsUsed() || e.getAdditionalTagForRefillIsUsed()) {
-                e.setMainAddress(merchantService.getMainAddress());
-                e.setAdditionalFieldName(merchantService.additionalRefillFieldName());
+            IRefillable merchantService = (IRefillable) merchantServiceContext.getMerchantService(merchantCurrency.getMerchantId());
+            merchantCurrency.setGenerateAdditionalRefillAddressAvailable(merchantService.generatingAdditionalRefillAddressAvailable());
+            merchantCurrency.setAdditionalTagForWithdrawAddressIsUsed(((IWithdrawable) merchantService).additionalTagForWithdrawAddressIsUsed());
+            merchantCurrency.setAdditionalTagForRefillIsUsed(merchantService.additionalFieldForRefillIsUsed());
+            if (merchantCurrency.getAdditionalTagForWithdrawAddressIsUsed() || merchantCurrency.getAdditionalTagForRefillIsUsed()) {
+                merchantCurrency.setMainAddress(merchantService.getMainAddress());
+                merchantCurrency.setAdditionalFieldName(merchantService.additionalRefillFieldName());
             }
-            if (!StringUtils.isEmpty(e.getAddress()) && merchantService.concatAdditionalToMainAddress()) {
-                e.setAddress(merchantService.getMainAddress().concat(e.getAddress()));
+            if (!StringUtils.isEmpty(merchantCurrency.getAddress()) && merchantService.concatAdditionalToMainAddress()) {
+                merchantCurrency.setAddress(merchantService.getMainAddress().concat(merchantCurrency.getAddress()));
             }
+            setNeedKyc(merchantCurrency, user);
         });
         return merchantCurrencies;
+    }
+
+    @Override
+    public void setNeedKyc(MerchantCurrency merchantCurrency, User user) {
+
+        if (merchantCurrency.getNeedKycRefill()) {
+            switch (merchantCurrency.getVerificationType()) {
+                case ariadnext:
+                    QuberaUserData quberaUserData = quberaService.getUserDataByUserEmail(user.getEmail());
+                    if (quberaUserData != null) {
+                        String status = quberaUserData.getBankVerificationStatus();
+                        merchantCurrency.setNeedKycRefill(!status.equalsIgnoreCase("OK"));
+                    }
+                    break;
+                case shuftipro:
+                    merchantCurrency.setNeedKycRefill(!user.getKycStatus().equalsIgnoreCase("SUCCESS"));
+                    break;
+            }
+        }
     }
 
     @Override

@@ -7,7 +7,9 @@ import me.exrates.controller.exception.CheckFinPassException;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.ClientBank;
 import me.exrates.model.CreditsOperation;
+import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Payment;
+import me.exrates.model.User;
 import me.exrates.model.dto.PinDto;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestInfoDto;
@@ -97,6 +99,16 @@ public class WithdrawRequestController {
     if (!StringUtils.isEmpty(requestParamsDto.getDestinationTag())) {
       merchantService.checkDestinationTag(requestParamsDto.getMerchant(), requestParamsDto.getDestinationTag());
     }
+
+    User user = userService.findByEmail(principal.getName());
+    MerchantCurrency merchantCurrency = merchantService
+              .findByMerchantAndCurrency(requestParamsDto.getMerchant(), requestParamsDto.getCurrency()).orElseThrow(() -> new RuntimeException("merchant not found"));
+    withdrawService.setAdditionalData(merchantCurrency, user);
+
+    if (merchantCurrency.getNeedKycWithdraw()) {
+        throw new UserOperationAccessException("Need to pass KYC");
+    }
+
     WithdrawStatusEnum beginStatus = (WithdrawStatusEnum) WithdrawStatusEnum.getBeginState();
     Payment payment = new Payment(OUTPUT);
     payment.setCurrency(requestParamsDto.getCurrency());

@@ -7,7 +7,6 @@
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules>
-        <module>API</module>
         <module>Security</module>
         <module>Model</module>
         <module>Service</module>
@@ -18,8 +17,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-<!--        <sl4j.version>1.7.7</sl4j.version>-->
-        <log4j2.version>2.1</log4j2.version>
+        <log4j2.version>2.11.2</log4j2.version>
         <mysql-driver.version>5.1.38</mysql-driver.version>
         <commons-dbcp2.version>2.1.1</commons-dbcp2.version>
         <hikari-cp-version>2.6.0</hikari-cp-version>
@@ -366,14 +364,8 @@
             <version>${scala.version}</version>
             <scope>test</scope>
         </dependency>
-        <!--        <dependency>-->
-        <!--            <groupId>org.imagination</groupId>-->
-        <!--            <artifactId>comparator</artifactId>-->
-        <!--            <version>1.1</version>-->
-        <!--            <scope>test</scope>-->
-        <!--        </dependency>-->
         <dependency>
-            <groupId>comparator</groupId>
+            <groupId>org.imagination</groupId>
             <artifactId>comparator</artifactId>
             <version>1.1</version>
         </dependency>
@@ -680,6 +672,30 @@
             <version>2.9.7</version>
         </dependency>
 
+       <dependency>
+            <groupId>co.elastic.apm</groupId>
+            <artifactId>apm-agent-api</artifactId>
+            <version>1.9.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>co.elastic.apm</groupId>
+            <artifactId>apm-agent-attach</artifactId>
+            <version>1.9.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>co.elastic.apm</groupId>
+            <artifactId>apm-opentracing</artifactId>
+            <version>1.9.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.antkorwin</groupId>
+            <artifactId>xsync</artifactId>
+            <version>1.2</version>
+        </dependency>
+
     </dependencies>
 
 
@@ -741,11 +757,11 @@
                 <updatePolicy>always</updatePolicy>
             </snapshots>
         </repository>
-        <repository>
-            <id>ProjectRepo</id>
-            <name>ProjectRepo</name>
-            <url>file://${project.basedir}/Service/libs</url>
-        </repository>
+<!--        <repository>-->
+<!--            <id>ProjectRepo</id>-->
+<!--            <name>ProjectRepo</name>-->
+<!--            <url>file://${project.basedir}/Service/libs</url>-->
+<!--        </repository>-->
         <repository>
             <id>oss.sonatype.org-snapshot</id>
             <url>http://oss.sonatype.org/content/repositories/snapshots</url>

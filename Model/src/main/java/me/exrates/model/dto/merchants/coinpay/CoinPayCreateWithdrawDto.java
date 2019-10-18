@@ -25,6 +25,7 @@ public class CoinPayCreateWithdrawDto {
     private String currency;
     @JsonProperty("wallet_to")
     private String walletTo;
+    @JsonProperty("callback_url")
     private String callBack;
 
 

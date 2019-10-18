@@ -205,7 +205,6 @@ public interface UserService {
 
     UserRole getUserRoleFromDB(Integer userId);
 
-    @Transactional
     String updatePinForUserForEvent(String userEmail, NotificationMessageEventEnum event);
 
     boolean checkPin(String email, String pin, NotificationMessageEventEnum event);
@@ -288,4 +287,10 @@ public interface UserService {
     boolean updateCountryCode(String countryCode);
 
     void deleteTemporalTokenByUserIdAndTokenType(int userId, TokenType tokenType);
+
+    boolean subscribeToMailingByPublicId(String publicId, boolean subscribe);
+
+    boolean subscribeToMailingByEmail(String email, boolean subscribe);
+
+    void deleteUserPin(String email, NotificationMessageEventEnum login);
 }
