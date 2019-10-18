@@ -1113,8 +1113,7 @@
         <logger name="free-coins" level="ALL" additivity="false">
             <AppenderRef ref="free-coins"/>
         </logger>
-
-        <logger name="io.jafka.jeos.impl.LoggingInterceptor" level="ALL" additivity="false">
+        <logger name="io.jafka.jeos.impl.LoggingInterceptor" level="INFO" additivity="false">
         </logger>
 
         <Root level="INFO">

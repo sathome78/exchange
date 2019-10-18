@@ -59,6 +59,7 @@ public class EosReceiveService {
 
     @PostConstruct
     private void init() {
+
             client = EosApiFactory.create("http://127.0.0.1:8900",
                     "https://api.eosnewyork.io",
                     "https://api.eosnewyork.io");
