@@ -53,7 +53,6 @@ import static java.util.Collections.singletonMap;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Optional.of;
-import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static me.exrates.model.enums.TransactionSourceType.REFILL;
 
@@ -580,7 +579,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
                 .addValue("merchant_id", merchantId)
                 .addValue("user_id", userId);
         try {
-            return ofNullable(namedParameterJdbcTemplate.queryForObject(sql, params, String.class));
+            return Optional.ofNullable(namedParameterJdbcTemplate.queryForObject(sql, params, String.class));
         } catch (EmptyResultDataAccessException ex) {
             return Optional.empty();
         }
@@ -599,7 +598,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
                 .addValue("merchant_id", merchantId)
                 .addValue("user_id", userId);
         try {
-            return ofNullable(namedParameterJdbcTemplate.queryForObject(sql, params, String.class));
+            return Optional.ofNullable(namedParameterJdbcTemplate.queryForObject(sql, params, String.class));
         } catch (EmptyResultDataAccessException ex) {
             return Optional.empty();
         }
