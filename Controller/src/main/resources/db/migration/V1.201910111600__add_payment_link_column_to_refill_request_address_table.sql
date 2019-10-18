@@ -1,0 +1,18 @@
+DROP PROCEDURE IF EXISTS `Alter_Table`;
+
+DELIMITER ;;
+CREATE PROCEDURE Alter_Table()
+  BEGIN
+    IF NOT EXISTS(SELECT NULL
+                  FROM INFORMATION_SCHEMA.COLUMNS
+                  WHERE table_name = 'REFILL_REQUEST_ADDRESS' AND column_name = 'payment_link')
+    THEN
+      ALTER TABLE REFILL_REQUEST_ADDRESS ADD COLUMN payment_link VARCHAR(200) AFTER address;
+    END IF;
+
+  END;;
+DELIMITER ;
+
+CALL Alter_Table();
+
+DROP PROCEDURE IF EXISTS Alter_Table;

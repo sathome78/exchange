@@ -118,7 +118,7 @@ public class NgFreecoinsController {
         } catch (Exception ex) {
             sendPersonalMessageToUser(creatorEmail, "Free coins giveaway process was failed", false);
 
-            final String message = "Free coins giveaway process was failed";
+            final String message = String.format("Free coins giveaway process was failed: %s", ex.getMessage());
             throw new NgResponseException(ErrorApiTitles.FREE_COINS_GIVE_AWAY_PROCESS_FAILED, message);
         }
     }
@@ -144,7 +144,7 @@ public class NgFreecoinsController {
         } catch (Exception ex) {
             sendPersonalMessageToUser(receiverEmail, "Free coins was not received", false);
 
-            final String message = "Free coins was not received";
+            final String message = String.format("Free coins was not received: %s", ex.getMessage());
             throw new NgResponseException(ErrorApiTitles.FREE_COINS_RECEIVE_PROCESS_FAILED, message);
         }
     }

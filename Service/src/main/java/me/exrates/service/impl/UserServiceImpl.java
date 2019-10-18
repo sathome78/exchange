@@ -8,6 +8,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.UserDao;
+import me.exrates.dao.UserPinDao;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.AdminAuthorityOption;
 import me.exrates.model.Comment;
@@ -16,6 +17,7 @@ import me.exrates.model.PagingData;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
+import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.CallbackURL;
 import me.exrates.model.dto.IpLogDto;
 import me.exrates.model.dto.NotificationsUserSetting;
@@ -44,6 +46,7 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
+import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.service.NotificationService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
@@ -151,6 +154,8 @@ public class UserServiceImpl implements UserService {
     private ExchangeApi exchangeApi;
     @Autowired
     private UserSettingService userSettingService;
+    @Autowired
+    private UserPinDao userPinDao;
     private Cache<String, UsersInfoDto> usersInfoCache = CacheBuilder.newBuilder()
             .expireAfterWrite(5, TimeUnit.MINUTES)
             .build();
@@ -790,10 +795,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public String updatePinForUserForEvent(String userEmail, NotificationMessageEventEnum event) {
         String pin = String.valueOf(10000000 + new Random().nextInt(90000000));
-        userDao.updatePinByUserEmail(userEmail, passwordEncoder.encode(pin), event);
-        return pin;
+        return userPinDao.save(pin, userEmail, event);
     }
-
 
     /*todo refator it*/
     @Override
@@ -810,11 +813,12 @@ public class UserServiceImpl implements UserService {
         if (setting.getNotificatorId().equals(NotificationTypeEnum.GOOGLE2FA.getCode())) {
             return g2faService.checkGoogle2faVerifyCode(pin, userId);
         }
-        return passwordEncoder.matches(pin, getPinForEvent(email, event));
+        return pin.equals(getPinForEvent(email, event));
     }
 
     private String getPinForEvent(String email, NotificationMessageEventEnum event) {
-        return userDao.getPinByEmailAndEvent(email, event);
+        String message = String.format("Invalid email auth code from user %s", email);
+        return userPinDao.findPin(email, event).orElseThrow(() -> new NgResponseException(ErrorApiTitles.EMAIL_AUTHORIZATION_PIN_EXPIRED, message));
     }
 
     @Override
@@ -1126,5 +1130,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean subscribeToMailingByEmail(String email, boolean subscribe) {
         return userDao.subscribeToMailingByEmail(email, subscribe);
+    }
+
+    @Override
+    public void deleteUserPin(String email, NotificationMessageEventEnum login) {
+        userPinDao.delete(email, login);
     }
 }

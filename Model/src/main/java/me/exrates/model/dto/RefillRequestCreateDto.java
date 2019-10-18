@@ -47,6 +47,8 @@ public class RefillRequestCreateDto {
     private RefillRequestParam refillRequestParam = new RefillRequestParam();
     private String txHash;
 
+    private String paymentLink;
+
 
     public RefillRequestCreateDto(RefillRequestParamsDto paramsDto, CreditsOperation creditsOperation, RefillStatusEnum status, Locale locale) {
         this.currencyId = paramsDto.getCurrency();
@@ -104,5 +106,4 @@ public class RefillRequestCreateDto {
                     this.merchantRequestSign == null;
         }
     }
-
 }
