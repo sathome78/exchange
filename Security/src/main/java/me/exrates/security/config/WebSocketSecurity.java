@@ -44,6 +44,8 @@ public class WebSocketSecurity  extends AbstractSecurityWebSocketMessageBrokerCo
                 .simpSubscribeDestMatchers("/app/charts/*/*").permitAll()
                 .simpSubscribeDestMatchers("/app/charts2/*/*").permitAll()
                 .simpSubscribeDestMatchers("/app/trades/*").permitAll()
+                .simpSubscribeDestMatchers("/app/chart/*/*").permitAll()
+                .simpSubscribeDestMatchers("/app/chart/*").permitAll()
                 .simpSubscribeDestMatchers("/app/orders/sfwfrf442fewdf/*").permitAll()
                 .simpSubscribeDestMatchers("/app/orders/sfwfrf442fewdf/detailed/*").permitAll()
                 .simpSubscribeDestMatchers("/app/order_book/*/*").permitAll()

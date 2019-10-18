@@ -56,6 +56,7 @@ var onConnect = function() {
 function subscribeAll() {
     if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || f != enableF)) {
         subscribeTradeOrders();
+        // subscribeChart();
     }
     if (connectedPS) {
         subscribeStatistics();
@@ -156,6 +157,18 @@ function subscribeTrades() {
 
     }, headers);
 }
+
+// function subscribeChart() {
+//     if (chartSubscription !== undefined) {
+//         chartSubscription.unsubscribe();
+//     }
+//     var headers = {};
+//     var path = '/app/chart/30 MINUTE/' + currentPairName.replace('/', '_').toLowerCase();
+//     chartSubscription = client.subscribe(path, function(message) {
+//         var messageBody = JSON.parse(message.body);
+//         console.log(messageBody)
+//     }, headers);
+// }
 
 function subscribeStatistics() {
     if (currencyPairStatisticSubscription == undefined) {

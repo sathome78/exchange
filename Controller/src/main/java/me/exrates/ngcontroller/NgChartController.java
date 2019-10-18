@@ -1,7 +1,7 @@
 package me.exrates.ngcontroller;
 
 import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
-import me.exrates.model.dto.CandleDto;
+import me.exrates.model.chart.CandleDto;
 import me.exrates.model.enums.ChartResolution;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.properties.chart.ChartProperty;

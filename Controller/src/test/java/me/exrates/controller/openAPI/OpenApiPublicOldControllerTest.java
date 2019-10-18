@@ -3,7 +3,7 @@ package me.exrates.controller.openAPI;
 import me.exrates.controller.openAPI.config.WebAppTestConfig;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.constants.ErrorApiTitles;
-import me.exrates.model.dto.CandleDto;
+import me.exrates.model.chart.CandleDto;
 import me.exrates.model.enums.IntervalType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.exceptions.OpenApiException;

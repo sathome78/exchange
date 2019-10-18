@@ -27,7 +27,7 @@ import me.exrates.model.dto.AdminOrderInfoDto;
 import me.exrates.model.dto.AlertDto;
 import me.exrates.model.dto.BotTradingSettingsShortDto;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
-import me.exrates.model.dto.CandleDto;
+import me.exrates.model.chart.CandleDto;
 import me.exrates.model.dto.ComissionCountDto;
 import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.dto.CurrencyPairLimitDto;
