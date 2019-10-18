@@ -71,7 +71,7 @@ public class QiwiExternalServiceImpl implements QiwiExternalService {
 
         Map<String, String> responseParams = new HashMap<>();
         responseParams.put("address", body.getResponseData().getComment());
-        responseParams.put("payment_link", body.getResponseData().getPaymentLink());
+        responseParams.put("paymentLink", body.getResponseData().getPaymentLink());
 
         return responseParams;
     }
