@@ -22,7 +22,6 @@ public class CreditsOperation {
   private BigDecimal amount;
   private BigDecimal commissionAmount;
   private OperationType operationType;
-  private Commission commission;
   private Currency currency;
   private Wallet wallet;
   private Merchant merchant;
@@ -36,6 +35,7 @@ public class CreditsOperation {
   private Boolean storeSameAddressForParentAndTokens;
   private User recipient;
   private Wallet recipientWallet;
+  private Integer commisionId;
 
   private CreditsOperation(Builder builder) {
     this.user = builder.user;
@@ -44,7 +44,6 @@ public class CreditsOperation {
     this.wallet = builder.wallet;
     this.commissionAmount = builder.commissionAmount;
     this.operationType = builder.operationType;
-    this.commission = builder.commission;
     this.currency = builder.currency;
     this.merchant = builder.merchant;
     this.merchantCommissionAmount = builder.merchantCommissionAmount;
@@ -65,7 +64,6 @@ public class CreditsOperation {
     private BigDecimal amount;
     private BigDecimal commissionAmount;
     private OperationType operationType;
-    private Commission commission;
     private Currency currency;
     private Wallet wallet;
     private Merchant merchant;
@@ -77,6 +75,7 @@ public class CreditsOperation {
     private Boolean storeSameAddressForParentAndTokens;
     private User recipient;
     private Wallet recipientWallet;
+    private Integer commisionId;
 
     public Builder user(User user) {
       this.user = user;
@@ -100,11 +99,6 @@ public class CreditsOperation {
 
     public Builder operationType(OperationType operationType) {
       this.operationType = operationType;
-      return this;
-    }
-
-    public Builder commission(Commission commission) {
-      this.commission = commission;
       return this;
     }
 
@@ -153,6 +147,11 @@ public class CreditsOperation {
       return this;
     }
 
+    public Builder commissionId(Integer commissionId) {
+      this.commisionId = commissionId;
+      return this;
+    }
+
     public CreditsOperation build() {
       return new CreditsOperation(this);
     }
@@ -172,7 +171,6 @@ public class CreditsOperation {
     if (commissionAmount != null ? !commissionAmount.equals(that.commissionAmount) : that.commissionAmount != null)
       return false;
     if (operationType != that.operationType) return false;
-    if (commission != null ? !commission.equals(that.commission) : that.commission != null) return false;
     if (currency != null ? !currency.equals(that.currency) : that.currency != null) return false;
     if (merchant != null ? !merchant.equals(that.merchant) : that.merchant != null) return false;
     if (destination != null ? !destination.equals(that.destination) : that.destination != null) return false;
@@ -187,7 +185,6 @@ public class CreditsOperation {
     result = 31 * result + (amount != null ? amount.hashCode() : 0);
     result = 31 * result + (commissionAmount != null ? commissionAmount.hashCode() : 0);
     result = 31 * result + (operationType != null ? operationType.hashCode() : 0);
-    result = 31 * result + (commission != null ? commission.hashCode() : 0);
     result = 31 * result + (currency != null ? currency.hashCode() : 0);
     result = 31 * result + (merchant != null ? merchant.hashCode() : 0);
     result = 31 * result + (destination != null ? destination.hashCode() : 0);
@@ -203,7 +200,6 @@ public class CreditsOperation {
         ", amount=" + amount +
         ", commissionAmount=" + commissionAmount +
         ", operationType=" + operationType +
-        ", commission=" + commission +
         ", currency=" + currency +
         ", merchant=" + merchant +
         ", destination=" + destination +

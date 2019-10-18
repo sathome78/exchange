@@ -159,7 +159,7 @@ public class InputOutputServiceImpl implements InputOutputService {
                 .build();
         return status.getAvailableActionList(paramsValue).stream()
                 .filter(e -> e.getActionTypeButton() != null)
-                .map(e -> new HashMap<String, Object>(e.getActionTypeButton().getProperty()))
+                .map(e -> new HashMap<>(e.getActionTypeButton().getProperty()))
                 .peek(e -> e.put("buttonTitle", messageSource.getMessage((String) e.get("buttonTitle"), null, locale)))
                 .collect(Collectors.toList());
     }
@@ -242,19 +242,18 @@ public class InputOutputServiceImpl implements InputOutputService {
         CreditsOperation creditsOperation = new CreditsOperation.Builder()
                 .initialAmount(commissionData.getAmount())
                 .amount(commissionData.getResultAmount())
-                .commissionAmount(commissionData.getCompanyCommissionAmount())
-                .commission(commissionData.getCompanyCommission())
+                .commissionAmount(commissionData.getTotalCommissionAmount())
                 .operationType(operationType)
                 .user(user)
                 .currency(currency)
                 .wallet(wallet)
                 .merchant(merchant)
-                .merchantCommissionAmount(commissionData.getMerchantCommissionAmount())
                 .destination(destination)
                 .destinationTag(destinationTag)
                 .transactionSourceType(transactionSourceType)
                 .recipient(recipient)
                 .recipientWallet(recipientWallet)
+                .commissionId(commissionData.getCommissionId())
                 .build();
         return Optional.of(creditsOperation);
     }

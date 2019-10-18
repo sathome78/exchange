@@ -125,14 +125,12 @@ public abstract class AngularApiCommonTest {
         CreditsOperation creditsOperation = new CreditsOperation.Builder()
                 .initialAmount(getMockCommissionDataDto().getAmount())
                 .amount(getMockCommissionDataDto().getResultAmount())
-                .commissionAmount(getMockCommissionDataDto().getCompanyCommissionAmount())
-                .commission(getMockCommissionDataDto().getCompanyCommission())
+                .commissionAmount(getMockCommissionDataDto().getTotalCommissionAmount())
                 .operationType(OperationType.BUY)
                 .user(getMockUser())
                 .currency(getMockCurrency("TEST_CURRENCY"))
                 .wallet(getMockWallet())
                 .merchant(getMockMerchant())
-                .merchantCommissionAmount(getMockCommissionDataDto().getMerchantCommissionAmount())
                 .destination("TEST_DESTINATION")
                 .destinationTag("TEST_DESTINATION_TAG")
                 .transactionSourceType(TransactionSourceType.ORDER)
@@ -188,13 +186,9 @@ public abstract class AngularApiCommonTest {
                 BigDecimal.valueOf(70),
                 "TEST_MERCHant_COMMISSION_UNIT",
                 BigDecimal.valueOf(80),
-                Commission.zeroComission(),
                 BigDecimal.valueOf(90),
-                "TEST_COMPANY_COMMISSION_AMOUNT",
-                BigDecimal.valueOf(95),
-                BigDecimal.valueOf(100),
-                BigDecimal.valueOf(110),
-                Boolean.TRUE
+                Boolean.TRUE,
+                null
         );
     }
 }

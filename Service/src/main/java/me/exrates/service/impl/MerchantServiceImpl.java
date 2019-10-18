@@ -281,8 +281,7 @@ public class MerchantServiceImpl implements MerchantService {
     public Map<String, String> formatResponseMessage(CreditsOperation creditsOperation) {
         final OperationType operationType = creditsOperation.getOperationType();
         final String commissionPercent = creditsOperation
-                .getCommission()
-                .getValue()
+                .getCommissionAmount()
                 .setScale(2, ROUND_HALF_UP)
                 .toString();
         String finalAmount = null;
@@ -333,7 +332,6 @@ public class MerchantServiceImpl implements MerchantService {
                 .operationType(transaction.getOperationType())
                 .amount(transaction.getAmount())
                 .commissionAmount(transaction.getCommissionAmount())
-                .commission(transaction.getCommission())
                 .currency(transaction.getCurrency())
                 .build();
         return formatResponseMessage(creditsOperation);

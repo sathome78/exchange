@@ -45,7 +45,6 @@ var timer;
 
 var onConnectFail = function () {
     connectedPS = false;
-    setTimeout(connectAndReconnect, 5000);
 };
 
 var onConnect = function() {
@@ -72,9 +71,6 @@ function subscribeAll() {
 function connectAndReconnect() {
     reconnectsCounter ++;
     console.log("try to reconnect " + reconnectsCounter);
-    if (reconnectsCounter > 5) {
-        location.reload()
-    }
     socket = new SockJS(socket_url);
     client = Stomp.over(socket);
     client.debug = null;

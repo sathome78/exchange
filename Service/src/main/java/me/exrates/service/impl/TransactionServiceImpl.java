@@ -112,7 +112,7 @@ public class TransactionServiceImpl implements TransactionService {
         Transaction transaction = new Transaction();
         transaction.setAmount(creditsOperation.getAmount());
         transaction.setCommissionAmount(creditsOperation.getCommissionAmount());
-        transaction.setCommission(creditsOperation.getCommission());
+        transaction.setCommission(null);
         transaction.setCompanyWallet(companyWallet);
         transaction.setUserWallet(userWallet);
         transaction.setCurrency(currency);

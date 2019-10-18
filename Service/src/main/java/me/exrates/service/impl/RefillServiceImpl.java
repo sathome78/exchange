@@ -833,23 +833,14 @@ public class RefillServiceImpl implements RefillService {
             Merchant merchant = merchantDao.findById(refillRequest.getMerchantId());
 
             //calculate merchant commission
-            BigDecimal merchantCommission = BigDecimal.ZERO;
+            BigDecimal commission = BigDecimal.ZERO;
             if (merchant.getProcessType().equals(MerchantProcessType.CRYPTO) || merchant.getProcessType().equals(MerchantProcessType.MERCHANT)) {
-                merchantCommission = commissionService.calculateMerchantCommissionForRefillAmount(
+                commission = commissionService.calculateMerchantCommissionForRefillAmount(
                         factAmount,
                         refillRequest.getMerchantId(),
                         refillRequest.getCurrencyId());
             }
 
-            //calculate exchange commission
-            BigDecimal exchangeCommission = BigDecimal.ZERO;
-            if (refillRequest.getCommissionId() > 0) {
-                exchangeCommission = commissionService.calculateCommissionForRefillAmount(
-                        factAmount.subtract(merchantCommission),
-                        refillRequest.getCommissionId());
-            }
-
-            final BigDecimal commission = BigDecimalProcessing.doAction(merchantCommission, exchangeCommission, ADD);
             final BigDecimal amountToEnroll = BigDecimalProcessing.doAction(factAmount, commission, SUBTRACT);
             /**/
             WalletOperationData walletOperationData = new WalletOperationData();
@@ -857,7 +848,6 @@ public class RefillServiceImpl implements RefillService {
             walletOperationData.setWalletId(userWalletId);
             walletOperationData.setAmount(amountToEnroll);
             walletOperationData.setBalanceType(ACTIVE);
-            walletOperationData.setCommission(new Commission(refillRequest.getCommissionId()));
             walletOperationData.setCommissionAmount(commission);
             walletOperationData.setSourceType(TransactionSourceType.REFILL);
             walletOperationData.setSourceId(refillRequest.getId());

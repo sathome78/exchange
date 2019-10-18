@@ -21,15 +21,10 @@ public class CommissionDataDto {
   BigDecimal merchantCommissionRate;
   BigDecimal minMerchantCommissionAmount;
   String merchantCommissionUnit;
-  BigDecimal merchantCommissionAmount;
-  /**/
-  Commission companyCommission;
-  BigDecimal companyCommissionRate;
-  String companyCommissionUnit;
-  BigDecimal companyCommissionAmount;
   /**/
   BigDecimal totalCommissionAmount;
   BigDecimal resultAmount;
 
   Boolean specificMerchantComissionCount;
+  Integer commissionId;
 }

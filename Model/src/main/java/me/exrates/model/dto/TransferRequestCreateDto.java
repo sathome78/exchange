@@ -45,12 +45,12 @@ public class TransferRequestCreateDto {
     this.amount = paramsDto.getSum();
     this.merchantId = paramsDto.getMerchant();
     /**/
+    this.commissionId = creditsOperation.getCommisionId();
     this.userId = creditsOperation.getUser().getId();
     this.userEmail = creditsOperation.getUser().getEmail();
     this.userWalletId = creditsOperation.getWallet().getId();
     this.currencyName = creditsOperation.getCurrency().getName();
-    this.commission = BigDecimalProcessing.doAction(creditsOperation.getMerchantCommissionAmount(), creditsOperation.getCommissionAmount(), ADD);;
-    this.commissionId = creditsOperation.getCommission().getId();
+    this.commission = creditsOperation.getCommissionAmount();
     this.recipient = creditsOperation.getRecipient() == null ? null : creditsOperation.getRecipient().getNickname();
     this.recipientId = creditsOperation.getRecipient() == null ? null : creditsOperation.getRecipient().getId();
     this.recipientWalletId = creditsOperation.getRecipientWallet() == null ? null : creditsOperation.getRecipientWallet().getId();

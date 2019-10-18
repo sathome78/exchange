@@ -71,7 +71,6 @@ public class RefillRequestCreateDto {
         this.userWalletId = creditsOperation.getWallet().getId();
         this.currencyName = creditsOperation.getCurrency().getName();
         this.commission = creditsOperation.getCommissionAmount();
-        this.commissionId = creditsOperation.getCommission().getId();
         this.refillOperationCountLimitForUserPerDay = creditsOperation.getMerchant().getRefillOperationCountLimitForUserPerDay();
         this.serviceBeanName = creditsOperation.getMerchant().getServiceBeanName();
         this.merchantDescription = creditsOperation.getMerchant().getDescription();

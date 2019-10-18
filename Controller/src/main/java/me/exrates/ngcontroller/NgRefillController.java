@@ -251,7 +251,7 @@ public class NgRefillController {
             throw new NgRefillException("Need to pass KYC");
         }
 
-        Boolean forceGenerateNewAddress = requestParamsDto.getGenerateNewAddress() != null && requestParamsDto.getGenerateNewAddress();
+        boolean forceGenerateNewAddress = requestParamsDto.getGenerateNewAddress() != null && requestParamsDto.getGenerateNewAddress();
         if (!forceGenerateNewAddress) {
             Optional<String> address = refillService.getAddressByMerchantIdAndCurrencyIdAndUserId(
                     requestParamsDto.getMerchant(),
@@ -308,8 +308,7 @@ public class NgRefillController {
     @GetMapping(value = "/requests_on_confirmation/{currencyId}")
     public List<RefillOnConfirmationDto> getRefillConfirmationsForCurrencyy(@PathVariable Integer currencyId) {
         try {
-            List<RefillOnConfirmationDto> confirmationRefills = refillService.getOnConfirmationRefills(getPrincipalEmail(), currencyId);
-            return confirmationRefills;
+            return refillService.getOnConfirmationRefills(getPrincipalEmail(), currencyId);
         } catch (Exception e) {
             logger.error("Failed to get requests on confirmation", e);
             return Collections.emptyList();

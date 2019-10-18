@@ -83,7 +83,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         refillRequestFlatDto.setReceiptScan(rs.getString("receipt_scan"));
         refillRequestFlatDto.setReceiptScanName(rs.getString("receipt_scan_name"));
         refillRequestFlatDto.setAmount(rs.getBigDecimal("amount"));
-        refillRequestFlatDto.setCommissionId(rs.getInt("commission_id"));
+        refillRequestFlatDto.setCommissionId((Integer)rs.getObject("commission_id"));
         refillRequestFlatDto.setStatus(RefillStatusEnum.convert(rs.getInt("status_id")));
         refillRequestFlatDto.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
         refillRequestFlatDto.setStatusModificationDate(rs.getTimestamp("status_modification_date").toLocalDateTime());

@@ -83,7 +83,6 @@ public class NgWithdrawController {
     private final G2faService g2faService;
     private final InputOutputService inputOutputService;
     private final MerchantService merchantService;
-    private final MessageSource messageSource;
     private final SecureService secureService;
     private final UserOperationService userOperationService;
     private final UserService userService;
@@ -95,7 +94,6 @@ public class NgWithdrawController {
                                 G2faService g2faService,
                                 InputOutputService inputOutputService,
                                 MerchantService merchantService,
-                                MessageSource messageSource,
                                 SecureService secureService,
                                 UserOperationService userOperationService,
                                 UserService userService,
@@ -105,7 +103,6 @@ public class NgWithdrawController {
         this.g2faService = g2faService;
         this.inputOutputService = inputOutputService;
         this.merchantService = merchantService;
-        this.messageSource = messageSource;
         this.secureService = secureService;
         this.userOperationService = userOperationService;
         this.userService = userService;

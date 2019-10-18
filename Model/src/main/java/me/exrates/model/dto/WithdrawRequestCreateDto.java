@@ -45,7 +45,6 @@ public class WithdrawRequestCreateDto {
     this.currencyName = creditsOperation.getCurrency().getName();
     this.amount = creditsOperation.getOrigAmountAtCreationRequest();
     this.commission = creditsOperation.getCommissionAmount();
-    this.commissionId = creditsOperation.getCommission().getId();
     this.destinationWallet = creditsOperation.getDestination().orElse(null);
     this.destinationTag = creditsOperation.getDestinationTag().orElse(null);
     this.merchantId = creditsOperation.getMerchant().getId();

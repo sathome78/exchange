@@ -624,7 +624,6 @@ public class WithdrawServiceImpl implements WithdrawService {
             walletOperationData.setWalletId(userWalletId);
             walletOperationData.setAmount(withdrawRequest.getAmount());
             walletOperationData.setBalanceType(ACTIVE);
-            walletOperationData.setCommission(new Commission(withdrawRequest.getCommissionId()));
             walletOperationData.setCommissionAmount(withdrawRequest.getCommissionAmount());
             walletOperationData.setSourceType(TransactionSourceType.WITHDRAW);
             walletOperationData.setSourceId(withdrawRequest.getId());
