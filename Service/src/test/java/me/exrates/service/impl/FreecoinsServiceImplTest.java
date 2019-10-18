@@ -1,6 +1,7 @@
 package me.exrates.service.impl;
 
 import me.exrates.dao.FreecoinsRepository;
+import me.exrates.model.dto.freecoins.AdminGiveawayResultDto;
 import me.exrates.model.dto.freecoins.GiveawayResultDto;
 import me.exrates.model.dto.freecoins.GiveawayStatus;
 import me.exrates.model.dto.freecoins.ReceiveResultDto;
@@ -9,6 +10,7 @@ import me.exrates.service.exception.FreecoinsException;
 import me.exrates.service.freecoins.FreecoinsService;
 import me.exrates.service.freecoins.FreecoinsServiceImpl;
 import me.exrates.service.util.CollectionUtil;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,6 +19,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -152,7 +155,7 @@ public class FreecoinsServiceImplTest {
                 .when(freecoinsRepository)
                 .updateStatus(anyInt(), any(GiveawayStatus.class));
 
-        boolean revoked = freecoinsService.processRevokeGiveaway(1, true, CREATOR_EMAIL);
+        boolean revoked = freecoinsService.processRevokeGiveaway(1, true);
 
         assertTrue(revoked);
 
@@ -179,7 +182,7 @@ public class FreecoinsServiceImplTest {
                 .when(freecoinsRepository)
                 .updateStatus(anyInt(), any(GiveawayStatus.class));
 
-        boolean revoked = freecoinsService.processRevokeGiveaway(1, false, CREATOR_EMAIL);
+        boolean revoked = freecoinsService.processRevokeGiveaway(1, false);
 
         assertTrue(revoked);
 
@@ -203,35 +206,10 @@ public class FreecoinsServiceImplTest {
                 .when(freecoinsRepository)
                 .getClaim(anyInt());
 
-        freecoinsService.processRevokeGiveaway(1, true, CREATOR_EMAIL);
+        freecoinsService.processRevokeGiveaway(1, true);
 
         verify(freecoinsRepository, atLeastOnce()).getClaim(anyInt());
         verify(walletService, never()).performFreecoinsGiveawayRevokeProcess(anyString(), any(BigDecimal.class), anyString());
-        verify(freecoinsRepository, never()).updateStatus(anyInt(), any(GiveawayStatus.class));
-    }
-
-    @Test(expected = FreecoinsException.class)
-    public void processRevokeGiveaway_different_users() {
-        doReturn(GiveawayResultDto.builder()
-                .currencyName(CURRENCY_NAME)
-                .amount(BigDecimal.TEN)
-                .partialAmount(BigDecimal.ONE)
-                .totalQuantity(10)
-                .isSingle(true)
-                .timeRange(null)
-                .creatorEmail(CREATOR_EMAIL)
-                .status(GiveawayStatus.CREATED)
-                .build())
-                .when(freecoinsRepository)
-                .getClaim(anyInt());
-        doReturn(false)
-                .when(walletService)
-                .performFreecoinsGiveawayRevokeProcess(anyString(), any(BigDecimal.class), anyString());
-
-        freecoinsService.processRevokeGiveaway(1, true, CREATOR_EMAIL);
-
-        verify(freecoinsRepository, atLeastOnce()).getClaim(anyInt());
-        verify(walletService, atLeastOnce()).performFreecoinsGiveawayRevokeProcess(anyString(), any(BigDecimal.class), anyString());
         verify(freecoinsRepository, never()).updateStatus(anyInt(), any(GiveawayStatus.class));
     }
 
@@ -288,8 +266,12 @@ public class FreecoinsServiceImplTest {
                 .when(freecoinsRepository)
                 .updateTotalQuantity(anyInt());
 
-        ReceiveResultDto dto = freecoinsService.processReceive(1, RECEIVER_EMAIL);
+        Pair<Boolean, ReceiveResultDto> result = freecoinsService.processReceive(1, RECEIVER_EMAIL);
 
+        assertNotNull(result);
+        assertTrue(result.getLeft());
+
+        ReceiveResultDto dto = result.getRight();
         assertNotNull(dto);
         assertEquals(1, dto.getId());
         assertEquals(1, dto.getGiveawayId());
@@ -464,8 +446,12 @@ public class FreecoinsServiceImplTest {
                 .when(freecoinsRepository)
                 .updateTotalQuantity(anyInt());
 
-        ReceiveResultDto dto = freecoinsService.processReceive(1, RECEIVER_EMAIL);
+        Pair<Boolean, ReceiveResultDto> result = freecoinsService.processReceive(1, RECEIVER_EMAIL);
 
+        assertNotNull(result);
+        assertTrue(result.getLeft());
+
+        ReceiveResultDto dto = result.getRight();
         assertNotNull(dto);
         assertEquals(1, dto.getId());
         assertEquals(1, dto.getGiveawayId());
@@ -541,8 +527,12 @@ public class FreecoinsServiceImplTest {
                 .when(freecoinsRepository)
                 .updateTotalQuantity(anyInt());
 
-        ReceiveResultDto dto = freecoinsService.processReceive(1, RECEIVER_EMAIL);
+        Pair<Boolean, ReceiveResultDto> result = freecoinsService.processReceive(1, RECEIVER_EMAIL);
 
+        assertNotNull(result);
+        assertTrue(result.getLeft());
+
+        ReceiveResultDto dto = result.getRight();
         assertNotNull(dto);
         assertEquals(1, dto.getId());
         assertEquals(1, dto.getGiveawayId());
@@ -556,6 +546,51 @@ public class FreecoinsServiceImplTest {
         verify(freecoinsRepository, atLeastOnce()).saveProcess(any(ReceiveResultDto.class));
         verify(freecoinsRepository, never()).updateProcess(any(ReceiveResultDto.class));
         verify(freecoinsRepository, atLeastOnce()).updateTotalQuantity(anyInt());
+    }
+
+    @Test
+    public void processReceive_not_single_receive_twice_in_a_one_time() {
+        doReturn(GiveawayResultDto.builder()
+                .currencyName(CURRENCY_NAME)
+                .amount(BigDecimal.TEN)
+                .partialAmount(BigDecimal.ONE)
+                .totalQuantity(10)
+                .isSingle(false)
+                .timeRange(10)
+                .creatorEmail(CREATOR_EMAIL)
+                .status(GiveawayStatus.CREATED)
+                .build())
+                .when(freecoinsRepository)
+                .getClaim(anyInt());
+        doReturn(ReceiveResultDto.builder()
+                .id(1)
+                .receiverEmail(RECEIVER_EMAIL)
+                .giveawayId(1)
+                .received(false)
+                .lastReceived(LocalDateTime.now())
+                .build())
+                .when(freecoinsRepository)
+                .getProcess(anyInt(), anyString());
+
+        Pair<Boolean, ReceiveResultDto> result = freecoinsService.processReceive(1, RECEIVER_EMAIL);
+
+        assertNotNull(result);
+        assertFalse(result.getLeft());
+
+        ReceiveResultDto dto = result.getRight();
+        assertNotNull(dto);
+        assertEquals(1, dto.getId());
+        assertEquals(1, dto.getGiveawayId());
+        assertFalse(dto.isReceived());
+        assertNotNull(dto.getLastReceived());
+        assertEquals(RECEIVER_EMAIL, dto.getReceiverEmail());
+
+        verify(freecoinsRepository, atLeastOnce()).getClaim(anyInt());
+        verify(freecoinsRepository, atLeastOnce()).getProcess(anyInt(), anyString());
+        verify(walletService, never()).performFreecoinsReceiveProcess(anyString(), any(BigDecimal.class), anyString());
+        verify(freecoinsRepository, never()).saveProcess(any(ReceiveResultDto.class));
+        verify(freecoinsRepository, never()).updateProcess(any(ReceiveResultDto.class));
+        verify(freecoinsRepository, never()).updateTotalQuantity(anyInt());
     }
 
     @Test
@@ -582,5 +617,45 @@ public class FreecoinsServiceImplTest {
         assertTrue(CollectionUtil.isEmpty(list));
 
         verify(freecoinsRepository, atLeastOnce()).getAllUserProcess(anyString());
+    }
+
+    @Test
+    public void getAllGiveawaysForAdmin_ok() {
+        doReturn(Collections.singletonList(GiveawayResultDto.builder()
+                .currencyName(CURRENCY_NAME)
+                .amount(BigDecimal.TEN)
+                .partialAmount(BigDecimal.ONE)
+                .totalQuantity(10)
+                .isSingle(false)
+                .timeRange(10)
+                .creatorEmail(CREATOR_EMAIL)
+                .status(GiveawayStatus.CREATED)
+                .build()))
+                .when(freecoinsRepository)
+                .getAllClaims();
+        doReturn(2)
+                .when(freecoinsRepository)
+                .getUniqueAcceptorsByClaimId(anyInt());
+
+        List<AdminGiveawayResultDto> list = freecoinsService.getAllGiveawaysForAdmin();
+
+        assertFalse(CollectionUtils.isEmpty(list));
+
+        verify(freecoinsRepository, atLeastOnce()).getAllClaims();
+        verify(freecoinsRepository, atLeastOnce()).getUniqueAcceptorsByClaimId(anyInt());
+    }
+
+    @Test
+    public void getAllGiveawaysForAdmin_empty_list() {
+        doReturn(Collections.emptyList())
+                .when(freecoinsRepository)
+                .getAllClaims();
+
+        List<AdminGiveawayResultDto> list = freecoinsService.getAllGiveawaysForAdmin();
+
+        assertTrue(CollectionUtils.isEmpty(list));
+
+        verify(freecoinsRepository, atLeastOnce()).getAllClaims();
+        verify(freecoinsRepository, never()).getUniqueAcceptorsByClaimId(anyInt());
     }
 }
