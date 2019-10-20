@@ -2213,7 +2213,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 new MosaicIdDto("pundix", "npxs"),
                 1000000,
                 6,
-                new Supply(9000000000L),
+                new Supply(7170733206L),
                 0);
     }
 
