@@ -23,7 +23,7 @@ public interface QiwiService extends IRefillable, IWithdrawable {
 
     @Override
     default Boolean generatingAdditionalRefillAddressAvailable() {
-        return false;
+        return true;
     }
 
     @Override

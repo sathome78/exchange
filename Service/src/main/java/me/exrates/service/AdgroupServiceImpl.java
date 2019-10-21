@@ -72,6 +72,8 @@ public class AdgroupServiceImpl implements AdgroupService {
     private StompMessenger stompMessenger;
     @Autowired
     private RefillRequestDao refillRequestDao;
+    @Autowired
+    private WithdrawService withdrawService;
 
     @Value("${base_url}")
     private String url;
@@ -169,9 +171,11 @@ public class AdgroupServiceImpl implements AdgroupService {
                 httpClient.createPayOut(urlRequest, getAuthorizationKey(), requestDto);
         log.info("Response from adgroup {}", responseDto);
         if (!responseDto.getResponseData().getStatus().equalsIgnoreCase("APPROVED")) {
+            log.error("withdraw() error, not approved withdraw request, need to reject {}",
+                    withdrawMerchantOperationDto.getId());
             throw new MerchantException("Not approved");
         }
-
+        withdrawService.finalizePostWithdrawalRequest(Integer.parseInt(withdrawMerchantOperationDto.getId()));
         Map<String, String> result = new HashMap<>();
         result.put("hash", responseDto.getResponseData().getId());
         result.put("params", responseDto.getResponseData().getRefId());

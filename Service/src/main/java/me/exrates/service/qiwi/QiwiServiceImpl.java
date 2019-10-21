@@ -69,8 +69,8 @@ public class QiwiServiceImpl implements QiwiService {
     public Map<String, String> refill(RefillRequestCreateDto request) {
         Map<String, String> responseParams = qiwiExternalService.getResponseParams(request.getUserId());
 
-        responseParams.put("main_address", mainAddress);
-        responseParams.put("qr", responseParams.get("payment_link"));
+        responseParams.put("mainAddress", mainAddress);
+        responseParams.put("qr", responseParams.get("paymentLink"));
         responseParams.put("message", messageSource.getMessage("merchants.refill.qiwi", new Object[]{mainAddress, responseParams.get("address")}, request.getLocale()));
 
         return responseParams;

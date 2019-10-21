@@ -111,8 +111,6 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
     private IEOService ieoService;
     @Autowired
     private NewsParser newsParser;
-    @Autowired
-    private SendMailService sendMailService;
 
     @InjectMocks
     private NgPublicController ngPublicController;
@@ -123,7 +121,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
     public void setUp() {
         ngPublicController = new NgPublicController(chatService, currencyService, ipBlockingService, ieoService, userService,
                 ngUserService, messagingTemplate, orderService, g2faService, ngOrderService, telegramChatDao, exchangeRatesHolder,
-                newsParser, sendMailService);
+                newsParser);
 
         HandlerExceptionResolver resolver = ((HandlerExceptionResolverComposite) webApplicationContext
                 .getBean("handlerExceptionResolver")).getExceptionResolvers().get(0);
@@ -166,6 +164,42 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$.title").value("USER_EMAIL_NOT_FOUND"))
                 .andExpect(jsonPath("$.detail").value(actualMessage));
 
+        reset(userService);
+    }
+
+    @Test
+    public void checkIfPublicIdExists_whenEmpty() throws Exception {
+        when(userService.getEmailByPubId(anyString())).thenThrow(UserNotFoundException.class);
+        mockMvc.perform(get(BASE_URL + "/check/publicity")
+                .param("id", "hgfhjsdgfkjsadgfsa")
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.STATUS").value("false"));
+        reset(userService);
+    }
+
+    @Test
+    public void checkIfPublicIdExists_whenExists() throws Exception {
+        when(userService.getEmailByPubId(anyString())).thenReturn(EMAIL);
+        mockMvc.perform(get(BASE_URL + "/check/publicity")
+                .param("id", "hgfhjsdgfkjsadgfsa")
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.STATUS").value("true"));
+        reset(userService);
+    }
+
+    @Test
+    public void checkIfPublicIdExists_whenInvalidQueryParam() throws Exception {
+        when(userService.getEmailByPubId(anyString())).thenReturn(EMAIL);
+        mockMvc.perform(get(BASE_URL + "/check/publicity")
+                .param("id", "")
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.STATUS").value("false"));
         reset(userService);
     }
 
