@@ -109,10 +109,7 @@ public class SyndexServiceImpl implements SyndexService {
         SyndexClient.OrderInfo orderInfo = syndexClient.createOrder(new SyndexClient.CreateOrderRequest(orderDto));
         syndexDao.updateStatus(orderDto.getId(), orderInfo.getStatus());
         syndexDao.updateSyndexId(orderDto.getId(), orderInfo.getId());
-
-        if (!StringUtils.isEmpty(orderInfo.getPaymentDetails())) {
-            syndexDao.updatePaymentDetailsAndEndDate(orderDto.getId(), orderInfo.getPaymentDetails(), orderInfo.getEndPaymentTime());
-        }
+        syndexDao.updatePaymentDetailsAndEndDate(orderDto.getId(), orderInfo.getPaymentDetails(), orderInfo.getEndPaymentTime());
 
         return new HashMap<String, String>() {{
             put("$__response_object",  objectMapper.writeValueAsString(orderInfo));
@@ -162,7 +159,7 @@ public class SyndexServiceImpl implements SyndexService {
         long minutesLeft = Duration.between(currentOrder.getLastModifDate(), LocalDateTime.now()).toMinutes();
 
         if (minutesLeft < minuteToWaitBeforeDisput) {
-            throw new SyndexOrderException("wit 90 minutes to open dispute");
+            throw new SyndexOrderException("wait 90 minutes to open dispute");
         }
 
         if (currentOrder.getStatus() != SyndexOrderStatusEnum.MODERATION) {
@@ -206,7 +203,7 @@ public class SyndexServiceImpl implements SyndexService {
             syndexDao.updateStatus(currentOrderFromDb.getId(), newStatus.getStatusId());
         }
 
-        if (StringUtils.isEmpty(currentOrderFromDb.getPaymentDetails()) && !StringUtils.isEmpty(retrievedOrder.getPaymentDetails())) {
+        if (StringUtils.isEmpty(currentOrderFromDb.getPaymentDetails()) || currentOrderFromDb.getPaymentEndTime() == null) {
             syndexDao.updatePaymentDetailsAndEndDate(currentOrderFromDb.getId(), retrievedOrder.getPaymentDetails(), retrievedOrder.getEndPaymentTime());
         }
 

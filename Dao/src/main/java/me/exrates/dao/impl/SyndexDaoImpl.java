@@ -79,7 +79,7 @@ public class SyndexDaoImpl implements SyndexDao {
         MapSqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("refill_request_id", refillRequestId)
                 .addValue("details", details)
-                .addValue("end_time", endPaymentTime.minusMinutes(1));
+                .addValue("end_time", endPaymentTime == null ? null : endPaymentTime.minusMinutes(1));
 
         if (namedParameterJdbcTemplate.update(sql, parameters) < 1) {
             throw new RuntimeException("Order not updated");

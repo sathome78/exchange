@@ -17,6 +17,7 @@ public class LocalDateTimeFromTimestampDeserializer extends JsonDeserializer<Loc
     public LocalDateTime deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
         long raw = p.getValueAsLong();
         if (raw == 0) return null;
+        raw *= 1000;
         return LocalDateTime.ofInstant(Instant.ofEpochMilli(raw),
                         TimeZone.getDefault().toZoneId());
     }
