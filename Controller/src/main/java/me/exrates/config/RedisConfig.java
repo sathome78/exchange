@@ -4,12 +4,12 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.service.impl.RedisMessageSubscriber;
-import me.exrates.service.stomp.StompMessenger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.HashOperations;
@@ -35,12 +35,9 @@ public class RedisConfig {
 
     private static final String SUBSCRIBE_PATTERN = "candles.*";
 
-    private final StompMessenger stompMessenger;
-
+    @Lazy
     @Autowired
-    public RedisConfig(StompMessenger stompMessenger) {
-        this.stompMessenger = stompMessenger;
-    }
+    private RedisMessageSubscriber redisMessageSubscriber;
 
     @Bean
     public JedisPoolConfig poolConfig() {
@@ -57,13 +54,12 @@ public class RedisConfig {
 
     @Bean
     MessageListenerAdapter messageListener() {
-        return new MessageListenerAdapter(new RedisMessageSubscriber(stompMessenger));
+        return new MessageListenerAdapter(redisMessageSubscriber);
     }
 
     @Bean
     RedisMessageListenerContainer redisContainer() {
-        RedisMessageListenerContainer container
-                = new RedisMessageListenerContainer();
+        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(jedisConnFactory());
         container.addMessageListener(messageListener(), topic());
         return container;
