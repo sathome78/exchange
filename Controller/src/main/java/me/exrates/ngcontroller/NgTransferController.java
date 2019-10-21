@@ -263,6 +263,7 @@ public class NgTransferController {
 
     }
 
+    @CheckUserAuthority(authority = UserOperationAuthority.TRANSFER)
     @GetMapping("/get_minimal_sum")
     public ResponseModel getMinimalTransferSum(@RequestParam("currency_id") int currencyId,
                                                @RequestParam("type") String type) {
