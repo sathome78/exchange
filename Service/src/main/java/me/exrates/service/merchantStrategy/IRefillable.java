@@ -5,6 +5,7 @@ import com.neemre.btcdcli4j.core.CommunicationException;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.syndex.SyndexService;
 
 import java.util.Map;
 
@@ -42,7 +43,19 @@ public interface IRefillable extends IMerchantService{
   default boolean concatAdditionalToMainAddress() { return false; }
 
   default String getMerchantName(){
-    return "Not defined";
+    return SyndexService.MERCHANT_NAME;
+  }
+
+  default void cancelMerchantRequest(int id, String email) {
+    /*default - do nothing*/
+  }
+
+  default void declineAdmin(int id) {
+    /*default - do nothing*/
+  }
+
+  default void acceptAdmin(int id) {
+    /*default - do nothing*/
   }
 
   default long getBlocksCount() throws BitcoindException, CommunicationException {

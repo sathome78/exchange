@@ -11,6 +11,7 @@ import java.util.Map;
 
 public interface SyndexService extends IRefillable, IWithdrawable {
 
+    String MERCHANT_NAME = "Syndex";
 
     @Override
     default Boolean createdRefillRequestRecordNeeded() {
@@ -24,12 +25,12 @@ public interface SyndexService extends IRefillable, IWithdrawable {
 
     @Override
     default Boolean toMainAccountTransferringConfirmNeeded() {
-        return true;
+        return false;
     }
 
     @Override
     default Boolean generatingAdditionalRefillAddressAvailable() {
-        return true;
+        return false;
     }
 
     @Override
@@ -60,8 +61,6 @@ public interface SyndexService extends IRefillable, IWithdrawable {
     List<SyndexOrderDto> getAllPendingPayments(List<Integer> statuses, Integer userId);
 
     SyndexOrderDto getOrderInfo(int orderId, String email);
-
-    void cancelOrder(int id, String email);
 
     void openDispute(SyndexClient.DisputeData data, String email);
 

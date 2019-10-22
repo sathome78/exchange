@@ -104,6 +104,9 @@ public interface RefillService {
 
     void autoAcceptRefillEmptyRequest(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException;
 
+    @Transactional
+    void acceptAdminRefillRequest(RefillRequestAcceptDto requestAcceptDto);
+
     void acceptRefillRequest(RefillRequestAcceptDto requestAcceptDto);
 
     void finalizeAcceptRefillRequest(Integer requestId);

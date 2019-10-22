@@ -86,14 +86,6 @@ public class SyndexController {
                 .build();
     }
 
-    @DeleteMapping("/private/v2/syndex/order")
-    public ResponseEntity cancelOrder(@RequestParam @NotNull Integer id) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        syndexService.cancelOrder(id, email);
-        return ResponseEntity.ok()
-                             .build();
-    }
-
     @PostMapping("/public/v2/syndex/result_callback")
     public ResponseEntity callbackHandler(@RequestBody String income /*@NotNull SyndexClient.OrderInfo order*/) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();

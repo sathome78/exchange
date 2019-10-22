@@ -29,7 +29,9 @@ public class SyndexOrderDto {
     private String countryId;
     private String paymentDetails;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
-    private LocalDateTime lastModifDate;
+    private LocalDateTime statusModifDate;
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    private LocalDateTime paymentDetailsReceivedDate;
     private boolean isConfirmed;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime paymentEndTime;

@@ -228,9 +228,11 @@ public class SyndexDaoImpl implements SyndexDao {
             .paymentDetails(rs.getString("payment_details"))
             .isConfirmed(rs.getBoolean("confirmed"))
             .userId(rs.getInt("user_id"))
-            .lastModifDate(rs.getTimestamp("modification_date").toLocalDateTime())
+            .statusModifDate(rs.getTimestamp("status_modification_date").toLocalDateTime())
             .paymentEndTime(rs.getTimestamp("payment_time_end") == null ?
                     null : rs.getTimestamp("payment_time_end").toLocalDateTime())
+            .paymentDetailsReceivedDate(rs.getTimestamp("payment_details_received_date") == null ?
+                            null : rs.getTimestamp("payment_details_received_date").toLocalDateTime())
             .build();
 
 }

@@ -41,7 +41,6 @@ public class SyndexServiceImpl implements SyndexService {
     private final SyndexDao syndexDao;
     private final SyndexClient syndexClient;
     private static final Integer minuteToWaitBeforeDisput = 40;
-    private static final String MERCHANT_NAME = "Syndex";
     private static final String CURRENCY_NAME = "USD";
     private static final String AMOUNT_PARAM = "AMOUNT";
     private static final String SYNDEX_ID = "SYNDEX_ID";
@@ -145,14 +144,13 @@ public class SyndexServiceImpl implements SyndexService {
 
     @Transactional
     @Override
-    public void cancelOrder(int id, String email) {
+    public void cancelMerchantRequest(int id, String email) {
         SyndexOrderDto currentOrder = syndexDao.getByIdForUpdate(id, userService.getIdByEmail(email));
 
         if (currentOrder.getStatus() != SyndexOrderStatusEnum.CREATED) {
             throw new SyndexOrderException("Current status not suitable for cancellation");
         }
 
-        refillService.revokeRefillRequest(id);
         syndexDao.updateStatus(id, SyndexOrderStatusEnum.CANCELLED.getStatusId());
         syndexClient.cancelOrder(currentOrder.getSyndexId());
     }
@@ -161,7 +159,7 @@ public class SyndexServiceImpl implements SyndexService {
     @Override
     public void openDispute(SyndexClient.DisputeData data, String email) {
         SyndexOrderDto currentOrder = syndexDao.getByIdForUpdate(data.getId(), userService.getIdByEmail(email));
-        long minutesLeft = Duration.between(currentOrder.getLastModifDate(), LocalDateTime.now()).toMinutes();
+        long minutesLeft = Duration.between(currentOrder.getStatusModifDate(), LocalDateTime.now()).toMinutes();
 
         if (minutesLeft < minuteToWaitBeforeDisput) {
             throw new SyndexOrderException(String.format("You can open a dispute in %d minutes after receiving payment details, please wait!", minuteToWaitBeforeDisput));
@@ -222,6 +220,16 @@ public class SyndexServiceImpl implements SyndexService {
         }  else {
             log.debug("do nothing on order {}", retrievedOrder);
         }
+    }
+
+    @Override
+    public void declineAdmin(int id) {
+        syndexDao.updateStatus(id, SyndexOrderStatusEnum.CANCELLED.getStatusId());
+    }
+
+    @Override
+    public void acceptAdmin(int id) {
+        syndexDao.updateStatus(id, SyndexOrderStatusEnum.COMPLETE.getStatusId());
     }
 
     @SneakyThrows
