@@ -174,7 +174,7 @@ public class OrderDaoImpl implements OrderDao {
             put("amount_convert", exOrder.getAmountConvert());
             put("commission_id", exOrder.getComissionId());
             put("commission_fixed_amount", exOrder.getCommissionFixedAmount());
-            put("status_id", CLOSED.getStatus());
+            put("status_id", exOrder.getStatus().getStatus());
             put("order_source_id", exOrder.getSourceId());
             put("user_acceptor_id", exOrder.getUserAcceptorId());
             Timestamp currentDate = Timestamp.valueOf(LocalDateTime.now());

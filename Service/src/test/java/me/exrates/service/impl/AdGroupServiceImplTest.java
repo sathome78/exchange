@@ -134,6 +134,7 @@ public class AdGroupServiceImplTest {
                 .amount("100.00")
                 .currency("RUB")
                 .accountTo("ewfwfwe")
+                .id("13424234")
                 .build();
 
     }

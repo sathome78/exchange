@@ -16,5 +16,7 @@ public class WithdrawMerchantOperationDto {
   private String accountTo;
   private String destinationTag;
 
+  private String id;
+
   private Integer userId;
 }

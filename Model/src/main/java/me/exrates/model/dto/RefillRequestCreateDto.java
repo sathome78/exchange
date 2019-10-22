@@ -48,6 +48,8 @@ public class RefillRequestCreateDto {
     private String txHash;
     private SyndexOrderParams syndexOrderParams = new SyndexOrderParams();
 
+    private String paymentLink;
+
 
     public RefillRequestCreateDto(RefillRequestParamsDto paramsDto, CreditsOperation creditsOperation, RefillStatusEnum status, Locale locale) {
         this.currencyId = paramsDto.getCurrency();
