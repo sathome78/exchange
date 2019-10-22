@@ -1,5 +1,6 @@
 package me.exrates.controller.merchants;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.service.NixMoneyService;
 import me.exrates.service.exception.RefillRequestAlreadyAcceptedException;
 import org.apache.log4j.LogManager;
@@ -19,6 +20,7 @@ import static org.springframework.http.HttpStatus.OK;
 
 @Controller
 @RequestMapping("/merchants/nixmoney")
+@Log4j2(topic = "nixmoney_log")
 public class NixMoneyMerchantController {
 
     private static final Logger logger = LogManager.getLogger("merchant");
