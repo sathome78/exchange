@@ -89,7 +89,12 @@ public class SyndexServiceImpl implements SyndexService {
 
         try {
             return syndexOrdersCache.get(dto.getId(), () -> {
-                checkOrder(dto.getSyndexId());
+
+                try {
+                    checkOrder(dto.getSyndexId());
+                } catch (Exception ignore){
+                }
+
                 return syndexDao.getById(orderId, userService.getIdByEmail(email));
             });
 
