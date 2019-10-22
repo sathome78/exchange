@@ -73,7 +73,7 @@ public class TronReceiveServiceImpl {
     private void checkBlocks() {
         try {
             log.debug("tron start check blocks");
-            long lastScannedBlock = 13428766;//loadLastBlock();
+            long lastScannedBlock = loadLastBlock();
             long blockchainHeight = getLastBlockNum() - 10;
             log.debug("last scanned block {} height {}", lastScannedBlock, blockchainHeight);
             while (lastScannedBlock < blockchainHeight) {
