@@ -167,9 +167,9 @@ public interface SyndexClient {
     @AllArgsConstructor
     @Getter@Setter
     class OpenDisputeRequest extends BaseRequestEntity {
-        private String comment;
         @JsonProperty("order_id")
         private String orderId;
+        private String comment;
     }
 
     @Getter@Setter

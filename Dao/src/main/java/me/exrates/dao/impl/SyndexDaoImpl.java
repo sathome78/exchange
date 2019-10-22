@@ -58,7 +58,7 @@ public class SyndexDaoImpl implements SyndexDao {
     @Override
     public void updateStatus(int refillRequestId, int newStatus) {
         final String sql = "UPDATE SYNDEX_ORDER " +
-                "SET status_id = :status_id, modification_date = NOW() " +
+                "SET status_id = :status_id, status_modification_date = NOW() " +
                 "WHERE refill_request_id = :refill_request_id";
 
         MapSqlParameterSource parameters = new MapSqlParameterSource()
@@ -71,9 +71,25 @@ public class SyndexDaoImpl implements SyndexDao {
     }
 
     @Override
+    public void openDispute(int refillRequestId, String text, int newStatus) {
+        final String sql = "UPDATE SYNDEX_ORDER " +
+                "SET status_id = :status_id, status_modification_date = NOW(), dispute_details = :text  " +
+                "WHERE refill_request_id = :refill_request_id";
+
+        MapSqlParameterSource parameters = new MapSqlParameterSource()
+                .addValue("refill_request_id", refillRequestId)
+                .addValue("status_id", newStatus)
+                .addValue("text", text);
+
+        if (namedParameterJdbcTemplate.update(sql, parameters) < 1) {
+            throw new RuntimeException("Order not updated");
+        }
+    }
+
+    @Override
     public void updatePaymentDetailsAndEndDate(int refillRequestId, String details, LocalDateTime endPaymentTime) {
         final String sql = "UPDATE SYNDEX_ORDER " +
-                "SET payment_details = :details, payment_time_end = :end_time, modification_date = NOW() " +
+                "SET payment_details = :details, payment_time_end = :end_time, payment_details_received_date = NOW() " +
                 "WHERE refill_request_id = :refill_request_id";
 
         MapSqlParameterSource parameters = new MapSqlParameterSource()

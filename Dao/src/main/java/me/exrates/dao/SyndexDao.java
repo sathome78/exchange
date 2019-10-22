@@ -26,4 +26,6 @@ public interface SyndexDao {
     SyndexOrderDto getByIdForUpdate(int id, int userId);
 
     SyndexOrderDto getBySyndexIdForUpdate(long id);
+
+    void openDispute(int id, String text, int statusId);
 }

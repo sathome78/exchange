@@ -40,7 +40,7 @@ public class SyndexServiceImpl implements SyndexService {
 
     private final SyndexDao syndexDao;
     private final SyndexClient syndexClient;
-    private static final Integer minuteToWaitBeforeDisput = 90;
+    private static final Integer minuteToWaitBeforeDisput = 40;
     private static final String MERCHANT_NAME = "Syndex";
     private static final String CURRENCY_NAME = "USD";
     private static final String AMOUNT_PARAM = "AMOUNT";
@@ -144,7 +144,7 @@ public class SyndexServiceImpl implements SyndexService {
         SyndexOrderDto currentOrder = syndexDao.getByIdForUpdate(id, userService.getIdByEmail(email));
 
         if (currentOrder.getStatus() != SyndexOrderStatusEnum.CREATED) {
-            throw new SyndexOrderException("Current status not suiatable for Cancelling order");
+            throw new SyndexOrderException("Current status not suitable for cancellation");
         }
 
         refillService.revokeRefillRequest(id);
@@ -159,14 +159,15 @@ public class SyndexServiceImpl implements SyndexService {
         long minutesLeft = Duration.between(currentOrder.getLastModifDate(), LocalDateTime.now()).toMinutes();
 
         if (minutesLeft < minuteToWaitBeforeDisput) {
-            throw new SyndexOrderException("wait 90 minutes to open dispute");
+            throw new SyndexOrderException(String.format("You can open a dispute in %d minutes after receiving payment details, please wait!", minuteToWaitBeforeDisput));
         }
 
         if (currentOrder.getStatus() != SyndexOrderStatusEnum.MODERATION) {
-            throw new SyndexOrderException("Current status not suiatable for Cancelling order");
+            throw new SyndexOrderException("Current status is not suitable for cancellation");
         }
 
         syndexDao.updateStatus(data.getId(), SyndexOrderStatusEnum.CONFLICT.getStatusId());
+        syndexDao.openDispute(data.getId(), data.getText(), SyndexOrderStatusEnum.CONFLICT.getStatusId());
         syndexClient.openDispute(currentOrder.getSyndexId(), data.getText());
     }
 

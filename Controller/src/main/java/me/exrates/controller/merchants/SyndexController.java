@@ -7,6 +7,7 @@ import me.exrates.model.dto.SyndexOrderDto;
 import me.exrates.service.syndex.SyndexCallException;
 import me.exrates.service.syndex.SyndexClient;
 import me.exrates.service.syndex.SyndexFrontDataService;
+import me.exrates.service.syndex.SyndexOrderException;
 import me.exrates.service.syndex.SyndexService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -104,7 +105,7 @@ public class SyndexController {
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler({EmptyResultDataAccessException.class, SyndexCallException.class, NullPointerException.class})
+    @ExceptionHandler({EmptyResultDataAccessException.class, SyndexCallException.class, NullPointerException.class, SyndexOrderException.class})
     @ResponseBody
     public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
