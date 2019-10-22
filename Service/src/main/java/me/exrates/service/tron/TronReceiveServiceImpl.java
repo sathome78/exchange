@@ -47,7 +47,7 @@ public class TronReceiveServiceImpl {
     private static final int TRX_DECIMALS = 6;
 
     private static Map<String, Trc20TokenService> tokenTrc20Map = new HashMap<String, Trc20TokenService>(){{
-        put("USDT", new Trc20TokenServiceImpl("USDTTRC20", "USDTTRC20"));
+        put("USDT", new Trc20TokenServiceImpl("USDT(TRX)", "USDT(TRX)"));
         put("WIN", new Trc20TokenServiceImpl("WIN", "WIN"));
     }};
 
