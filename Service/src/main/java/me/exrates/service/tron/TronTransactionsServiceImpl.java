@@ -77,6 +77,7 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
         listRefillRequestAddressDto.forEach(p->{
             try {
                 if(p.getMerchantId() == 387){  //need to set TRON TRC20 id from merchant
+                    log.debug("Start transfer founds for USDT(TRX)");
                     transferToMainAccountTRC20(p);
                 }else {
                     transferToMainAccount(p);
@@ -185,8 +186,11 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
         Preconditions.checkArgument(amount > 0, "invalid amount " + amount);
         TronTransferDtoTRC20 tronTransferDto = new TronTransferDtoTRC20(addressTo, ownerAdress, amount);
         JSONObject object = tronNodeService.transferFundsTRC20(tronTransferDto);
+        log.info("Send request for transaction for USDT()TRX");
         JSONObject transaction = object.getJSONObject("transaction").put("privateKey", privatKey);
+        log.info("Send request for signin transaction for USDT()TRX");
         JSONObject signTransaction = tronNodeService.signTransferFundsTRC20(transaction);
+        log.info("Send request for broadcast transaction for USDT()TRX");
         JSONObject completedObject = tronNodeService.broadcastTransferFundsTRC20(signTransaction);
         boolean result = completedObject.getJSONObject("result").getBoolean("result");
         if (!result) {
