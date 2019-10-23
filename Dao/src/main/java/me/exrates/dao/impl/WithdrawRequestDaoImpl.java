@@ -399,7 +399,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         Map<String, Object> params = new HashMap<>();
         params.put("currency_id", currencyId);
         params.put("email", email);
-        params.put("statuses", Arrays.asList(7,8,12));
+        params.put("statuses", Arrays.asList(7, 8, 12));
         params.put("newSum", newSum);
 
         return jdbcTemplate.queryForObject(sql, params, Integer.class) == 1;
