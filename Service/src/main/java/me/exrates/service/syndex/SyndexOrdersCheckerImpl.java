@@ -8,8 +8,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -33,7 +31,7 @@ public class SyndexOrdersCheckerImpl implements SyndexOrderChecker {
 
     @PostConstruct
     private void init() {
-        executorService.scheduleWithFixedDelay(this::check, 0, 1, TimeUnit.MINUTES);
+        executorService.scheduleWithFixedDelay(this::check, 5, 2, TimeUnit.MINUTES);
     }
 
     @Override

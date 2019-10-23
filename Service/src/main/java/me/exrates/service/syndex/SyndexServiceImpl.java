@@ -199,6 +199,9 @@ public class SyndexServiceImpl implements SyndexService {
     public void checkOrder(long syndexOrderId) {
 
         SyndexOrderDto currentOrderFromDb = syndexDao.getBySyndexIdForUpdate(syndexOrderId);
+        if (!currentOrderFromDb.getStatus().isInPendingStatus()) {
+            return;
+        }
         SyndexClient.OrderInfo retrievedOrder = syndexClient.getOrderInfo(syndexOrderId);
         SyndexOrderStatusEnum lastSavedStatus = currentOrderFromDb.getStatus();
         SyndexOrderStatusEnum newStatus = SyndexOrderStatusEnum.convert(retrievedOrder.getStatus());

@@ -49,17 +49,17 @@ public class SyndexController {
         this.syndexService = syndexService;
     }
 
-    @GetMapping("/public/v2/syndex/country")
+    @GetMapping("/private/v2/syndex/country")
     public List<SyndexClient.Country> getCountries() {
         return dataService.getCountryList();
     }
 
-    @GetMapping("/public/v2/syndex/currency")
+    @GetMapping("/private/v2/syndex/currency")
     public List<SyndexClient.Currency> getCurrencies() {
         return dataService.getCurrencyList();
     }
 
-    @GetMapping("/public/v2/syndex/payment-system")
+    @GetMapping("/private/v2/syndex/payment-system")
     public List<SyndexClient.PaymentSystemWrapper> getPaymentSystems(@RequestParam("country") String country) {
         return dataService.getPaymentSystemList(country);
     }
