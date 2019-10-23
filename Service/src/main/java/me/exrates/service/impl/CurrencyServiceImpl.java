@@ -118,8 +118,8 @@ public class CurrencyServiceImpl implements CurrencyService {
         allPairs = findAllCurrencyPair()
                 .stream().collect(Collectors.toMap(CurrencyPair::getId, Function.identity()));
 
-//        defaultMarketVolumes = getAllMarketVolumes().stream()
-//                .collect(Collectors.toMap(MarketVolume::getName, MarketVolume::getMarketVolume));
+        defaultMarketVolumes = getAllMarketVolumes().stream()
+                .collect(Collectors.toMap(MarketVolume::getName, MarketVolume::getMarketVolume));
     }
 
     @Override
