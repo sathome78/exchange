@@ -79,6 +79,9 @@ public class OrdersEventHandleService {
     @TransactionalEventListener
     public void handleOrderEventAsync(CreateOrderEvent event) {
         ExOrder exOrder = (ExOrder) event.getSource();
+
+        CompletableFuture.runAsync(() -> rabbitMqService.sendOrderToTradingView(exOrder));
+
         onOrdersEvent(exOrder.getCurrencyPairId(), exOrder.getOperationType());
         sendOrderEventNotification(exOrder).run();
     }
@@ -108,11 +111,14 @@ public class OrdersEventHandleService {
         dealsSync.execute(order.getCurrencyPairId(), () -> {
             List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
             log.info("order accepted " + order.getCurrencyPair().getName());
-            completableFutures.add(CompletableFuture.runAsync(() -> rabbitMqService.sendTradeInfo(order), handlersExecutors));
+            completableFutures.add(CompletableFuture.runAsync(() -> {
+                rabbitMqService.sendTradeInfo(order);
+                rabbitMqService.sendTradeToTradingView(order);
+            }, handlersExecutors));
             completableFutures.add(CompletableFuture.runAsync(() -> {
                 onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
                 handleAllTrades(order);
-                }, handlersExecutors));
+            }, handlersExecutors));
             completableFutures.add(CompletableFuture.runAsync(() -> {
                 ratesHolder.onRatesChange(order);
                 currencyStatisticsHandler.onEvent(order.getCurrencyPairId());

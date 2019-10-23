@@ -1,9 +1,9 @@
 package me.exrates.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
+import me.exrates.model.dto.tradingview.ExternalOrderDto;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.RabbitMqService;
@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.util.Objects;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 @PropertySource(value = {"classpath:/rabbit.properties"})
 @Log4j2
@@ -27,40 +28,23 @@ public class RabbitMqServiceImpl implements RabbitMqService {
 
     private final CurrencyService currencyService;
     private final RabbitTemplate rabbitTemplate;
-    private final ObjectMapper mapper;
 
     private String chartQueue;
+    private String tvTradesQueue;
+    private String tvOrdersQueue;
 
     @Autowired
     public RabbitMqServiceImpl(CurrencyService currencyService,
                                RabbitTemplate rabbitTemplate,
-                               ObjectMapper mapper,
-                               @Value("${rabbit.chart.queue}") String chartQueue) {
+                               @Value("${rabbit.chart.queue}") String chartQueue,
+                               @Value("${rabbit.tradingview.trades-queue}") String tvTradesQueue,
+                               @Value("${rabbit.tradingview.orders-queue}") String tvOrdersQueue) {
         this.currencyService = currencyService;
         this.rabbitTemplate = rabbitTemplate;
-        this.mapper = mapper;
         this.chartQueue = chartQueue;
+        this.tvTradesQueue = tvTradesQueue;
+        this.tvOrdersQueue = tvOrdersQueue;
     }
-
-//    @Override
-//    public void sendOrderInfo(InputCreateOrderDto inputOrder, String queueName) {
-//        try {
-//            String orderJson = mapper.writeValueAsString(inputOrder);
-//            log.info("Sending order to demo-server {}", orderJson);
-//
-//            try {
-//                byte[] bytes = (byte[]) this.rabbitTemplate.convertSendAndReceive(queueName, orderJson);
-//                String result = new String(bytes);
-//                log.info("Return from demo-server {}", result);
-//            } catch (AmqpException e) {
-//                String msg = "Failed to send data via rabbit queue";
-//                log.error(msg + " " + orderJson, e);
-//                throw new RabbitMqException(msg);
-//            }
-//        } catch (JsonProcessingException e) {
-//            log.error("Failed to send order to old instance", e);
-//        }
-//    }
 
     @Override
     public void sendTradeInfo(ExOrder order) {
@@ -77,6 +61,46 @@ public class RabbitMqServiceImpl implements RabbitMqService {
             rabbitTemplate.convertAndSend(chartQueue, tradeDataDto);
 
             log.info("End sending trade data to chart service");
+        } catch (AmqpException ex) {
+            throw new RabbitMqException("Failed to send data via rabbit queue");
+        }
+    }
+
+    @Override
+    public void sendTradeToTradingView(ExOrder order) {
+        if (!Objects.equals(order.getStatus(), OrderStatus.CLOSED) || isNull(order.getDateAcception())) {
+            return;
+        }
+        CurrencyPair currencyPair = currencyService.findCurrencyPairById(order.getCurrencyPairId());
+
+        final ExternalOrderDto externalOrderDto = new ExternalOrderDto(order);
+        externalOrderDto.setPairName(currencyPair.getName());
+
+        log.info("Start sending accepted order to external service");
+        try {
+            rabbitTemplate.convertAndSend(tvTradesQueue, externalOrderDto);
+
+            log.info("End sending accepted order to external service");
+        } catch (AmqpException ex) {
+            throw new RabbitMqException("Failed to send data via rabbit queue");
+        }
+    }
+
+    @Override
+    public void sendOrderToTradingView(ExOrder order) {
+        if (Objects.equals(order.getStatus(), OrderStatus.CLOSED) || nonNull(order.getDateAcception())) {
+            return;
+        }
+        CurrencyPair currencyPair = currencyService.findCurrencyPairById(order.getCurrencyPairId());
+
+        final ExternalOrderDto externalOrderDto = new ExternalOrderDto(order);
+        externalOrderDto.setPairName(currencyPair.getName());
+
+        log.info("Start sending created order to external service");
+        try {
+            rabbitTemplate.convertAndSend(tvOrdersQueue, externalOrderDto);
+
+            log.info("End sending created order to external service");
         } catch (AmqpException ex) {
             throw new RabbitMqException("Failed to send data via rabbit queue");
         }

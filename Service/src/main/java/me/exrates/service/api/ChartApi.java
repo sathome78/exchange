@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import me.exrates.model.dto.CandleDto;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.exception.ChartApiException;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -16,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -32,10 +32,9 @@ public class ChartApi {
     private final RestTemplate restTemplate;
 
     @Autowired
-    public ChartApi(@Value("${api.chart.url}") String url,
-                    @Value("${api.chart.timeout:10000}") int timeout) {
+    public ChartApi(@Value("${api.chart.url}") String url) {
         this.url = url;
-        this.restTemplate = new RestTemplate(getClientHttpRequestFactory(timeout));
+        this.restTemplate = new RestTemplate(getClientHttpRequestFactory());
     }
 
     public List<CandleDto> getCandlesDataByRange(String pairName,
@@ -91,22 +90,31 @@ public class ChartApi {
         return responseEntity.getBody();
     }
 
-    private ClientHttpRequestFactory getClientHttpRequestFactory(int timeout) {
+    private ClientHttpRequestFactory getClientHttpRequestFactory() {
         HttpComponentsClientHttpRequestFactory httpRequestFactory = new HttpComponentsClientHttpRequestFactory();
-        httpRequestFactory.setConnectTimeout(timeout);
-        httpRequestFactory.setConnectionRequestTimeout(timeout);
-        httpRequestFactory.setReadTimeout(timeout);
+        httpRequestFactory.setConnectTimeout(10000);
+        httpRequestFactory.setConnectionRequestTimeout(10000);
+        httpRequestFactory.setReadTimeout(10000);
 
         return httpRequestFactory;
     }
 
     private String buildQueryParams(String pairName, LocalDateTime from, LocalDateTime to, BackDealInterval interval) {
-        String pairParam = String.format("currencyPair=%s", pairName);
-        String fromParam = nonNull(from) ? String.format("from=%s", from.format(DateTimeFormatter.ISO_DATE_TIME)) : StringUtils.EMPTY;
-        String toParam = nonNull(to) ? String.format("to=%s", to.format(DateTimeFormatter.ISO_DATE_TIME)) : StringUtils.EMPTY;
-        String intervalValueParam = String.format("intervalValue=%s", interval.getIntervalValue().toString());
-        String intervalTypeParam = String.format("intervalType=%s", interval.getIntervalType().name());
+        List<String> params = new ArrayList<>();
 
-        return String.join("&", pairParam, fromParam, toParam, intervalValueParam, intervalTypeParam);
+        if (nonNull(pairName)) {
+            params.add(String.format("currencyPair=%s", pairName));
+        }
+        if (nonNull(from)) {
+            params.add(String.format("from=%s", from.format(DateTimeFormatter.ISO_DATE_TIME)));
+        }
+        if (nonNull(to)) {
+            params.add(String.format("to=%s", to.format(DateTimeFormatter.ISO_DATE_TIME)));
+        }
+        if (nonNull(interval)) {
+            params.add(String.format("intervalValue=%s", interval.getIntervalValue().toString()));
+            params.add(String.format("intervalType=%s", interval.getIntervalType().name()));
+        }
+        return String.join("&", params);
     }
 }
