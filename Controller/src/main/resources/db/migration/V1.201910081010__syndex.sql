@@ -8,7 +8,7 @@ VALUES ((SELECT id from MERCHANT WHERE name = 'Syndex'),
         (SELECT id from CURRENCY WHERE name = 'USD'), 10, 0, 0);
 
 INSERT IGNORE INTO `MERCHANT_IMAGE` (`merchant_id`, `image_path`, `image_name`, `currency_id`)
-VALUES ((SELECT id from MERCHANT WHERE name = 'Syndex'), '/client/img/merchants/yandexmoney.png',
+VALUES ((SELECT id from MERCHANT WHERE name = 'Syndex'), '/client/img/merchants/syndex.png',
         'Syndex', (SELECT id from CURRENCY WHERE name = 'USD'));
 
 
