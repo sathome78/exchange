@@ -149,6 +149,10 @@ public class WsController {
 
     @SubscribeMapping("/ieo/ieo_details/{detailId}")
     public IEODetails subscribeIeoDetails(@DestinationVariable Integer detailId) {
-        return ieoService.findOne(Preconditions.checkNotNull(detailId));
+        IEODetails ieoDetails = ieoService.findOne(Preconditions.checkNotNull(detailId));
+        if (ieoDetails == null) {
+            throw new RuntimeException("Ieo details cannot be null");
+        }
+        return ieoDetails;
     }
 }

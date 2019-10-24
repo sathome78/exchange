@@ -21,8 +21,6 @@ import me.exrates.service.exception.RefillRequestIdNeededException;
 import me.exrates.service.exception.RefillRequestNotFoundException;
 import me.exrates.service.util.WithdrawUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Conditional;
@@ -56,9 +54,6 @@ public class NixMoneyServiceImpl implements NixMoneyService {
     private @Value("${nixmoney.statustUrl}")
     String statustUrl;
 
-
-    private static final Logger logger = LogManager.getLogger(NixMoneyServiceImpl.class);
-
     @Autowired
     private AlgorithmService algorithmService;
     @Autowired
@@ -81,6 +76,7 @@ public class NixMoneyServiceImpl implements NixMoneyService {
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
+        log.info("Starting process refill {}", request);
         Integer requestId = request.getId();
         if (requestId == null) {
             throw new RefillRequestIdNeededException(request.toString());
@@ -105,6 +101,7 @@ public class NixMoneyServiceImpl implements NixMoneyService {
             put("STATUS_URL", statustUrl);
         }};
         /**/
+        log.info("Finished process refill url {}, properties {}", url, properties);
         return generateFullUrlMap(url, "POST", properties);
     }
 
@@ -135,15 +132,15 @@ public class NixMoneyServiceImpl implements NixMoneyService {
                         .merchantTransactionId(merchantTransactionId)
                         .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                         .build();
-
+                log.info("Valid payment {}", requestAcceptDto);
                 refillService.autoAcceptRefillRequest(requestAcceptDto);
 
                 final String gaTag = refillService.getUserGAByRequestId(requestId);
 
-                logger.debug("Process of sending data to Google Analytics...");
+                log.info("Process of sending data to Google Analytics...");
                 gtagService.sendGtagEvents(amount.toString(), currency.getName(), gaTag);
             }
-        } catch (Throwable e){
+        } catch (Throwable e) {
             log.error(ExceptionUtils.getStackTrace(e));
             throw e;
         }

@@ -67,6 +67,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
@@ -135,10 +138,11 @@ public class NgPublicController {
 
     @GetMapping("/if_email_exists")
     public ResponseEntity<Boolean> checkIfNewUserEmailExists(@RequestParam("email") String email, HttpServletRequest request) {
-        if (Objects.isNull(email)) {
-            throw new NgResponseException(ErrorApiTitles.USER_EMAIL_NOT_DECODED, "User email is not decoded");
+        try {
+            email = URLDecoder.decode(email, StandardCharsets.UTF_8.toString());
+        } catch (UnsupportedEncodingException e) {
+            throw new NgResponseException(ErrorApiTitles.USER_EMAIL_NOT_DECODED, "User email is not properly decoded");
         }
-
         logger.info("Url request url {}, scheme {}, port {}", request.getRequestURI(), request.getScheme(), request.getServerPort());
         User user;
         try {
