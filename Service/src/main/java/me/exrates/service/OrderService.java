@@ -9,7 +9,7 @@ import me.exrates.model.User;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AdminOrderInfoDto;
 import me.exrates.model.dto.CallBackLogDto;
-import me.exrates.model.dto.CoinmarketApiDto;
+import me.exrates.model.dto.CoinmarketcapApiDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.InputCreateOrderDto;
@@ -219,20 +219,9 @@ public interface OrderService {
      */
     boolean updateOrder(ExOrder exOrder);
 
-    /**
-     * Returns data for CoinMarketCap API
-     *
-     * @param currencyPairName
-     * @param backDealInterval
-     * @return list the CoinmarketApiDto, which consists info about currency pairs according to API
-     */
-    List<CoinmarketApiDto> getCoinmarketData(String currencyPairName, BackDealInterval backDealInterval);
+    List<CoinmarketcapApiDto> getCoinmarketcapDataForActivePairs(String currencyPairName, BackDealInterval backDealInterval);
 
-    List<CoinmarketApiDto> getCoinmarketDataForActivePairs(String currencyPairName, BackDealInterval backDealInterval);
-
-    List<CoinmarketApiDto> getDailyCoinmarketData(String currencyPairName);
-
-    List<CoinmarketApiDto> getHourlyCoinmarketData(String currencyPairName);
+    List<CoinmarketcapApiDto> getDailyCoinmarketcapData(String currencyPairName);
 
     /**
      * Returns detailed info about the order, including info from related transactions

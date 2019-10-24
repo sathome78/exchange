@@ -21,7 +21,6 @@ import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AdminOrderInfoDto;
 import me.exrates.model.dto.CallBackLogDto;
 import me.exrates.model.dto.CandleChartItemDto;
-import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
@@ -106,7 +105,6 @@ import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.util.BiTuple;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.json.JSONArray;
 import org.junit.Before;
@@ -4128,85 +4126,6 @@ public class OrderServiceImplTest {
     }
 
     @Test
-    public void getCoinmarketData() {
-        CurrencyPair mockCurrencyPair = getMockCurrencyPair(CurrencyPairType.ALL);
-        mockCurrencyPair.setName("BTC/USD");
-
-        when(orderDao.getCoinmarketData(anyString())).thenReturn(Collections.singletonList(getMockCoinmarketApiDto()));
-        when(currencyService.getAllCurrencyPairs(any(CurrencyPairType.class)))
-                .thenReturn(Collections.singletonList(mockCurrencyPair));
-
-        List<CoinmarketApiDto> coinmarketData = orderService.getCoinmarketData("BTC/USD", new BackDealInterval());
-
-        assertNotNull(coinmarketData);
-        assertEquals(1, coinmarketData.size());
-        assertEquals(Integer.valueOf(mockCurrencyPair.getId()), coinmarketData.get(0).getCurrencyPairId());
-        assertEquals(mockCurrencyPair.getName(), coinmarketData.get(0).getCurrency_pair_name());
-        assertEquals(BigDecimal.TEN, coinmarketData.get(0).getFirst());
-        assertEquals(BigDecimal.ONE, coinmarketData.get(0).getLast());
-
-        verify(orderDao, atLeastOnce()).getCoinmarketData(anyString());
-        verify(currencyService, atLeastOnce()).getAllCurrencyPairs(any(CurrencyPairType.class));
-    }
-
-    @Test
-    public void getCoinmarketDataForActivePairs() {
-        CoinmarketApiDto dto = getMockCoinmarketApiDto();
-
-        when(orderDao.getCoinmarketData(anyString())).thenReturn(Collections.singletonList(dto));
-
-        List<CoinmarketApiDto> hourlyCoinmarketData = orderService.getCoinmarketDataForActivePairs(
-                "BTC/USD",
-                new BackDealInterval());
-
-        assertNotNull(hourlyCoinmarketData);
-        assertEquals(1, hourlyCoinmarketData.size());
-        assertEquals(dto.getCurrencyPairId(), hourlyCoinmarketData.get(0).getCurrencyPairId());
-        assertEquals(dto.getCurrency_pair_name(), hourlyCoinmarketData.get(0).getCurrency_pair_name());
-        assertEquals(dto.getFirst(), hourlyCoinmarketData.get(0).getFirst());
-        assertEquals(dto.getLast(), hourlyCoinmarketData.get(0).getLast());
-
-        verify(orderDao, atLeastOnce()).getCoinmarketData(anyString());
-    }
-
-    @Test
-    public void getDailyCoinmarketData_currencyPairName_empty() {
-        CoinmarketApiDto dto = getMockCoinmarketApiDto();
-
-        when(orderDao.getCoinmarketData(anyString())).thenReturn(Collections.singletonList(dto));
-        when(orderDao.getCoinmarketData(anyString())).thenReturn(Collections.singletonList(dto));
-
-        List<CoinmarketApiDto> hourlyCoinmarketData = orderService.getDailyCoinmarketData("");
-
-        assertNotNull(hourlyCoinmarketData);
-        assertEquals(1, hourlyCoinmarketData.size());
-        assertEquals(dto.getCurrencyPairId(), hourlyCoinmarketData.get(0).getCurrencyPairId());
-        assertEquals(dto.getCurrency_pair_name(), hourlyCoinmarketData.get(0).getCurrency_pair_name());
-        assertEquals(dto.getFirst(), hourlyCoinmarketData.get(0).getFirst());
-        assertEquals(dto.getLast(), hourlyCoinmarketData.get(0).getLast());
-
-        verify(orderDao, atLeastOnce()).getCoinmarketData(anyString());
-    }
-
-    @Test
-    public void getHourlyCoinmarketData() {
-        CoinmarketApiDto dto = getMockCoinmarketApiDto();
-
-        when(orderDao.getCoinmarketData(anyString())).thenReturn(Collections.singletonList(dto));
-
-        List<CoinmarketApiDto> hourlyCoinmarketData = orderService.getHourlyCoinmarketData("BTC/USD");
-
-        assertNotNull(hourlyCoinmarketData);
-        assertEquals(1, hourlyCoinmarketData.size());
-        assertEquals(dto.getCurrencyPairId(), hourlyCoinmarketData.get(0).getCurrencyPairId());
-        assertEquals(dto.getCurrency_pair_name(), hourlyCoinmarketData.get(0).getCurrency_pair_name());
-        assertEquals(dto.getFirst(), hourlyCoinmarketData.get(0).getFirst());
-        assertEquals(dto.getLast(), hourlyCoinmarketData.get(0).getLast());
-
-        verify(orderDao, atLeastOnce()).getCoinmarketData(anyString());
-    }
-
-    @Test
     public void getOrderInfo() {
         OrderInfoDto dto = new OrderInfoDto();
 
@@ -6553,15 +6472,6 @@ public class OrderServiceImplTest {
                 BigDecimal.ONE,
                 LocalDateTime.of(2019, 4, 1, 12, 35, 21),
                 LocalDateTime.of(2019, 4, 1, 15, 35, 21));
-    }
-
-    private CoinmarketApiDto getMockCoinmarketApiDto() {
-        CoinmarketApiDto dto = new CoinmarketApiDto();
-        dto.setCurrencyPairId(100);
-        dto.setCurrency_pair_name("BTC/USD");
-        dto.setFirst(BigDecimal.TEN);
-        dto.setLast(BigDecimal.ONE);
-        return dto;
     }
 
     private ExOrder getMockExOrder() {

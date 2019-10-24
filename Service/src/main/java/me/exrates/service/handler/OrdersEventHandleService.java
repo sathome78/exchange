@@ -78,17 +78,18 @@ public class OrdersEventHandleService {
     @Async
     @TransactionalEventListener
     public void handleOrderEventAsync(CreateOrderEvent event) {
-        ExOrder exOrder = (ExOrder) event.getSource();
-        onOrdersEvent(exOrder.getCurrencyPairId(), exOrder.getOperationType());
-        sendOrderEventNotification(exOrder).run();
+        ExOrder order = (ExOrder) event.getSource();
+        CompletableFuture.runAsync(() -> rabbitMqService.sendOrderInfo(order), handlersExecutors);
+        onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
+        sendOrderEventNotification(order).run();
     }
 
     @Async
     @TransactionalEventListener
     public void handleOrderEventAsync(CancelOrderEvent event) {
-        ExOrder exOrder = (ExOrder) event.getSource();
-        onOrdersEvent(exOrder.getCurrencyPairId(), exOrder.getOperationType());
-        sendOrderEventNotification(exOrder).run();
+        ExOrder order = (ExOrder) event.getSource();
+        onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
+        sendOrderEventNotification(order).run();
     }
 
     @Async
@@ -108,11 +109,11 @@ public class OrdersEventHandleService {
         dealsSync.execute(order.getCurrencyPairId(), () -> {
             List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
             log.info("order accepted " + order.getCurrencyPair().getName());
-            completableFutures.add(CompletableFuture.runAsync(() -> rabbitMqService.sendTradeInfo(order), handlersExecutors));
+            completableFutures.add(CompletableFuture.runAsync(() -> rabbitMqService.sendOrderInfo(order), handlersExecutors));
             completableFutures.add(CompletableFuture.runAsync(() -> {
                 onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
                 handleAllTrades(order);
-                }, handlersExecutors));
+            }, handlersExecutors));
             completableFutures.add(CompletableFuture.runAsync(() -> {
                 ratesHolder.onRatesChange(order);
                 currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
@@ -156,17 +157,17 @@ public class OrdersEventHandleService {
         }
     }
 
-    private Runnable sendOrderEventNotification(ExOrder exOrder) {
+    private Runnable sendOrderEventNotification(ExOrder order) {
         return () -> {
-            String pairName = Objects.nonNull(exOrder.getCurrencyPair())
-                    ? exOrder.getCurrencyPair().getName()
-                    : currencyService.findCurrencyPairById(exOrder.getCurrencyPairId()).getName();
-            String creatorEmail = userService.findEmailById(exOrder.getUserId());
+            String pairName = Objects.nonNull(order.getCurrencyPair())
+                    ? order.getCurrencyPair().getName()
+                    : currencyService.findCurrencyPairById(order.getCurrencyPairId()).getName();
+            String creatorEmail = userService.findEmailById(order.getUserId());
             stompMessenger.updateUserOpenOrders(pairName, creatorEmail);
 
-            if (exOrder.getUserAcceptorId() > 0
-                    && exOrder.getUserAcceptorId() != exOrder.getUserId()) {
-                String acceptorEmail = userService.findEmailById(exOrder.getUserAcceptorId());
+            if (order.getUserAcceptorId() > 0
+                    && order.getUserAcceptorId() != order.getUserId()) {
+                String acceptorEmail = userService.findEmailById(order.getUserAcceptorId());
                 stompMessenger.updateUserOpenOrders(pairName, acceptorEmail);
             }
         };
