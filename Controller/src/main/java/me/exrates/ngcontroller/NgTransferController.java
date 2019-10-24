@@ -15,6 +15,7 @@ import me.exrates.model.dto.TransferDto;
 import me.exrates.model.dto.TransferRequestCreateDto;
 import me.exrates.model.dto.TransferRequestFlatDto;
 import me.exrates.model.dto.TransferRequestParamsDto;
+import me.exrates.model.dto.UserMerchantCurrencyOperationDto;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.OperationType;
@@ -126,6 +127,14 @@ public class NgTransferController {
         this.g2faService = g2faService;
         this.secureService = secureService;
         this.currencyService = currencyService;
+    }
+
+    @GetMapping("/merchants")
+    public UserMerchantCurrencyOperationDto getTransferMerchants(@RequestParam String currency) {
+
+        boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(getPrincipalEmail()), UserOperationAuthority.TRANSFER);
+
+        return new UserMerchantCurrencyOperationDto(accessToOperationForUser, merchantService.findTransferMerchantCurrenciesByCurrency(currency));
     }
 
     // /info/private/v2/balances/transfer/accept  PAYLOAD: {"CODE": "kdbfeyue743467"}
@@ -263,7 +272,6 @@ public class NgTransferController {
 
     }
 
-    @CheckUserAuthority(authority = UserOperationAuthority.TRANSFER)
     @GetMapping("/get_minimal_sum")
     public ResponseModel getMinimalTransferSum(@RequestParam("currency_id") int currencyId,
                                                @RequestParam("type") String type) {
