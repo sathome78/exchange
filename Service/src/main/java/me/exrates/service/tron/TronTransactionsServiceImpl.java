@@ -15,6 +15,9 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,7 +35,7 @@ import java.util.stream.StreamSupport;
 public class TronTransactionsServiceImpl implements TronTransactionsService {
 
     String getUSDTId = "SELECT id FROM MERCHANT WHERE name = 'USDT(TRX)'";
-    Integer usdtID = Integer.parseInt(getUSDTId);
+    Statement statement;
 
     @Autowired
     public TronTransactionsServiceImpl(TronNodeService tronNodeService, TronService tronService, RefillService refillService, TronTokenContext tronTokenContext) {
@@ -75,7 +78,9 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
 
     }
 
-    private void transferToMainAccountJob() {
+    private void transferToMainAccountJob() throws SQLException {
+        ResultSet resultSet = statement.executeQuery(getUSDTId);
+        Integer usdtID = resultSet.getInt(1);
         List<RefillRequestAddressDto> listRefillRequestAddressDto = refillService.findAllAddressesNeededToTransfer(tronService.getMerchantId(), tronService.getCurrencyId());
         listRefillRequestAddressDto.forEach(p->{
             try {
