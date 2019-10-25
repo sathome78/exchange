@@ -2,6 +2,7 @@ package me.exrates.service.api;
 
 import lombok.extern.slf4j.Slf4j;
 import me.exrates.model.dto.CandleDto;
+import me.exrates.model.dto.CoinmarketcapApiDto;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.exception.ChartApiException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,12 +29,15 @@ import static java.util.Objects.nonNull;
 public class ChartApi {
 
     private final String url;
+    private final String coinmarketcapUrl;
 
     private final RestTemplate restTemplate;
 
     @Autowired
-    public ChartApi(@Value("${api.chart.url}") String url) {
+    public ChartApi(@Value("${api.chart.url}") String url,
+                    @Value("${api.chart.coinmarketcap-url}") String coinmarketcapUrl) {
         this.url = url;
+        this.coinmarketcapUrl = coinmarketcapUrl;
         this.restTemplate = new RestTemplate(getClientHttpRequestFactory());
     }
 
@@ -88,6 +92,24 @@ public class ChartApi {
             return null;
         }
         return responseEntity.getBody();
+    }
+
+    private ClientHttpRequestFactory getClientHttpRequestFactory() {
+    public List<CoinmarketcapApiDto> getCoinmarketcapData(String pairName,
+                                                          BackDealInterval interval) {
+        final String queryParams = buildQueryParams(pairName, null, null, interval);
+
+        ResponseEntity<CoinmarketcapApiDto[]> responseEntity;
+        try {
+            responseEntity = restTemplate.getForEntity(String.format("%s?%s", coinmarketcapUrl, queryParams), CoinmarketcapApiDto[].class);
+            if (responseEntity.getStatusCodeValue() != 200) {
+                throw new ChartApiException("Chart server is not available");
+            }
+        } catch (Exception ex) {
+            log.warn("Chart service did not return valid data: server not available");
+            return Collections.emptyList();
+        }
+        return Arrays.asList(responseEntity.getBody());
     }
 
     private ClientHttpRequestFactory getClientHttpRequestFactory() {
