@@ -232,8 +232,8 @@ public class MerchantServiceImpl implements MerchantService {
 
     @Override
     public List<MerchantCurrencyApiDto> findTransferMerchantCurrenciesByCurrency(String currencyName) {
-        return findMerchantCurrenciesByCurrencyAndProcessTypes(currencyService.findByName(currencyName).getId(),
-                                                                Collections.singletonList(MerchantProcessType.TRANSFER.name()));
+        return merchantDao.findAllMerchantCurrencies(currencyService.findByName(currencyName).getId(),
+                userService.getUserRoleFromSecurityContext(),  Collections.singletonList(MerchantProcessType.TRANSFER.name()));
     }
 
     @Override

@@ -22,6 +22,7 @@ public class MerchantCurrencyApiDto {
     private Integer currencyId;
     private String name;
     private String processType;
+    private BigDecimal merchantMinSum;
     private BigDecimal minInputSum;
     private BigDecimal minOutputSum;
     private BigDecimal minTransferSum;

@@ -132,9 +132,10 @@ public class NgTransferController {
     @GetMapping("/merchants")
     public UserMerchantCurrencyOperationDto getTransferMerchants(@RequestParam String currency) {
 
-        boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(getPrincipalEmail()), UserOperationAuthority.TRANSFER);
-
-        return new UserMerchantCurrencyOperationDto(accessToOperationForUser, merchantService.findTransferMerchantCurrenciesByCurrency(currency));
+        boolean accessToOperationForUser = userOperationService
+                .getStatusAuthorityForUserByOperation(userService.getIdByEmail(getPrincipalEmail()), UserOperationAuthority.TRANSFER);
+        return new UserMerchantCurrencyOperationDto(accessToOperationForUser,
+                merchantService.findTransferMerchantCurrenciesByCurrency(currency));
     }
 
     // /info/private/v2/balances/transfer/accept  PAYLOAD: {"CODE": "kdbfeyue743467"}
