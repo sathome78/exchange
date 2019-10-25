@@ -94,7 +94,6 @@ public class ChartApi {
         return responseEntity.getBody();
     }
 
-    private ClientHttpRequestFactory getClientHttpRequestFactory() {
     public List<CoinmarketcapApiDto> getCoinmarketcapData(String pairName,
                                                           BackDealInterval interval) {
         final String queryParams = buildQueryParams(pairName, null, null, interval);
