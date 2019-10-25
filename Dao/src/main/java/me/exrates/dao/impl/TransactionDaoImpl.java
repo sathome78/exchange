@@ -312,7 +312,7 @@ public final class TransactionDaoImpl implements TransactionDao {
 
     @Override
     public Transaction create(Transaction transaction) {
-        final String sql = "INSERT INTO TRANSACTION (user_wallet_id, company_wallet_id, amount, commission_amount, " +
+        final String sql = "INSERT INTO TRANSACTION_1 (user_wallet_id, company_wallet_id, amount, commission_amount, " +
                 " commission_id, operation_type_id, currency_id, merchant_id, datetime, order_id, confirmation, provided," +
                 " active_balance_before, reserved_balance_before, company_balance_before, company_commission_balance_before, " +
                 " source_type, " +
