@@ -31,6 +31,9 @@ import java.util.stream.StreamSupport;
 @Conditional(MonolitConditional.class)
 public class TronTransactionsServiceImpl implements TronTransactionsService {
 
+    String getUSDTId = "SELECT id FROM MERCHANT WHERE name = 'USDT(TRX)'";
+    Integer usdtID = Integer.parseInt(getUSDTId);
+
     @Autowired
     public TronTransactionsServiceImpl(TronNodeService tronNodeService, TronService tronService, RefillService refillService, TronTokenContext tronTokenContext) {
         this.tronNodeService = tronNodeService;
@@ -76,7 +79,7 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
         List<RefillRequestAddressDto> listRefillRequestAddressDto = refillService.findAllAddressesNeededToTransfer(tronService.getMerchantId(), tronService.getCurrencyId());
         listRefillRequestAddressDto.forEach(p->{
             try {
-                if(p.getMerchantId() == 387){  //need to set TRON TRC20 id from merchant
+                if(p.getMerchantId().equals(usdtID)){  //need to set TRON TRC20 id from merchant
                     log.debug("Start transfer founds for USDT(TRX)");
                     transferToMainAccountTRC20(p);
                 }else {
