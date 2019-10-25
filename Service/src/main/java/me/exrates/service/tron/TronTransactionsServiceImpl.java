@@ -3,6 +3,7 @@ package me.exrates.service.tron;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.*;
+import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.bitshares.memo.Preconditions;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
@@ -13,11 +14,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
+import retrofit2.http.Query;
 
 import javax.annotation.PostConstruct;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,8 +33,6 @@ import java.util.stream.StreamSupport;
 @Conditional(MonolitConditional.class)
 public class TronTransactionsServiceImpl implements TronTransactionsService {
 
-    private Statement statement;
-
     @Autowired
     public TronTransactionsServiceImpl(TronNodeService tronNodeService, TronService tronService, RefillService refillService, TronTokenContext tronTokenContext) {
         this.tronNodeService = tronNodeService;
@@ -51,6 +48,9 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
     private final TronService tronService;
     private final RefillService refillService;
     private final TronTokenContext tronTokenContext;
+
+    @Autowired
+    private MerchantService merchantService;
 
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private ScheduledExecutorService transferScheduler = Executors.newScheduledThreadPool(3);
@@ -78,20 +78,11 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
     }
 
     private void transferToMainAccountJob() {
-        ResultSet resultSet = null;
-        int usdtID = 0;
-        try {
-            String getUSDTId = "SELECT id FROM MERCHANT WHERE name = 'USDT(TRX)'";
-            resultSet = statement.executeQuery(getUSDTId);
-            usdtID = resultSet.getInt(1);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        Integer usdtMerchant = merchantService.findByName("USDT(TRX)").getId();
         List<RefillRequestAddressDto> listRefillRequestAddressDto = refillService.findAllAddressesNeededToTransfer(tronService.getMerchantId(), tronService.getCurrencyId());
-        Integer usdtId = usdtID;
         listRefillRequestAddressDto.forEach(p->{
             try {
-                if(p.getMerchantId().equals(usdtId)){  //need to set TRON TRC20 id from merchant
+                if(p.getMerchantId().equals(usdtMerchant)){  //need to set TRON TRC20 id from merchant
                     log.debug("Start transfer founds for USDT(TRX)");
                     transferToMainAccountTRC20(p);
                 }else {
