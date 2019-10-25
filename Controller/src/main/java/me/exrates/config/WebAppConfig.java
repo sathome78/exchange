@@ -602,12 +602,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return handlers;
     }
 
-
-    /*@Bean
-    public StoreSessionListener storeSessionListener() {
-        return new StoreSessionListenerImpl();
-    }*/
-
     @Bean(name = "multipartResolver")
     public StandardServletMultipartResolver resolver() {
         return new StandardServletMultipartResolver();

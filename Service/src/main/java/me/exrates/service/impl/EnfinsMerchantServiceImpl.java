@@ -92,6 +92,7 @@ public class EnfinsMerchantServiceImpl implements EnfinsMerchantService {
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
+        log.info("Starting refill {}", request);
         BigDecimal sum = request.getAmount();
         BigDecimal amountToPay = sum.setScale(2, BigDecimal.ROUND_HALF_UP);
         String desc = refillDescription + request.getId();
@@ -120,6 +121,7 @@ public class EnfinsMerchantServiceImpl implements EnfinsMerchantService {
             request.setMerchantTransactionId(response.getData().getBillId());
             request.setMerchantRequestSign(sign);
             Properties properties = new Properties();
+            log.info("Finish refill url {}", response.getData().getUrl());
             return generateFullUrlMap(response.getData().getUrl(), "GET", properties);
         } else {
             log.error("NOT SUCCESS MERCHANT OPERATION: {}", response.getError().getMessage());
@@ -130,6 +132,7 @@ public class EnfinsMerchantServiceImpl implements EnfinsMerchantService {
 
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
+        log.info("Starting process payment {}", params);
         if (validateIncomePayment) {
             if (!validatePayment(params)) {
                 log.error("Not valid payment {}", params);
@@ -167,10 +170,12 @@ public class EnfinsMerchantServiceImpl implements EnfinsMerchantService {
         final String gaTag = refillService.getUserGAByRequestId(requestId);
         log.info("Process of sending data to Google Analytics...");
         gtagService.sendGtagEvents(params.get("amount"), currencyName, gaTag);
+        log.info("Finished process payment");
     }
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
+        log.info("Starting withdraw by CoinPay {}", withdrawMerchantOperationDto);
         String desc = payOutDescription + withdrawMerchantOperationDto.getId();
 
         URIBuilder uriBuilder = new URIBuilder()

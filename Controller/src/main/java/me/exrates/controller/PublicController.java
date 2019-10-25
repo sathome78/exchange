@@ -1,6 +1,5 @@
 package me.exrates.controller;
 
-import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.CoinmarketApiJsonDto;
 import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.ipsecurity.IpBlockingService;
@@ -117,11 +116,10 @@ public class PublicController {
     }
 
     private Map<String, CoinmarketApiJsonDto> getData(String currencyPair) {
-        List<CoinmarketApiDto> list = orderService.getDailyCoinmarketData(currencyPair);
-        return list
+        return orderService.getDailyCoinmarketcapData(currencyPair)
                 .stream()
                 .collect(Collectors.toMap(
-                        dto -> dto.getCurrency_pair_name().replace('/', '_'),
+                        dto -> dto.getCurrencyPairName().replace('/', '_'),
                         CoinmarketApiJsonDto::new));
     }
 

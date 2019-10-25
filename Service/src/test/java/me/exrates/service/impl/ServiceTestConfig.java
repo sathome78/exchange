@@ -45,6 +45,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.UserSettingService;
 import me.exrates.service.UserTransferService;
 import me.exrates.service.WalletService;
+import me.exrates.service.api.ChartApi;
 import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.api.WalletsApi;
 import me.exrates.service.cache.ExchangeRatesHolder;
@@ -124,11 +125,17 @@ public class ServiceTestConfig {
     int precision10;
 
     @Value("${api.wallets.url}")
-    String url;
+    String walletsUrl;
     @Value("${api.wallets.username}")
-    String username;
+    String walletsUsername;
     @Value("${api.wallets.password}")
-    String password;
+    String walletsPassword;
+
+    @Value("${api.chart.url}")
+    String chartUrl;
+
+    @Value("${api.chart.coinmarketcap-url}")
+    String coinmarketcapUrl;
 
     @Bean
     public CurrencyDao currencyDao() {
@@ -465,7 +472,12 @@ public class ServiceTestConfig {
 
     @Bean
     public WalletsApi walletsApi() {
-        return new WalletsApi(url, username, password, currencyService());
+        return new WalletsApi(walletsUrl, walletsUsername, walletsPassword, currencyService());
+    }
+
+    @Bean
+    public ChartApi chartApi() {
+        return new ChartApi(chartUrl, coinmarketcapUrl);
     }
 
     @Bean

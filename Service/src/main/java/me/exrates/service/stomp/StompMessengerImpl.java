@@ -127,15 +127,7 @@ public class StompMessengerImpl implements StompMessenger {
     @Override
     public void sendPersonalMessageToUser(String userEmail, UserNotificationMessage message) {
         String destination = "/app/message/private/".concat(userService.getPubIdByEmail(userEmail));
-//        final Optional<String> optSessionId = wsSessionService.getSessionId(userEmail);
-
-//        if (optSessionId.isPresent()) {
-//            final String sessionId = optSessionId.get();
-//            final String body = objectMapper.writeValueAsString(message);
-//            sendPersonalMessageToUser(sessionId, destination, body);
-//        } else {
-//            redisUserNotificationService.saveUserNotification(userEmail, message);
-//        }
+        sendMessageToDestination(destination, objectMapper.writeValueAsString(message));
     }
 
     @Override
