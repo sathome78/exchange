@@ -112,7 +112,6 @@ import java.util.stream.Collectors;
 import static me.exrates.model.enums.ActionType.ADD;
 import static me.exrates.model.enums.ActionType.SUBTRACT;
 import static me.exrates.model.enums.OperationType.INPUT;
-import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_ACCEPTED;
 import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_DECLINE;
 import static me.exrates.model.enums.WalletTransferStatus.SUCCESS;
@@ -335,7 +334,7 @@ public class RefillServiceImpl implements RefillService {
         Integer userId = getUserIdByAddressAndMerchantIdAndCurrencyId(address, merchantId, currencyId)
                 .orElseThrow(() -> new CreatorForTheRefillRequestNotDefinedException(String.format("address: %s currency: %s merchant: %s amount: %s",
                         address, currencyId, merchantId, amount)));
-        Locale locale = new Locale(userService.getPreferedLang(userId));
+        Locale locale = getLocale(userId);
         Integer commissionId = commissionService.findCommissionByTypeAndRole(INPUT, userService.getUserRoleFromDB(userId)).getId();
         RefillStatusEnum beginStatus = (RefillStatusEnum) RefillStatusEnum.X_STATE.nextState(CREATE_BY_FACT);
         RefillRequestCreateDto request = new RefillRequestCreateDto();
@@ -538,7 +537,7 @@ public class RefillServiceImpl implements RefillService {
             onBchExamDto.setRequestId(requestId);
             RefillRequestFlatDto refillRequestFlatDto = putOnBchExam(onBchExamDto);
             /**/
-            Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
+            Locale locale = getLocale(refillRequestFlatDto.getUserId());
             String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
             String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
                     new Integer[]{requestId},
@@ -626,8 +625,7 @@ public class RefillServiceImpl implements RefillService {
 
         RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);
         /**/
-
-        Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
+        Locale locale = getLocale(refillRequestFlatDto.getUserId());
         String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
         String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
                 new Integer[]{requestId},
@@ -648,7 +646,7 @@ public class RefillServiceImpl implements RefillService {
 
         RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);
         /**/
-        Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
+        Locale locale = getLocale(refillRequestFlatDto.getUserId());
         String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
         String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
                 new Integer[]{requestId},
@@ -678,7 +676,7 @@ public class RefillServiceImpl implements RefillService {
             requestAcceptDto.setRequestId(requestId);
             RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);
             /**/
-            Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
+            Locale locale = getLocale(refillRequestFlatDto.getUserId());
             String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
             String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
                     new Integer[]{requestId},
@@ -726,7 +724,7 @@ public class RefillServiceImpl implements RefillService {
         RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);
         /**/
         if (refillRequestFlatDto.getStatus().isSuccessEndStatus()) {
-            Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
+            Locale locale = getLocale(refillRequestFlatDto.getUserId());
             String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
             String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
                     new Integer[]{requestId},
@@ -750,7 +748,7 @@ public class RefillServiceImpl implements RefillService {
             refillRequestDao.setStatusById(requestId, newStatus);
             /**/
             if (newStatus.isSuccessEndStatus()) {
-                Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
+                Locale locale = getLocale(refillRequestFlatDto.getUserId());
                 String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
                 String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
                         new Integer[]{requestId},
@@ -1070,7 +1068,7 @@ public class RefillServiceImpl implements RefillService {
                 refillRequestDao.setRemarkById(requestId, remark);
             }
             if (currentStatus != CREATED_BY_FACT) {
-                Locale locale = new Locale(userService.getPreferedLang(refillRequest.getUserId()));
+                Locale locale = getLocale(refillRequest.getUserId());
                 String title = messageSource.getMessage("refill.declined.title", new Integer[]{requestId}, locale);
                 if (StringUtils.isEmpty(comment)) {
                     comment = messageSource.getMessage("merchants.refillNotification.".concat(newStatus.name()), new Integer[]{requestId}, locale);
@@ -1453,5 +1451,10 @@ public class RefillServiceImpl implements RefillService {
         Map<String, String> result = commissionService.computeCommissionAndMapAllToString(userId, amount, operationType, currencyId, merchantId, locale, destinationTag);
         result.put("addition", addition.toString());
         return result;
+    }
+
+    private Locale getLocale(int userId) {
+//        return new Locale(userService.getPreferedLang(userId));
+        return new Locale("en");
     }
 }
