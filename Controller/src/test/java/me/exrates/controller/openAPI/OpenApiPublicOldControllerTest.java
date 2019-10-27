@@ -265,8 +265,8 @@ public class OpenApiPublicOldControllerTest extends OpenApiCommonTest {
     @Test
     public void getCandleChartData() throws Exception {
         String cpName = "btc_usd";
-        LocalDate datesFrom = LocalDate.now().minusDays(1);
-        LocalDate datesTo = LocalDate.now();
+        LocalDateTime datesFrom = LocalDateTime.now().minusDays(1);
+        LocalDateTime datesTo = LocalDateTime.now();
         IntervalType intervalType = IntervalType.HOUR;
         Integer intervalValue = 1;
 
