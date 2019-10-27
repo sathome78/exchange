@@ -23,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -111,21 +110,16 @@ public class OpenApiPublicController {
     }
 
     @GetMapping(value = "/{currency_pair}/candle_chart", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity getCandleChartData(@PathVariable(value = "currency_pair") String pairName,
-                                             @RequestParam(value = "from_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
-                                             @RequestParam(value = "to_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate,
-                                             @RequestParam(value = "interval_type") IntervalType intervalType,
-                                             @RequestParam(value = "interval_value") Integer intervalValue) {
+    public ResponseEntity<BaseResponse<List<CandleDto>>> getCandleChartData(@PathVariable(value = "currency_pair") String pairName,
+                                                                            @RequestParam(value = "from_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
+                                                                            @RequestParam(value = "to_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate,
+                                                                            @RequestParam(value = "interval_type") IntervalType intervalType,
+                                                                            @RequestParam(value = "interval_value") Integer intervalValue) {
         final CurrencyPair currencyPair = currencyService.getCurrencyPairByName(transformCurrencyPair(pairName));
         final BackDealInterval interval = new BackDealInterval(intervalValue, intervalType);
 
         List<CandleDto> dataForCandleChart = candleDataProcessingService.getData(currencyPair.getName(), fromDate, toDate, interval);
 
-        if (CollectionUtils.isEmpty(dataForCandleChart)) {
-            LocalDateTime previousCandleTime = candleDataProcessingService.getLastCandleTimeBeforeDate(currencyPair.getName(), fromDate, interval);
-
-            return ResponseEntity.ok(BaseResponse.error(Objects.isNull(previousCandleTime) ? null : FORMATTER.format(previousCandleTime)));
-        }
         return ResponseEntity.ok(BaseResponse.success(dataForCandleChart));
     }
 
