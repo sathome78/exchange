@@ -3,6 +3,8 @@ package me.exrates.controller.openAPI;
 import me.exrates.controller.model.BaseResponse;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.constants.ErrorApiTitles;
+import me.exrates.model.dto.CandleDto;
+import me.exrates.model.dto.CoinmarketcapApiDto;
 import me.exrates.model.chart.CandleDto;
 import me.exrates.model.dto.CoinmarketcapApiDto;
 import me.exrates.model.dto.api.RateDto;

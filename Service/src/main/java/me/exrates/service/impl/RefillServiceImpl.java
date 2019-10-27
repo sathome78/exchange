@@ -112,6 +112,7 @@ import java.util.stream.Collectors;
 import static me.exrates.model.enums.ActionType.ADD;
 import static me.exrates.model.enums.ActionType.SUBTRACT;
 import static me.exrates.model.enums.OperationType.INPUT;
+import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_ACCEPTED;
 import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_DECLINE;
 import static me.exrates.model.enums.WalletTransferStatus.SUCCESS;
@@ -230,7 +231,7 @@ public class RefillServiceImpl implements RefillService {
             request.setPrivKey(((Map<String, String>) result.get("params")).get("privKey"));
             request.setPubKey(((Map<String, String>) result.get("params")).get("pubKey"));
             request.setBrainPrivKey(((Map<String, String>) result.get("params")).get("brainPrivKey"));
-            request.setPaymentLink(((Map<String, String>) result.get("params")).get("payment_link"));
+            request.setPaymentLink(((Map<String, String>) result.get("params")).get("paymentLink"));
             profileData.setTime2();
             if (request.getId() == null) {
                 Integer requestId = createRefill(request).orElse(null);
@@ -282,7 +283,7 @@ public class RefillServiceImpl implements RefillService {
 
         merchantCurrencies.forEach(merchantCurrency -> {
             merchantCurrency.setAddress(refillRequestDao.findLastValidAddressByMerchantIdAndCurrencyIdAndUserId(merchantCurrency.getMerchantId(), merchantCurrency.getCurrencyId(), user.getId()).orElse(StringUtils.EMPTY));
-            merchantCurrency.setPaymentLink(refillRequestDao.findLastValidPaymentLinkByMerchantIdAndCurrencyIdAndUserId(merchantCurrency.getMerchantId(), merchantCurrency.getCurrencyId(), user.getId()).orElse(StringUtils.EMPTY));
+            merchantCurrency.setPaymentLink(refillRequestDao.findLastValidPaymentLinkByMerchantIdAndCurrencyIdAndUserId(merchantCurrency.getMerchantId(), merchantCurrency.getCurrencyId(), user.getId()).orElse(null));
             /**/
             //TODO: Temporary fix
             if (merchantCurrency.getMerchantId() == merchantService.findByName("EDC").getId()) {

@@ -579,7 +579,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
                 .addValue("merchant_id", merchantId)
                 .addValue("user_id", userId);
         try {
-            return of(namedParameterJdbcTemplate.queryForObject(sql, params, String.class));
+            return Optional.ofNullable(namedParameterJdbcTemplate.queryForObject(sql, params, String.class));
         } catch (EmptyResultDataAccessException ex) {
             return Optional.empty();
         }
@@ -598,7 +598,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
                 .addValue("merchant_id", merchantId)
                 .addValue("user_id", userId);
         try {
-            return of(namedParameterJdbcTemplate.queryForObject(sql, params, String.class));
+            return Optional.ofNullable(namedParameterJdbcTemplate.queryForObject(sql, params, String.class));
         } catch (EmptyResultDataAccessException ex) {
             return Optional.empty();
         }

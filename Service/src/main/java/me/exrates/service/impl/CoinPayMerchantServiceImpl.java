@@ -100,11 +100,13 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
         if (StringUtils.isNoneEmpty(response.getQr())) {
             properties.setProperty("qr", response.getQr());
         }
+        log.info("Finish refill url {}", response.getAddr());
         return generateFullUrlMap(response.getAddr(), "GET", properties);
     }
 
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
+        log.info("Starting process payment {}", params);
         Merchant merchant = merchantService.findByName("CoinPay");
         int requestId = Integer.parseInt(params.get("id"));
 
@@ -138,6 +140,7 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
         final String gaTag = refillService.getUserGAByRequestId(requestId);
         log.info("Process of sending data to Google Analytics...");
         gtagService.sendGtagEvents(flat.get().getAmount().toPlainString(), "UAH", gaTag);
+        log.info("Finished process payment");
     }
 
     @Override

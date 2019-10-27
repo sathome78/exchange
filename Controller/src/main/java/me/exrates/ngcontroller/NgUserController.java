@@ -1,5 +1,9 @@
 package me.exrates.ngcontroller;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.LoadingCache;
+import jnr.ffi.annotations.In;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.User;
@@ -53,6 +57,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import static me.exrates.service.util.RestUtil.getUrlFromRequest;
 import static org.apache.commons.lang.StringUtils.isEmpty;
@@ -80,6 +86,10 @@ public class NgUserController {
 
     @Value("${dev.mode}")
     private boolean DEV_MODE;
+
+    private static final Cache<String, Integer> PINCODE_CHECK_TRIES = CacheBuilder.newBuilder()
+            .expireAfterWrite(5, TimeUnit.MINUTES)
+            .build();
 
     @Autowired
     public NgUserController(IpBlockingService ipBlockingService,
@@ -135,18 +145,38 @@ public class NgUserController {
                 throw new NgResponseException(ErrorApiTitles.GOOGLE_AUTHORIZATION_FAILED, message);
             }
         } else {
-            if (!userService.checkPin(authenticationDto.getEmail(), authenticationDto.getPin(), NotificationMessageEventEnum.LOGIN)) {
-                if (authenticationDto.getTries() % 3 == 0 && authenticationDto.getTries() > 1) {
-                    secureService.sendLoginPincode(user, request, ipAddress);
+            PINCODE_CHECK_TRIES.put(user.getEmail(), numberOfTries(user.getEmail()) + 1);
+            try {
+                if (!userService.checkPin(authenticationDto.getEmail(), authenticationDto.getPin(), NotificationMessageEventEnum.LOGIN)) {
+                    String emailAuthorizationFailedCode = ErrorApiTitles.EMAIL_AUTHORIZATION_FAILED;
+                    if (numberOfTries(user.getEmail()) >= 3) {
+                        secureService.sendLoginPincode(user, request, ipAddress);
+                        PINCODE_CHECK_TRIES.invalidate(user.getEmail());
+                        emailAuthorizationFailedCode = ErrorApiTitles.EMAIL_AUTHORIZATION_FAILED_AND_RESENT;
+                    }
+                    String message = String.format("Invalid email auth code from user %s", authenticationDto.getEmail());
+                    throw new NgResponseException(emailAuthorizationFailedCode, message);
                 }
-                String message = String.format("Invalid email auth code from user %s", authenticationDto.getEmail());
-                throw new NgResponseException(ErrorApiTitles.EMAIL_AUTHORIZATION_FAILED, message);
+            } catch (NgResponseException e) {
+                secureService.sendLoginPincode(user, request, ipAddress);
+                throw e;
             }
+            PINCODE_CHECK_TRIES.invalidate(user.getEmail());
+            userService.deleteUserPin(user.getEmail(), NotificationMessageEventEnum.LOGIN);
         }
         AuthTokenDto authTokenDto = createToken(authenticationDto, request, user);
 //        ipBlockingService.successfulProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
         userService.logIP(user.getId(), ipAddress, UserEventEnum.LOGIN_SUCCESS, getUrlFromRequest(request));
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK); // 200
+    }
+
+    private void incrementPinCodeTries(String email) {
+        int previousTries = numberOfTries(email);
+        PINCODE_CHECK_TRIES.put(email, previousTries + 1);
+    }
+
+    private int numberOfTries(String email) {
+        return Optional.ofNullable(PINCODE_CHECK_TRIES.getIfPresent(email)).orElse(0);
     }
 
     private String getCookie(String header) {

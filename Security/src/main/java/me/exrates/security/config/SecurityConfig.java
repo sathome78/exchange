@@ -216,7 +216,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/merchants/liqpay/payment/success",
                         "/merchants/liqpay/payment/failure").permitAll()
                 .antMatchers(POST, "/merchants/nixmoney/payment/status",
-                        "/merchants/nixmoney/payment/success",
+                        "/merchants/nixmoney/payment/ok",
                         "/merchants/nixmoney/payment/failure").permitAll()
                 .antMatchers(POST, "/merchants/privat24/payment/status",
                         "/merchants/privat24/payment/success",
@@ -347,7 +347,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/merchants/liqpay/payment/success",
                         "/merchants/liqpay/payment/status",
                         "/merchants/nixmoney/payment/failure",
-                        "/merchants/nixmoney/payment/success",
+                        "/merchants/nixmoney/payment/ok",
                         "/merchants/nixmoney/payment/status",
                         "/merchants/privat24/payment/failure",
                         "/merchants/privat24/payment/success",
