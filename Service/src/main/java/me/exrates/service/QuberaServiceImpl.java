@@ -239,7 +239,7 @@ public class QuberaServiceImpl implements QuberaService {
 
     @Override
     public AccountQuberaResponseDto createAccount(String email) {
-        log.info("createAccount(), {}" + email);
+        log.info("createAccount(), {}", email);
         QuberaUserData userData = quberaDao.getUserDataByUserEmail(email);
 
         if (userData != null) {
@@ -261,8 +261,8 @@ public class QuberaServiceImpl implements QuberaService {
 
         AccountQuberaRequestDto requestCreateAccountDto = new AccountQuberaRequestDto(account, "EUR", poolId);
         AccountQuberaResponseDto responseCreateAccountDto = kycHttpClient.createAccount(requestCreateAccountDto);
-        log.info("Response from create account service success, iban {} + " + responseCreateAccountDto.getIban() + ", number "
-                + responseCreateAccountDto.getAccountNumber());
+        log.info("Response from create account service success, iban {}, number {}",
+                responseCreateAccountDto.getIban(), responseCreateAccountDto.getAccountNumber());
         userData.setIban(responseCreateAccountDto.getIban());
         userData.setAccountNumber(responseCreateAccountDto.getAccountNumber());
 
