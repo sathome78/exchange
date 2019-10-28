@@ -3,7 +3,6 @@ package me.exrates.service.api;
 import lombok.extern.slf4j.Slf4j;
 import me.exrates.model.dto.CandleDto;
 import me.exrates.model.dto.CoinmarketcapApiDto;
-import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.exception.ChartApiException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,8 +43,8 @@ public class ChartApi {
     public List<CandleDto> getCandlesDataByRange(String pairName,
                                                  LocalDateTime from,
                                                  LocalDateTime to,
-                                                 BackDealInterval interval) {
-        final String queryParams = buildQueryParams(pairName, from, to, interval);
+                                                 String resolution) {
+        final String queryParams = buildQueryParams(pairName, from, to, resolution);
 
         ResponseEntity<CandleDto[]> responseEntity;
         try {
@@ -60,8 +59,8 @@ public class ChartApi {
         return Arrays.asList(responseEntity.getBody());
     }
 
-    public CandleDto getLastCandleData(String pairName, BackDealInterval interval) {
-        final String queryParams = buildQueryParams(pairName, null, null, interval);
+    public CandleDto getLastCandleData(String pairName, String resolution) {
+        final String queryParams = buildQueryParams(pairName, null, null, resolution);
 
         ResponseEntity<CandleDto> responseEntity;
         try {
@@ -78,8 +77,8 @@ public class ChartApi {
 
     public LocalDateTime getLastCandleTimeBeforeDate(String pairName,
                                                      LocalDateTime date,
-                                                     BackDealInterval interval) {
-        final String queryParams = buildQueryParams(pairName, null, date, interval);
+                                                     String resolution) {
+        final String queryParams = buildQueryParams(pairName, null, date, resolution);
 
         ResponseEntity<LocalDateTime> responseEntity;
         try {
@@ -94,9 +93,8 @@ public class ChartApi {
         return responseEntity.getBody();
     }
 
-    public List<CoinmarketcapApiDto> getCoinmarketcapData(String pairName,
-                                                          BackDealInterval interval) {
-        final String queryParams = buildQueryParams(pairName, null, null, interval);
+    public List<CoinmarketcapApiDto> getCoinmarketcapData(String pairName, String resolution) {
+        final String queryParams = buildQueryParams(pairName, null, null, resolution);
 
         ResponseEntity<CoinmarketcapApiDto[]> responseEntity;
         try {
@@ -120,7 +118,7 @@ public class ChartApi {
         return httpRequestFactory;
     }
 
-    private String buildQueryParams(String pairName, LocalDateTime from, LocalDateTime to, BackDealInterval interval) {
+    private String buildQueryParams(String pairName, LocalDateTime from, LocalDateTime to, String resolution) {
         List<String> params = new ArrayList<>();
 
         if (nonNull(pairName)) {
@@ -132,9 +130,8 @@ public class ChartApi {
         if (nonNull(to)) {
             params.add(String.format("to=%s", to.format(DateTimeFormatter.ISO_DATE_TIME)));
         }
-        if (nonNull(interval)) {
-            params.add(String.format("intervalValue=%s", interval.getIntervalValue().toString()));
-            params.add(String.format("intervalType=%s", interval.getIntervalType().name()));
+        if (nonNull(resolution)) {
+            params.add(String.format("resolution=%s", resolution));
         }
         return String.join("&", params);
     }

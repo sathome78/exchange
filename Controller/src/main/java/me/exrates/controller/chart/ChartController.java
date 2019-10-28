@@ -3,7 +3,6 @@ package me.exrates.controller.chart;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.dto.CandleDto;
-import me.exrates.model.vo.BackDealInterval;
 import me.exrates.properties.chart.ChartProperty;
 import me.exrates.properties.chart.SymbolInfoProperty;
 import me.exrates.security.annotation.OnlineMethod;
@@ -61,12 +60,11 @@ public class ChartController {
 
         final LocalDateTime fromDate = LocalDateTime.ofEpochSecond(from, 0, ZoneOffset.UTC);
         final LocalDateTime toDate = LocalDateTime.ofEpochSecond(to, 0, ZoneOffset.UTC);
-        final BackDealInterval interval = me.exrates.model.enums.ChartResolution.ofResolution(resolution);
 
-        List<CandleDto> result = processingService.getData(symbol, fromDate, toDate, interval);
+        List<CandleDto> result = processingService.getData(symbol, fromDate, toDate, resolution);
 
         if (CollectionUtil.isEmpty(result)) {
-            LocalDateTime nextTime = processingService.getLastCandleTimeBeforeDate(symbol, fromDate, interval);
+            LocalDateTime nextTime = processingService.getLastCandleTimeBeforeDate(symbol, fromDate, resolution);
 
             response.put("s", "no_data");
 

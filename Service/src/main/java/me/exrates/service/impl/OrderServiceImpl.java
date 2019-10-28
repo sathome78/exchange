@@ -1679,17 +1679,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<CoinmarketcapApiDto> getCoinmarketcapDataForActivePairs(String currencyPairName, BackDealInterval interval) {
-        return chartApi.getCoinmarketcapData(currencyPairName, interval);
+    public List<CoinmarketcapApiDto> getCoinmarketcapDataForActivePairs(String currencyPairName, String resolution) {
+        return chartApi.getCoinmarketcapData(currencyPairName, resolution);
     }
 
     @Override
     public List<CoinmarketcapApiDto> getDailyCoinmarketcapData(String currencyPairName) {
-        BackDealInterval interval = new BackDealInterval("1 DAY");
+        String resolution = "D"; //1 day
 
         return Objects.nonNull(currencyPairName)
-                ? coinmarketcapDataCache.get(currencyPairName, () -> getCoinmarketcapDataForActivePairs(currencyPairName, interval))
-                : coinmarketcapDataCache.get(ALL, () -> getCoinmarketcapDataForActivePairs(currencyPairName, interval));
+                ? coinmarketcapDataCache.get(currencyPairName, () -> getCoinmarketcapDataForActivePairs(currencyPairName, resolution))
+                : coinmarketcapDataCache.get(ALL, () -> getCoinmarketcapDataForActivePairs(currencyPairName, resolution));
     }
 
     @Override

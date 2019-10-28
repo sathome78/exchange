@@ -1106,8 +1106,8 @@ public class AdminController {
     @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess", method = RequestMethod.GET)
     public String merchantAccess(Model model) {
         model.addAttribute("pairsRestrictions", Arrays.stream(CurrencyPairRestrictionsEnum.values())
-                                                                   .map(Enum::name)
-                                                                   .collect(Collectors.joining(",")));
+                .map(Enum::name)
+                .collect(Collectors.joining(",")));
         model.addAttribute("kyc_types", Arrays.stream(MerchantVerificationType.values())
                 .map(Enum::name)
                 .collect(Collectors.joining(",")));
@@ -1240,7 +1240,7 @@ public class AdminController {
     @ResponseBody
     @DeleteMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPair/restriction")
     public ResponseEntity<Void> deleteRestrictionCurrencyPairById(@RequestParam("currencyPairId") int currencyPairId,
-                                                               @RequestParam("restriction") CurrencyPairRestrictionsEnum restrictionsEnum) {
+                                                                  @RequestParam("restriction") CurrencyPairRestrictionsEnum restrictionsEnum) {
         currencyService.deleteRestrictionForCurrencyPairById(currencyPairId, restrictionsEnum);
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -1295,7 +1295,7 @@ public class AdminController {
         final LocalDateTime fromDate = LocalDateTime.parse(startTimeString, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         final LocalDateTime toDate = LocalDateTime.now();
 
-        return candleDataProcessingService.getData(currencyPair.getName(), fromDate, toDate, backDealInterval);
+        return candleDataProcessingService.getData(currencyPair.getName(), fromDate, toDate, backDealInterval.getResolution());
     }
 
     private BitcoinService getBitcoinServiceByMerchantName(String merchantName) {
@@ -2002,11 +2002,11 @@ public class AdminController {
     @PostMapping(value = "/2a8fy7b07dxe44/withdrawCommission/submit")
     @ResponseBody
     public ResponseEntity withdrawCommissionToUser(@RequestParam String email,
-                                              @RequestParam("currency") Integer currencyId,
-                                              @RequestParam BigDecimal amount,
-                                              @RequestParam String comment,
-                                              Locale locale,
-                                              Principal principal) {
+                                                   @RequestParam("currency") Integer currencyId,
+                                                   @RequestParam BigDecimal amount,
+                                                   @RequestParam String comment,
+                                                   Locale locale,
+                                                   Principal principal) {
 
 
         LOG.debug(" withdraw commission to user email = " + email + ", currencyId = " + currencyId + ", amount = " + amount);

@@ -23,12 +23,12 @@ public class CandleDataProcessingServiceImpl implements CandleDataProcessingServ
     }
 
     @Override
-    public List<CandleDto> getData(String pairName, LocalDateTime fromDate, LocalDateTime toDate, BackDealInterval interval) {
-        return chartApi.getCandlesDataByRange(pairName, fromDate, toDate, interval);
+    public List<CandleDto> getData(String pairName, LocalDateTime fromDate, LocalDateTime toDate, String resolution) {
+        return chartApi.getCandlesDataByRange(pairName, fromDate, toDate, resolution);
     }
 
     @Override
-    public LocalDateTime getLastCandleTimeBeforeDate(String pairName, LocalDateTime date, BackDealInterval interval) {
-        return chartApi.getLastCandleTimeBeforeDate(pairName, date, interval);
+    public LocalDateTime getLastCandleTimeBeforeDate(String pairName, LocalDateTime date, String resolution) {
+        return chartApi.getLastCandleTimeBeforeDate(pairName, date, resolution);
     }
 }

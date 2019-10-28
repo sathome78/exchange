@@ -118,7 +118,7 @@ public class OpenApiPublicController {
         final CurrencyPair currencyPair = currencyService.getCurrencyPairByName(transformCurrencyPair(pairName));
         final BackDealInterval interval = new BackDealInterval(intervalValue, intervalType);
 
-        List<CandleDto> dataForCandleChart = candleDataProcessingService.getData(currencyPair.getName(), fromDate, toDate, interval);
+        List<CandleDto> dataForCandleChart = candleDataProcessingService.getData(currencyPair.getName(), fromDate, toDate, interval.getResolution());
 
         return ResponseEntity.ok(BaseResponse.success(dataForCandleChart));
     }
