@@ -1,8 +1,6 @@
 package me.exrates.service.api;
 
 import lombok.extern.slf4j.Slf4j;
-import me.exrates.model.dto.CandleDto;
-import me.exrates.model.dto.CoinmarketcapApiDto;
 import me.exrates.model.chart.CandleDto;
 import me.exrates.model.dto.CoinmarketcapApiDto;
 import me.exrates.model.vo.BackDealInterval;
