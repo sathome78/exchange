@@ -43,6 +43,9 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
@@ -58,6 +61,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -310,8 +314,25 @@ public final class TransactionDaoImpl implements TransactionDao {
     @Qualifier(value = "slaveForReportsTemplate")
     private NamedParameterJdbcTemplate slaveForReportsTemplate;
 
+    private boolean isUserBot() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (Objects.isNull(authentication)) {
+            return false;
+        }
+        return authentication.getAuthorities().
+                stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(p -> p.equals(UserRole.BOT_TRADER.getName()));
+    }
+
     @Override
     public Transaction create(Transaction transaction) {
+
+        if (isUserBot()) {
+            return transaction;
+        }
+
         final String sql = "INSERT INTO TRANSACTION_1 (user_wallet_id, company_wallet_id, amount, commission_amount, " +
                 " commission_id, operation_type_id, currency_id, merchant_id, datetime, order_id, confirmation, provided," +
                 " active_balance_before, reserved_balance_before, company_balance_before, company_commission_balance_before, " +
