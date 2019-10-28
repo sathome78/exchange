@@ -280,13 +280,13 @@ public class OpenApiPublicOldControllerTest extends OpenApiCommonTest {
                 .expand(cpName);
 
         when(currencyService.getCurrencyPairByName(anyString())).thenReturn(new CurrencyPair("BTC/USD"));
-        when(candleDataProcessingService.getData(anyString(), any(LocalDateTime.class), any(LocalDateTime.class), any(BackDealInterval.class)))
+        when(candleDataProcessingService.getData(anyString(), any(LocalDateTime.class), any(LocalDateTime.class), anyString()))
                 .thenReturn(Collections.singletonList(new CandleDto()));
 
         mockMvc.perform(MockMvcRequestBuilders.get(uriComponents.toUri().toString()))
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
         verify(currencyService, times(1)).getCurrencyPairByName(transformCurrencyPair(cpName));
-        verify(candleDataProcessingService, times(1)).getData(anyString(), any(LocalDateTime.class), any(LocalDateTime.class), any(BackDealInterval.class));
+        verify(candleDataProcessingService, times(1)).getData(anyString(), any(LocalDateTime.class), any(LocalDateTime.class), anyString());
     }
 }
