@@ -14,6 +14,7 @@ import me.exrates.model.enums.UserEventEnum;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngExceptions.NgResponseException;
+import me.exrates.model.ngExceptions.PincodeExpiredException;
 import me.exrates.model.ngModel.PasswordCreateDto;
 import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.security.ipsecurity.IpBlockingService;
@@ -142,15 +143,20 @@ public class NgUserController {
             }
         } else {
             PINCODE_CHECK_TRIES.put(user.getEmail(), numberOfTries(user.getEmail()) + 1);
-            if (!userService.checkPin(authenticationDto.getEmail(), authenticationDto.getPin(), NotificationMessageEventEnum.LOGIN)) {
-                String emailAuthorizationFailedCode = ErrorApiTitles.EMAIL_AUTHORIZATION_FAILED;
-                if (numberOfTries(user.getEmail()) >= 3) {
-                    secureService.sendLoginPincode(user, request, ipAddress);
-                    PINCODE_CHECK_TRIES.invalidate(user.getEmail());
-                    emailAuthorizationFailedCode = ErrorApiTitles.EMAIL_AUTHORIZATION_FAILED_AND_RESENT;
+            try {
+                if (!userService.checkPin(authenticationDto.getEmail(), authenticationDto.getPin(), NotificationMessageEventEnum.LOGIN)) {
+                    String emailAuthorizationFailedCode = ErrorApiTitles.EMAIL_AUTHORIZATION_FAILED;
+                    if (numberOfTries(user.getEmail()) >= 3) {
+                        secureService.sendLoginPincode(user, request, ipAddress);
+                        PINCODE_CHECK_TRIES.invalidate(user.getEmail());
+                        emailAuthorizationFailedCode = ErrorApiTitles.EMAIL_AUTHORIZATION_FAILED_AND_RESENT;
+                    }
+                    String message = String.format("Invalid email auth code from user %s", authenticationDto.getEmail());
+                    throw new NgResponseException(emailAuthorizationFailedCode, message);
                 }
-                String message = String.format("Invalid email auth code from user %s", authenticationDto.getEmail());
-                throw new NgResponseException(emailAuthorizationFailedCode, message);
+            } catch (PincodeExpiredException e) {
+                secureService.sendLoginPincode(user, request, ipAddress);
+                throw e.toErrorResponse();
             }
             PINCODE_CHECK_TRIES.invalidate(user.getEmail());
             userService.deleteUserPin(user.getEmail(), NotificationMessageEventEnum.LOGIN);
