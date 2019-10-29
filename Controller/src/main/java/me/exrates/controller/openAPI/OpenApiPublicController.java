@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
@@ -117,8 +118,10 @@ public class OpenApiPublicController {
                                                                             @RequestParam(value = "interval_value") Integer intervalValue) {
         final CurrencyPair currencyPair = currencyService.getCurrencyPairByName(transformCurrencyPair(pairName));
         final BackDealInterval interval = new BackDealInterval(intervalValue, intervalType);
+        final long from = fromDate.atZone(ZoneOffset.UTC).toEpochSecond();
+        final long to = toDate.atZone(ZoneOffset.UTC).toEpochSecond();
 
-        List<CandleDto> dataForCandleChart = candleDataProcessingService.getData(currencyPair.getName(), fromDate, toDate, interval.getResolution());
+        List<CandleDto> dataForCandleChart = candleDataProcessingService.getData(currencyPair.getName(), from, to, interval.getResolution());
 
         return ResponseEntity.ok(BaseResponse.success(dataForCandleChart));
     }

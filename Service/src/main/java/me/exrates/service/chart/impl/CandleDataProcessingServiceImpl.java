@@ -2,7 +2,6 @@ package me.exrates.service.chart.impl;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.CandleDto;
-import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.api.ChartApi;
 import me.exrates.service.chart.CandleDataProcessingService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,12 +22,12 @@ public class CandleDataProcessingServiceImpl implements CandleDataProcessingServ
     }
 
     @Override
-    public List<CandleDto> getData(String pairName, LocalDateTime fromDate, LocalDateTime toDate, String resolution) {
-        return chartApi.getCandlesDataByRange(pairName, fromDate, toDate, resolution);
+    public List<CandleDto> getData(String pairName, Long from, Long to, String resolution) {
+        return chartApi.getCandlesDataByRange(pairName, from, to, resolution);
     }
 
     @Override
-    public LocalDateTime getLastCandleTimeBeforeDate(String pairName, LocalDateTime date, String resolution) {
+    public LocalDateTime getLastCandleTimeBeforeDate(String pairName, Long date, String resolution) {
         return chartApi.getLastCandleTimeBeforeDate(pairName, date, resolution);
     }
 }

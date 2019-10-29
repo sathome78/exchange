@@ -54,13 +54,10 @@ public class NgChartController {
             return ResponseEntity.badRequest().body(response);
         }
 
-        final LocalDateTime fromDate = LocalDateTime.ofEpochSecond(from, 0, ZoneOffset.UTC);
-        final LocalDateTime toDate = LocalDateTime.ofEpochSecond(to, 0, ZoneOffset.UTC);
-
-        List<CandleDto> result = processingService.getData(symbol, fromDate, toDate, resolution);
+        List<CandleDto> result = processingService.getData(symbol, from, to, resolution);
 
         if (CollectionUtil.isEmpty(result)) {
-            LocalDateTime nextTime = processingService.getLastCandleTimeBeforeDate(symbol, fromDate, resolution);
+            LocalDateTime nextTime = processingService.getLastCandleTimeBeforeDate(symbol, from, resolution);
 
             response.put("s", "no_data");
 

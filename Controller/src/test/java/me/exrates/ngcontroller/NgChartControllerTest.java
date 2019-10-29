@@ -55,7 +55,7 @@ public class NgChartControllerTest extends AngularApiCommonTest {
     @Test
     public void getCandleChartHistoryData_WhenOk() throws Exception {
         when(currencyService.getCurrencyPairByName(anyString())).thenReturn(new CurrencyPair());
-        when(candleDataProcessingService.getData(anyString(), any(LocalDateTime.class), any(LocalDateTime.class), anyString()))
+        when(candleDataProcessingService.getData(anyString(), any(Long.class), any(Long.class), anyString()))
                 .thenReturn(Collections.singletonList(CandleDto.builder()
                         .open(BigDecimal.TEN)
                         .close(BigDecimal.TEN)
@@ -81,15 +81,15 @@ public class NgChartControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$.*", hasSize(7)));
 
         verify(currencyService, times(1)).getCurrencyPairByName(anyString());
-        verify(candleDataProcessingService, times(1)).getData(anyString(), any(LocalDateTime.class), any(LocalDateTime.class), anyString());
+        verify(candleDataProcessingService, times(1)).getData(anyString(), any(Long.class), any(Long.class), anyString());
     }
 
     @Test
     public void getCandleChartHistoryData_WhenNotFoundAndExistPreviousCandle() throws Exception {
         when(currencyService.getCurrencyPairByName(anyString())).thenReturn(new CurrencyPair());
-        when(candleDataProcessingService.getData(anyString(), any(LocalDateTime.class), any(LocalDateTime.class), anyString()))
+        when(candleDataProcessingService.getData(anyString(), any(Long.class), any(Long.class), anyString()))
                 .thenReturn(Collections.emptyList());
-        when(candleDataProcessingService.getLastCandleTimeBeforeDate(anyString(), any(LocalDateTime.class), anyString()))
+        when(candleDataProcessingService.getLastCandleTimeBeforeDate(anyString(), any(Long.class), anyString()))
                 .thenReturn(LocalDateTime.now());
 
         mockMvc.perform(get(BASE_URL + "/history")
@@ -103,16 +103,16 @@ public class NgChartControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$.*", hasSize(2)));
 
         verify(currencyService, times(1)).getCurrencyPairByName(anyString());
-        verify(candleDataProcessingService, times(1)).getData(anyString(), any(LocalDateTime.class), any(LocalDateTime.class), anyString());
-        verify(candleDataProcessingService, times(1)).getLastCandleTimeBeforeDate(anyString(), any(LocalDateTime.class), anyString());
+        verify(candleDataProcessingService, times(1)).getData(anyString(), any(Long.class), any(Long.class), anyString());
+        verify(candleDataProcessingService, times(1)).getLastCandleTimeBeforeDate(anyString(), any(Long.class), anyString());
     }
 
     @Test
     public void getCandleChartHistoryData_WhenNotFoundAndNotExistPreviousCandle() throws Exception {
         when(currencyService.getCurrencyPairByName(anyString())).thenReturn(new CurrencyPair());
-        when(candleDataProcessingService.getData(anyString(), any(LocalDateTime.class), any(LocalDateTime.class), anyString()))
+        when(candleDataProcessingService.getData(anyString(), any(Long.class), any(Long.class), anyString()))
                 .thenReturn(Collections.emptyList());
-        when(candleDataProcessingService.getLastCandleTimeBeforeDate(anyString(), any(LocalDateTime.class), anyString()))
+        when(candleDataProcessingService.getLastCandleTimeBeforeDate(anyString(), any(Long.class), anyString()))
                 .thenReturn(null);
 
         mockMvc.perform(get(BASE_URL + "/history")
@@ -125,8 +125,8 @@ public class NgChartControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$.*", hasSize(1)));
 
         verify(currencyService, times(1)).getCurrencyPairByName(anyString());
-        verify(candleDataProcessingService, times(1)).getData(anyString(), any(LocalDateTime.class), any(LocalDateTime.class), anyString());
-        verify(candleDataProcessingService, times(1)).getLastCandleTimeBeforeDate(anyString(), any(LocalDateTime.class), anyString());
+        verify(candleDataProcessingService, times(1)).getData(anyString(), any(Long.class), any(Long.class), anyString());
+        verify(candleDataProcessingService, times(1)).getLastCandleTimeBeforeDate(anyString(), any(Long.class), anyString());
     }
 
     @Test
@@ -144,7 +144,7 @@ public class NgChartControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$.*", hasSize(2)));
 
         verify(currencyService, times(1)).getCurrencyPairByName(anyString());
-        verify(candleDataProcessingService, never()).getData(anyString(), any(LocalDateTime.class), any(LocalDateTime.class), anyString());
+        verify(candleDataProcessingService, never()).getData(anyString(), any(Long.class), any(Long.class), anyString());
     }
 
     @Test

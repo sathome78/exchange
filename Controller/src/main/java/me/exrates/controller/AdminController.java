@@ -183,6 +183,7 @@ import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -225,6 +226,9 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 public class AdminController {
 
     private static final Logger LOG = LogManager.getLogger(AdminController.class);
+
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
     public static String adminAnyAuthority;
     public static String nonAdminAnyAuthority;
     public static String traderAuthority;
@@ -1292,10 +1296,10 @@ public class AdminController {
                                               @RequestParam("startTime") String startTimeString) {
         final CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
         final BackDealInterval backDealInterval = new BackDealInterval(interval);
-        final LocalDateTime fromDate = LocalDateTime.parse(startTimeString, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        final LocalDateTime toDate = LocalDateTime.now();
+        final long from = LocalDateTime.parse(startTimeString, FORMATTER).atZone(ZoneOffset.UTC).toEpochSecond();
+        final long to = LocalDateTime.now().atZone(ZoneOffset.UTC).toEpochSecond();
 
-        return candleDataProcessingService.getData(currencyPair.getName(), fromDate, toDate, backDealInterval.getResolution());
+        return candleDataProcessingService.getData(currencyPair.getName(), from, to, backDealInterval.getResolution());
     }
 
     private BitcoinService getBitcoinServiceByMerchantName(String merchantName) {

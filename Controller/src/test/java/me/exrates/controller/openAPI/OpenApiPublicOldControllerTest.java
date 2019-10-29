@@ -7,7 +7,6 @@ import me.exrates.model.dto.CandleDto;
 import me.exrates.model.enums.IntervalType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.exceptions.OpenApiException;
-import me.exrates.model.vo.BackDealInterval;
 import me.exrates.security.config.OpenApiSecurityConfig;
 import me.exrates.service.util.OpenApiUtils;
 import org.junit.Test;
@@ -280,13 +279,13 @@ public class OpenApiPublicOldControllerTest extends OpenApiCommonTest {
                 .expand(cpName);
 
         when(currencyService.getCurrencyPairByName(anyString())).thenReturn(new CurrencyPair("BTC/USD"));
-        when(candleDataProcessingService.getData(anyString(), any(LocalDateTime.class), any(LocalDateTime.class), anyString()))
+        when(candleDataProcessingService.getData(anyString(), any(Long.class), any(Long.class), anyString()))
                 .thenReturn(Collections.singletonList(new CandleDto()));
 
         mockMvc.perform(MockMvcRequestBuilders.get(uriComponents.toUri().toString()))
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
         verify(currencyService, times(1)).getCurrencyPairByName(transformCurrencyPair(cpName));
-        verify(candleDataProcessingService, times(1)).getData(anyString(), any(LocalDateTime.class), any(LocalDateTime.class), anyString());
+        verify(candleDataProcessingService, times(1)).getData(anyString(), any(Long.class), any(Long.class), anyString());
     }
 }

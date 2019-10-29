@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface CandleDataProcessingService {
 
-    List<CandleDto> getData(String pairName, LocalDateTime fromDate, LocalDateTime toDate, String resolution);
+    List<CandleDto> getData(String pairName, Long from, Long to, String resolution);
 
-    LocalDateTime getLastCandleTimeBeforeDate(String pairName, LocalDateTime date, String resolution);
+    LocalDateTime getLastCandleTimeBeforeDate(String pairName, Long date, String resolution);
 }

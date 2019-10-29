@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,8 +40,8 @@ public class ChartApi {
     }
 
     public List<CandleDto> getCandlesDataByRange(String pairName,
-                                                 LocalDateTime from,
-                                                 LocalDateTime to,
+                                                 Long from,
+                                                 Long to,
                                                  String resolution) {
         final String queryParams = buildQueryParams(pairName, from, to, resolution);
 
@@ -76,7 +75,7 @@ public class ChartApi {
     }
 
     public LocalDateTime getLastCandleTimeBeforeDate(String pairName,
-                                                     LocalDateTime date,
+                                                     Long date,
                                                      String resolution) {
         final String queryParams = buildQueryParams(pairName, null, date, resolution);
 
@@ -118,17 +117,17 @@ public class ChartApi {
         return httpRequestFactory;
     }
 
-    private String buildQueryParams(String pairName, LocalDateTime from, LocalDateTime to, String resolution) {
+    private String buildQueryParams(String pairName, Long from, Long to, String resolution) {
         List<String> params = new ArrayList<>();
 
         if (nonNull(pairName)) {
             params.add(String.format("currencyPair=%s", pairName));
         }
         if (nonNull(from)) {
-            params.add(String.format("from=%s", from.format(DateTimeFormatter.ISO_DATE_TIME)));
+            params.add(String.format("from=%s", String.valueOf(from)));
         }
         if (nonNull(to)) {
-            params.add(String.format("to=%s", to.format(DateTimeFormatter.ISO_DATE_TIME)));
+            params.add(String.format("to=%s", String.valueOf(to)));
         }
         if (nonNull(resolution)) {
             params.add(String.format("resolution=%s", resolution));
