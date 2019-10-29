@@ -818,7 +818,7 @@ public class UserServiceImpl implements UserService {
 
     private String getPinForEvent(String email, NotificationMessageEventEnum event) {
         String message = String.format("Invalid email auth code from user %s", email);
-        return userPinDao.findPin(email, event).orElseThrow(() -> new NgResponseException(ErrorApiTitles.EMAIL_AUTHORIZATION_FAILED, message));
+        return userPinDao.findPin(email, event).orElseThrow(() -> new NgResponseException(ErrorApiTitles.EMAIL_AUTHORIZATION_PIN_EXPIRED, message));
     }
 
     @Override

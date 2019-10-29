@@ -46,6 +46,7 @@ import me.exrates.service.qtum.QtumTokenServiceImpl;
 import me.exrates.service.stellar.StellarAsset;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
+import me.exrates.service.util.RequestUtil;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -600,12 +601,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         }
         return handlers;
     }
-
-
-    /*@Bean
-    public StoreSessionListener storeSessionListener() {
-        return new StoreSessionListenerImpl();
-    }*/
 
     @Bean(name = "multipartResolver")
     public StandardServletMultipartResolver resolver() {
@@ -2212,7 +2207,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 new MosaicIdDto("pundix", "npxs"),
                 1000000,
                 6,
-                new Supply(9000000000L),
+                new Supply(7170733206L),
                 0);
     }
 
@@ -2336,6 +2331,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Conditional(MonolitConditional.class)
     public RestTemplate qiwiRestTemplate() {
         RestTemplate restTemplate = new RestTemplate();
+        restTemplate.setRequestFactory(RequestUtil.getSSlFactory());
         restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(qiwiClientId, qiwiClientSecret));
         return restTemplate;
     }

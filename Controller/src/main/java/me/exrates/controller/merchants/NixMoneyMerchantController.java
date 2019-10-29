@@ -1,11 +1,11 @@
 package me.exrates.controller.merchants;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.service.NixMoneyService;
 import me.exrates.service.exception.RefillRequestAlreadyAcceptedException;
-import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,18 +20,25 @@ import static org.springframework.http.HttpStatus.OK;
 
 @Controller
 @RequestMapping("/merchants/nixmoney")
+@Log4j2(topic = "nixmoney_log")
+@PropertySource("classpath:/merchants/nixmoney.properties")
 public class NixMoneyMerchantController {
 
+    private final NixMoneyService nixMoneyService;
+    private final String redirectUrl;
+
     @Autowired
-    private NixMoneyService nixMoneyService;
+    public NixMoneyMerchantController(NixMoneyService nixMoneyService,
+                                      @Value("${nixmoney.redirectUrl}") String redirectUrl) {
+        this.nixMoneyService = nixMoneyService;
+        this.redirectUrl = redirectUrl;
+    }
 
-    private static final Logger logger = LogManager.getLogger("merchant");
-
-    @RequestMapping(value = "payment/success", method = RequestMethod.POST)
-    public ResponseEntity<Void> statusPayment(@RequestParam Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
+    @RequestMapping(value = "/payment/status", method = RequestMethod.POST)
+    public ResponseEntity<Void> statusPayment(@RequestParam Map<String, String> params) {
 
         final ResponseEntity<Void> responseOK = new ResponseEntity<>(OK);
-        logger.info("Response: " + params);
+        log.info("Response nix money: " + params);
         try {
             nixMoneyService.processPayment(params);
             return responseOK;
@@ -42,10 +49,22 @@ public class NixMoneyMerchantController {
         }
     }
 
-    @RequestMapping(value = "payment/ok", method = RequestMethod.POST)
+    @RequestMapping(value = "/payment/failure", method = RequestMethod.POST)
+    public RedirectView failedPayment(@RequestParam Map<String, String> params) {
+        String payeeAccount = params.get("PAYEE_ACCOUNT");
+        String paymentAmount = params.get("PAYMENT_AMOUNT");
+        String paymentUnits = params.get("PAYMENT_UNITS");
+        String paymentBatchNum = params.get("PAYMENT_BATCH_NUM");
+        String message = String.format("Failed payment payeeAccount %s, paymentAmount %s  paymentUnits %S, paymentBatchNum %s",
+                payeeAccount, paymentAmount, paymentUnits, paymentBatchNum);
+        log.info(message);
+        return new RedirectView(redirectUrl);
+    }
+
+    @RequestMapping(value = "/payment/ok", method = RequestMethod.POST)
     public RedirectView successPayment(@RequestParam Map<String, String> response) {
-        logger.debug(response);
-        return new RedirectView("/dashboard");
+        log.info("Success response: " + response);
+        return new RedirectView(redirectUrl);
     }
 
 }

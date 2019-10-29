@@ -36,7 +36,8 @@
                 <div id="message"
                      style="overflow:auto; border-radius: 5px; display: block; padding: 5px; background: rgba(111, 111, 111, 0.83); color: white">
                 </div>
-                <div id="payment-qr">
+                <div>
+                    <img id="payment-qr" src="" />
                 </div>
                 <div></div>
             </div>

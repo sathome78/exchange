@@ -44,12 +44,8 @@ public class EosReceiveService {
     private static final String EXECUTED = "executed";
     private static final int CONFIRMATIONS_NEEDED = 500;
 
-
     @Value("${eos.main.address}")
     private String mainAccount;
-
-    @Value("${env.name}")
-    private String environment;
 
     @Autowired
     private MerchantSpecParamsDao specParamsDao;
@@ -60,17 +56,19 @@ public class EosReceiveService {
 
     @PostConstruct
     private void init() {
+        if (("prd").equalsIgnoreCase(System.getProperty("profileId"))) {
             BasicConfigurator.configure();
             client = EosApiFactory.create("http://127.0.0.1:8900",
                     "https://api.eosnewyork.io",
                     "https://api.eosnewyork.io");
             scheduler.scheduleWithFixedDelay(() -> {
                 try {
-                  checkRefills();
-               } catch (Exception e) {
-                  log.error(e);
-               }
-        }, 1, 1, TimeUnit.MINUTES);
+                    checkRefills();
+                } catch (Exception e) {
+                    log.error(e);
+                }
+            }, 1, 1, TimeUnit.MINUTES);
+        }
     }
 
     private void checkRefills() {

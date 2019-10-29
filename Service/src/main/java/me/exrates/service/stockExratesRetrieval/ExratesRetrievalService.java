@@ -18,12 +18,16 @@ import java.util.stream.Collectors;
 @Service(value = "Exrates")
 public class ExratesRetrievalService implements StockExrateRetrievalService {
 
+    private final OrderService orderService;
+
     @Autowired
-    private OrderService orderService;
+    public ExratesRetrievalService(OrderService orderService) {
+        this.orderService = orderService;
+    }
 
     @Override
     public List<StockExchangeStats> retrieveStats(StockExchange stockExchange) {
-        return orderService.getCoinmarketDataForActivePairs("", new BackDealInterval("24 HOUR"))
+        return orderService.getCoinmarketcapDataForActivePairs(null, new BackDealInterval("1 DAY"))
                 .stream()
                 .map(dto -> new StockExchangeStats(dto, stockExchange))
                 .collect(Collectors.toList());

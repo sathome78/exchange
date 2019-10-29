@@ -4,7 +4,7 @@ import me.exrates.controller.model.BaseResponse;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.CandleDto;
-import me.exrates.model.dto.CoinmarketApiDto;
+import me.exrates.model.dto.CoinmarketcapApiDto;
 import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
 import me.exrates.model.dto.openAPI.OrderBookItem;
@@ -68,7 +68,7 @@ public class OpenApiPublicController {
             currencyPairName = transformCurrencyPair(currencyPair);
             validateCurrencyPair(currencyPairName);
         }
-        return formatCoinmarketData(orderService.getDailyCoinmarketData(currencyPairName));
+        return formatCoinmarketData(orderService.getDailyCoinmarketcapData(currencyPairName));
     }
 
     @GetMapping("/rates")
@@ -129,7 +129,7 @@ public class OpenApiPublicController {
         currencyService.findCurrencyPairIdByName(currencyPairName);
     }
 
-    private List<TickerJsonDto> formatCoinmarketData(List<CoinmarketApiDto> data) {
+    private List<TickerJsonDto> formatCoinmarketData(List<CoinmarketcapApiDto> data) {
         return CollectionUtil.isNotEmpty(data)
                 ? data
                 .stream()

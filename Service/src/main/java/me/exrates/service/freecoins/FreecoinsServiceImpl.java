@@ -39,7 +39,7 @@ public class FreecoinsServiceImpl implements FreecoinsService {
         this.walletService = walletService;
     }
 
-    @Scheduled(initialDelay = 0, fixedDelay = 5 * 60 * 1_000)
+    @Scheduled(initialDelay = 0, fixedDelay = 2 * 60 * 1_000)
     @Override
     public void updateGiveawayStatuses() {
         freecoinsRepository.updateStatuses();
