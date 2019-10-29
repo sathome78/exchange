@@ -32,7 +32,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -46,8 +45,6 @@ import static me.exrates.service.util.OpenApiUtils.transformCurrencyPair;
 @RestController
 @RequestMapping("/openapi/v1/public")
 public class OpenApiPublicController {
-
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd_MM_yyyy_HH_mm_ss");
 
     private final OrderService orderService;
     private final CurrencyService currencyService;
