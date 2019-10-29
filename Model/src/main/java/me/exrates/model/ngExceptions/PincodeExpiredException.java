@@ -14,7 +14,7 @@ public class PincodeExpiredException extends RuntimeException {
     }
 
     public NgResponseException toErrorResponse() {
-        String message = String.format("Invalid email auth code from user %s", email);
+        String message = String.format("Pincode for user with email: %s might already become expired", email);
         return new NgResponseException(ErrorApiTitles.EMAIL_AUTHORIZATION_PIN_EXPIRED, message);
     }
 }
