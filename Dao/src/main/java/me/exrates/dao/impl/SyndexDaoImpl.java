@@ -2,6 +2,9 @@ package me.exrates.dao.impl;
 
 
 import me.exrates.dao.SyndexDao;
+import me.exrates.dao.exception.syndex.SyndexCreateOrderException;
+import me.exrates.dao.exception.syndex.SyndexDataAccessException;
+import me.exrates.dao.exception.syndex.SyndexDataUpdateException;
 import me.exrates.model.dto.SyndexOrderDto;
 import me.exrates.model.enums.SyndexOrderStatusEnum;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +20,7 @@ import javax.annotation.Nullable;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-
-import static java.util.Objects.isNull;
+import java.util.Objects;
 
 @Repository
 public class SyndexDaoImpl implements SyndexDao {
@@ -51,7 +53,7 @@ public class SyndexDaoImpl implements SyndexDao {
                 .addValue("payment_system_id", orderDto.getPaymentSystemId());
 
         if (namedParameterJdbcTemplate.update(sql, parameters, new GeneratedKeyHolder()) < 1) {
-            throw new RuntimeException("Order not saved");
+            throw new SyndexCreateOrderException();
         }
     }
 
@@ -66,7 +68,7 @@ public class SyndexDaoImpl implements SyndexDao {
                 .addValue("status_id", newStatus);
 
         if (namedParameterJdbcTemplate.update(sql, parameters) < 1) {
-            throw new RuntimeException("Order not updated");
+            throw new SyndexDataUpdateException();
         }
     }
 
@@ -82,7 +84,7 @@ public class SyndexDaoImpl implements SyndexDao {
                 .addValue("text", text);
 
         if (namedParameterJdbcTemplate.update(sql, parameters) < 1) {
-            throw new RuntimeException("Order not updated");
+            throw new SyndexDataUpdateException();
         }
     }
 
@@ -98,7 +100,7 @@ public class SyndexDaoImpl implements SyndexDao {
                 .addValue("end_time", endPaymentTime == null ? null : endPaymentTime.minusMinutes(1));
 
         if (namedParameterJdbcTemplate.update(sql, parameters) < 1) {
-            throw new RuntimeException("Order not updated");
+            throw new SyndexDataUpdateException();
         }
     }
 
@@ -113,7 +115,7 @@ public class SyndexDaoImpl implements SyndexDao {
                 .addValue("syndex_id", syndexId);
 
         if (namedParameterJdbcTemplate.update(sql, parameters) < 1) {
-            throw new RuntimeException("Order not updated");
+            throw new SyndexDataUpdateException();
         }
     }
 
@@ -127,7 +129,7 @@ public class SyndexDaoImpl implements SyndexDao {
                 .addValue("refill_request_id", refillRequestId);
 
         if (namedParameterJdbcTemplate.update(sql, parameters) < 1) {
-            throw new RuntimeException("Order not confirmed");
+            throw new SyndexDataUpdateException();
         }
     }
 
@@ -135,8 +137,8 @@ public class SyndexDaoImpl implements SyndexDao {
     public List<SyndexOrderDto> getAllorders(@Nullable List<Integer> statuses, @Nullable Integer userId) {
         final String sql = "SELECT * FROM SYNDEX_ORDER " +
                            " WHERE 1 " +
-                            (isNull(statuses) ? "" : " and status_id IN (:statuses)") +
-                            (isNull(userId) ? "" : " AND user_id = :user_id");
+                            (Objects.isNull(statuses) ? "" : " and status_id IN (:statuses)") +
+                            (Objects.isNull(userId) ? "" : " AND user_id = :user_id");
 
         MapSqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("statuses", statuses)
@@ -153,7 +155,7 @@ public class SyndexDaoImpl implements SyndexDao {
     public SyndexOrderDto getById(int id, @Nullable Integer userId) {
         final String sql = "SELECT * FROM SYNDEX_ORDER" +
                            " WHERE refill_request_id = :id " +
-                           (isNull(userId) ? "" : " AND user_id = :user_id");
+                           (Objects.isNull(userId) ? "" : " AND user_id = :user_id");
 
         MapSqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("id", id)
@@ -162,7 +164,7 @@ public class SyndexDaoImpl implements SyndexDao {
         try {
             return namedParameterJdbcTemplate.queryForObject(sql, parameters, rowMapper);
         } catch (DataAccessException e) {
-            throw new RuntimeException("Syndex order not found");
+            throw new SyndexDataAccessException();
         }
     }
 
@@ -180,7 +182,7 @@ public class SyndexDaoImpl implements SyndexDao {
         try {
             return namedParameterJdbcTemplate.queryForObject(sql, parameters, rowMapper);
         } catch (DataAccessException e) {
-            throw new RuntimeException("Syndex order not found");
+            throw new SyndexDataAccessException();
         }
     }
 
@@ -195,7 +197,7 @@ public class SyndexDaoImpl implements SyndexDao {
         try {
             return namedParameterJdbcTemplate.queryForObject(sql, parameters, rowMapper);
         } catch (DataAccessException e) {
-            throw new RuntimeException("Syndex order not found");
+            throw new SyndexDataAccessException();
         }
     }
 
@@ -211,7 +213,7 @@ public class SyndexDaoImpl implements SyndexDao {
         try {
             return namedParameterJdbcTemplate.queryForObject(sql, parameters, rowMapper);
         } catch (DataAccessException e) {
-            throw new RuntimeException("Syndex order not found");
+            throw new SyndexDataAccessException();
         }
     }
 

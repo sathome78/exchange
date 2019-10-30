@@ -43,7 +43,7 @@ public interface IRefillable extends IMerchantService{
   default boolean concatAdditionalToMainAddress() { return false; }
 
   default String getMerchantName(){
-    return SyndexService.MERCHANT_NAME;
+    return "Not defined";
   }
 
   default void cancelMerchantRequest(int id, String email) {

@@ -69,4 +69,9 @@ public interface SyndexService extends IRefillable, IWithdrawable {
     void confirmOrder(Integer id, String email);
 
     void checkOrder(long syndexOrderId);
+
+    @Override
+    default String getMerchantName() {
+        return MERCHANT_NAME;
+    }
 }

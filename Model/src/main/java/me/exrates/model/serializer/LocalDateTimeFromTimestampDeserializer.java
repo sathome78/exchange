@@ -14,20 +14,11 @@ import java.util.TimeZone;
 public class LocalDateTimeFromTimestampDeserializer extends JsonDeserializer<LocalDateTime> {
 
     @Override
-    public LocalDateTime deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+    public LocalDateTime deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
         long raw = p.getValueAsLong();
         if (raw == 0) return null;
         raw *= 1000;
         return LocalDateTime.ofInstant(Instant.ofEpochMilli(raw),
                         TimeZone.getDefault().toZoneId());
-    }
-
-    public static void main(String[] args) {
-        long raw = 1571300568000L;
-        if (raw == 0) System.out.println("null");
-        else {
-            System.out.println(LocalDateTime.ofInstant(Instant.ofEpochMilli(raw),
-                    TimeZone.getDefault().toZoneId()));
-        }
     }
 }

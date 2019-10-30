@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.dto.SyndexOrderDto;
+import me.exrates.service.UserService;
 import me.exrates.service.syndex.SyndexCallException;
 import me.exrates.service.syndex.SyndexClient;
 import me.exrates.service.syndex.SyndexFrontDataService;
@@ -41,12 +42,16 @@ public class SyndexController {
 
     private final SyndexFrontDataService dataService;
     private final SyndexService syndexService;
+    private final ObjectMapper objectMapper;
+    private final UserService userService;
 
     @Autowired
     public SyndexController(SyndexFrontDataService dataService,
-                            SyndexService syndexService) {
+                            SyndexService syndexService, ObjectMapper objectMapper, UserService userService) {
         this.dataService = dataService;
         this.syndexService = syndexService;
+        this.objectMapper = objectMapper;
+        this.userService = userService;
     }
 
     @GetMapping("/private/v2/syndex/country")
@@ -66,7 +71,7 @@ public class SyndexController {
 
     @PostMapping(value = "/private/v2/syndex/order/dipsute", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity openDispute(@RequestBody SyndexClient.DisputeData data) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        String email = userService.getUserEmailFromSecurityContext();
         syndexService.openDispute(data, email);
         return ResponseEntity.ok()
                 .build();
@@ -74,32 +79,24 @@ public class SyndexController {
 
     @GetMapping("/private/v2/syndex/order")
     public SyndexOrderDto getOrderInfo(@RequestParam @NotNull Integer id) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        String email = userService.getUserEmailFromSecurityContext();
         return syndexService.getOrderInfo(id, email);
     }
 
     @PostMapping("/private/v2/syndex/order/{id}")
     public ResponseEntity confirmOrder(@PathVariable Integer id) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        String email = userService.getUserEmailFromSecurityContext();
         syndexService.confirmOrder(id, email);
         return ResponseEntity.ok()
                 .build();
     }
 
     @PostMapping("/public/v2/syndex/result_callback")
-    public ResponseEntity callbackHandler(@RequestBody String income /*@NotNull SyndexClient.OrderInfo order*/) throws IOException {
-        ObjectMapper objectMapper = new ObjectMapper();
+    public ResponseEntity callbackHandler(@RequestBody String income) throws IOException {
         SyndexClient.OrderInfo order = objectMapper.readValue(income, SyndexClient.OrderInfo.class);
         log.debug("syndex callback {}", order);
         syndexService.onCallbackEvent(order);
         return ResponseEntity.ok()
                 .build();
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler({EmptyResultDataAccessException.class, SyndexCallException.class, NullPointerException.class, SyndexOrderException.class})
-    @ResponseBody
-    public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
-        return new ErrorInfo(req.getRequestURL(), exception);
     }
 }
