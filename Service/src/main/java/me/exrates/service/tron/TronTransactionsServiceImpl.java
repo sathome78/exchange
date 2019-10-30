@@ -190,17 +190,19 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
     private void transferFoundsTRC20(String privatKey, String addressTo, String ownerAdress, long amount) {
         log.debug("create transaction to transfer founds {} to main account {}","TRX_TRC20", addressTo);
         Preconditions.checkArgument(amount > 0, "invalid amount " + amount);
-        TronTransferDtoTRC20 tronTransferDto = new TronTransferDtoTRC20(addressTo, ownerAdress, amount);
+        String secondTronVMParameter = "0000000000000000000000000000000000000000000000000000000000000001";
+        String parameter = "0000000000000000000000" + addressTo + secondTronVMParameter;
+        TronTransferDtoTRC20 tronTransferDto = new TronTransferDtoTRC20(parameter, amount, ownerAdress);
         JSONObject object = tronNodeService.transferFundsTRC20(tronTransferDto);
         log.info("Send request for transaction for USDT()TRX");
         JSONObject transaction = object.getJSONObject("transaction").put("privateKey", privatKey);
-        log.info("Send request for signin transaction for USDT()TRX");
+        log.info("Send request for signing transaction for USDT()TRX");
         JSONObject signTransaction = tronNodeService.signTransferFundsTRC20(transaction);
         log.info("Send request for broadcast transaction for USDT()TRX");
         JSONObject completedObject = tronNodeService.broadcastTransferFundsTRC20(signTransaction);
         boolean result = completedObject.getJSONObject("result").getBoolean("result");
         if (!result) {
-            throw new RuntimeException("error transfer to main account");
+            throw new RuntimeException("error broadcasting transaction");
         }
     }
 }
