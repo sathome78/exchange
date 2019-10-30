@@ -175,10 +175,9 @@ public class OrderDaoImpl implements OrderDao {
             put("status_id", exOrder.getStatus().getStatus());
             put("order_source_id", exOrder.getSourceId());
             put("user_acceptor_id", exOrder.getUserAcceptorId());
-            Timestamp currentDate = Timestamp.valueOf(LocalDateTime.now());
-            put("date_creation", currentDate);
-            put("date_acception", currentDate);
-            put("status_modification_date", currentDate);
+            put("date_creation", exOrder.getDateCreation());
+            put("date_acception", exOrder.getDateAcception());
+            put("status_modification_date", exOrder.getDateAcception());
         }};
         masterJdbcTemplate.update(sql, params);
     }
