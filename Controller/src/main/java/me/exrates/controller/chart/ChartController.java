@@ -2,7 +2,7 @@ package me.exrates.controller.chart;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
-import me.exrates.model.dto.CandleDto;
+import me.exrates.model.chart.CandleDto;
 import me.exrates.properties.chart.ChartProperty;
 import me.exrates.properties.chart.SymbolInfoProperty;
 import me.exrates.security.annotation.OnlineMethod;

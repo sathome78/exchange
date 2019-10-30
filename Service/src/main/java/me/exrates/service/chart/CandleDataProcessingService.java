@@ -1,6 +1,6 @@
 package me.exrates.service.chart;
 
-import me.exrates.model.dto.CandleDto;
+import me.exrates.model.chart.CandleDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
