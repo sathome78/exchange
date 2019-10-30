@@ -118,9 +118,9 @@ public class OpenApiPublicController {
         final long from = fromDate.atZone(ZoneOffset.UTC).toEpochSecond();
         final long to = toDate.atZone(ZoneOffset.UTC).toEpochSecond();
 
-        List<CandleDto> dataForCandleChart = candleDataProcessingService.getData(currencyPair.getName(), from, to, interval.getResolution());
+        List<CandleDto> data = candleDataProcessingService.getData(currencyPair.getName(), from, to, interval.getResolution());
 
-        return ResponseEntity.ok(BaseResponse.success(dataForCandleChart));
+        return ResponseEntity.ok(BaseResponse.success(data));
     }
 
     private void validateCurrencyPair(String currencyPairName) {

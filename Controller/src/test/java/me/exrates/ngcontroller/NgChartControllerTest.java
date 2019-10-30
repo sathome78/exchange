@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Collections;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -62,7 +63,7 @@ public class NgChartControllerTest extends AngularApiCommonTest {
                         .high(BigDecimal.TEN)
                         .low(BigDecimal.TEN)
                         .volume(BigDecimal.TEN)
-                        .time(LocalDateTime.now())
+                        .time(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC))
                         .build()));
 
         mockMvc.perform(get(BASE_URL + "/history")
