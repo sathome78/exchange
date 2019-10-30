@@ -14,6 +14,7 @@ import me.exrates.model.enums.UserEventEnum;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngExceptions.NgResponseException;
+import me.exrates.model.ngExceptions.PincodeExpiredException;
 import me.exrates.model.ngModel.PasswordCreateDto;
 import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.security.ipsecurity.IpBlockingService;
@@ -120,7 +121,6 @@ public class NgUserController {
         logger.info("authenticate, email = {}, ip = {}", authenticationDto.getEmail(),
                 authenticationDto.getClientIp());
 
-
         User user = authenticateUser(authenticationDto, request);
 
         String ipAddress = IpUtils.getIpForDbLog(request);
@@ -154,9 +154,9 @@ public class NgUserController {
                     String message = String.format("Invalid email auth code from user %s", authenticationDto.getEmail());
                     throw new NgResponseException(emailAuthorizationFailedCode, message);
                 }
-            } catch (NgResponseException e) {
+            } catch (PincodeExpiredException e) {
                 secureService.sendLoginPincode(user, request, ipAddress);
-                throw e;
+                throw e.toErrorResponse();
             }
             PINCODE_CHECK_TRIES.invalidate(user.getEmail());
             userService.deleteUserPin(user.getEmail(), NotificationMessageEventEnum.LOGIN);
@@ -165,11 +165,6 @@ public class NgUserController {
 //        ipBlockingService.successfulProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
         userService.logIP(user.getId(), ipAddress, UserEventEnum.LOGIN_SUCCESS, getUrlFromRequest(request));
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK); // 200
-    }
-
-    private void incrementPinCodeTries(String email) {
-        int previousTries = numberOfTries(email);
-        PINCODE_CHECK_TRIES.put(email, previousTries + 1);
     }
 
     private int numberOfTries(String email) {
