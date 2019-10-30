@@ -183,6 +183,7 @@ import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -225,6 +226,9 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 public class AdminController {
 
     private static final Logger LOG = LogManager.getLogger(AdminController.class);
+
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
     public static String adminAnyAuthority;
     public static String nonAdminAnyAuthority;
     public static String traderAuthority;
@@ -1106,8 +1110,8 @@ public class AdminController {
     @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess", method = RequestMethod.GET)
     public String merchantAccess(Model model) {
         model.addAttribute("pairsRestrictions", Arrays.stream(CurrencyPairRestrictionsEnum.values())
-                                                                   .map(Enum::name)
-                                                                   .collect(Collectors.joining(",")));
+                .map(Enum::name)
+                .collect(Collectors.joining(",")));
         model.addAttribute("kyc_types", Arrays.stream(MerchantVerificationType.values())
                 .map(Enum::name)
                 .collect(Collectors.joining(",")));
@@ -1240,7 +1244,7 @@ public class AdminController {
     @ResponseBody
     @DeleteMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPair/restriction")
     public ResponseEntity<Void> deleteRestrictionCurrencyPairById(@RequestParam("currencyPairId") int currencyPairId,
-                                                               @RequestParam("restriction") CurrencyPairRestrictionsEnum restrictionsEnum) {
+                                                                  @RequestParam("restriction") CurrencyPairRestrictionsEnum restrictionsEnum) {
         currencyService.deleteRestrictionForCurrencyPairById(currencyPairId, restrictionsEnum);
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -1292,10 +1296,10 @@ public class AdminController {
                                               @RequestParam("startTime") String startTimeString) {
         final CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
         final BackDealInterval backDealInterval = new BackDealInterval(interval);
-        final LocalDateTime fromDate = LocalDateTime.parse(startTimeString, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        final LocalDateTime toDate = LocalDateTime.now();
+        final long from = LocalDateTime.parse(startTimeString, FORMATTER).atZone(ZoneOffset.UTC).toEpochSecond();
+        final long to = LocalDateTime.now().atZone(ZoneOffset.UTC).toEpochSecond();
 
-        return candleDataProcessingService.getData(currencyPair.getName(), fromDate, toDate, backDealInterval);
+        return candleDataProcessingService.getData(currencyPair.getName(), from, to, backDealInterval.getResolution());
     }
 
     private BitcoinService getBitcoinServiceByMerchantName(String merchantName) {
@@ -2002,11 +2006,11 @@ public class AdminController {
     @PostMapping(value = "/2a8fy7b07dxe44/withdrawCommission/submit")
     @ResponseBody
     public ResponseEntity withdrawCommissionToUser(@RequestParam String email,
-                                              @RequestParam("currency") Integer currencyId,
-                                              @RequestParam BigDecimal amount,
-                                              @RequestParam String comment,
-                                              Locale locale,
-                                              Principal principal) {
+                                                   @RequestParam("currency") Integer currencyId,
+                                                   @RequestParam BigDecimal amount,
+                                                   @RequestParam String comment,
+                                                   Locale locale,
+                                                   Principal principal) {
 
 
         LOG.debug(" withdraw commission to user email = " + email + ", currencyId = " + currencyId + ", amount = " + amount);

@@ -32,4 +32,19 @@ public class BackDealInterval {
             throw new UnsupportedIntervalFormatException(intervalString);
         }
     }
+
+    public String getResolution() {
+        switch (intervalType) {
+            case MINUTE:
+                return String.valueOf(intervalValue);
+            case HOUR:
+                return String.valueOf(intervalValue) + "H";
+            case DAY:
+                return String.valueOf(intervalValue) + "D";
+            case MONTH:
+                return String.valueOf(intervalValue) + "M";
+            default:
+                throw new IllegalArgumentException(String.format("Unsupported resolution with type: %s", intervalType.name()));
+        }
+    }
 }

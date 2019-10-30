@@ -22,23 +22,38 @@ public class RabbitMqServiceImpl implements RabbitMqService {
     private final RabbitTemplate rabbitTemplate;
 
     private String chartQueue;
+    private String externalQueue;
 
     @Autowired
     public RabbitMqServiceImpl(RabbitTemplate rabbitTemplate,
-                               @Value("${rabbit.chart.queue}") String chartQueue) {
+                               @Value("${rabbit.chart.queue}") String chartQueue,
+                               @Value("${rabbit.external.queue}") String externalQueue) {
         this.rabbitTemplate = rabbitTemplate;
         this.chartQueue = chartQueue;
+        this.externalQueue = externalQueue;
     }
 
     @Override
-    public void sendOrderInfo(ExOrder order) {
+    public void sendOrderInfoToChartService(ExOrder order) {
         log.info("Start sending order data to chart service");
         try {
             rabbitTemplate.convertAndSend(chartQueue, new OrderDataDto(order));
 
             log.info("End sending order data to chart service");
         } catch (AmqpException ex) {
-            throw new RabbitMqException("Failed to send order data via rabbit queue");
+            throw new RabbitMqException("Failed to send order data via rabbit queue to chart service");
+        }
+    }
+
+    @Override
+    public void sendOrderInfoToExternalService(ExOrder order) {
+        log.info("Start sending order data to external service");
+        try {
+            rabbitTemplate.convertAndSend(externalQueue, new OrderDataDto(order));
+
+            log.info("End sending order data to external service");
+        } catch (AmqpException ex) {
+            throw new RabbitMqException("Failed to send data via rabbit queue to external service");
         }
     }
 }

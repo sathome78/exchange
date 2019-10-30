@@ -37,6 +37,8 @@ public class CoinmarketcapApiDto {
     private Integer isFrozen;
     @JsonProperty("percent_change")
     private BigDecimal percentChange;
+    @JsonProperty("value_change")
+    private BigDecimal valueChange;
 
     @Override
     public String toString() {
@@ -45,6 +47,7 @@ public class CoinmarketcapApiDto {
                 ", \"lowestAsk\":" + BigDecimalProcessing.formatNonePointQuoted(lowestAsk, true) +
                 ", \"highestBid\":" + BigDecimalProcessing.formatNonePointQuoted(highestBid, true) +
                 ", \"percentChange\":" + BigDecimalProcessing.formatNonePointQuoted(percentChange, true) +
+                ", \"valueChange\":" + BigDecimalProcessing.formatNonePointQuoted(valueChange, true) +
                 ", \"baseVolume\":" + BigDecimalProcessing.formatNonePointQuoted(baseVolume, true) +
                 ", \"quoteVolume\":" + BigDecimalProcessing.formatNonePointQuoted(quoteVolume, true) +
                 ", \"isFrozen\":" + '"' + isFrozen + '"' +
