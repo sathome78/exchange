@@ -789,6 +789,9 @@ public class OrderServiceImpl implements OrderService {
         ExOrder order = new ExOrder(orderCreateDto);
         order.setUserAcceptorId(orderCreateDto.getUserId());
         order.setStatus(OrderStatus.CLOSED);
+        LocalDateTime currentDate = LocalDateTime.now();
+        order.setDateCreation(currentDate);
+        order.setDateAcception(currentDate);
         orderDao.postAcceptedOrderToDB(order);
 
         eventPublisher.publishEvent(new AcceptOrderEvent(order));

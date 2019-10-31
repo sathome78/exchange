@@ -2,11 +2,8 @@ package me.exrates.service.tron;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.condition.MonolitConditional;
-import me.exrates.model.dto.RefillRequestAcceptDto;
-import me.exrates.model.dto.RefillRequestAddressDto;
-import me.exrates.model.dto.RefillRequestFlatDto;
-import me.exrates.model.dto.TronReceivedTransactionDto;
-import me.exrates.model.dto.TronTransferDto;
+import me.exrates.model.dto.*;
+import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.bitshares.memo.Preconditions;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
@@ -17,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
+import retrofit2.http.Query;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
@@ -51,14 +49,18 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
     private final RefillService refillService;
     private final TronTokenContext tronTokenContext;
 
+    @Autowired
+    private MerchantService merchantService;
+
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private ScheduledExecutorService transferScheduler = Executors.newScheduledThreadPool(3);
 
     @PostConstruct
     private void init() {
+        //TODO transfer to main account
         scheduler.scheduleAtFixedRate(this::checkUnconfirmedJob, 5, 2, TimeUnit.MINUTES);
-        transferScheduler.scheduleAtFixedRate(this::transferToMainAccountJob, 5, 30, TimeUnit.MINUTES);
-        transferScheduler.scheduleAtFixedRate(this::transferTokensToMainAccountJob, 5, 30, TimeUnit.MINUTES);
+        transferScheduler.scheduleAtFixedRate(this::transferToMainAccountJob, 2, 5, TimeUnit.MINUTES);
+        transferScheduler.scheduleAtFixedRate(this::transferTokensToMainAccountJob, 2, 5, TimeUnit.MINUTES);
     }
 
     private void checkUnconfirmedJob() {
@@ -76,10 +78,16 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
     }
 
     private void transferToMainAccountJob() {
+        Integer usdtMerchant = merchantService.findByName("USDT(TRX)").getId();
         List<RefillRequestAddressDto> listRefillRequestAddressDto = refillService.findAllAddressesNeededToTransfer(tronService.getMerchantId(), tronService.getCurrencyId());
         listRefillRequestAddressDto.forEach(p->{
             try {
-                transferToMainAccount(p);
+                if(p.getMerchantId().equals(usdtMerchant)){  //need to set TRON TRC20 id from merchant
+                    log.debug("Start transfer founds for USDT(TRX)");
+                    transferToMainAccountTRC20(p);
+                }else {
+                    transferToMainAccount(p);
+                }
                 refillService.updateAddressNeedTransfer(p.getAddress(), tronService.getMerchantId(), tronService.getCurrencyId(), false);
             } catch (Exception e) {
                 log.error(e);
@@ -100,12 +108,20 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
                 log.error(e);
             }
         });
+
     }
 
     private void transferToMainAccount(RefillRequestAddressDto dto) {
         Long accountAmount = tronNodeService.getAccount(dto.getPubKey()).getLong("balance");
         log.debug("balance {} {}", dto.getAddress(), accountAmount);
         easyTransferByPrivate(dto.getPrivKey(), MAIN_ADDRESS_HEX, accountAmount);
+    }
+
+    //this method only for TRON trc20 until developers won`t create id for coin
+    private void transferToMainAccountTRC20(RefillRequestAddressDto dto) {
+        Long accountAmount = tronNodeService.getAccount(dto.getPubKey()).getLong("balance");
+        log.debug("balance {} {}", dto.getAddress(), accountAmount);
+        transferFoundsTRC20(dto.getPrivKey(), MAIN_ADDRESS_HEX, dto.getAddress(), accountAmount);
     }
 
     private void transferTokenToMainAccount(RefillRequestAddressDto dto, String tokenName, String tokenBchName) {
@@ -165,6 +181,24 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
         TronTransferDto tronTransferDto = new TronTransferDto(pk, addressTo, amount, tokenName);
         JSONObject object = tronNodeService.transferAsset(tronTransferDto);
         boolean result = object.getJSONObject("result").getBoolean("result");
+        if (!result) {
+            throw new RuntimeException("error transfer to main account");
+        }
+    }
+
+    //this method only for TRON trc20 until developers won`t create id for coin
+    private void transferFoundsTRC20(String privatKey, String addressTo, String ownerAdress, long amount) {
+        log.debug("create transaction to transfer founds {} to main account {}","TRX_TRC20", addressTo);
+        Preconditions.checkArgument(amount > 0, "invalid amount " + amount);
+        TronTransferDtoTRC20 tronTransferDto = new TronTransferDtoTRC20(addressTo, ownerAdress, amount);
+        JSONObject object = tronNodeService.transferFundsTRC20(tronTransferDto);
+        log.info("Send request for transaction for USDT()TRX");
+        JSONObject transaction = object.getJSONObject("transaction").put("privateKey", privatKey);
+        log.info("Send request for signin transaction for USDT()TRX");
+        JSONObject signTransaction = tronNodeService.signTransferFundsTRC20(transaction);
+        log.info("Send request for broadcast transaction for USDT()TRX");
+        JSONObject completedObject = tronNodeService.broadcastTransferFundsTRC20(signTransaction);
+        boolean result = completedObject.getJSONObject("result").getBoolean("result");
         if (!result) {
             throw new RuntimeException("error transfer to main account");
         }
