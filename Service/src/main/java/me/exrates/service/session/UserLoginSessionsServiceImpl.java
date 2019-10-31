@@ -1,29 +1,41 @@
 package me.exrates.service.session;
 
+import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.UserSessionsDao;
 import me.exrates.model.dto.UserLoginSessionDto;
 import me.exrates.model.dto.UserLoginSessionShortDto;
 import me.exrates.model.ngUtil.PagedResult;
 import me.exrates.service.util.IpUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import ua_parser.Client;
+import ua_parser.Parser;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Log4j2
 @Service
 public class UserLoginSessionsServiceImpl implements UserLoginSessionsService {
 
     private final String HEADER_SECURITY_TOKEN = "Exrates-Rest-Token";
+    private final String USER_AGENT_HEADER = "User-Agent";
 
     private final UserSessionsDao userSessionsDao;
+    private final Parser uaParser;
 
+    @SneakyThrows
     @Autowired
     public UserLoginSessionsServiceImpl(UserSessionsDao userSessionsDao) {
         this.userSessionsDao = userSessionsDao;
+        this.uaParser = new Parser();
     }
 
     @Override
@@ -50,8 +62,9 @@ public class UserLoginSessionsServiceImpl implements UserLoginSessionsService {
         LocalDateTime requestTime = LocalDateTime.now();
         String email = authentication.getName();
         String token = getToken(request);
+        Client values = parseUserAgentHeader(request.getHeader(USER_AGENT_HEADER));
 
-        if (!userSessionsDao.updateModified(getUserAgent(request), token, requestTime)) {
+        if (!userSessionsDao.updateModified(getFullUserAgent(values), token, requestTime)) {
             UserLoginSessionDto dto = toDto(request, token);
             dto.setStarted(requestTime);
             dto.setModified(requestTime);
@@ -61,19 +74,17 @@ public class UserLoginSessionsServiceImpl implements UserLoginSessionsService {
 
     private UserLoginSessionDto toDto(HttpServletRequest request, String token) {
         String ip = IpUtils.getIpForUserHistory(request);
-        /*todo*/
-        String device = "unknown";
-        String userAgent = getUserAgent(request);
-        String os = "unknown";
+        Client values = parseUserAgentHeader(request.getHeader(USER_AGENT_HEADER));
+
         String country = "unknown";
         String city = "unknown";
         String region = "unknown";
         /*--------------------------*/
         return UserLoginSessionDto.builder()
                 .ip(ip)
-                .device(device)
-                .userAgent(userAgent)
-                .os(os)
+                .device(values.device.family)
+                .userAgent(getFullUserAgent(values))
+                .os(getFullOs(values))
                 .country(country)
                 .city(city)
                 .region(region)
@@ -81,10 +92,6 @@ public class UserLoginSessionsServiceImpl implements UserLoginSessionsService {
                 .build();
     }
 
-    private String getUserAgent(HttpServletRequest request) {
-        /*todo*/
-        return "unknown";
-    }
 
     private List<UserLoginSessionShortDto> mapToShortDto(List<UserLoginSessionDto> dtos, String currentToken) {
         return dtos.stream()
@@ -96,7 +103,22 @@ public class UserLoginSessionsServiceImpl implements UserLoginSessionsService {
         return request.getHeader(HEADER_SECURITY_TOKEN);
     }
 
+    private Client parseUserAgentHeader(String headerValue) {
+        return uaParser.parse(headerValue);
+    }
 
+    private String getFullUserAgent(Client client) {
+        return String.format("%s  %s %s", client.userAgent.family, client.userAgent.major, getEmptyOrValue(client.userAgent.minor));
+    }
 
+    private String getFullOs(Client client) {
+        return String.format("%s  %s %s  %s %s", client.os.family, client.os.major,
+                getEmptyOrValue(client.os.minor),
+                getEmptyOrValue(client.os.patch),
+                getEmptyOrValue(client.os.patchMinor));
+    }
 
+    private String getEmptyOrValue(String value) {
+        return Objects.isNull(value) ? StringUtils.EMPTY : value;
+    }
 }
