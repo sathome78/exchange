@@ -58,22 +58,6 @@ public class ChartApi {
         return Arrays.asList(responseEntity.getBody());
     }
 
-    public CandleDto getLastCandleData(String pairName, String resolution) {
-        final String queryParams = buildQueryParams(pairName, null, null, resolution);
-
-        ResponseEntity<CandleDto> responseEntity;
-        try {
-            responseEntity = restTemplate.getForEntity(String.format("%s/last?%s", url, queryParams), CandleDto.class);
-            if (responseEntity.getStatusCodeValue() != 200) {
-                throw new ChartApiException("Chart server is not available");
-            }
-        } catch (Exception ex) {
-            log.warn("Chart service did not return valid data: server not available");
-            return null;
-        }
-        return responseEntity.getBody();
-    }
-
     public LocalDateTime getLastCandleTimeBeforeDate(String pairName,
                                                      Long date,
                                                      String resolution) {

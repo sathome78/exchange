@@ -3,7 +3,6 @@ package me.exrates.service.stomp;
 import lombok.SneakyThrows;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.IEODetails;
-import me.exrates.model.chart.CandleDetailedDto;
 import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.enums.OperationType;
 
@@ -21,8 +20,6 @@ public interface StompMessenger {
     void sendRefreshTradeOrdersDetailMessage(String pairName, String message);
 
     void sendAllTrades(CurrencyPair currencyPair);
-
-    void sendLastCandle(CandleDetailedDto dto);
 
     void sendStatisticMessage(Set<Integer> currenciesIds);
 

@@ -7,7 +7,6 @@ import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.IEODetails;
-import me.exrates.model.chart.CandleDetailedDto;
 import me.exrates.model.dto.RefreshStatisticDto;
 import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
@@ -98,25 +97,6 @@ public class StompMessengerImpl implements StompMessenger {
         String destination = "/app/all_trades/".concat(OpenApiUtils.transformCurrencyPairBack(currencyPair.getName()));
 //        System.out.println(destination);
         sendMessageToDestination(destination, results.left);
-    }
-
-    @Override
-    public void sendLastCandle(CandleDetailedDto dto) {
-        final String pairName = OpenApiUtils.transformCurrencyPairBack(dto.getPairName());
-        final String resolution = dto.getResolution();
-
-        String destination = String.format("/app/chart/%s/%s", resolution, pairName);
-
-        log.debug("send last candle chart data to {}", destination);
-
-        String candleDtoJson = null;
-        try {
-            candleDtoJson = objectMapper.writeValueAsString(dto.getCandleDto());
-        } catch (Exception ex) {
-            log.error(ex);
-        }
-
-        sendMessageToDestination(destination, candleDtoJson);
     }
 
     @Synchronized

@@ -29,7 +29,6 @@ import org.springframework.stereotype.Controller;
 
 import java.security.Principal;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -89,15 +88,6 @@ public class WsController {
         return orderService.getOrderAcceptedForPeriodEx(null, new BackDealInterval("24 HOUR"),
                 25, cp, Locale.ENGLISH);
     }
-
-//    @SubscribeMapping("/chart/{resolution}/{pairName}")
-//    public List subscribePairInfo(@DestinationVariable String resolution, @DestinationVariable String pairName) {
-//        String currencyPair = OpenApiUtils.transformCurrencyPair(pairName);
-//
-//        log.debug("resolution {}, pairName {}", resolution, currencyPair);
-//        /*todo : return init data for chart*/
-//        return Collections.EMPTY_LIST;
-//    }
 
     @SubscribeMapping("/order_book/{pairName}/{precision}")
     public List<OrderBookWrapperDto> subscribeOrdersBook(@DestinationVariable String pairName, @DestinationVariable Integer precision) {
