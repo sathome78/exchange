@@ -930,7 +930,7 @@ public class OrderDaoImpl implements OrderDao {
     @Override
     public boolean lockOrdersListForAcception(List<Integer> ordersList) {
         String sql = "SELECT id " +
-                "  FROM ORDERS " +
+                "  FROM EXORDERS " +
                 "  WHERE id IN (:order_ids) FOR UPDATE ";
         Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("order_ids", ordersList);
@@ -1834,7 +1834,7 @@ public class OrderDaoImpl implements OrderDao {
 
         String sql = "SELECT id, currency_pair_id, operation_type_id, exrate, amount_base, " +
                 " amount_convert, commission_fixed_amount, date_creation, date_acception" +
-                "  FROM ORDERS " +
+                "  FROM EXORDERS " +
                 "  WHERE status_id = 2 AND operation_type_id IN (:operationTypeIds) AND currency_pair_id=:currency_pair_id" +
 //                "  AND date_creation >= (DATE_SUB(CURDATE(), INTERVAL 10 DAY))" +
                 "  ORDER BY exrate ASC";
