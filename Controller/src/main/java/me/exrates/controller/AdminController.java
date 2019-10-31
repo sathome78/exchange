@@ -70,7 +70,7 @@ import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.AlertType;
 import me.exrates.model.enums.BusinessUserRoleEnum;
-import me.exrates.model.enums.CurrencyPairRestrictionsEnum;
+import me.exrates.model.enums.RestrictedOperation;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.MerchantKycToggleField;
 import me.exrates.model.enums.MerchantProcessType;
@@ -712,6 +712,7 @@ public class AdminController {
             /*updateUserDto.setPassword(user.getPassword());*/
             updateUserDto.setPhone(user.getPhone());
             updateUserDto.setVerificationRequired(user.getVerificationRequired());
+            updateUserDto.setTradesPrivileges(user.hasTradePrivileges());
             /*todo: Temporary commented for security reasons*/
             if (currentUserRole == ADMINISTRATOR) {
                 //Add to easy change user role to USER or VIP_USER !!! Not other
@@ -1105,7 +1106,7 @@ public class AdminController {
 
     @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess", method = RequestMethod.GET)
     public String merchantAccess(Model model) {
-        model.addAttribute("pairsRestrictions", Arrays.stream(CurrencyPairRestrictionsEnum.values())
+        model.addAttribute("pairsRestrictions", Arrays.stream(RestrictedOperation.values())
                                                                    .map(Enum::name)
                                                                    .collect(Collectors.joining(",")));
         model.addAttribute("kyc_types", Arrays.stream(MerchantVerificationType.values())
@@ -1232,7 +1233,7 @@ public class AdminController {
     @ResponseBody
     @PostMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPair/restriction")
     public ResponseEntity<Void> addRestrictionCurrencyPairById(@RequestParam("currencyPairId") int currencyPairId,
-                                                               @RequestParam("restriction") CurrencyPairRestrictionsEnum restrictionsEnum) {
+                                                               @RequestParam("restriction") RestrictedOperation restrictionsEnum) {
         currencyService.addRestrictionForCurrencyPairById(currencyPairId, restrictionsEnum);
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -1240,7 +1241,7 @@ public class AdminController {
     @ResponseBody
     @DeleteMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPair/restriction")
     public ResponseEntity<Void> deleteRestrictionCurrencyPairById(@RequestParam("currencyPairId") int currencyPairId,
-                                                               @RequestParam("restriction") CurrencyPairRestrictionsEnum restrictionsEnum) {
+                                                               @RequestParam("restriction") RestrictedOperation restrictionsEnum) {
         currencyService.deleteRestrictionForCurrencyPairById(currencyPairId, restrictionsEnum);
         return new ResponseEntity<>(HttpStatus.OK);
     }

@@ -7,6 +7,7 @@ import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairRestrictionsEnum;
 import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.MarketVolume;
 import me.exrates.model.dto.CurrencyPairLimitDto;
@@ -18,7 +19,7 @@ import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
-import me.exrates.model.enums.CurrencyPairRestrictionsEnum;
+import me.exrates.model.enums.RestrictedOperation;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.Market;
 import me.exrates.model.enums.MerchantProcessType;
@@ -1146,7 +1147,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
             CurrencyPairWithRestriction pair = new CurrencyPairWithRestriction(currencyPairRowMapper.mapRow(rs, rowNum));
             String restrictions = rs.getString("restrictions");
             if (!StringUtils.isEmpty(restrictions)) {
-                pair.setTradeRestriction(Arrays.stream(restrictions.split(","))
+                pair.setTradeRestrictions(Arrays.stream(restrictions.split(","))
                         .map(CurrencyPairRestrictionsEnum::valueOf)
                         .collect(Collectors.toList()));
             }
@@ -1155,7 +1156,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     }
 
     @Override
-    public void insertCurrencyPairRestriction(Integer currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum) {
+    public void insertCurrencyPairRestriction(Integer currencyPairId, RestrictedOperation restrictionsEnum) {
         final String sql = "INSERT INTO CURRENCY_PAIR_RESTRICTION (currency_pair_id, restriction_name) values (:id, :name)";
         MapSqlParameterSource parameters = new MapSqlParameterSource()
             .addValue("id", currencyPairId)
@@ -1168,7 +1169,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     }
 
     @Override
-    public void deleteCurrencyPairRestriction(Integer currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum) {
+    public void deleteCurrencyPairRestriction(Integer currencyPairId, RestrictedOperation restrictionsEnum) {
         final String sql = "DELETE FROM CURRENCY_PAIR_RESTRICTION WHERE restriction_name = :name and currency_pair_id = :id ";
         MapSqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("id", currencyPairId)
@@ -1195,12 +1196,16 @@ public class CurrencyDaoImpl implements CurrencyDao {
             result.setTopMarketVolume(rs.getObject("top_market_volume") == null ? null :
                     rs.getBigDecimal("top_market_volume"));
             String restrictions = rs.getString("restrictions");
-            if (!StringUtils.isEmpty(restrictions)) {
-                result.setTradeRestriction(Arrays.stream(restrictions.split(","))
+            if (StringUtils.isNoneEmpty(restrictions)) {
+                result.setTradeRestrictions(Arrays.stream(restrictions.split(","))
                         .map(CurrencyPairRestrictionsEnum::valueOf)
                         .collect(Collectors.toList()));
+            } else {
+                result.setTradeRestrictions(Collections.emptyList());
             }
             return result;
         });
     }
+
+
 }
