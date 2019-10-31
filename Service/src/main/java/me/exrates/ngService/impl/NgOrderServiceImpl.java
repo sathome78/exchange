@@ -173,65 +173,6 @@ public class NgOrderServiceImpl implements NgOrderService {
     }
 
     @Override
-    public boolean processUpdateOrder(User user, InputCreateOrderDto inputOrder) {
-        boolean result = false;
-
-        int orderId = inputOrder.getOrderId();
-        ExOrder order = orderService.getOrderById(orderId);
-        if (order == null) {
-            throw new NgDashboardException("Order is not exist");
-        }
-        OperationType operationType = OperationType.valueOf(inputOrder.getOrderType());
-
-        if (operationType != order.getOperationType()) {
-            throw new NgDashboardException("Wrong operationType - " + operationType);
-        }
-
-        if (order.getCurrencyPairId() != inputOrder.getCurrencyPairId()) {
-            throw new NgDashboardException("Not support change currency pair");
-        }
-
-        if (order.getUserId() != user.getId()) {
-            throw new NgDashboardException("Order was created by another user");
-        }
-        if (order.getStatus() != OrderStatus.OPENED) {
-            throw new NgDashboardException("Order status is not open");
-        }
-
-        if (StringUtils.isEmpty(inputOrder.getStatus())) {
-            throw new NgDashboardException("Input order status is null");
-        }
-
-        OrderStatus orderStatus = OrderStatus.valueOf(inputOrder.getStatus());
-
-        OrderCreateDto prepareOrder = prepareOrder(inputOrder);
-        prepareOrder.setStatus(orderStatus);
-
-        int outWalletId;
-        BigDecimal outAmount;
-        if (prepareOrder.getOperationType() == OperationType.BUY) {
-            outWalletId = prepareOrder.getWalletIdCurrencyConvert();
-            outAmount = prepareOrder.getTotalWithComission();
-        } else {
-            outWalletId = prepareOrder.getWalletIdCurrencyBase();
-            outAmount = prepareOrder.getAmount();
-        }
-
-        if (walletService.ifEnoughMoney(outWalletId, outAmount)) {
-            ExOrder exOrder = new ExOrder(prepareOrder);
-            OrderBaseType orderBaseType = prepareOrder.getOrderBaseType();
-            if (orderBaseType == null) {
-                CurrencyPairType type = exOrder.getCurrencyPair().getPairType();
-                orderBaseType = type == CurrencyPairType.ICO ? OrderBaseType.ICO : OrderBaseType.LIMIT;
-                exOrder.setOrderBaseType(orderBaseType);
-            }
-            result = orderDao.updateOrder(orderId, exOrder);
-            emitOpenOrderMessage(prepareOrder);
-        }
-        return result;
-    }
-
-    @Override
     public boolean processUpdateStopOrder(User user, InputCreateOrderDto inputOrder) {
         boolean result = false;
         int orderId = inputOrder.getOrderId();
