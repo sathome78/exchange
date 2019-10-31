@@ -18,9 +18,6 @@ public interface NotificationService {
   long createLocalizedNotification(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
                                    Object[] messageArgs);
 
-  long createLocalizedNotification(String userEmail, NotificationEvent cause, String titleCode, String messageCode,
-                                   Object[] messageArgs);
-
   void notifyUser(String email, NotificationEvent cause, String titleCode, String messageCode,
                   Object[] messageArgs, Locale locale);
 
@@ -37,8 +34,6 @@ public interface NotificationService {
 
   List<Notification> findAllByUser(String email);
 
-  List<NotificationDto> findByUser(String email, CacheData cacheData, Integer offset, Integer limit);
-
   boolean setRead(Long notificationId);
 
   boolean remove(Long notificationId);
@@ -48,8 +43,6 @@ public interface NotificationService {
   int removeAllByUser(String email);
 
   List<NotificationOption> getNotificationOptionsByUser(Integer userId);
-
-  void updateUserNotifications(List<NotificationOption> options);
 
   void updateNotificationOptionsForUser(int userId, List<NotificationOption> options);
 

@@ -1,6 +1,7 @@
 package me.exrates.ngcontroller;
 
 import me.exrates.model.Merchant;
+import me.exrates.model.MerchantCurrency;
 import me.exrates.model.dto.RefillRequestParamsDto;
 import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
 import me.exrates.model.enums.OperationType;
@@ -256,6 +257,7 @@ public class NgRefillControllerTest extends AngularApiCommonTest {
         when(refillService.checkInputRequestsLimit(anyInt(), anyString())).thenReturn(Boolean.TRUE);
         when(refillService.getAddressByMerchantIdAndCurrencyIdAndUserId(anyInt(), anyInt(), anyInt()))
                 .thenReturn(Optional.of(""));
+        when(merchantService.findByMerchantAndCurrency(anyInt(), anyInt())).thenReturn(Optional.of(getMerchantCurrency()));
         when(messageSource.getMessage(anyString(), anyObject(), anyObject())).thenReturn("TEST_MESSAGE");
 
         mockMvc.perform(MockMvcRequestBuilders.post(BASE_URL + "/request/create")
@@ -385,5 +387,12 @@ public class NgRefillControllerTest extends AngularApiCommonTest {
         dto.setChildMerchant("TEST_CHILD_MERCHANT");
 
         return dto;
+    }
+
+    private MerchantCurrency getMerchantCurrency() {
+        MerchantCurrency merchantCurrency = new MerchantCurrency();
+        merchantCurrency.setNeedKycRefill(false);
+        merchantCurrency.setNeedKycWithdraw(false);
+        return merchantCurrency;
     }
 }

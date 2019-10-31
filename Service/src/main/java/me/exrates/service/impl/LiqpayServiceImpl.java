@@ -87,8 +87,8 @@ public class LiqpayServiceImpl implements LiqpayService {
 
 
     Properties properties = new Properties();
-    properties.put("data", data);
-    properties.put("signature", signature);
+    properties.setProperty("data", data);
+    properties.setProperty("signature", signature);
 
     RedirectView redirectView = new RedirectView(url);
     redirectView.setAttributes(properties);
@@ -149,8 +149,8 @@ public class LiqpayServiceImpl implements LiqpayService {
     String signature = base64_encode(signatureSha1);
     /**/
     Properties properties = new Properties();
-    properties.put("data", data);
-    properties.put("signature", signature);
+    properties.setProperty("data", data);
+    properties.setProperty("signature", signature);
     /**/
     String fullUrl = generateFullUrl(url, properties);
     return new HashMap<String, String>() {{

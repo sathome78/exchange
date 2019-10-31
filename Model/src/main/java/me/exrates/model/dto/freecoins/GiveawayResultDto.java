@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Data
 @Builder(builderClassName = "Builder")
@@ -33,4 +34,6 @@ public class GiveawayResultDto {
     private GiveawayStatus status;
     @JsonIgnore
     private String creatorEmail;
+    @JsonProperty("created_at")
+    private LocalDateTime createdAt;
 }

@@ -367,6 +367,11 @@ public class CryptocurrencyConfig {
 		return new BitcoinServiceImpl("merchants/tsl_wallet.properties","TSL","TSL", 30, 20, false, false);
 	}
 
+	@Bean(name = "estServiceImpl")
+	public BitcoinService estServiceImpl() {
+		return new BitcoinServiceImpl("merchants/est_wallet.properties","EST","EST", 1, 20, false, true);
+	}
+
 	// LISK-like cryptos
     @Bean(name = "liskServiceImpl")
     public LiskService liskService() {

@@ -14,6 +14,8 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class FreecoinsSettingsDto {
 
+    @JsonProperty("currency_id")
+    private int currencyId;
     @JsonProperty("currency_name")
     private String currencyName;
     @JsonProperty("min_amount")

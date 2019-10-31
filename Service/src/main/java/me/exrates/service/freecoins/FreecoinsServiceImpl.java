@@ -2,11 +2,14 @@ package me.exrates.service.freecoins;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.FreecoinsRepository;
+import me.exrates.model.dto.freecoins.AdminGiveawayResultDto;
 import me.exrates.model.dto.freecoins.GiveawayResultDto;
 import me.exrates.model.dto.freecoins.GiveawayStatus;
 import me.exrates.model.dto.freecoins.ReceiveResultDto;
 import me.exrates.service.WalletService;
 import me.exrates.service.exception.FreecoinsException;
+import me.exrates.service.util.CollectionUtil;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -15,8 +18,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Log4j2
 @EnableScheduling
@@ -34,7 +39,7 @@ public class FreecoinsServiceImpl implements FreecoinsService {
         this.walletService = walletService;
     }
 
-    @Scheduled(initialDelay = 0, fixedDelay = 5 * 60 * 1_000)
+    @Scheduled(initialDelay = 0, fixedDelay = 2 * 60 * 1_000)
     @Override
     public void updateGiveawayStatuses() {
         freecoinsRepository.updateStatuses();
@@ -72,22 +77,18 @@ public class FreecoinsServiceImpl implements FreecoinsService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public boolean processRevokeGiveaway(int giveawayId, boolean revokeToUser, String creatorEmail) {
+    public boolean processRevokeGiveaway(int giveawayId, boolean revokeToUser) {
         GiveawayResultDto giveawayResultDto = freecoinsRepository.getClaim(giveawayId);
         if (giveawayResultDto.getTotalQuantity() == 0) {
             throw new FreecoinsException("Free coins have been ran out, revoke process have been stopped");
         }
-        if (!giveawayResultDto.getCreatorEmail().equals(creatorEmail)) {
-            throw new FreecoinsException(String.format("This free coins giveaway not created by: %s", creatorEmail));
-        }
-
         if (revokeToUser) {
             final BigDecimal revokeAmount = giveawayResultDto.getPartialAmount().multiply(BigDecimal.valueOf(giveawayResultDto.getTotalQuantity()));
 
             if (!walletService.performFreecoinsGiveawayRevokeProcess(
                     giveawayResultDto.getCurrencyName(),
                     revokeAmount,
-                    creatorEmail)) {
+                    giveawayResultDto.getCreatorEmail())) {
                 throw new FreecoinsException("Free coins giveaway revoke process was failed");
             }
         }
@@ -102,7 +103,7 @@ public class FreecoinsServiceImpl implements FreecoinsService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public ReceiveResultDto processReceive(int giveawayId, String receiverEmail) {
+    public Pair<Boolean, ReceiveResultDto> processReceive(int giveawayId, String receiverEmail) {
         GiveawayResultDto giveawayResultDto = freecoinsRepository.getClaim(giveawayId);
         if (giveawayResultDto.getTotalQuantity() == 0) {
             throw new FreecoinsException("Free coins have been ran out");
@@ -110,6 +111,12 @@ public class FreecoinsServiceImpl implements FreecoinsService {
         ReceiveResultDto receiveResultDto = freecoinsRepository.getProcess(giveawayId, receiverEmail);
         if (Objects.nonNull(receiveResultDto) && receiveResultDto.isReceived()) {
             throw new FreecoinsException("Free coins receive process was failed: receiving for this giveaway not allowed for you any more");
+        }
+
+        if (Objects.nonNull(receiveResultDto)
+                && Objects.nonNull(receiveResultDto.getLastReceived())
+                && receiveResultDto.getLastReceived().plusMinutes(giveawayResultDto.getTimeRange()).isAfter(LocalDateTime.now())) {
+            return Pair.of(false, receiveResultDto);
         }
 
         if (!walletService.performFreecoinsReceiveProcess(
@@ -148,12 +155,30 @@ public class FreecoinsServiceImpl implements FreecoinsService {
         if (!updated) {
             throw new FreecoinsException("Free coins claim total quantity have not been updated");
         }
-        return receiveResultDto;
+        return Pair.of(true, receiveResultDto);
     }
 
     @Transactional(readOnly = true)
     @Override
     public List<ReceiveResultDto> getAllReceives(String receiverEmail) {
         return freecoinsRepository.getAllUserProcess(receiverEmail);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<AdminGiveawayResultDto> getAllGiveawaysForAdmin() {
+        List<GiveawayResultDto> allClaims = freecoinsRepository.getAllClaims();
+
+        if (CollectionUtil.isEmpty(allClaims)) {
+            return Collections.emptyList();
+        }
+        return allClaims.stream()
+                .map(claim -> {
+                    AdminGiveawayResultDto adminClaim = new AdminGiveawayResultDto(claim);
+                    adminClaim.setUniqueAcceptors(freecoinsRepository.getUniqueAcceptorsByClaimId(claim.getId()));
+
+                    return adminClaim;
+                })
+                .collect(Collectors.toList());
     }
 }

@@ -33,6 +33,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.MerchantNotFoundException;
 import me.exrates.service.exception.MerchantServiceNotFoundException;
+import me.exrates.service.exception.UserOperationAccessException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import me.exrates.service.notifications.G2faService;
@@ -240,6 +241,16 @@ public class NgRefillController {
             logger.warn(message);
             throw new NgRefillException(message);
         }
+
+        User user = userService.findByEmail(getPrincipalEmail());
+        MerchantCurrency merchantCurrency = merchantService
+                .findByMerchantAndCurrency(requestParamsDto.getMerchant(), requestParamsDto.getCurrency()).orElseThrow(() -> new RuntimeException("merchant not found"));
+        refillService.setNeedKyc(merchantCurrency, user);
+
+        if (merchantCurrency.getNeedKycRefill()) {
+            throw new NgRefillException("Need to pass KYC");
+        }
+
         Boolean forceGenerateNewAddress = requestParamsDto.getGenerateNewAddress() != null && requestParamsDto.getGenerateNewAddress();
         if (!forceGenerateNewAddress) {
             Optional<String> address = refillService.getAddressByMerchantIdAndCurrencyIdAndUserId(
@@ -270,6 +281,7 @@ public class NgRefillController {
         CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, getPrincipalEmail(), locale)
                 .orElseThrow(InvalidAmountException::new);
         RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
+        request.setUserId(user.getId());
 
         try {
             if (merchantService.findById(request.getMerchantId()).getName().equalsIgnoreCase("FUG")) {
@@ -278,7 +290,6 @@ public class NgRefillController {
                 }
 
                 if (!userService.checkPin(request.getUserEmail(), requestParamsDto.getPin(), NotificationMessageEventEnum.TRANSFER)) {
-                    User user = userService.findByEmail(request.getUserEmail());
                     secureService.sendTransferPinCode(user, requestParamsDto.getSum().toPlainString(), request.getCurrencyName());
                     throw new IncorrectPinException("Incorrect pin: " + requestParamsDto.getPin());
                 }

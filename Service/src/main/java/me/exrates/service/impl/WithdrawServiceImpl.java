@@ -490,6 +490,7 @@ public class WithdrawServiceImpl implements WithdrawService {
                 .accountTo(withdrawRequest.getWallet())
                 .userId(withdrawRequest.getUserId())
                 .destinationTag(withdrawRequest.getDestinationTag())
+                .id(String.valueOf(withdrawRequest.getId()))
                 .build();
         log.debug("Withdraw merchant operation summary: " + withdrawMerchantOperation);
         try {
@@ -762,21 +763,22 @@ public class WithdrawServiceImpl implements WithdrawService {
             merchantCurrency.setAdditionalTagForWithdrawAddressIsUsed(false);
         }
 
-        if (merchantCurrency.getNeedVerification()) {
+        if (merchantCurrency.getNeedKycWithdraw()) {
             switch (merchantCurrency.getVerificationType()) {
                 case ariadnext:
                     QuberaUserData quberaUserData = quberaService.getUserDataByUserEmail(user.getEmail());
                     if (quberaUserData != null) {
                         String status = quberaUserData.getBankVerificationStatus();
-                        merchantCurrency.setNeedVerification(!status.equalsIgnoreCase("SUCCESS"));
+                        merchantCurrency.setNeedKycWithdraw(!status.equalsIgnoreCase("OK"));
                     }
                     break;
                 case shuftipro:
-                    merchantCurrency.setNeedVerification(!user.getKycStatus().equalsIgnoreCase("SUCCESS"));
+                    merchantCurrency.setNeedKycWithdraw(!user.getKycStatus().equalsIgnoreCase("SUCCESS"));
                     break;
             }
         }
     }
+
 
     @Override
     @Transactional(readOnly = true)

@@ -12,7 +12,6 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.PagingData;
-import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.OrderBasicInfoDto;
@@ -69,7 +68,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -174,13 +172,12 @@ public class OrderDaoImpl implements OrderDao {
             put("amount_convert", exOrder.getAmountConvert());
             put("commission_id", exOrder.getComissionId());
             put("commission_fixed_amount", exOrder.getCommissionFixedAmount());
-            put("status_id", CLOSED.getStatus());
+            put("status_id", exOrder.getStatus().getStatus());
             put("order_source_id", exOrder.getSourceId());
             put("user_acceptor_id", exOrder.getUserAcceptorId());
-            Timestamp currentDate = Timestamp.valueOf(LocalDateTime.now());
-            put("date_creation", currentDate);
-            put("date_acception", currentDate);
-            put("status_modification_date", currentDate);
+            put("date_creation", exOrder.getDateCreation());
+            put("date_acception", exOrder.getDateAcception());
+            put("status_modification_date", exOrder.getDateAcception());
         }};
         masterJdbcTemplate.update(sql, params);
     }
@@ -534,33 +531,6 @@ public class OrderDaoImpl implements OrderDao {
         exOrderStatisticsDto.setCurrency1Id(rs.getInt("currency1_id"));
         return exOrderStatisticsDto;
     };
-
-    @Override
-    public List<CoinmarketApiDto> getCoinmarketData(String currencyPairName) {
-        String s = "{call GET_COINMARKETCAP_STATISTICS('" + currencyPairName + "')}";
-        return masterJdbcTemplate.execute(s, ps -> {
-            ResultSet rs = ps.executeQuery();
-            List<CoinmarketApiDto> list = new ArrayList();
-            while (rs.next()) {
-                CoinmarketApiDto coinmarketApiDto = new CoinmarketApiDto();
-                coinmarketApiDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
-                coinmarketApiDto.setCurrency_pair_name(rs.getString("currency_pair_name"));
-                coinmarketApiDto.setFirst(rs.getBigDecimal("first"));
-                coinmarketApiDto.setLast(rs.getBigDecimal("last"));
-                coinmarketApiDto.setLowestAsk(rs.getBigDecimal("lowestAsk"));
-                coinmarketApiDto.setHighestBid(rs.getBigDecimal("highestBid"));
-                coinmarketApiDto.setPercentChange(BigDecimalProcessing.doAction(coinmarketApiDto.getFirst(), coinmarketApiDto.getLast(), ActionType.PERCENT_GROWTH));
-                coinmarketApiDto.setBaseVolume(rs.getBigDecimal("baseVolume"));
-                coinmarketApiDto.setQuoteVolume(rs.getBigDecimal("quoteVolume"));
-                coinmarketApiDto.setIsFrozen(rs.getInt("isFrozen"));
-                coinmarketApiDto.setHigh24hr(rs.getBigDecimal("high24hr"));
-                coinmarketApiDto.setLow24hr(rs.getBigDecimal("low24hr"));
-                list.add(coinmarketApiDto);
-            }
-            rs.close();
-            return list;
-        });
-    }
 
     @Override
     public OrderInfoDto getOrderInfo(int orderId, Locale locale) {

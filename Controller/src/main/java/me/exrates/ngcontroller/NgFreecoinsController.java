@@ -25,6 +25,7 @@ import me.exrates.service.freecoins.FreecoinsService;
 import me.exrates.service.freecoins.FreecoinsSettingsService;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.stomp.StompMessenger;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -63,7 +64,7 @@ public class NgFreecoinsController {
     private final G2faService g2faService;
     private final UserService userService;
     private final SecureService secureService;
-    private final FreecoinsService freeCoinsService;
+    private final FreecoinsService freecoinsService;
     private final FreecoinsSettingsService freecoinsSettingsService;
     private final StompMessenger stompMessenger;
 
@@ -73,7 +74,7 @@ public class NgFreecoinsController {
                                  G2faService g2faService,
                                  UserService userService,
                                  SecureService secureService,
-                                 FreecoinsService freeCoinsService,
+                                 FreecoinsService freecoinsService,
                                  FreecoinsSettingsService freecoinsSettingsService,
                                  StompMessenger stompMessenger) {
         this.currencyService = currencyService;
@@ -81,7 +82,7 @@ public class NgFreecoinsController {
         this.g2faService = g2faService;
         this.userService = userService;
         this.secureService = secureService;
-        this.freeCoinsService = freeCoinsService;
+        this.freecoinsService = freecoinsService;
         this.freecoinsSettingsService = freecoinsSettingsService;
         this.stompMessenger = stompMessenger;
     }
@@ -103,7 +104,7 @@ public class NgFreecoinsController {
         check2faAuthorization(creatorEmail, request.getPin());
 
         try {
-            GiveawayResultDto giveawayResultDto = freeCoinsService.processGiveaway(request.getCurrencyName(), request.getAmount(),
+            GiveawayResultDto giveawayResultDto = freecoinsService.processGiveaway(request.getCurrencyName(), request.getAmount(),
                     request.getPartialAmount(), request.isSingle(), request.getTimeRange(), creatorEmail);
 
             boolean created = giveawayResultDto.getStatus() == GiveawayStatus.CREATED;
@@ -117,41 +118,14 @@ public class NgFreecoinsController {
         } catch (Exception ex) {
             sendPersonalMessageToUser(creatorEmail, "Free coins giveaway process was failed", false);
 
-            final String message = "Free coins giveaway process was failed";
-            throw new NgResponseException(ErrorApiTitles.FREE_COINS_GIVE_AWAY_PROCESS_FAILED, message);
-        }
-    }
-
-    @PreAuthorize("hasAnyAuthority('VIP_USER','ADMINISTRATOR')")
-    @PostMapping(PRIVATE + "/giveaway/revoke")
-    public ResponseEntity processRevokeGiveaway(@RequestParam("giveaway_id") int giveawayId,
-                                                @RequestParam(value = "revoke_to_user", defaultValue = "false") boolean revokeToUser,
-                                                @RequestParam String pin) {
-        final String creatorEmail = getUserEmailFromSecurityContext();
-
-        check2faAuthorization(creatorEmail, pin);
-
-        try {
-            boolean revoked = freeCoinsService.processRevokeGiveaway(giveawayId, revokeToUser, creatorEmail);
-
-            if (revokeToUser) {
-                sendPersonalMessageToUser(creatorEmail, "Free coins giveaway revoke process was ended, funds was returned", true);
-            }
-
-            return ResponseEntity.ok(revoked);
-        } catch (Exception ex) {
-            if (revokeToUser) {
-                sendPersonalMessageToUser(creatorEmail, "Free coins giveaway revoke process was failed", false);
-            }
-
-            final String message = "Free coins giveaway revoke process was failed";
+            final String message = String.format("Free coins giveaway process was failed: %s", ex.getMessage());
             throw new NgResponseException(ErrorApiTitles.FREE_COINS_GIVE_AWAY_PROCESS_FAILED, message);
         }
     }
 
     @GetMapping(PUBLIC + "/giveaway/all")
     public ResponseEntity<List<GiveawayResultDto>> getAllGiveaways() {
-        return ResponseEntity.ok(freeCoinsService.getAllGiveaways());
+        return ResponseEntity.ok(freecoinsService.getAllGiveaways());
     }
 
     @PostMapping(PRIVATE + "/receive")
@@ -159,22 +133,25 @@ public class NgFreecoinsController {
         final String receiverEmail = getUserEmailFromSecurityContext();
 
         try {
-            ReceiveResultDto receiveResultDto = freeCoinsService.processReceive(giveawayId, receiverEmail);
+            Pair<Boolean, ReceiveResultDto> result = freecoinsService.processReceive(giveawayId, receiverEmail);
 
-            sendPersonalMessageToUser(receiverEmail, "Free coins was received", true);
-
-            return ResponseEntity.ok(receiveResultDto);
+            if (result.getLeft()) {
+                sendPersonalMessageToUser(receiverEmail, "Free coins was received", true);
+            } else {
+                sendPersonalMessageToUser(receiverEmail, "Free coins was not received. Try again later", false);
+            }
+            return ResponseEntity.ok(result.getRight());
         } catch (Exception ex) {
             sendPersonalMessageToUser(receiverEmail, "Free coins was not received", false);
 
-            final String message = "Free coins was not received";
+            final String message = String.format("Free coins was not received: %s", ex.getMessage());
             throw new NgResponseException(ErrorApiTitles.FREE_COINS_RECEIVE_PROCESS_FAILED, message);
         }
     }
 
     @GetMapping(PRIVATE + "/receive/all")
     public ResponseEntity<Map<Integer, ReceiveResultDto>> getAllReceives() {
-        List<ReceiveResultDto> resultList = freeCoinsService.getAllReceives(getUserEmailFromSecurityContext());
+        List<ReceiveResultDto> resultList = freecoinsService.getAllReceives(getUserEmailFromSecurityContext());
         if (CollectionUtils.isEmpty(resultList)) {
             return ResponseEntity.ok(Collections.emptyMap());
         }
@@ -233,13 +210,6 @@ public class NgFreecoinsController {
                         (v1, v2) -> v1));
 
         return ResponseEntity.ok(resultMap);
-    }
-
-    @PostMapping(PRIVATE + "/settings/update")
-    public ResponseEntity updateSettings(@RequestParam("currency_id") int currencyId,
-                                         @RequestParam("min_amount") BigDecimal minAmount,
-                                         @RequestParam("min_partial_amount") BigDecimal minPartialAmount) {
-        return ResponseEntity.ok(freecoinsSettingsService.set(currencyId, minAmount, minPartialAmount));
     }
 
     @PostMapping(PRIVATE + "/pin")

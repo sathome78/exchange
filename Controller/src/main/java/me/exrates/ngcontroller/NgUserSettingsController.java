@@ -28,6 +28,7 @@ import me.exrates.model.ngModel.UserInfoVerificationDto;
 import me.exrates.model.ngModel.enums.VerificationDocumentType;
 import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.model.ngUtil.PagedResult;
+import me.exrates.ngService.RedisUserNotificationService;
 import me.exrates.ngService.UserVerificationService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
@@ -50,6 +51,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -96,6 +98,7 @@ public class NgUserSettingsController {
     private final NotificationService notificationService;
     private final SessionParamsService sessionService;
     private final PageLayoutSettingsService layoutSettingsService;
+    private final RedisUserNotificationService redisUserNotificationService;
     private final UserVerificationService verificationService;
     private final IpBlockingService ipBlockingService;
     private final StompMessenger stompMessenger;
@@ -111,6 +114,7 @@ public class NgUserSettingsController {
                                     NotificationService notificationService,
                                     SessionParamsService sessionParamsService,
                                     PageLayoutSettingsService pageLayoutSettingsService,
+                                    RedisUserNotificationService redisUserNotificationService,
                                     UserVerificationService userVerificationService,
                                     IpBlockingService ipBlockingService,
                                     StompMessenger stompMessenger,
@@ -120,6 +124,7 @@ public class NgUserSettingsController {
         this.notificationService = notificationService;
         this.sessionService = sessionParamsService;
         this.layoutSettingsService = pageLayoutSettingsService;
+        this.redisUserNotificationService = redisUserNotificationService;
         this.verificationService = userVerificationService;
         this.ipBlockingService = ipBlockingService;
         this.stompMessenger = stompMessenger;
@@ -371,6 +376,12 @@ public class NgUserSettingsController {
         }
     }
 
+    @DeleteMapping("/messages/remove/{messageId}")
+    public ResponseEntity<?> deleteUserNotification(@PathVariable String messageId) {
+        redisUserNotificationService.deleteUserNotification(messageId);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping(USER_SESSIONS_HISTORY)
     public ResponseEntity<PagedResult<UserLoginSessionShortDto>> getSessions(
             @RequestParam(required = false, defaultValue = "7") Integer limit,
@@ -394,6 +405,7 @@ public class NgUserSettingsController {
         dto.setRole(user.getRole());
         dto.setStatus(user.getUserStatus());
         dto.setPhone(user.getPhone());
+        dto.setPublicId(user.getPublicId());
         return dto;
     }
 

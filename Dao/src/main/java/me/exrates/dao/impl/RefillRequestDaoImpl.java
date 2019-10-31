@@ -113,6 +113,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         refillRequestFlatDto.setMerchantTransactionId(rs.getString("merchant_transaction_id"));
         refillRequestFlatDto.setRemark(rs.getString("remark"), "");
         refillRequestFlatDto.setAdminHolderId(rs.getInt("admin_holder_id"));
+        refillRequestFlatDto.setUserId(rs.getInt("user_id"));
         return refillRequestFlatDto;
     };
 
@@ -446,7 +447,6 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
             request.setId(refillRequestId);
             result = of(refillRequestId);
             Integer refillRequestAddressId = null;
-            Integer refillRequestParamId = null;
             if (!StringUtils.isEmpty(request.getAddress())) {
                 Optional<Integer> addressIdResult = findAnyAddressIdByAddressAndUserAndCurrencyAndMerchant(request.getAddress(),
                         request.getUserId(),
@@ -454,7 +454,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
                         request.getMerchantId());
                 refillRequestAddressId = addressIdResult.orElseGet(() -> storeRefillRequestAddress(request));
             }
-            refillRequestParamId = storeRefillRequestParam(request);
+            Integer refillRequestParamId = storeRefillRequestParam(request);
             final String setKeysSql = "UPDATE REFILL_REQUEST " +
                     " SET refill_request_param_id = :refill_request_param_id," +
                     "     refill_request_address_id = :refill_request_address_id, " +
@@ -534,14 +534,15 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         MapSqlParameterSource params;
         Integer refillRequestAddressId;
         final String addAddressSql = "INSERT INTO REFILL_REQUEST_ADDRESS " +
-                " (id, currency_id, merchant_id, address, user_id, priv_key, pub_key, brain_priv_key) " +
+                " (id, currency_id, merchant_id, address, payment_link, user_id, priv_key, pub_key, brain_priv_key) " +
                 " VALUES " +
-                " (:id, :currency_id, :merchant_id, :address, :user_id, :priv_key, :pub_key, :brain_priv_key) ";
+                " (:id, :currency_id, :merchant_id, :address, :payment_link, :user_id, :priv_key, :pub_key, :brain_priv_key) ";
         params = new MapSqlParameterSource()
                 .addValue("id", request.getId())
                 .addValue("currency_id", request.getCurrencyId())
                 .addValue("merchant_id", request.getMerchantId())
                 .addValue("address", request.getAddress())
+                .addValue("payment_link", request.getPaymentLink())
                 .addValue("user_id", request.getUserId())
                 .addValue("priv_key", request.getPrivKey())
                 .addValue("pub_key", request.getPubKey())
@@ -566,22 +567,39 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     }
 
     @Override
-    public Optional<String> findLastValidAddressByMerchantIdAndCurrencyIdAndUserId(
-            Integer merchantId,
-            Integer currencyId,
-            Integer userId) {
-        final String sql = "SELECT RRA.address " +
-                " FROM REFILL_REQUEST_ADDRESS RRA " +
-                " WHERE RRA.currency_id = :currency_id AND RRA.merchant_id = :merchant_id AND RRA.user_id = :user_id AND is_valid = 1" +
-                " ORDER BY RRA.id DESC " +
+    public Optional<String> findLastValidAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId) {
+        final String sql = "SELECT rra.address " +
+                " FROM REFILL_REQUEST_ADDRESS rra " +
+                " WHERE rra.currency_id = :currency_id AND rra.merchant_id = :merchant_id AND rra.user_id = :user_id AND is_valid = 1" +
+                " ORDER BY rra.id DESC " +
                 " LIMIT 1 ";
+
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("currency_id", currencyId)
                 .addValue("merchant_id", merchantId)
                 .addValue("user_id", userId);
         try {
-            return of(namedParameterJdbcTemplate.queryForObject(sql, params, String.class));
-        } catch (EmptyResultDataAccessException e) {
+            return Optional.ofNullable(namedParameterJdbcTemplate.queryForObject(sql, params, String.class));
+        } catch (EmptyResultDataAccessException ex) {
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public Optional<String> findLastValidPaymentLinkByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId) {
+        final String sql = "SELECT rra.payment_link " +
+                " FROM REFILL_REQUEST_ADDRESS rra " +
+                " WHERE rra.currency_id = :currency_id AND rra.merchant_id = :merchant_id AND rra.user_id = :user_id AND is_valid = 1" +
+                " ORDER BY rra.id DESC " +
+                " LIMIT 1 ";
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("currency_id", currencyId)
+                .addValue("merchant_id", merchantId)
+                .addValue("user_id", userId);
+        try {
+            return Optional.ofNullable(namedParameterJdbcTemplate.queryForObject(sql, params, String.class));
+        } catch (EmptyResultDataAccessException ex) {
             return Optional.empty();
         }
     }

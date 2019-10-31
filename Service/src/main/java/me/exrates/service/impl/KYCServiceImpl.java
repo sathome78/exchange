@@ -25,16 +25,12 @@ import me.exrates.service.util.ShuftiProUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.support.BasicAuthorizationInterceptor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -45,6 +41,7 @@ import java.util.Properties;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static me.exrates.service.util.RequestUtil.getSSlFactory;
 
 @PropertySource(value = {"classpath:/kyc.properties", "classpath:/angular.properties"})
 @Slf4j
@@ -112,7 +109,7 @@ public class KYCServiceImpl implements KYCService {
         this.kycHttpClient = kycHttpClient;
         this.stompMessenger = stompMessenger;
         this.restTemplate = new RestTemplate();
-        this.restTemplate.setRequestFactory(sslFactory());
+        this.restTemplate.setRequestFactory(getSSlFactory());
         this.restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(username, password));
     }
 
@@ -291,7 +288,7 @@ public class KYCServiceImpl implements KYCService {
 
                 return Pair.of(reference, changedTo);
             default:
-                throw new ShuftiProException(String.format("Not supported event status %s", eventStatus.name()));
+                return Pair.of(reference, eventStatus);
         }
     }
 
@@ -307,7 +304,7 @@ public class KYCServiceImpl implements KYCService {
     private void sendStatusNotification(String userEmail, String eventStatus) {
         log.info("SEND TO EMAIL {}, STATUS {}", userEmail, eventStatus);
         Properties properties = new Properties();
-        properties.put("public_id", userService.getPubIdByEmail(userEmail));
+        properties.setProperty("public_id", userService.getPubIdByEmail(userEmail));
 
         Email email = Email.builder()
                 .to(userEmail)
@@ -339,14 +336,6 @@ public class KYCServiceImpl implements KYCService {
         }
     }
 
-    private HttpComponentsClientHttpRequestFactory sslFactory() {
-        CloseableHttpClient httpClient = HttpClients.custom()
-                .setSSLHostnameVerifier(new NoopHostnameVerifier())
-                .build();
-        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-        requestFactory.setHttpClient(httpClient);
-        return requestFactory;
-    }
 
     @Builder(builderClassName = "Builder")
     @AllArgsConstructor

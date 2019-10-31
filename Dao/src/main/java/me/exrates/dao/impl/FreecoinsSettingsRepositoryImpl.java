@@ -26,7 +26,7 @@ public class FreecoinsSettingsRepositoryImpl implements FreecoinsSettingsReposit
 
     @Override
     public FreecoinsSettingsDto get(int currencyId) {
-        final String sql = "SELECT cur.name AS currency_name, fcs.min_amount, fcs.min_partial_amount " +
+        final String sql = "SELECT cur.id AS currency_id, cur.name AS currency_name, fcs.min_amount, fcs.min_partial_amount " +
                 "FROM FREE_COINS_SETTINGS fcs " +
                 "JOIN CURRENCY cur ON cur.id = fcs.currency_id " +
                 "WHERE fcs.currency_id = :currency_id";
@@ -43,7 +43,7 @@ public class FreecoinsSettingsRepositoryImpl implements FreecoinsSettingsReposit
 
     @Override
     public List<FreecoinsSettingsDto> getAll() {
-        final String sql = "SELECT cur.name AS currency_name, fcs.min_amount, fcs.min_partial_amount " +
+        final String sql = "SELECT cur.id AS currency_id, cur.name AS currency_name, fcs.min_amount, fcs.min_partial_amount " +
                 "FROM FREE_COINS_SETTINGS fcs " +
                 "JOIN CURRENCY cur ON cur.id = fcs.currency_id";
 
@@ -66,6 +66,7 @@ public class FreecoinsSettingsRepositoryImpl implements FreecoinsSettingsReposit
 
     private RowMapper<FreecoinsSettingsDto> getSettingsRowMapper() {
         return (rs, i) -> FreecoinsSettingsDto.builder()
+                .currencyId(rs.getInt("currency_id"))
                 .currencyName(rs.getString("currency_name"))
                 .minAmount(rs.getBigDecimal("min_amount"))
                 .minPartialAmount(rs.getBigDecimal("min_partial_amount"))

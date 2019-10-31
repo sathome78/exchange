@@ -4,6 +4,7 @@ import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewrit
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.RefillRequestAddressShortDto;
+import me.exrates.model.User;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestAddressDto;
 import me.exrates.model.dto.RefillRequestBtcInfoDto;
@@ -53,6 +54,8 @@ public interface RefillService {
 
     List<MerchantCurrency> retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies, String userEmail);
 
+    void setNeedKyc(MerchantCurrency merchantCurrency, User user);
+
     Integer createRefillRequestByFact(RefillRequestAcceptDto request);
 
     Integer createRefillRequestByFact(RefillRequestAcceptDto request, int userId, int commissionId, RefillStatusEnum statusEnum);
@@ -100,6 +103,9 @@ public interface RefillService {
     void autoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException;
 
     void autoAcceptRefillEmptyRequest(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException;
+
+    @Transactional
+    void acceptAdminRefillRequest(RefillRequestAcceptDto requestAcceptDto);
 
     void acceptRefillRequest(RefillRequestAcceptDto requestAcceptDto);
 

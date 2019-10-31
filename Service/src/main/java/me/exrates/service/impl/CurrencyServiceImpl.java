@@ -51,7 +51,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -118,8 +117,8 @@ public class CurrencyServiceImpl implements CurrencyService {
         allPairs = findAllCurrencyPair()
                 .stream().collect(Collectors.toMap(CurrencyPair::getId, Function.identity()));
 
-        defaultMarketVolumes = getAllMarketVolumes().stream()
-                .collect(Collectors.toMap(MarketVolume::getName, MarketVolume::getMarketVolume));
+//        defaultMarketVolumes = getAllMarketVolumes().stream()
+//                .collect(Collectors.toMap(MarketVolume::getName, MarketVolume::getMarketVolume));
     }
 
     @Override

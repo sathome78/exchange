@@ -55,15 +55,15 @@ public class FreecoinsRepositoryImpl implements FreecoinsRepository {
     }
 
     @Override
-    public GiveawayResultDto getClaim(int id) {
+    public GiveawayResultDto getClaim(int giveawayId) {
         final String sql = "SELECT fcc.id, fcc.currency_name, cur.description AS currency_description, fcc.amount, " +
-                "fcc.partial_amount, fcc.total_quantity, fcc.single, fcc.time_range, fcc.creator_email, fcc.status " +
+                "fcc.partial_amount, fcc.total_quantity, fcc.single, fcc.time_range, fcc.creator_email, fcc.created_at, fcc.status " +
                 "FROM FREE_COINS_CLAIM fcc " +
                 "JOIN CURRENCY cur ON cur.name = fcc.currency_name " +
                 "WHERE fcc.id = :id";
 
         Map<String, Object> params = new HashMap<>();
-        params.put("id", id);
+        params.put("id", giveawayId);
 
         try {
             return jdbcTemplate.queryForObject(sql, params, getGiveawayResultRowMapper());
@@ -75,7 +75,7 @@ public class FreecoinsRepositoryImpl implements FreecoinsRepository {
     @Override
     public List<GiveawayResultDto> getAllCreatedClaims() {
         final String sql = "SELECT fcc.id, fcc.currency_name, cur.description AS currency_description, fcc.amount, " +
-                "fcc.partial_amount, fcc.total_quantity, fcc.single, fcc.time_range, fcc.creator_email, fcc.status " +
+                "fcc.partial_amount, fcc.total_quantity, fcc.single, fcc.time_range, fcc.creator_email, fcc.created_at, fcc.status " +
                 "FROM FREE_COINS_CLAIM fcc " +
                 "JOIN CURRENCY cur ON cur.name = fcc.currency_name " +
                 "WHERE fcc.status = :status AND fcc.total_quantity <> 0";
@@ -191,6 +191,32 @@ public class FreecoinsRepositoryImpl implements FreecoinsRepository {
         return jdbcTemplate.update(sql, params) > 0;
     }
 
+    @Override
+    public List<GiveawayResultDto> getAllClaims() {
+        final String sql = "SELECT fcc.id, fcc.currency_name, cur.description AS currency_description, fcc.amount, " +
+                "fcc.partial_amount, fcc.total_quantity, fcc.single, fcc.time_range, fcc.creator_email, fcc.created_at, fcc.status " +
+                "FROM FREE_COINS_CLAIM fcc " +
+                "JOIN CURRENCY cur ON cur.name = fcc.currency_name";
+
+        return jdbcTemplate.query(sql, getGiveawayResultRowMapper());
+    }
+
+    @Override
+    public int getUniqueAcceptorsByClaimId(int giveawayId) {
+        final String sql = "SELECT COUNT(fcp.id) " +
+                "FROM FREE_COINS_PROCESS fcp " +
+                "WHERE fcp.giveaway_id = :giveaway_id";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("giveaway_id", giveawayId);
+
+        try {
+            return jdbcTemplate.queryForObject(sql, params, Integer.class);
+        } catch (Exception ex) {
+            return 0;
+        }
+    }
+
     private RowMapper<GiveawayResultDto> getGiveawayResultRowMapper() {
         return (rs, i) -> GiveawayResultDto.builder()
                 .id(rs.getInt("id"))
@@ -202,6 +228,7 @@ public class FreecoinsRepositoryImpl implements FreecoinsRepository {
                 .isSingle(rs.getBoolean("single"))
                 .timeRange(rs.getInt("time_range"))
                 .creatorEmail(rs.getString("creator_email"))
+                .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
                 .status(Objects.nonNull(rs.getString("status"))
                         ? GiveawayStatus.valueOf(rs.getString("status"))
                         : null)

@@ -45,7 +45,7 @@ public class IpUtils {
     }
 
     public static String getIpForDbLog(HttpServletRequest request) {
-        return getClientIpAddress(request, IP_LENGTH_FOR_DB_LOG);
+        return getClientIpAddress(request, IP_LENGTH_FOR_DB_LOG).replaceFirst(",", "");
     }
 
     public static String getIpForUserHistory(HttpServletRequest request) {

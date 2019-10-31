@@ -744,6 +744,17 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+
+        <RollingFile name="enfins_log" fileName="${sys:catalina.home}/logs/merchants/enfins_log.log"
+                     filePattern="${sys:catalina.home}/logs/merchants/enfins_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+
         <RollingFile name="inout" fileName="${sys:catalina.home}/logs/inout/inout.log"
                      filePattern="${sys:catalina.home}/logs/inout/inout%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
@@ -795,6 +806,15 @@
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
                 <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="syndex" fileName="${sys:catalina.home}/logs/merchants/syndex_log"
+                     filePattern="${sys:catalina.home}/logs/merchants/syndex_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="50 MB"/>
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
@@ -1101,6 +1121,9 @@
         <logger name="coin_pay_log" level="ALL" additivity="false">
             <AppenderRef ref="coin_pay_log"/>
         </logger>
+        <logger name="enfins_log" level="ALL" additivity="false">
+            <AppenderRef ref="enfins_log"/>
+        </logger>
         <logger name="ordersTxLogger" level="ALL" additivity="false">
             <AppenderRef ref="ordersTxLogger"/>
         </logger>
@@ -1113,6 +1136,13 @@
         <logger name="free-coins" level="ALL" additivity="false">
             <AppenderRef ref="free-coins"/>
         </logger>
+        <logger name="syndex" level="ALL" additivity="false">
+            <AppenderRef ref="syndex"/>
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="io.jafka.jeos.impl.LoggingInterceptor" level="INFO" additivity="false">
+        </logger>
+
         <Root level="INFO">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Logs"/>

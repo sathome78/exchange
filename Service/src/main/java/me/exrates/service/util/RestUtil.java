@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.StringTokenizer;
 
 public class RestUtil {
 
@@ -26,5 +27,14 @@ public class RestUtil {
                 "?" +
                 request.getQueryString();
         return StringUtils.abbreviate(url, MAX_URL_LENGTH);
+    }
+
+    public static String getClientIpAddress(HttpServletRequest request) {
+        String xForwardedForHeader = request.getHeader("X-Forwarded-For");
+        if (xForwardedForHeader == null) {
+            return request.getRemoteAddr();
+        } else {
+            return new StringTokenizer(xForwardedForHeader, ",").nextToken().trim();
+        }
     }
 }

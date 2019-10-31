@@ -136,7 +136,7 @@ public class withdrawRequestJob {
       email.setMessage(messageSource.getMessage("withdraw.wallet.insufficientCosts.body", new Object[]{currencyName}, locale));
 
       Properties properties = new Properties();
-      properties.put("public_id", userService.getPubIdByEmail(emailAddress));
+      properties.setProperty("public_id", userService.getPubIdByEmail(emailAddress));
       email.setProperties(properties);
 
       sendMailService.sendMail(email);

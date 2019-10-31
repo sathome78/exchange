@@ -86,12 +86,12 @@ public class OkPayServiceImpl implements OkPayService {
 
         Properties properties = new Properties();
 
-        properties.put("ok_receiver", ok_receiver);
-        properties.put("ok_currency", currency);
-        properties.put("ok_invoice", String.valueOf(requestId));
-        properties.put("ok_item_1_name", ok_item_1_name);
-        properties.put("ok_item_1_price", amountToPay.toString());
-        properties.put("ok_s_title", ok_s_title);
+        properties.setProperty("ok_receiver", ok_receiver);
+        properties.setProperty("ok_currency", currency);
+        properties.setProperty("ok_invoice", String.valueOf(requestId));
+        properties.setProperty("ok_item_1_name", ok_item_1_name);
+        properties.setProperty("ok_item_1_price", amountToPay.toString());
+        properties.setProperty("ok_s_title", ok_s_title);
 
         return generateFullUrlMap(url, "POST", properties);
     }

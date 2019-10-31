@@ -46,6 +46,9 @@ public class RefillRequestCreateDto {
     private Locale locale;
     private RefillRequestParam refillRequestParam = new RefillRequestParam();
     private String txHash;
+    private SyndexOrderParams syndexOrderParams = new SyndexOrderParams();
+
+    private String paymentLink;
 
 
     public RefillRequestCreateDto(RefillRequestParamsDto paramsDto, CreditsOperation creditsOperation, RefillStatusEnum status, Locale locale) {
@@ -58,6 +61,9 @@ public class RefillRequestCreateDto {
         this.refillRequestParam.recipient = paramsDto.getRecipient();
         this.refillRequestParam.userFullName = paramsDto.getUserFullName();
         this.refillRequestParam.merchantRequestSign = paramsDto.getMerchantRequestSign();
+        this.syndexOrderParams.country = paramsDto.getCountry();
+        this.syndexOrderParams.currency = paramsDto.getCurrencyToPaySyndex();
+        this.syndexOrderParams.paymentSystem = paramsDto.getPaymentSystem();
         this.remark = paramsDto.getRemark();
         this.address = paramsDto.getAddress();
         this.privKey = null;
@@ -104,6 +110,13 @@ public class RefillRequestCreateDto {
                     this.userFullName == null &&
                     this.merchantRequestSign == null;
         }
+    }
+
+    @Getter
+    public class SyndexOrderParams {
+        private String country;
+        private String currency;
+        private String paymentSystem;
     }
 
 }

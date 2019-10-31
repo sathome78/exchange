@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.InvalidNumberParamException;
 import me.exrates.dao.exception.notfound.NotFoundException;
+import me.exrates.dao.exception.syndex.SyndexDataAccessException;
 import me.exrates.model.UserFile;
 import me.exrates.model.exceptions.OpenApiException;
 import me.exrates.model.ngExceptions.NgResponseException;
@@ -23,8 +24,11 @@ import me.exrates.service.exception.api.InvalidCurrencyPairFormatException;
 import me.exrates.service.exception.api.OpenApiError;
 import me.exrates.service.exception.api.OrderParamsWrongException;
 import me.exrates.service.exception.process.ProcessingException;
+import me.exrates.service.syndex.SyndexCallException;
+import me.exrates.service.syndex.SyndexOrderException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
@@ -56,6 +60,13 @@ public class GlobalControllerExceptionHandler {
     public GlobalControllerExceptionHandler(final MessageSource messageSource, final UserService userService) {
         this.messageSource = messageSource;
         this.userService = userService;
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler({EmptyResultDataAccessException.class, SyndexCallException.class, NullPointerException.class, SyndexOrderException.class, SyndexDataAccessException.class})
+    @ResponseBody
+    public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
     }
 
     @ExceptionHandler(MultipartException.class)
