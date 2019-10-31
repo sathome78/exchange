@@ -667,8 +667,8 @@ public class UserDaoImpl implements UserDao {
         if (user.getVerificationRequired() != null) {
             fieldsStr.append("verification_required = " + user.getVerificationRequired()).append(",");
         }
-        if (user.hasTradePrivileges() != null) {
-            fieldsStr.append("has_trade_privileges = " + user.hasTradePrivileges()).append(",");
+        if (user.getTradesPrivileges() != null) {
+            fieldsStr.append("has_trade_privileges = " + user.getTradesPrivileges()).append(",");
         }
         if (fieldsStr.toString().trim().length() == 0) {
             return true;

@@ -3,9 +3,11 @@ package me.exrates.service.session;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.UserSessionsDao;
+import me.exrates.model.dto.GeoLocation;
 import me.exrates.model.dto.UserLoginSessionDto;
 import me.exrates.model.dto.UserLoginSessionShortDto;
 import me.exrates.model.ngUtil.PagedResult;
+import me.exrates.ngService.GeoLocationService;
 import me.exrates.service.util.IpUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +32,9 @@ public class UserLoginSessionsServiceImpl implements UserLoginSessionsService {
 
     private final UserSessionsDao userSessionsDao;
     private final Parser uaParser;
+
+    @Autowired
+    private GeoLocationService geoLocationService;
 
     @SneakyThrows
     @Autowired
@@ -75,19 +80,17 @@ public class UserLoginSessionsServiceImpl implements UserLoginSessionsService {
     private UserLoginSessionDto toDto(HttpServletRequest request, String token) {
         String ip = IpUtils.getIpForUserHistory(request);
         Client values = parseUserAgentHeader(request.getHeader(USER_AGENT_HEADER));
+        GeoLocation geoLocation = geoLocationService.findById(ip);
 
-        String country = "unknown";
-        String city = "unknown";
-        String region = "unknown";
         /*--------------------------*/
         return UserLoginSessionDto.builder()
                 .ip(ip)
                 .device(values.device.family)
                 .userAgent(getFullUserAgent(values))
                 .os(getFullOs(values))
-                .country(country)
-                .city(city)
-                .region(region)
+                .country(geoLocation.getCountry())
+                .city(geoLocation.getCity())
+                .region(geoLocation.getRegion())
                 .token(token)
                 .build();
     }
@@ -108,17 +111,27 @@ public class UserLoginSessionsServiceImpl implements UserLoginSessionsService {
     }
 
     private String getFullUserAgent(Client client) {
-        return String.format("%s  %s %s", client.userAgent.family, client.userAgent.major, getEmptyOrValue(client.userAgent.minor));
+        return String.format("%s  %s%s %s",
+                client.userAgent.family,
+                client.userAgent.major,
+                getEmptyOrValueWithDot(client.userAgent.minor),
+                getEmptyOrValue(client.userAgent.patch));
     }
 
     private String getFullOs(Client client) {
-        return String.format("%s  %s %s  %s %s", client.os.family, client.os.major,
-                getEmptyOrValue(client.os.minor),
+        return String.format("%s  %s%s  %s %s",
+                client.os.family,
+                client.os.major,
+                getEmptyOrValueWithDot(client.os.minor),
                 getEmptyOrValue(client.os.patch),
-                getEmptyOrValue(client.os.patchMinor));
+                getEmptyOrValueWithDot(client.os.patchMinor));
     }
 
     private String getEmptyOrValue(String value) {
         return Objects.isNull(value) ? StringUtils.EMPTY : value;
+    }
+
+    private String getEmptyOrValueWithDot(String value) {
+        return Objects.isNull(value) ? StringUtils.EMPTY : ".".concat(value);
     }
 }
