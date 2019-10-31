@@ -15,6 +15,7 @@ import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderEventEnum;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.enums.OrderType;
+import me.exrates.model.enums.UserRole;
 import org.apache.commons.compress.utils.Lists;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -154,41 +155,6 @@ public class OrderDaoImplTest extends DataComparisonTest {
                 .run(() -> orderDao.updateOrder(order));
     }
 
-    @Test
-    public void updateOrder_Has_2_Arguments_Ok() {
-        String sql = "SELECT * FROM " + TABLE_EXORDERS;
-
-        int orderId = 1;
-
-        ExOrder order = getTestOrder();
-        order.setUserId(8);
-        order.setCurrencyPairId(8);
-        order.setOperationType(OperationType.MANUAL);
-        order.setExRate(BigDecimal.TEN);
-        order.setAmountBase(BigDecimal.TEN);
-        order.setAmountConvert(BigDecimal.TEN);
-        order.setComissionId(8);
-        order.setCommissionFixedAmount(BigDecimal.TEN);
-        order.setStatus(OrderStatus.SPLIT_CLOSED);
-        order.setSourceId(8);
-        order.setOrderBaseType(OrderBaseType.ICO);
-
-        around()
-                .withSQL(sql)
-                .run(() -> orderDao.updateOrder(orderId, order));
-    }
-
-    @Test
-    public void updateOrder_Has_2_Arguments_NotUpdate_The_Same_Object() {
-        String sql = "SELECT * FROM " + TABLE_EXORDERS;
-
-        int orderId = 1;
-        ExOrder order = getTestOrder();
-
-        around()
-                .withSQL(sql)
-                .run(() -> orderDao.updateOrder(orderId, order));
-    }
 
     @Test
     public void postAcceptedOrderToDB_Ok() {
@@ -330,32 +296,7 @@ public class OrderDaoImplTest extends DataComparisonTest {
                 .run(() -> orderDao.setStatus(wrongOrderId, status));
     }
 
-    @Test
-    @Ignore
-    public void searchOrderByAdmin_Ok() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        int currencyPair = 1;
-        int orderType = 1;
-        String orderDate = formatter.format(LocalDateTime.now());
-        BigDecimal orderRate = BigDecimal.valueOf(0.5);
-        BigDecimal orderVolume = BigDecimal.ONE;
 
-        int actual = orderDao.searchOrderByAdmin(currencyPair, orderType, orderDate, orderRate, orderVolume);
-        assertEquals(-1, actual);
-    }
-
-    @Test
-    public void searchOrderByAdmin_EmptyResultDataAccessException() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        int currencyPair = 2;
-        int orderType = 1;
-        String orderDate = formatter.format(LocalDateTime.now());
-        BigDecimal orderRate = BigDecimal.valueOf(0.5);
-        BigDecimal orderVolume = BigDecimal.ONE;
-
-        int actual = orderDao.searchOrderByAdmin(currencyPair, orderType, orderDate, orderRate, orderVolume);
-        assertEquals(-1, actual);
-    }
 
     @Test
     public void lockOrdersListForAcception_True() {
@@ -490,7 +431,7 @@ public class OrderDaoImplTest extends DataComparisonTest {
         Integer userId = 3;
         CurrencyPair currencyPair = new CurrencyPair();
         currencyPair.setId(2);
-        List<OrderStatus> statuses = Collections.singletonList(OrderStatus.OPENED);
+        OrderStatus statuse = OrderStatus.OPENED;
         OperationType operationType = OperationType.SELL;
         String scopeDefault = "";
         int offset = 0;
@@ -500,12 +441,13 @@ public class OrderDaoImplTest extends DataComparisonTest {
         List<OrderWideListDto> actual = orderDao.getMyOrdersWithState(
                 userId,
                 currencyPair,
-                statuses,
+                statuse,
                 operationType,
                 scopeDefault,
                 offset,
                 limit,
-                locale);
+                locale,
+                UserRole.USER);
 
         assertEquals(1, actual.size());
     }
@@ -549,7 +491,8 @@ public class OrderDaoImplTest extends DataComparisonTest {
                         "DESC",
                         LocalDateTime.now().minusYears(1),
                         LocalDateTime.now(),
-                        Locale.ENGLISH)));
+                        Locale.ENGLISH,
+                        UserRole.USER)));
 
         assertEquals(1, actual.size());
         assertTrue(actual.get(0).getDateCreation().isAfter(LocalDateTime.now().minusHours(6)));
@@ -573,7 +516,7 @@ public class OrderDaoImplTest extends DataComparisonTest {
         Integer userId = 3;
         CurrencyPair currencyPair = new CurrencyPair();
         currencyPair.setId(2);
-        List<OrderStatus> statuses = Collections.singletonList(OrderStatus.OPENED);
+        OrderStatus status = OrderStatus.OPENED;
         OperationType operationType = OperationType.SELL;
         String scopeALL = "ALL";
         int offset = 0;
@@ -583,12 +526,13 @@ public class OrderDaoImplTest extends DataComparisonTest {
         List<OrderWideListDto> actual = orderDao.getMyOrdersWithState(
                 userId,
                 currencyPair,
-                statuses,
+                status,
                 operationType,
                 scopeALL,
                 offset,
                 limit,
-                locale);
+                locale,
+                UserRole.USER);
 
         assertEquals(1, actual.size());
     }
@@ -612,7 +556,7 @@ public class OrderDaoImplTest extends DataComparisonTest {
         Integer userId = 16;
         CurrencyPair currencyPair = new CurrencyPair();
         currencyPair.setId(3);
-        List<OrderStatus> statuses = Collections.singletonList(OrderStatus.INPROCESS);
+        OrderStatus status = OrderStatus.INPROCESS;
         OperationType operationType = OperationType.SELL;
         String scopeACCEPTED = "ACCEPTED";
         int offset = 0;
@@ -622,12 +566,13 @@ public class OrderDaoImplTest extends DataComparisonTest {
         List<OrderWideListDto> actual = orderDao.getMyOrdersWithState(
                 userId,
                 currencyPair,
-                statuses,
+                status,
                 operationType,
                 scopeACCEPTED,
                 offset,
                 limit,
-                locale
+                locale,
+                UserRole.USER
         );
         assertEquals(1, actual.size());
     }
@@ -667,7 +612,8 @@ public class OrderDaoImplTest extends DataComparisonTest {
                         "DESC",
                         null,
                         null,
-                        locale
+                        locale,
+                        UserRole.USER
                 ));
     }
 
@@ -713,7 +659,8 @@ public class OrderDaoImplTest extends DataComparisonTest {
                 "DESC",
                 null,
                 null,
-                locale
+                locale,
+                UserRole.USER
         );
         assertEquals(1, actual.size());
         assertNotNull(actual.get(0).getDateCreation());
@@ -763,7 +710,8 @@ public class OrderDaoImplTest extends DataComparisonTest {
                 "DESC",
                 null,
                 null,
-                locale
+                locale,
+                UserRole.USER
         );
         assertEquals(1, actual.size());
         assertNotNull(actual.get(0).getDateCreation());
@@ -814,7 +762,8 @@ public class OrderDaoImplTest extends DataComparisonTest {
                 "ASC",
                 null,
                 null,
-                locale
+                locale,
+                UserRole.USER
         );
         assertEquals(1, actual.size());
         assertNotNull(actual.get(0).getDateCreation());
@@ -865,7 +814,8 @@ public class OrderDaoImplTest extends DataComparisonTest {
                 "ASC",
                 null,
                 null,
-                locale
+                locale,
+                UserRole.USER
         );
         assertEquals(1, actual.size());
         assertNotNull(actual.get(0).getDateCreation());
@@ -879,7 +829,7 @@ public class OrderDaoImplTest extends DataComparisonTest {
         Integer userId = 3;
         CurrencyPair currencyPair = new CurrencyPair();
         currencyPair.setId(2);
-        List<OrderStatus> statuses = Collections.singletonList(OrderStatus.OPENED);
+        OrderStatus status = OrderStatus.OPENED;
         OperationType operationType = OperationType.SELL;
         String scopeDefault = "ACCEPTED";
         Integer offset = 0;
@@ -889,12 +839,13 @@ public class OrderDaoImplTest extends DataComparisonTest {
         List<OrderWideListDto> actual = orderDao.getMyOrdersWithState(
                 userId,
                 currencyPair,
-                statuses,
+                status,
                 operationType,
                 scopeDefault,
                 offset,
                 limit,
-                locale);
+                locale,
+                UserRole.USER);
 
         assertEquals(0, actual.size());
     }
@@ -917,21 +868,21 @@ public class OrderDaoImplTest extends DataComparisonTest {
         int id = 16;
         CurrencyPair currencyPair = new CurrencyPair();
         currencyPair.setId(3);
-        List<OrderStatus> statuses = Collections.singletonList(OrderStatus.INPROCESS);
+        OrderStatus status = OrderStatus.INPROCESS;
         OperationType operationType = OperationType.SELL;
         String scopeDefault = "";
         int offset = 0;
         int limit = 5;
-        Locale locale = Locale.ENGLISH;
 
         int actual = orderDao.getUnfilteredOrdersCount(
                 id,
                 currencyPair,
-                statuses,
+                status,
                 operationType,
                 scopeDefault,
                 offset,
-                limit
+                limit,
+                UserRole.USER
         );
         assertEquals(1, actual);
     }
@@ -949,12 +900,11 @@ public class OrderDaoImplTest extends DataComparisonTest {
         int id = 16;
         CurrencyPair currencyPair = new CurrencyPair();
         currencyPair.setId(3);
-        List<OrderStatus> statuses = Collections.singletonList(OrderStatus.INPROCESS);
+        OrderStatus statuses = OrderStatus.INPROCESS;
         OperationType operationType = OperationType.SELL;
         String scopeALL = "ALL";
         int offset = 0;
         int limit = 5;
-        Locale locale = Locale.ENGLISH;
 
         int actual = orderDao.getUnfilteredOrdersCount(
                 id,
@@ -963,7 +913,8 @@ public class OrderDaoImplTest extends DataComparisonTest {
                 operationType,
                 scopeALL,
                 offset,
-                limit
+                limit,
+                UserRole.USER
         );
         assertEquals(1, actual);
     }
@@ -981,21 +932,21 @@ public class OrderDaoImplTest extends DataComparisonTest {
         int id = 16;
         CurrencyPair currencyPair = new CurrencyPair();
         currencyPair.setId(3);
-        List<OrderStatus> statuses = Collections.singletonList(OrderStatus.INPROCESS);
+        OrderStatus status = OrderStatus.INPROCESS;
         OperationType operationType = OperationType.SELL;
         String scopeACCEPTED = "ACCEPTED";
         int offset = 0;
         int limit = 5;
-        Locale locale = Locale.ENGLISH;
 
         int actual = orderDao.getUnfilteredOrdersCount(
                 id,
                 currencyPair,
-                statuses,
+                status,
                 operationType,
                 scopeACCEPTED,
                 offset,
-                limit
+                limit,
+                UserRole.USER
         );
         assertEquals(1, actual);
     }
@@ -1006,28 +957,28 @@ public class OrderDaoImplTest extends DataComparisonTest {
                 "(id,user_id,operation_type_id,exrate,amount_base,amount_convert,commission_id,commission_fixed_amount," +
                 "user_acceptor_id,status_id,currency_pair_id,base_type) " +
                 "VALUES " +
-                "(3,16,3,41340.930000000,0.002221200,91.826473716,8,0.183652947,16,1,3,\'LIMIT\');";
+                "(3,16,3,41340.930000000,0.002221200,91.826473716,8,0.183652947,16,2,3,\'LIMIT\');";
 
         prepareTestData(sql);
 
         int id = 16;
         CurrencyPair currencyPair = new CurrencyPair();
         currencyPair.setId(3);
-        List<OrderStatus> statuses = Arrays.asList(OrderStatus.INPROCESS, OrderStatus.OPENED);
+        OrderStatus status = OrderStatus.OPENED;
         OperationType operationType = OperationType.SELL;
         String scopeACCEPTED = "ACCEPTED";
         int offset = 0;
         int limit = 5;
-        Locale locale = Locale.ENGLISH;
 
         int actual = orderDao.getUnfilteredOrdersCount(
                 id,
                 currencyPair,
-                statuses,
+                status,
                 operationType,
                 scopeACCEPTED,
                 offset,
-                limit
+                limit,
+                UserRole.USER
         );
         assertEquals(1, actual);
     }
@@ -1037,21 +988,21 @@ public class OrderDaoImplTest extends DataComparisonTest {
         int id = 116;
         CurrencyPair currencyPair = new CurrencyPair();
         currencyPair.setId(3);
-        List<OrderStatus> statuses = Collections.singletonList(OrderStatus.OPENED);
+        OrderStatus status = OrderStatus.OPENED;
         OperationType operationType = OperationType.BUY;
         String scopeACCEPTED = "ACCEPTED";
         int offset = 0;
         int limit = 5;
-        Locale locale = Locale.ENGLISH;
 
         int actual = orderDao.getUnfilteredOrdersCount(
                 id,
                 currencyPair,
-                statuses,
+                status,
                 operationType,
                 scopeACCEPTED,
                 offset,
-                limit
+                limit,
+                UserRole.USER
         );
         assertEquals(0, actual);
     }

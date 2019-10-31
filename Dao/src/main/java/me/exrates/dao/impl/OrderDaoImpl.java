@@ -3,6 +3,7 @@ package me.exrates.dao.impl;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
+import me.exrates.dao.UserDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.dao.exception.OrderDaoException;
 import me.exrates.dao.exception.notfound.CommissionsNotFoundException;
@@ -100,8 +101,6 @@ public class OrderDaoImpl implements OrderDao {
     @Autowired
     @Qualifier(value = "slaveForReportsTemplate")
     private NamedParameterJdbcTemplate slaveForReportsTemplate;
-    @Autowired
-    private UserDaoImpl userDao;
 
     private final RowMapper<UserOrdersDto> userOrdersRowMapper = (rs, row) -> {
         int id = rs.getInt("order_id");

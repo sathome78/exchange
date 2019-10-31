@@ -4540,7 +4540,8 @@ public class OrderServiceImplTest {
                 anyString(),
                 anyInt(),
                 anyInt(),
-                any(Locale.class))).thenReturn(Collections.singletonList(dto));
+                any(Locale.class),
+                any(UserRole.class))).thenReturn(Collections.singletonList(dto));
         when(currencyService.findCurrencyPairById(anyInt())).thenReturn(new CurrencyPair("BTC/USD"));
 
         List<OrderWideListDto> myOrdersWithState = orderService.getUsersOrdersWithStateForAdmin(
@@ -4550,7 +4551,8 @@ public class OrderServiceImplTest {
                 OperationType.SELL,
                 10,
                 15,
-                Locale.ENGLISH);
+                Locale.ENGLISH,
+                any(UserRole.class));
 
         assertNotNull(myOrdersWithState);
         assertEquals(dto, myOrdersWithState.get(0));
@@ -4563,7 +4565,8 @@ public class OrderServiceImplTest {
                 anyString(),
                 anyInt(),
                 anyInt(),
-                any(Locale.class));
+                any(Locale.class),
+                any(UserRole.class));
     }
 
     @Test
@@ -5077,7 +5080,7 @@ public class OrderServiceImplTest {
     public void getUserClosedOrders() {
         when(userService.getIdByEmail(any())).thenReturn(1);
         when(currencyService.findCurrencyPairIdByName(anyString())).thenReturn(21);
-        when(orderDao.getUserOrdersByStatus(anyInt(), anyInt(), any(OrderStatus.class), anyInt(), anyInt()))
+        when(orderDao.getUserOrdersByStatus(anyInt(), anyInt(), any(OrderStatus.class), anyInt(), anyInt(), any(UserRole.class)))
                 .thenReturn(Collections.singletonList(getUserOrdersDto()));
 
         List<UserOrdersDto> userCanceledOrders = orderService.getUserClosedOrders("BTC/USD", 1, 2);
@@ -5098,7 +5101,8 @@ public class OrderServiceImplTest {
                 anyInt(),
                 any(OrderStatus.class),
                 anyInt(),
-                anyInt());
+                anyInt(),
+                any(UserRole.class));
     }
 
     @Test
@@ -5110,7 +5114,8 @@ public class OrderServiceImplTest {
                 anyInt(),
                 any(OrderStatus.class),
                 anyInt(),
-                anyInt())).thenReturn(Collections.singletonList(getUserOrdersDto()));
+                anyInt(),
+                any(UserRole.class))).thenReturn(Collections.singletonList(getUserOrdersDto()));
 
         List<UserOrdersDto> userCanceledOrders = orderService.getUserCanceledOrders("BTC/USD", 14, 2);
 
@@ -5130,7 +5135,8 @@ public class OrderServiceImplTest {
                 anyInt(),
                 any(OrderStatus.class),
                 anyInt(),
-                anyInt());
+                anyInt(),
+                any(UserRole.class));
     }
 
     @Test
@@ -5193,7 +5199,8 @@ public class OrderServiceImplTest {
                 anyInt(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
-                anyInt())).thenReturn(Collections.singletonList(dto));
+                anyInt(),
+                any(UserRole.class))).thenReturn(Collections.singletonList(dto));
 
         List<UserTradeHistoryDto> userTradeHistoryByCurrencyPair = orderService.getUserTradeHistoryByCurrencyPair(
                 "BTC/USD",
@@ -5213,7 +5220,8 @@ public class OrderServiceImplTest {
                 anyInt(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
-                anyInt());
+                anyInt(),
+                any(UserRole.class));
     }
 
     @Test
@@ -5418,7 +5426,8 @@ public class OrderServiceImplTest {
                 StringUtils.EMPTY,
                 false,
                 now.minusDays(1),
-                now);
+                now,
+                any(UserRole.class));
 
         doReturn(Collections.singletonList(new OrderWideListDto())).when(orderDao).getMyOrdersWithState(
                 1,
@@ -5432,7 +5441,8 @@ public class OrderServiceImplTest {
                 "DESC",
                 now.minusDays(1),
                 now,
-                Locale.ENGLISH);
+                Locale.ENGLISH,
+                any(UserRole.class));
 
         Pair<Integer, List<OrderWideListDto>> pair = orderService.getMyOrdersWithStateMap(
                 1,
@@ -5451,11 +5461,11 @@ public class OrderServiceImplTest {
 
         verify(orderDao, atLeastOnce()).getMyOrdersWithStateCount(anyInt(), any(CurrencyPair.class), anyString(),
                 any(OrderStatus.class), anyString(), anyBoolean(),
-                any(LocalDateTime.class), any(LocalDateTime.class));
+                any(LocalDateTime.class), any(LocalDateTime.class), any(UserRole.class));
 
         verify(orderDao, atLeastOnce()).getMyOrdersWithState(anyInt(), any(CurrencyPair.class), anyString(),
                 any(OrderStatus.class), anyString(), anyInt(), anyInt(), anyBoolean(), anyString(),
-                any(LocalDateTime.class), any(LocalDateTime.class), any(Locale.class));
+                any(LocalDateTime.class), any(LocalDateTime.class), any(Locale.class), any(UserRole.class));
 
         assertNotNull("Pair could not be null", pair);
         assertEquals("Number of records could be equals", 1, (int) pair.getLeft());
@@ -5478,7 +5488,8 @@ public class OrderServiceImplTest {
                 StringUtils.EMPTY,
                 false,
                 now.minusDays(1),
-                now);
+                now,
+                any(UserRole.class));
 
         Pair<Integer, List<OrderWideListDto>> pair = orderService.getMyOrdersWithStateMap(
                 1,
@@ -5497,7 +5508,7 @@ public class OrderServiceImplTest {
 
         verify(orderDao, atLeastOnce()).getMyOrdersWithStateCount(anyInt(), any(CurrencyPair.class), anyString(),
                 any(OrderStatus.class), anyString(), anyBoolean(),
-                any(LocalDateTime.class), any(LocalDateTime.class));
+                any(LocalDateTime.class), any(LocalDateTime.class), any(UserRole.class));
 
         assertNotNull("Pair could not be null", pair);
         assertEquals("Number of records could be equals", 0, (int) pair.getLeft());
@@ -5522,7 +5533,8 @@ public class OrderServiceImplTest {
                 anyString(),
                 anyBoolean(),
                 any(LocalDateTime.class),
-                any(LocalDateTime.class)
+                any(LocalDateTime.class),
+                any(UserRole.class)
         )).thenReturn(1);
         when(orderDao.getMyOrdersWithState(
                 anyInt(),
@@ -5536,7 +5548,8 @@ public class OrderServiceImplTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
-                any(Locale.class)
+                any(Locale.class),
+                any(UserRole.class)
         )).thenReturn(Collections.singletonList(dto));
 
         Pair<Integer, List<OrderWideListDto>> myOrdersWithStateMap = orderService.getMyOrdersWithStateMap(
@@ -5570,7 +5583,8 @@ public class OrderServiceImplTest {
                 anyString(),
                 anyBoolean(),
                 any(LocalDateTime.class),
-                any(LocalDateTime.class));
+                any(LocalDateTime.class),
+                any(UserRole.class));
         verify(orderDao, times(1)).getMyOrdersWithState(
                 anyInt(),
                 any(CurrencyPair.class),
@@ -5583,7 +5597,8 @@ public class OrderServiceImplTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
-                any(Locale.class));
+                any(Locale.class),
+                any(UserRole.class));
     }
 
     @Test
@@ -5596,7 +5611,8 @@ public class OrderServiceImplTest {
                 anyString(),
                 anyBoolean(),
                 any(LocalDateTime.class),
-                any(LocalDateTime.class))).thenReturn(0);
+                any(LocalDateTime.class),
+                any(UserRole.class))).thenReturn(0);
 
         Pair<Integer, List<OrderWideListDto>> myOrdersWithStateMap = orderService.getMyOrdersWithStateMap(
                 100,
@@ -5625,7 +5641,8 @@ public class OrderServiceImplTest {
                 anyString(),
                 anyBoolean(),
                 any(LocalDateTime.class),
-                any(LocalDateTime.class));
+                any(LocalDateTime.class),
+                any(UserRole.class));
     }
 
     @Test
@@ -5666,7 +5683,8 @@ public class OrderServiceImplTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
-                any(Locale.class)
+                any(Locale.class),
+                any(UserRole.class)
         )).thenReturn(Collections.singletonList(dto));
 
         List<OrderWideListDto> ordersForExcel = orderService.getOrdersForExcel(
@@ -5703,7 +5721,8 @@ public class OrderServiceImplTest {
                 anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
-                any(Locale.class)
+                any(Locale.class),
+                any(UserRole.class)
         );
     }
 
