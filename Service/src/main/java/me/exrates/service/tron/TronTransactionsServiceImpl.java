@@ -33,6 +33,9 @@ import java.util.stream.StreamSupport;
 @Conditional(MonolitConditional.class)
 public class TronTransactionsServiceImpl implements TronTransactionsService {
 
+    private @Value("${tron.trc20ContractAddress}")String CONTRACT_ADDRESS;
+    private @Value("${tron.functionSelector}")String FUNCTION_SELECTOR;
+
     @Autowired
     public TronTransactionsServiceImpl(TronNodeService tronNodeService, TronService tronService, RefillService refillService, TronTokenContext tronTokenContext) {
         this.tronNodeService = tronNodeService;
@@ -190,9 +193,11 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
     private void transferFoundsTRC20(String privatKey, String addressTo, String ownerAdress, long amount) {
         log.debug("create transaction to transfer founds {} to main account {}","TRX_TRC20", addressTo);
         Preconditions.checkArgument(amount > 0, "invalid amount " + amount);
+        String feeLimit = "100000";
         String secondTronVMParameter = "0000000000000000000000000000000000000000000000000000000000000001";
         String parameter = "0000000000000000000000" + addressTo + secondTronVMParameter;
-        TronTransferDtoTRC20 tronTransferDto = new TronTransferDtoTRC20(parameter, amount, ownerAdress);
+        TronTransferDtoTRC20 tronTransferDto = new TronTransferDtoTRC20(CONTRACT_ADDRESS,FUNCTION_SELECTOR,
+                parameter,feeLimit, amount, ownerAdress);
         JSONObject object = tronNodeService.transferFundsTRC20(tronTransferDto);
         log.info("Send request for transaction for USDT()TRX");
         JSONObject transaction = object.getJSONObject("transaction").put("privateKey", privatKey);
