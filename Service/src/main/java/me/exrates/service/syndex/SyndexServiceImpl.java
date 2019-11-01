@@ -148,22 +148,15 @@ public class SyndexServiceImpl implements SyndexService {
     @Transactional
     @Override
     public void cancelMerchantRequest(int id) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Integer userId = null;
 
-        if (!Objects.isNull(authentication)) {
-            userId = userService.getIdByEmail(authentication.getName());
-        }
+        SyndexOrderDto currentOrder = syndexDao.getByIdForUpdate(id, null);
 
-        SyndexOrderDto currentOrder = syndexDao.getByIdForUpdate(id, userId);
-
-        if (currentOrder.getStatus() != SyndexOrderStatusEnum.CREATED) {
-            throw new SyndexOrderException("Current status not suitable for cancellation");
-        }
-
-        syndexDao.updateStatus(id, SyndexOrderStatusEnum.CANCELLED.getStatusId());
-        if (!Objects.isNull(authentication)) {
+        if (currentOrder.getStatus() == SyndexOrderStatusEnum.CREATED) {
+            syndexDao.updateStatus(id, SyndexOrderStatusEnum.CANCELLED.getStatusId());
             syndexClient.cancelOrder(currentOrder.getSyndexId());
+
+        } else if (currentOrder.getStatus() != SyndexOrderStatusEnum.CANCELLED) {
+            throw new SyndexOrderException("Current status not suitable for cancellation");
         }
     }
 
@@ -218,21 +211,18 @@ public class SyndexServiceImpl implements SyndexService {
         SyndexOrderStatusEnum lastSavedStatus = currentOrderFromDb.getStatus();
         SyndexOrderStatusEnum newStatus = SyndexOrderStatusEnum.convert(retrievedOrder.getStatus());
 
+        if (lastSavedStatus != newStatus) {
+            syndexDao.updateStatus(currentOrderFromDb.getId(), newStatus.getStatusId());
+        }
+
         if (StringUtils.isEmpty(currentOrderFromDb.getPaymentDetails()) || currentOrderFromDb.getPaymentEndTime() == null) {
             syndexDao.updatePaymentDetailsAndEndDate(currentOrderFromDb.getId(), retrievedOrder.getPaymentDetails(), retrievedOrder.getEndPaymentTime());
         }
 
         if (lastSavedStatus.isInPendingStatus() && newStatus == SyndexOrderStatusEnum.COMPLETE) {
             tryToRefill(currentOrderFromDb);
-            return;
-
         } else if (lastSavedStatus.isInPendingStatus() && newStatus == SyndexOrderStatusEnum.CANCELLED) {
             refillService.revokeRefillRequest(currentOrderFromDb.getId());
-            return;
-        }
-
-        if (lastSavedStatus != newStatus) {
-            syndexDao.updateStatus(currentOrderFromDb.getId(), newStatus.getStatusId());
         }
     }
 
@@ -252,7 +242,6 @@ public class SyndexServiceImpl implements SyndexService {
        paramsMap.put(PAYMENT_ID, String.valueOf(currentOrderFromDb.getId()));
        paramsMap.put(SYNDEX_ID, String.valueOf(currentOrderFromDb.getSyndexId()));
        paramsMap.put(AMOUNT_PARAM, currentOrderFromDb.getAmount().toString());
-        syndexDao.updateStatus(currentOrderFromDb.getId(), SyndexOrderStatusEnum.COMPLETE.getStatusId());
        processPayment(paramsMap);
     }
 }
