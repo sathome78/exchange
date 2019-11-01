@@ -23,7 +23,7 @@ public interface SyndexDao {
 
     SyndexOrderDto getBySyndexId(long id);
 
-    SyndexOrderDto getByIdForUpdate(int id, int userId);
+    SyndexOrderDto getByIdForUpdate(int id, @Nullable Integer userId);
 
     SyndexOrderDto getBySyndexIdForUpdate(long id);
 
