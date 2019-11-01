@@ -7,20 +7,13 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PreDestroy;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-
 @Service
 @Log4j2(topic = "Qiwi")
 @Conditional(MonolitConditional.class)
 public class QiwiRecieveService {
 
-    private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-
     private static final String TRANSACTION_TYPE = "EXTERNAL-MERCHANT";
     private static final String TRANSACTION_STATUS = "APPROVED";
-
 
     @Autowired
     private QiwiExternalService qiwiExternalService;
@@ -49,10 +42,4 @@ public class QiwiRecieveService {
         });
         log.info("*** Qiwi ** Get transactions for process");
     }
-
-    @PreDestroy
-    public void shutdown() {
-        scheduler.shutdown();
-    }
-
 }

@@ -86,7 +86,7 @@ public class UserDaoImpl implements UserDao {
     private final String SELECT_USER =
             "SELECT USER.id, u.email AS parent_email, USER.finpassword, USER.nickname, USER.email, USER.password, USER.regdate, " +
                     "USER.phone, USER.status, USER.kyc_status, USER_ROLE.name AS role_name, USER.country AS country, USER.pub_id, USER.verification_required, " +
-                    "USER.has_trade_privileges FROM USER " +
+                    "USER.has_trade_privileges, USER.GA FROM USER " +
                     "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LEFT JOIN REFERRAL_USER_GRAPH " +
                     "ON USER.id = REFERRAL_USER_GRAPH.child LEFT JOIN USER AS u ON REFERRAL_USER_GRAPH.parent = u.id ";
 
@@ -137,6 +137,9 @@ public class UserDaoImpl implements UserDao {
             try {
                 user.setParentEmail(resultSet.getString("parent_email")); // May not exist for some users
             } catch (final SQLException e) {/*NOP*/}
+            if (resultSet.getString("GA") != null) {
+                user.setGa(resultSet.getString("GA"));
+            }
             return user;
         };
     }
