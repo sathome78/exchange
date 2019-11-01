@@ -25,16 +25,12 @@ import me.exrates.service.util.ShuftiProUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.support.BasicAuthorizationInterceptor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -292,7 +288,7 @@ public class KYCServiceImpl implements KYCService {
 
                 return Pair.of(reference, changedTo);
             default:
-                throw new ShuftiProException(String.format("Not supported event status %s", eventStatus.name()));
+                return Pair.of(reference, eventStatus);
         }
     }
 
@@ -339,7 +335,6 @@ public class KYCServiceImpl implements KYCService {
             throw new ShuftiProException("Merchant signature is not the same with generated");
         }
     }
-
 
 
     @Builder(builderClassName = "Builder")
