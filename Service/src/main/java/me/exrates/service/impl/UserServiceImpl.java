@@ -9,7 +9,6 @@ import com.google.common.cache.CacheBuilder;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.UserDao;
 import me.exrates.dao.UserPinDao;
-import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.AdminAuthorityOption;
 import me.exrates.model.Comment;
 import me.exrates.model.Email;
@@ -25,16 +24,13 @@ import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserBalancesDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.UserIpDto;
-import me.exrates.model.dto.UserIpReportDto;
 import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.UsersInfoDto;
 import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminIpLogsFilterData;
-import me.exrates.model.dto.ieo.IeoUserStatus;
 import me.exrates.model.dto.kyc.EventStatus;
-import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.NotificationTypeEnum;
@@ -47,6 +43,7 @@ import me.exrates.model.enums.UserStatus;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.ngExceptions.NgResponseException;
+import me.exrates.model.ngExceptions.PincodeExpiredException;
 import me.exrates.service.NotificationService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
@@ -59,13 +56,9 @@ import me.exrates.service.exception.CallBackUrlAlreadyExistException;
 import me.exrates.service.exception.CommentNonEditableException;
 import me.exrates.service.exception.ForbiddenOperationException;
 import me.exrates.service.exception.NotConfirmedFinPasswordException;
-import me.exrates.service.exception.ResetPasswordExpirationException;
-import me.exrates.service.exception.TokenNotFoundException;
 import me.exrates.service.exception.UnRegisteredUserDeleteException;
 import me.exrates.service.exception.UserCommentNotFoundException;
 import me.exrates.service.exception.WrongFinPasswordException;
-import me.exrates.service.exception.api.UniqueEmailConstraintException;
-import me.exrates.service.exception.api.UniqueNicknameConstraintException;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.session.UserSessionService;
@@ -91,7 +84,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -186,27 +178,6 @@ public class UserServiceImpl implements UserService {
         return flag;
     }
 
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public boolean createUserRest(User user, Locale locale) {
-        if (!ifNicknameIsUnique(user.getNickname())) {
-            LOGGER.error("Nickname already exists!");
-            throw new UniqueNicknameConstraintException("Nickname already exists!");
-        }
-        if (!ifEmailIsUnique(user.getEmail())) {
-            LOGGER.error("Email already exists!");
-            throw new UniqueEmailConstraintException("Email already exists!");
-        }
-        Boolean result = userDao.create(user) && userDao.insertIp(user.getEmail(), user.getIp());
-        if (result) {
-            int user_id = this.getIdByEmail(user.getEmail());
-            user.setId(user_id);
-            userDao.setPreferredLang(user_id, locale);
-            sendEmailWithToken(user, TokenType.REGISTRATION, "/registrationConfirm", "emailsubmitregister.subject", "emailsubmitregister.text", locale);
-        }
-        return result;
-    }
 
     /**
      * Verifies user by token that obtained by the redirection from email letter
@@ -554,55 +525,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void saveTemporaryPasswordAndNotify(UpdateUserDto user, String temporaryPass, Locale locale) {
-        user.setStatus(UserStatus.REGISTERED);
-        if (userDao.update(user)) {
-            User u = new User();
-            u.setId(user.getId());
-            u.setEmail(user.getEmail());
-            sendEmailWithToken(u, TokenType.CHANGE_PASSWORD, "/rest/user/resetPasswordConfirm", "emailsubmitResetPassword.subject", "emailsubmitResetPassword.text", locale, temporaryPass);
-        }
-    }
-
-    @Override
-    public boolean replaceUserPassAndDelete(String token, Long tempPassId) {
-        TemporalToken temporalToken = userDao.verifyToken(token);
-
-        if (temporalToken != null) {
-            TemporaryPasswordDto dto = userDao.getTemporaryPasswordById(tempPassId);
-            LOGGER.debug(dto);
-            if (LocalDateTime.now().isAfter(dto.getDateCreation().plusDays(1L))) {
-                removeTemporaryPassword(dto.getId());
-                throw new ResetPasswordExpirationException("Password expired");
-            }
-            userDao.updateUserPasswordFromTemporary(tempPassId);
-            removeTemporaryPassword(tempPassId);
-
-            userSessionService.invalidateUserSessionExceptSpecific(userDao.getUserById(dto.getUserId()).getEmail(), null);
-
-            return deleteTokensAndUpdateUser(temporalToken) > 0;
-        }
-        removeTemporaryPassword(tempPassId);
-        throw new TokenNotFoundException("Cannot find token");
-
-
-    }
-
-    @Override
     public boolean removeTemporaryPassword(Long id) {
         return userDao.deleteTemporaryPassword(id);
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public boolean tempDeleteUser(String email) {
-        int id = userDao.getIdByEmail(email);
-        LOGGER.debug(id);
-        boolean result = userDao.tempDeleteUserWallets(id) && userDao.tempDeleteUser(id);
-        if (!result) {
-            throw new RuntimeException("Could not delete");
-        }
-        return result;
     }
 
     @PostConstruct
@@ -729,14 +653,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<String> findNicknamesByPart(String part) {
-        Integer nicknameLimit = userDao.retrieveNicknameSearchLimit();
-        return userDao.findNicknamesByPart(part, nicknameLimit);
-
-    }
-
-    @Override
     public UserRole getUserRoleFromSecurityContext() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -817,28 +733,12 @@ public class UserServiceImpl implements UserService {
     }
 
     private String getPinForEvent(String email, NotificationMessageEventEnum event) {
-        String message = String.format("Invalid email auth code from user %s", email);
-        return userPinDao.findPin(email, event).orElseThrow(() -> new NgResponseException(ErrorApiTitles.EMAIL_AUTHORIZATION_PIN_EXPIRED, message));
+        return userPinDao.findPin(email, event).orElseThrow(() -> new PincodeExpiredException(email));
     }
 
     @Override
     public boolean isLogin2faUsed(String email) {
         return g2faService.isGoogleAuthenticatorEnable(userDao.getIdByEmail(email));
-    }
-
-    @Override
-    public boolean checkIsNotifyUserAbout2fa(String email) {
-        return userDao.updateLast2faNotifyDate(email);
-    }
-
-    @Override
-    public List<UserIpReportDto> getUserIpReportForRoles(List<Integer> roleIds) {
-        return userDao.getUserIpReportByRoleList(roleIds);
-    }
-
-    @Override
-    public Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime) {
-        return userDao.getNewRegisteredUserNumber(startTime, endTime);
     }
 
 
@@ -875,16 +775,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public long countUserIps(String userEmail) {
-        return userDao.countUserEntrance(userEmail);
-    }
-
-    @Override
-    public boolean isGlobal2FaActive() {
-        return false;
-    }
-
-    @Override
     public List<Integer> getUserFavouriteCurrencyPairs(String email) {
         User user = findByEmail(email);
         if (user == null) {
@@ -913,11 +803,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String getReferenceId() {
-        return userDao.getReferenceIdByUserEmail(getUserEmailFromSecurityContext());
-    }
-
-    @Override
     public int updateReferenceIdAndStatus(String referenceId, EventStatus status) {
         return userDao.updateReferenceIdAndStatus(referenceId, status, getUserEmailFromSecurityContext());
     }
@@ -925,16 +810,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public String getEmailByReferenceId(String referenceId) {
         return userDao.getEmailByReferenceId(referenceId);
-    }
-
-    @Override
-    public String getCallBackUrlById(int userId, Integer currencyPairId) {
-        return null;
-    }
-
-    @Override
-    public String getCallBackUrlByUserAcceptorId(int userAcceptorId, Integer currencyPairId) {
-        return null;
     }
 
     @Override
@@ -1039,21 +914,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean updatePrivateDataAndKycReference(String email, String referenceUID, String country,
-                                                    String firstName, String lastName, Date birthDay) {
-        return userDao.updatePrivacyDataAndKycReferenceIdByEmail(email, referenceUID, country, firstName, lastName, birthDay);
-    }
-
-    @Override
-    public User findByKycReferenceId(String referenceId) {
-        return userDao.findByKycReferenceId(referenceId).orElseThrow(() -> {
-            String message = String.format("User not found for reference %s", referenceId);
-            log.warn(message);
-            return new UserNotFoundException(message);
-        });
-    }
-
-    @Override
     public boolean updateVerificationStatus(String email, String status) {
         return userDao.updateVerificationStatus(email, status);
     }
@@ -1076,10 +936,6 @@ public class UserServiceImpl implements UserService {
             return true;
         }
         return userDao.updateUserPolicyByEmail(email, policyEnum);
-    }
-
-    public IeoUserStatus findIeoUserStatusByEmail(String email) {
-        return userDao.findIeoUserStatusByEmail(email);
     }
 
     @Override

@@ -9,6 +9,7 @@ import me.exrates.model.OrderWsDetailDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderEventEnum;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.RabbitMqService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
@@ -65,6 +66,9 @@ public class OrdersEventHandleService {
     @Autowired
     private RabbitMqService rabbitMqService;
 
+    @Autowired
+    private GtagService gtagService;
+
     private Map<Integer, OrdersEventsHandler> mapSell = new ConcurrentHashMap<>();
     private Map<Integer, OrdersEventsHandler> mapBuy = new ConcurrentHashMap<>();
 
@@ -118,6 +122,7 @@ public class OrdersEventHandleService {
                 ratesHolder.onRatesChange(order);
                 currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
             }, handlersExecutors));
+            gtagService.sendTradeEvent(order.getUserId());
             try {
                 CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0]))
                         .exceptionally(ex -> null)

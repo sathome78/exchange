@@ -3,9 +3,12 @@ package me.exrates.service.impl;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.GtagRefillRequests;
 import me.exrates.dao.UserDao;
+import me.exrates.model.User;
 import me.exrates.model.dto.api.RateDto;
+import me.exrates.model.enums.UserRole;
 import me.exrates.service.GtagService;
 import me.exrates.service.api.ExchangeApi;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -32,9 +35,9 @@ public class GtagServiceImpl implements GtagService {
 
     @Autowired
     private Client client;
+
     @Autowired
     private ExchangeApi exchangeApi;
-
 
     @Autowired
     private UserDao userDao;
@@ -102,6 +105,25 @@ public class GtagServiceImpl implements GtagService {
         String jsonResponse = response.readEntity(String.class);
 
         log.info("Response is " + jsonResponse);
+    }
+
+    public void sendTradeEvent(int userId) {
+        User user = userDao.getUserById(userId);
+        if (user.getRole() == UserRole.BOT_TRADER || StringUtils.isEmpty(user.getGa())) {
+            return;
+        }
+
+        MultivaluedMap<String, String> formData = new MultivaluedHashMap<>();
+
+        formData.add("v", "1");
+        formData.add("cid", user.getGa());
+        formData.add("tid", "UA-75711135-1");
+        formData.add("t", "trade");
+
+        log.info("Form params " + formData);
+        Response response = client.target(googleAnalyticsHost).request().post(Entity.form(formData));
+        String jsonResponse = response.readEntity(String.class);
+        log.info("Response from trade event is {}", jsonResponse);
     }
 
     public void saveGtagRefillRequest(String gaTag) {
