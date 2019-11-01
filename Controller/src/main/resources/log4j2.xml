@@ -809,6 +809,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="syndex" fileName="${sys:catalina.home}/logs/merchants/syndex_log"
+                     filePattern="${sys:catalina.home}/logs/merchants/syndex_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="50 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
     </Appenders>
     <Loggers>
         <Logger name="jdbc_logger" level="INFO" additivity="false">
@@ -1126,6 +1135,10 @@
         </logger>
         <logger name="free-coins" level="ALL" additivity="false">
             <AppenderRef ref="free-coins"/>
+        </logger>
+        <logger name="syndex" level="ALL" additivity="false">
+            <AppenderRef ref="syndex"/>
+            <AppenderRef ref="Console"/>
         </logger>
         <logger name="io.jafka.jeos.impl.LoggingInterceptor" level="INFO" additivity="false">
         </logger>
