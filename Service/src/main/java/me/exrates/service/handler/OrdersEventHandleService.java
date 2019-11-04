@@ -83,8 +83,21 @@ public class OrdersEventHandleService {
     @TransactionalEventListener
     public void handleOrderEventAsync(CreateOrderEvent event) {
         ExOrder order = (ExOrder) event.getSource();
-        CompletableFuture.runAsync(() -> rabbitMqService.sendOrderInfo(order), handlersExecutors);
-        onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
+
+        log.info("order created: {}", order.getCurrencyPair().getName());
+
+        List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
+        completableFutures.add(CompletableFuture.runAsync(() -> rabbitMqService.sendOrderInfoToChartService(order), handlersExecutors));
+        completableFutures.add(CompletableFuture.runAsync(() -> rabbitMqService.sendOrderInfoToExternalService(order), handlersExecutors));
+        completableFutures.add(CompletableFuture.runAsync(() -> onOrdersEvent(order.getCurrencyPairId(), order.getOperationType()), handlersExecutors));
+
+        try {
+            CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0]))
+                    .exceptionally(ex -> null)
+                    .get(5, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            ExceptionUtils.printRootCauseStackTrace(e);
+        }
         sendOrderEventNotification(order).run();
     }
 
@@ -110,10 +123,13 @@ public class OrdersEventHandleService {
     @TransactionalEventListener
     public void handleOrderEventAsync(AcceptOrderEvent event) {
         ExOrder order = (ExOrder) event.getSource();
+
+        log.info("order accepted: {}", order.getCurrencyPair().getName());
+
         dealsSync.execute(order.getCurrencyPairId(), () -> {
             List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
-            log.info("order accepted " + order.getCurrencyPair().getName());
-            completableFutures.add(CompletableFuture.runAsync(() -> rabbitMqService.sendOrderInfo(order), handlersExecutors));
+            completableFutures.add(CompletableFuture.runAsync(() -> rabbitMqService.sendOrderInfoToChartService(order), handlersExecutors));
+            completableFutures.add(CompletableFuture.runAsync(() -> rabbitMqService.sendOrderInfoToExternalService(order), handlersExecutors));
             completableFutures.add(CompletableFuture.runAsync(() -> {
                 onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
                 handleAllTrades(order);

@@ -7,7 +7,7 @@ public interface RabbitMqService {
 
     String REFILL_QUEUE = "refill";
 
-//    void generateNewTrade();
+    void sendOrderInfoToChartService(ExOrder order);
 
-    void sendOrderInfo(ExOrder order);
+    void sendOrderInfoToExternalService(ExOrder order);
 }
