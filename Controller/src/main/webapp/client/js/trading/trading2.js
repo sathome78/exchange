@@ -525,7 +525,6 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, chartSubscrib
     function onCreateOrderSuccess(data) {
         that.getAndShowSellOrders();
         that.getAndShowBuyOrders();
-        leftSider.getStatisticsForMyWallets();
         that.fillOrderCreationFormFields();
         /*that.clearOrdersCreationForm();*/
         successNoty(data.result, 'successOrder');
@@ -563,7 +562,6 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, chartSubscrib
 
     function onAcceptOrderSuccess(data) {
         that.ordersListForAccept = [];
-        leftSider.getStatisticsForMyWallets();
         successNoty(data.result, 'successOrder');
     }
 

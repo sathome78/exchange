@@ -1,18 +1,14 @@
-var leftSider;
-var rightSider;
 var trading;
 var myWallets;
 var myHistory;
 var orders;
 var $currentPageMenuItem;
-var $currentSubMenuItem;
 var notifications;
 
 var ordersSubscription;
 var tradesSubscription;
 var eventsSubscrition;
 var alertsSubscription;
-var currencyPairStatisticSubscription;
 var personalSubscription;
 var connectedPS = false;
 var currentCurrencyPairId;
@@ -46,7 +42,6 @@ function subscribeAll() {
         subscribeTradeOrders();
     }
     if (connectedPS) {
-        subscribeStatistics();
         subscribeForAlerts();
         subscribeEvents();
     }
@@ -131,19 +126,6 @@ function subscribeTrades() {
     }, headers);
 }
 
-function subscribeStatistics() {
-    if (currencyPairStatisticSubscription == undefined) {
-        var headers = {'X-CSRF-TOKEN': csrf};
-        var path = '/app/statistics/ICO_CURRENCIES_STATISTIC';
-        currencyPairStatisticSubscription = client.subscribe(path, function (message) {
-            var messageBody = JSON.parse(message.body);
-            messageBody.forEach(function(object){
-                handleStatisticMessages(JSON.parse(object));
-            });
-        }, headers);
-    }
-}
-
 function subscribeEvents() {
     if (eventsSubscrition == undefined) {
         var headers = {'X-CSRF-TOKEN': csrf};
@@ -225,22 +207,6 @@ function drawTechAlert(object) {
     } else {
         $tech_block.hide();
         $tech_text.text('')
-    }
-}
-
-function handleStatisticMessages(object) {
-    switch (object.type){
-        case "ICO_CURRENCIES_STATISTIC" : {
-            leftSider.updateStatisticsForAllCurrencies(object.data);
-            break;
-        }
-        case "ICO_CURRENCY_STATISTIC" : {
-            object.data.forEach(function(object){
-                leftSider.updateStatisticsForCurrency(object);
-            });
-
-            break;
-        }
     }
 }
 
@@ -378,27 +344,6 @@ $(function dashdoardInit() {
         });
         /*...FOR HEADER*/
 
-        /*FOR LEFT-SIDER ...*/
-        $('#currency_table').on('click', 'td:first-child', function (e) {
-            var newCurrentCurrencyPairName = $(this).text().trim();
-            syncCurrentParams(newCurrentCurrencyPairName, null, null, null, null, 'ICO', function (data) {
-                if ($currentPageMenuItem.length) {
-                    $currentPageMenuItem.click();
-                    if ($currentSubMenuItem && $currentSubMenuItem.length) {
-                        $currentSubMenuItem.click();
-                    }
-                }
-            });
-            trading.fillOrderCreationFormFields();
-        });
-        $('#currency_table_wrapper, #mywallets_table_wrapper').mCustomScrollbar({
-            theme: "dark",
-            axis: "yx",
-            live: true
-
-        });
-        /*...FOR LEFT-SIDER*/
-
         /*FOR CENTER ON START UP ...*/
 
         $('#orders-sell-table-wrapper, #orders-buy-table-wrapper, #orders-history-table-wrapper').mCustomScrollbar({
@@ -416,25 +361,11 @@ $(function dashdoardInit() {
                 success: function (cpData) {
                     if (!cpData) return;
                     trading = new TradingClass(data.currencyPair.name, data.orderRoleFilterEnabled, cpData);
-                    leftSider = new LeftSiderClass('ICO');
-                    leftSider.setOnWalletsRefresh(function () {
-                        trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
-                    });
                     connectAndReconnect();
                 }
             });
         });
         /*...FOR CENTER ON START UP*/
-
-        /*FOR RIGHT-SIDER ...*/
-        $('#news_table_wrapper').mCustomScrollbar({
-            theme: "dark",
-            axis: "yx",
-            live: true
-        });
-
-        rightSider = new RightSiderClass();
-        /*...FOR RIGHT-SIDER*/
 
         /*FOR POLL ...*/
         /*var startPoll = $("#start-poll").val() == 'true';

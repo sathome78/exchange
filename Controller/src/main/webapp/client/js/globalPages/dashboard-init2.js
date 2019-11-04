@@ -1,5 +1,3 @@
-var leftSider;
-var rightSider;
 var trading;
 var myWallets;
 var myStatements;
@@ -48,7 +46,6 @@ function subscribeAll() {
         subscribeTradeOrders();
     }
     if (connectedPS) {
-        subscribeStatistics();
         subscribeForAlerts();
         subscribeEvents();
     }
@@ -134,19 +131,6 @@ function subscribeTrades() {
     }, headers);
 }
 
-function subscribeStatistics() {
-    if (currencyPairStatisticSubscription == undefined) {
-        var headers = {'X-CSRF-TOKEN': csrf};
-        var path = '/app/statistics/MAIN_CURRENCIES_STATISTIC';
-        currencyPairStatisticSubscription = client.subscribe(path, function (message) {
-            var messageBody = JSON.parse(message.body);
-            messageBody.forEach(function(object){
-                handleStatisticMessages(JSON.parse(object));
-            });
-        }, headers);
-    }
-}
-
 function subscribeEvents() {
     if (eventsSubscrition == undefined) {
         var headers = {'X-CSRF-TOKEN': csrf};
@@ -228,22 +212,6 @@ function drawTechAlert(object) {
     } else {
         $tech_block.hide();
         $tech_text.text('')
-    }
-}
-
-function handleStatisticMessages(object) {
-    switch (object.type){
-        case "MAIN_CURRENCIES_STATISTIC" : {
-            leftSider.updateStatisticsForAllCurrencies(object.data);
-            break;
-        }
-        case "MAIN_CURRENCY_STATISTIC" : {
-            object.data.forEach(function(object){
-                leftSider.updateStatisticsForCurrency(object);
-            });
-
-            break;
-        }
     }
 }
 
@@ -391,13 +359,6 @@ $(function dashdoardInit() {
             });
             trading.fillOrderCreationFormFields();
             });
-        $('#currency_table_wrapper, #mywallets_table_wrapper').mCustomScrollbar({
-            theme: "dark",
-            axis: "yx",
-            live: true
-
-        });
-        /*...FOR LEFT-SIDER*/
 
         /*FOR CENTER ON START UP ...*/
         $('#orders-sell-table-wrapper, #orders-buy-table-wrapper, #orders-history-table-wrapper').mCustomScrollbar({
@@ -418,11 +379,6 @@ $(function dashdoardInit() {
                     trading = new TradingClass(data.currencyPair.name, data.orderRoleFilterEnabled, subscribeChart, cpData);
                     newChartResolution = data.period;
 
-                    leftSider = new LeftSiderClass();
-                    leftSider.setOnWalletsRefresh(function () {
-                        trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
-                    });
-
                     myWallets = new MyWalletsClass();
                     myStatements = new MyStatementsClass();
                     myHistory = new MyHistoryClass(data.currencyPair.name, cpData);
@@ -434,16 +390,6 @@ $(function dashdoardInit() {
             showSubPage($('#startup-subPage-id').text().trim());
         });
         /*...FOR CENTER ON START UP*/
-
-        /*FOR RIGHT-SIDER ...*/
-        $('#news_table_wrapper').mCustomScrollbar({
-            theme: "dark",
-            axis: "yx",
-            live: true
-        });
-
-        rightSider = new RightSiderClass();
-        /*...FOR RIGHT-SIDER*/
 
         /*FOR POLL ...*/
        /*var startPoll = $("#start-poll").val() == 'true';

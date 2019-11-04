@@ -457,7 +457,6 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
     }
 
     function onCreateOrderSuccess(data) {
-        leftSider.getStatisticsForMyWallets();
         that.fillOrderCreationFormFields();
         successNoty(data.result, 'successOrder');
     }
