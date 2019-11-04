@@ -144,4 +144,6 @@ public interface OrderDao {
     List<ExOrderStatisticsShortByPairsDto> getAllDataForCache(Integer currencyPairId);
 
     List<ExOrder> findAllMarketOrderCandidates(Integer currencyId, OperationType operationType);
+
+    Integer deleteClosedExorders();
 }

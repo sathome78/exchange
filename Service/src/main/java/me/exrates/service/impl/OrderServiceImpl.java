@@ -149,6 +149,7 @@ import org.springframework.cache.Cache;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -181,6 +182,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -221,9 +226,9 @@ public class OrderServiceImpl implements OrderService {
             .collect(Collectors.toList());
     private final Object autoAcceptLock = new Object();
     private final Object restOrderCreationLock = new Object();
+    private final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
 
-    @Autowired
-    NotificationService notificationService;
+
     @Autowired
     ServiceCacheableProxy serviceCacheableProxy;
     @Autowired
@@ -263,6 +268,11 @@ public class OrderServiceImpl implements OrderService {
     private Cache coinmarketcapDataCache;
     @Autowired
     private ChartApi chartApi;
+
+    @PostConstruct
+    private void init() {
+        scheduledExecutorService.scheduleWithFixedDelay(this::cleanOrders, 1, 1, TimeUnit.HOURS);
+    }
 
     @Override
     public List<BackDealInterval> getIntervals() {
@@ -2725,6 +2735,11 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public ExOrderStatisticsShortByPairsDto getBeforeLastRateForCache(Integer currencyPairId) {
         return orderDao.getBeforeLastRateForCache(currencyPairId);
+    }
+
+
+    private void cleanOrders() {
+        orderDao.deleteClosedExorders();
     }
 
     private boolean safeCompareBigDecimals(BigDecimal last, BigDecimal beforeLast) {

@@ -468,7 +468,7 @@ public class OrderDaoImpl implements OrderDao {
     public List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(String email, BackDealInterval backDealInterval, Integer limit, CurrencyPair currencyPair) {
         String sql = "SELECT * " +
                      " FROM " +
-                     "    (SELECT EXORDERS.id, EXORDERS.date_acception, EXORDERS.exrate, EXORDERS.amount_base, EXORDERS.operation_type_id " +
+                     "    ((SELECT EXORDERS.id, EXORDERS.date_acception, EXORDERS.exrate, EXORDERS.amount_base, EXORDERS.operation_type_id " +
                      "     FROM ORDERS AS EXORDERS" +
                            (email == null || email.isEmpty() ? "" : " JOIN USER ON ((USER.id = EXORDERS.user_id) OR (USER.id = EXORDERS.user_acceptor_id)) AND USER.email='" + email + "'") +
                      "      WHERE EXORDERS.status_id = :status " +
@@ -476,8 +476,8 @@ public class OrderDaoImpl implements OrderDao {
                      "      AND EXORDERS.currency_pair_id = :currency_pair_id " +
                      "      ORDER BY EXORDERS.date_acception DESC, EXORDERS.id DESC " +
                             (limit == -1 ? "" : "  LIMIT " + limit) +
-                     "     UNION ALL " +
-                     "      SELECT EXORDERS.id, EXORDERS.date_acception, EXORDERS.exrate, EXORDERS.amount_base, EXORDERS.operation_type_id " +
+                     ")     UNION ALL " +
+                     "      (SELECT EXORDERS.id, EXORDERS.date_acception, EXORDERS.exrate, EXORDERS.amount_base, EXORDERS.operation_type_id " +
                      "      FROM BOT_ORDERS AS EXORDERS" +
                             (email == null || email.isEmpty() ? "" : " JOIN USER ON ((USER.id = EXORDERS.user_id) OR (USER.id = EXORDERS.user_acceptor_id)) AND USER.email='" + email + "'") +
                      "       WHERE EXORDERS.status_id = :status " +
@@ -485,7 +485,7 @@ public class OrderDaoImpl implements OrderDao {
                      "       AND EXORDERS.currency_pair_id = :currency_pair_id " +
                      "       ORDER BY EXORDERS.date_acception DESC, EXORDERS.id DESC " +
                              (limit == -1 ? "" : "  LIMIT " + limit) +
-                     "      ) AS AGGR " +
+                     "      )) AS AGGR " +
                      "  ORDER BY AGGR.date_acception DESC, AGGR.id DESC " +
                      (limit == -1 ? "" : "  LIMIT " + limit);
         Map<String, Object> params = new HashMap<String, Object>() {{
@@ -1539,7 +1539,7 @@ public class OrderDaoImpl implements OrderDao {
                 "COUNT(o.id) AS quantity, " +
                 "SUM(o.amount_convert) AS convert_amount," +
                 "SUM((SELECT SUM(t.commission_amount) FROM TRANSACTION t WHERE t.source_type = 'ORDER' AND t.source_id = o.id AND t.operation_type_id <> 5)) AS commission_amount" +
-                " FROM EXORDERS o " +
+                " FROM ORDERS o " +
                 " JOIN CURRENCY_PAIR cp ON o.currency_pair_id = cp.id " +
                 " JOIN CURRENCY cur ON cp.currency2_id = cur.id " +
                 " JOIN USER creator ON creator.id = o.user_id AND creator.roleid IN (:user_roles) " +
@@ -1873,11 +1873,13 @@ public class OrderDaoImpl implements OrderDao {
     public List<ExOrderStatisticsShortByPairsDto> getRatesDataForCache(Integer currencyPairId) {
         String whereClause = StringUtils.EMPTY;
         if (Objects.nonNull(currencyPairId)) {
-            whereClause = " WHERE currency_pair_id = :currency_pair_id ";
+            whereClause = " WHERE CP.id = :currency_pair_id ";
         }
 
-        final String sql = "SELECT IFNULL(last_rate, 0) as last, IFNULL(previous_rate, 0) as pred_last, currency_pair_id  " +
-                           "FROM RATES " + whereClause;
+        final String sql = "SELECT IFNULL(RAT.last_rate, 0) as last, IFNULL(RAT.previous_rate, 0) as pred_last, CP.id as id " +
+                           "FROM CURRENCY_PAIR CP " +
+                           "LEFT JOIN RATES RAT ON RAT.currency_pair_id = CP.id " +
+                           whereClause;
 
 
         Map<String, Object> params = new HashMap<>();
@@ -1886,7 +1888,7 @@ public class OrderDaoImpl implements OrderDao {
         }
 
         return slaveJdbcTemplate.query(sql, params, (rs, rowNum) -> ExOrderStatisticsShortByPairsDto.builder()
-                .currencyPairId(rs.getInt("currency_pair_id"))
+                .currencyPairId(rs.getInt("id"))
                 .lastOrderRate(rs.getBigDecimal("last").toPlainString())
                 .predLastOrderRate(rs.getBigDecimal("pred_last").toPlainString())
                 .build());
@@ -1931,46 +1933,44 @@ public class OrderDaoImpl implements OrderDao {
             whereClause = " WHERE CP2.id = :currency_pair_id ";
         }
 
-        String sql = "SELECT " +
-                "CP2.id AS currency_pair_id, " +
-                "CP2.name AS currency_pair_name, " +
-                "CP2.scale AS currency_pair_precision, " +
-                "CP2.market, " +
-                "CP2.type AS currency_pair_type, " +
-                "CP2.hidden, " +
-                "(IFNULL (SUM(AGR.baseVolume), 0)) AS baseVolume, " +
-                "(IFNULL (SUM(AGR.quoteVolume), 0)) AS quoteVolume, " +
-                "(IFNULL (SUM(AGR.high24hr), 0)) AS high24hr, " +
-                "(IFNULL (SUM(AGR.low24hr), 0)) AS low24hr, " +
-                "(IFNULL ((SELECT last_rate FROM RATES WHERE  currency_pair_id = AGR.currency_pair_id), 0)) AS last24hr " +
-                "FROM " +
-                "   (SELECT" +
-                "       CP.name, " +
-                "       EO.currency_pair_id, " +
-                "       SUM(EO.amount_base) AS baseVolume, " +
-                "       SUM(EO.amount_convert) AS quoteVolume, " +
-                "       MAX(EO.exrate) AS high24hr, " +
-                "       MIN(EO.exrate) AS low24hr " +
-                "        FROM ORDERS EO " +
-                "        JOIN CURRENCY_PAIR CP ON (CP.id = EO.currency_pair_id) " +
-                "        WHERE EO.status_id = 3 AND EO.date_acception >= now() - INTERVAL 24 HOUR " +
-                "        GROUP BY EO.currency_pair_id" +
-                "     UNION ALL " +
-                "   SELECT " +
-                "       CP.name, " +
-                "       EO.currency_pair_id, " +
-                "       SUM(EO.amount_base) AS baseVolume, " +
-                "       SUM(EO.amount_convert) AS quoteVolume, " +
-                "       MAX(EO.exrate) AS high24hr, " +
-                "       MIN(EO.exrate) AS low24hr " +
-                "        FROM BOT_ORDERS EO " +
-                "        JOIN CURRENCY_PAIR CP ON (CP.id = EO.currency_pair_id) " +
-                "        WHERE EO.status_id = 3 AND EO.date_acception >= now() - INTERVAL 24 HOUR " +
-                "        GROUP BY EO.currency_pair_id" +
-                ") AGR " +
-                " RIGHT JOIN CURRENCY_PAIR CP2 ON (CP2.id = AGR.currency_pair_id) " +
+        final String sql = "SELECT " +
+                "                 AGR.id AS currency_pair_id, " +
+                "                 AGR.name AS currency_pair_name, " +
+                "                 CP2.scale AS currency_pair_precision, " +
+                "                 CP2.market, " +
+                "                 CP2.type AS currency_pair_type, " +
+                "                 CP2.hidden, " +
+                "                 AGR.baseVolume, " +
+                "                 AGR.quoteVolume, " +
+                "                 AGR.high24hr, " +
+                "                 AGR.low24hr, " +
+                "                (IFNULL ((SELECT last_rate FROM RATES WHERE  currency_pair_id = AGR.id), 0)) AS last24hr " +
+                "                FROM " +
+                "                   (SELECT " +
+                "                       CP.name, " +
+                "                       CP.id, " +
+                "                       IFNULL(SUM(EO.amount_base), 0) AS baseVolume, " +
+                "                       IFNULL(SUM(EO.amount_convert), 0) AS quoteVolume, " +
+                "                       IFNULL(MAX(EO.exrate), 0) AS high24hr, " +
+                "                       IFNULL(MIN(EO.exrate), 0) AS low24hr " +
+                "                        FROM ORDERS EO " +
+                "                        RIGHT JOIN CURRENCY_PAIR CP ON (CP.id = EO.currency_pair_id) AND EO.date_acception >= now() - INTERVAL 24 HOUR AND EO.status_id = 3 " +
+                "                        GROUP BY CP.id " +
+                "                     UNION ALL " +
+                "                    SELECT " +
+                "                        CP.name, " +
+                "                        CP.id, " +
+                "                        IFNULL(SUM(EO.amount_base), 0) AS baseVolume, " +
+                "                        IFNULL(SUM(EO.amount_convert), 0) AS quoteVolume, " +
+                "                        IFNULL(MAX(EO.exrate), 0) AS high24hr, " +
+                "                        IFNULL(MIN(EO.exrate), 0) AS low24hr " +
+                "                        FROM BOT_ORDERS EO " +
+                "                        RIGHT JOIN CURRENCY_PAIR CP ON (CP.id = EO.currency_pair_id) AND EO.date_acception >= now() - INTERVAL 24 HOUR AND EO.status_id = 3 " +
+                "                    GROUP BY CP.id " +
+                "                ) AGR " +
+                "JOIN CURRENCY_PAIR CP2 ON CP2.id = AGR.id " +
                 whereClause +
-                " GROUP BY AGR.currency_pair_id ";
+                "GROUP BY AGR.id ";
 
         Map<String, Object> params = new HashMap<>();
         if (Objects.nonNull(currencyPairId)) {
@@ -2014,6 +2014,12 @@ public class OrderDaoImpl implements OrderDao {
         namedParameters.put("pairId", currencyId);
         namedParameters.put("typeId", operationType.getType());
         return masterJdbcTemplate.query(sql, namedParameters, getExOrderRowMapper());
+    }
+
+    @Override
+    public Integer deleteClosedExorders() {
+        final String sql = "DELETE FROM EXORDERS WHERE status_id = 3 LIMIT 300000";
+        return masterJdbcTemplate.update(sql, Collections.EMPTY_MAP);
     }
 
     private RowMapper<ExOrder> getExOrderRowMapper() {
@@ -2134,10 +2140,10 @@ public class OrderDaoImpl implements OrderDao {
     private OrderTableEnum getOrderTable(int id) {
         final String sql = String.format("SELECT" +
                 "       COALESCE((SELECT '%s' FROM %s WHERE id = :id)," +
-                "               (SELECT '%s' FROM %s WHERE id = :id)," +
+                "               (SELECT '%s' FROM %s WHERE id = :id AND status_id = %d)," +
                 "               (SELECT '%s' FROM %s WHERE id = :id))" ,
                 OrderTableEnum.ORDERS, OrderTableEnum.ORDERS,
-                OrderTableEnum.EXORDERS, OrderTableEnum.EXORDERS,
+                OrderTableEnum.EXORDERS, OrderTableEnum.EXORDERS, OrderStatus.OPENED.getStatus(),
                 OrderTableEnum.BOT_ORDERS, OrderTableEnum.BOT_ORDERS);
         return masterJdbcTemplate.queryForObject(sql, Collections.singletonMap("id", id), OrderTableEnum.class);
     }
