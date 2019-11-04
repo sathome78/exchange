@@ -4,9 +4,7 @@ import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.CurrentParams;
-import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.OrderCommissionsDto;
 import me.exrates.model.dto.RefFilterData;
 import me.exrates.model.dto.ReferralInfoDto;
@@ -25,7 +23,6 @@ import me.exrates.model.dto.onlineTableDto.NotificationDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
-import me.exrates.model.enums.ChartType;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
@@ -72,18 +69,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.security.web.csrf.CsrfToken;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
@@ -91,7 +76,6 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
@@ -134,16 +118,12 @@ public class OnlineRestController {
      * The time of end the current session is stored in session param "sessionEndTime", which calculated in millisec as
      * new Date().getTime() + SESSION_LIFETIME_HARD * 1000*/
     /*public static final int SESSION_LIFETIME_INACTIVE = 0; //SECONDS*/
-    /*default depth the interval for chart*/
-    final public static BackDealInterval BACK_DEAL_INTERVAL_DEFAULT = new BackDealInterval("24 HOUR");
     /*depth the accepted order history*/
     final public static BackDealInterval ORDER_HISTORY_INTERVAL = new BackDealInterval("24 HOUR");
     /*limit the data fetching of order history (additional to ORDER_HISTORY_INTERVAL). (-1) means no limit*/
     final public static Integer ORDER_HISTORY_LIMIT = 100;
     /*default limit the data fetching for all tables. (-1) means no limit*/
     final public static Integer TABLES_LIMIT_DEFAULT = -1;
-    /*default type of the chart*/
-    final public static ChartType CHART_TYPE_DEFAULT = ChartType.STOCK;
     /*it's need to install only one: SESSION_LIFETIME_HARD or SESSION_LIFETIME_INACTIVE*/
 
     private @Value("${session.timeParamName}")
@@ -406,8 +386,8 @@ public class OnlineRestController {
           }});
         }};
       }*//*
-            *//*if (session.getAttribute("QR_LOGGED_IN") != null) {
-             *//**//*after authentication via QR main page must be reloaded*//**//*
+     *//*if (session.getAttribute("QR_LOGGED_IN") != null) {
+     *//**//*after authentication via QR main page must be reloaded*//**//*
         session.removeAttribute("QR_LOGGED_IN");
         LOGGER.debug(" REDIRECT to /dashboard. SESSION: " + session.getId() + " is new: " + session.isNew() + " firstEntry: " + session.getAttribute("firstEntry"));
         return new HashMap<String, HashMap<String, String>>() {{
@@ -455,87 +435,6 @@ public class OnlineRestController {
     }
 
     /**
-     * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
-     * returns the data for graphic
-     * method has not param "refreshIfNeeded", but it is called if the data, which indicates that graphic must be repainted, has been changed
-     *
-     * @param request
-     * @return: "null" if user is not login. List the data of user's wallet current statistics
-     * @author ValkSam
-     */
-    /*@OnlineMethod
-    @RequestMapping(value = "/dashboard/chartArray/{type}", method = RequestMethod.GET)
-    public ArrayList chartArray(HttpServletRequest request) {
-        CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
-        if (currencyPair == null) {
-            return new ArrayList();
-        }
-        final BackDealInterval backDealInterval = (BackDealInterval) request.getSession().getAttribute("currentBackDealInterval");
-        ChartType chartType = (ChartType) request.getSession().getAttribute("chartType");
-        log.error("chartType {}", chartType);
-        *//**//*
-        ArrayList<List> arrayListMain = new ArrayList<>();
-        *//*in first row return backDealInterval - to synchronize period menu with it*//*
-        arrayListMain.add(new ArrayList<Object>() {{
-            add(backDealInterval);
-        }});
-        *//**//*
-        if (chartType == ChartType.AREA) {
-            *//*GOOGLE*//*
-            List<Map<String, Object>> rows = orderService.getDataForAreaChart(currencyPair, backDealInterval);
-            for (Map<String, Object> row : rows) {
-                Timestamp dateAcception = (Timestamp) row.get("dateAcception");
-                BigDecimal exrate = (BigDecimal) row.get("exrate");
-                BigDecimal volume = (BigDecimal) row.get("volume");
-                if (dateAcception != null) {
-                    ArrayList<Object> arrayList = new ArrayList<>();
-                    *//*values*//*
-                    arrayList.add(dateAcception.toString());
-                    arrayList.add(exrate.doubleValue());
-                    arrayList.add(volume.doubleValue());
-                    *//*titles of values for chart tip*//*
-                    arrayList.add(messageSource.getMessage("orders.date", null, localeResolver.resolveLocale(request)));
-                    arrayList.add(messageSource.getMessage("orders.exrate", null, localeResolver.resolveLocale(request)));
-                    arrayList.add(messageSource.getMessage("orders.volume", null, localeResolver.resolveLocale(request)));
-                    arrayListMain.add(arrayList);
-                }
-            }
-        } else if (chartType == ChartType.CANDLE) {
-            *//*GOOGLE*//*
-            List<CandleChartItemDto> rows = orderService.getDataForCandleChart(currencyPair, backDealInterval);
-            for (CandleChartItemDto candle : rows) {
-                ArrayList<Object> arrayList = new ArrayList<>();
-                *//*values*//*
-                arrayList.add(candle.getBeginPeriod().toString());
-                arrayList.add(candle.getEndPeriod().toString());
-                arrayList.add(candle.getOpenRate());
-                arrayList.add(candle.getCloseRate());
-                arrayList.add(candle.getLowRate());
-                arrayList.add(candle.getHighRate());
-                arrayList.add(candle.getBaseVolume());
-                arrayListMain.add(arrayList);
-            }
-        } else if (chartType == ChartType.STOCK) {
-            *//*AMCHARTS*//*
-            List<CandleChartItemDto> rows = orderService.getDataForCandleChart(currencyPair, backDealInterval);
-            for (CandleChartItemDto candle : rows) {
-                ArrayList<Object> arrayList = new ArrayList<>();
-                *//*values*//*
-                arrayList.add(candle.getBeginDate().toString());
-                arrayList.add(candle.getEndDate().toString());
-                arrayList.add(candle.getOpenRate());
-                arrayList.add(candle.getCloseRate());
-                arrayList.add(candle.getLowRate());
-                arrayList.add(candle.getHighRate());
-                arrayList.add(candle.getBaseVolume());
-                arrayListMain.add(arrayList);
-            }
-        }
-        request.getSession().setAttribute("currentBackDealInterval", backDealInterval);
-        return arrayListMain;
-    }*/
-
-    /**
      * Sets (init or reset) and returns current params:
      * - current currency pair
      * - current period
@@ -543,15 +442,12 @@ public class OnlineRestController {
      * - showAllPairs which determines the order for current currency pair only must be shown or for all pairs
      *
      * @param currencyPairName
-     * @param period
      * @param request
      * @return object with values of params
      */
     @RequestMapping(value = "/dashboard/currentParams", method = RequestMethod.GET)
     public CurrentParams setCurrentParams(
             @RequestParam(required = false) String currencyPairName,
-            @RequestParam(required = false) String period,
-            @RequestParam(required = false) String chart,
             @RequestParam(required = false) Boolean showAllPairs,
             @RequestParam(required = false) Boolean orderRoleFilterEnabled,
             @RequestParam(defaultValue = "ALL") CurrencyPairType currencyPairType,
@@ -569,28 +465,6 @@ public class OnlineRestController {
         }
         request.getSession().setAttribute("showAllPairs", showAllPairs);
         /**/
-        BackDealInterval backDealInterval;
-        if (period == null) {
-            backDealInterval = (BackDealInterval) request.getSession().getAttribute("currentBackDealInterval");
-            if (backDealInterval == null) {
-                backDealInterval = BACK_DEAL_INTERVAL_DEFAULT;
-            }
-        } else {
-            backDealInterval = new BackDealInterval(period);
-        }
-        request.getSession().setAttribute("currentBackDealInterval", backDealInterval);
-        /**/
-        ChartType chartType;
-        if (chart == null) {
-            chartType = (ChartType) request.getSession().getAttribute("chartType");
-            if (chartType == null) {
-                chartType = CHART_TYPE_DEFAULT;
-            }
-        } else {
-            chartType = ChartType.convert(chart);
-        }
-        request.getSession().setAttribute("chartType", chartType);
-        /**/
         if (orderRoleFilterEnabled == null) {
             if (request.getSession().getAttribute("orderRoleFilterEnabled") == null) {
                 orderRoleFilterEnabled = false;
@@ -602,8 +476,6 @@ public class OnlineRestController {
 
         CurrentParams currentParams = new CurrentParams();
         currentParams.setCurrencyPair((CurrencyPair) request.getSession().getAttribute("currentCurrencyPair"));
-        currentParams.setPeriod(((BackDealInterval) request.getSession().getAttribute("currentBackDealInterval")).getInterval());
-        currentParams.setChartType(((ChartType) request.getSession().getAttribute("chartType")).getTypeName());
         currentParams.setShowAllPairs(((Boolean) request.getSession().getAttribute("showAllPairs")));
         currentParams.setOrderRoleFilterEnabled(((Boolean) request.getSession().getAttribute("orderRoleFilterEnabled")));
         return currentParams;
@@ -692,27 +564,6 @@ public class OnlineRestController {
         /**/
         request.getSession().setAttribute(attributeName, tableParams);
         return tableParams;
-    }
-
-    /**
-     * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
-     * returns data with statistics for orders of current CurrencyPair to show above the graphics
-     *
-     * @param request
-     * @return: data with statistics for orders of current CurrencyPair
-     * @author ValkSam
-     */
-    @OnlineMethod
-    @RequestMapping(value = "/dashboard/ordersForPairStatistics", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ExOrderStatisticsDto getNewCurrencyPairData(HttpServletRequest request) {
-        CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
-        if (currencyPair == null) {
-            return null;
-        }
-        BackDealInterval backDealInterval = (BackDealInterval) request.getSession().getAttribute("currentBackDealInterval");
-        /**/
-        ExOrderStatisticsDto exOrderStatisticsDto = orderService.getOrderStatistic(currencyPair, backDealInterval, localeResolver.resolveLocale(request));
-        return exOrderStatisticsDto;
     }
 
     /**

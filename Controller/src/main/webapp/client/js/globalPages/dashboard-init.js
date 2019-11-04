@@ -24,7 +24,6 @@ var connectedPS = false;
 var currentCurrencyPairId;
 var currentPairName;
 var subscribedCurrencyPairId;
-var newChartPeriod = null;
 
 var socket_url = '/public_socket';
 var socket;
@@ -368,17 +367,6 @@ $(function dashdoardInit() {
         /*FOR HEADER...*/
         notifications = new NotificationsClass();
 
-
-        $('#menu-traiding').on('click', onMenuTraidingItemClick);
-
-        function onMenuTraidingItemClick(e) {
-            if (e) e.preventDefault();
-            trading.syncCurrencyPairSelector(currentPairName);
-            showPage('trading');
-            trading.updateAndShowAll();
-            trading.fillOrderCreationFormFields();
-        }
-
         $('#menu-mywallets').on('click', function (e) {
             e.preventDefault();
             if (!e.ctrlKey) {
@@ -411,23 +399,16 @@ $(function dashdoardInit() {
                 return false;
             }
         });
-        //TODO temporary disabled
-        //    $('#login-qr').html("<img src='https://chart.googleapis.com/chart?chs=150x150&chld=L|2&cht=qr&chl=" + sessionId + "'>");
-        /*...FOR HEADER*/
 
         /*FOR LEFT-SIDER ...*/
-
-
         $('#currency_table').on('click', 'td:first-child', function (e) {
             var newCurrentCurrencyPairName = $(this).text().trim();
-            syncCurrentParams(newCurrentCurrencyPairName, null, null, null, null, 'MAIN', function (data) {
+            syncCurrentParams(newCurrentCurrencyPairName, null, null, 'MAIN', function (data) {
                 if ($currentPageMenuItem.length) {
                     $currentPageMenuItem.click();
                     if ($currentSubMenuItem && $currentSubMenuItem.length) {
                         $currentSubMenuItem.click();
                     }
-                } else {
-                    onMenuTraidingItemClick();
                 }
             });
             trading.fillOrderCreationFormFields();
@@ -448,7 +429,7 @@ $(function dashdoardInit() {
             live: true
         });
 
-        syncCurrentParams(null, null, null, null, null, 'MAIN', function (data) {
+        syncCurrentParams(null, null, null, 'MAIN', function (data) {
             showPage($('#startup-page-id').text().trim());
             var url = '/dashboard/createPairSelectorMenu?pairs=ALL';
             $.ajax({
@@ -460,7 +441,6 @@ $(function dashdoardInit() {
                     delete(tradingCpData.ICO);
                     var infoCpData = sortCpDataInOrder(cpData);
                     trading = new TradingClass(data.currencyPair.name, data.orderRoleFilterEnabled, tradingCpData);
-                    newChartPeriod = data.period;
                     myWallets = new MyWalletsClass();
                     myStatements = new MyStatementsClass();
                     myHistory = new MyHistoryClass(data.currencyPair.name, infoCpData);
@@ -489,12 +469,12 @@ $(function dashdoardInit() {
         /*...FOR RIGHT-SIDER*/
 
         /*FOR POLL ...*/
-        /*var startPoll = $("#start-poll").val() == 'true';
-         if (startPoll) {
-             var $pollDialog = $("#poll-modal");
-             $pollDialog.modal();
-             doPoll($pollDialog);
-         }*/
+       /*var startPoll = $("#start-poll").val() == 'true';
+        if (startPoll) {
+            var $pollDialog = $("#poll-modal");
+            $pollDialog.modal();
+            doPoll($pollDialog);
+        }*/
         /*...FOR POLL*/
         /*2fa notify*/
         var $2faModal = $('#g2fa_noty_modal');
@@ -534,7 +514,6 @@ $(function dashdoardInit() {
     $('.safety_agree_button').on('click', function () {
         $infoModal.modal('hide');
     });
-
 });
 
 function checkAgreeButton() {
@@ -576,8 +555,7 @@ function sortCpDataInOrder(cpData) {
     return $.extend({}, icoData, newData);
 }
 
-
-function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enableFilter, cpType, callback) {
+function syncCurrentParams(currencyPairName, showAllPairs, enableFilter, cpType, callback) {
     var url = '/dashboard/currentParams?';
     /*if parameter is empty, in response will be retrieved current value is set or default if non*/
 
@@ -587,8 +565,6 @@ function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enable
     }
     url = url + (cpType ? '&currencyPairType=' + cpType : '');
     url = url + (currencyPairName ? '&currencyPairName=' + currencyPairName : '');
-    url = url + (period ? '&period=' + period : '');
-    url = url + (chart ? '&chart=' + chart : '');
     url = url + (showAllPairs != null ? '&showAllPairs=' + showAllPairs : '');
     url = url + (enableFilter != null ? '&orderRoleFilterEnabled=' + enableFilter : '');
     $.ajax({
@@ -602,9 +578,6 @@ function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enable
             currentCurrencyPairId = data.currencyPair.id;
             currentPairName = data.currencyPair.name;
             enableF = enableFilter;
-            if (period != null) {
-                newChartPeriod = period;
-            }
             subscribeAll();
             if (callback) {
                 callback(data);
@@ -694,8 +667,8 @@ function doPoll($pollDialog) {
         });
     }
 
-    function successRegister(event) {
-        if ($('#successRegister').text() != undefined) {
+    function successRegister (event) {
+        if ($('#successRegister').text() != undefined ) {
             yaCounter47624182.reachGoal('sendregister');
             console.log('it works!');
             return true;

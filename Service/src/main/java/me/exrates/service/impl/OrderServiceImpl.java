@@ -20,7 +20,6 @@ import me.exrates.model.Transaction;
 import me.exrates.model.User;
 import me.exrates.model.UserRoleSettings;
 import me.exrates.model.Wallet;
-import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AdminOrderInfoDto;
 import me.exrates.model.dto.CallBackLogDto;
 import me.exrates.model.dto.CoinmarketcapApiDto;
@@ -64,8 +63,6 @@ import me.exrates.model.dto.openAPI.UserOrdersDto;
 import me.exrates.model.dto.openAPI.UserTradeHistoryDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.BusinessUserRoleEnum;
-import me.exrates.model.enums.ChartPeriodsEnum;
-import me.exrates.model.enums.ChartTimeFramesEnum;
 import me.exrates.model.enums.CurrencyPairRestrictionsEnum;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.OperationType;
@@ -213,12 +210,6 @@ public class OrderServiceImpl implements OrderService {
     private static final int ORDERS_QUERY_DEFAULT_LIMIT = 20;
     private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
     private static final Logger txLogger = LogManager.getLogger("ordersTxLogger");
-    private final List<BackDealInterval> intervals = Arrays.stream(ChartPeriodsEnum.values())
-            .map(ChartPeriodsEnum::getBackDealInterval)
-            .collect(Collectors.toList());
-    private final List<ChartTimeFrame> timeFrames = Arrays.stream(ChartTimeFramesEnum.values())
-            .map(ChartTimeFramesEnum::getTimeFrame)
-            .collect(Collectors.toList());
     private final Object autoAcceptLock = new Object();
     private final Object restOrderCreationLock = new Object();
     //    @Value("#{BigDecimal.valueOf('${orders.max-exrate-deviation-percent}')}")
@@ -264,16 +255,6 @@ public class OrderServiceImpl implements OrderService {
     private Cache coinmarketcapDataCache;
     @Autowired
     private ChartApi chartApi;
-
-    @Override
-    public List<BackDealInterval> getIntervals() {
-        return intervals;
-    }
-
-    @Override
-    public List<ChartTimeFrame> getChartTimeFrames() {
-        return timeFrames;
-    }
 
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override

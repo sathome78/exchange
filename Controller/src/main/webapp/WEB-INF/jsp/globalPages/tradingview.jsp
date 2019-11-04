@@ -74,23 +74,6 @@
     <script type="text/javascript" src="<c:url value='/client/js/jquery.twbsPagination.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/lib/jquery.onoff.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/order/orderRoleFilter.js'/>"></script>
-    <%-- <script src="<c:url value='/client/js/lib/survey/survey.jquery.min.js'/>"></script>--%>
-    <!-- Amcharts Charts ... -->
-    <%--<script type="text/javascript" src="<c:url value='/client/js/lib/chart/charting_library.min.js'/>"></script>--%>
-    <%--<script type="text/javascript" src="<c:url value='/client/js/lib/chart/datafeed/udf/datafeed.js'/>"></script>--%>
-
-    <script src="<c:url value='/client/js/lib/charting_library/charting_library.min.js' />"></script>
-    <script src="<c:url value='/client/js/datafeeds/udf/dist/polyfills.js' />"></script>
-    <script src="<c:url value='/client/js/datafeeds/udf/dist/bundle.js' />"></script>
-    <script src="/client/js/chart-amcharts/amcharts.js" type="text/javascript"></script>
-    <script src="/client/js/chart-amcharts/serial.js" type="text/javascript"></script>
-    <script src="/client/js/chart-amcharts/amstock.js" type="text/javascript"></script>
-    <script src="/client/js/chart-amcharts/chartInit2.js" type="text/javascript"></script>
-    <script src="/client/js/chart-amcharts/stockChart.js" type="text/javascript"></script>
-    <%--<script src="/client/js/chart-amcharts/datafeedExchange.js" type="text/javascript"></script>--%>
-    <!-- ... Amcharts Charts -->
-
-
 
     <script type="text/javascript" src="<c:url value='/client/js/news/news.js'/>"></script>
     <%----%>
@@ -131,7 +114,6 @@
                 <%--and to keep startup page ID--%>
                 ${startupSubPage}
             </div>
-            <%@include file="../fragments/trading-center2.jsp" %>
             <%@include file="../fragments/mywallets-center.jsp" %>
             <%@include file="../fragments/statement-center.jsp" %>
             <%@include file="../fragments/history-center.jsp" %>

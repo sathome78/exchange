@@ -7,7 +7,6 @@ import me.exrates.service.chart.CandleDataProcessingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Log4j2
@@ -24,10 +23,5 @@ public class CandleDataProcessingServiceImpl implements CandleDataProcessingServ
     @Override
     public List<CandleDto> getData(String pairName, Long from, Long to, String resolution) {
         return chartApi.getCandlesDataByRange(pairName, from, to, resolution);
-    }
-
-    @Override
-    public LocalDateTime getLastCandleTimeBeforeDate(String pairName, Long date, String resolution) {
-        return chartApi.getLastCandleTimeBeforeDate(pairName, date, resolution);
     }
 }
