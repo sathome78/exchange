@@ -2102,7 +2102,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Conditional(MonolitConditional.class)
     public EthTokenService mexcServiceImpl() {
         List<String> tokensList = ImmutableList.of("0x7de2d123042994737105802d2abd0a10a7bde276");
-        return new EthTokenServiceImpl(tokensList, "MEXC", "MEXC", true, ExConvert.Unit.ETHER);
+        return new EthTokenServiceImpl(tokensList, "MEXC", "MEXC", false, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "czoServiceImpl")

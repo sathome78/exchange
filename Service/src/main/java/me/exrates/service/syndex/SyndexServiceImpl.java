@@ -21,6 +21,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +33,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static me.exrates.configurations.CacheConfiguration.SYNDEX_ORDER_CACHE;
 
@@ -144,15 +147,17 @@ public class SyndexServiceImpl implements SyndexService {
 
     @Transactional
     @Override
-    public void cancelMerchantRequest(int id, String email) {
-        SyndexOrderDto currentOrder = syndexDao.getByIdForUpdate(id, userService.getIdByEmail(email));
+    public void cancelMerchantRequest(int id) {
 
-        if (currentOrder.getStatus() != SyndexOrderStatusEnum.CREATED) {
+        SyndexOrderDto currentOrder = syndexDao.getByIdForUpdate(id, null);
+
+        if (currentOrder.getStatus() == SyndexOrderStatusEnum.CREATED) {
+            syndexDao.updateStatus(id, SyndexOrderStatusEnum.CANCELLED.getStatusId());
+            syndexClient.cancelOrder(currentOrder.getSyndexId());
+
+        } else if (currentOrder.getStatus() != SyndexOrderStatusEnum.CANCELLED) {
             throw new SyndexOrderException("Current status not suitable for cancellation");
         }
-
-        syndexDao.updateStatus(id, SyndexOrderStatusEnum.CANCELLED.getStatusId());
-        syndexClient.cancelOrder(currentOrder.getSyndexId());
     }
 
     @Transactional
@@ -216,12 +221,8 @@ public class SyndexServiceImpl implements SyndexService {
 
         if (lastSavedStatus.isInPendingStatus() && newStatus == SyndexOrderStatusEnum.COMPLETE) {
             tryToRefill(currentOrderFromDb);
-
         } else if (lastSavedStatus.isInPendingStatus() && newStatus == SyndexOrderStatusEnum.CANCELLED) {
             refillService.revokeRefillRequest(currentOrderFromDb.getId());
-
-        }  else {
-            log.debug("do nothing on order {}", retrievedOrder);
         }
     }
 
