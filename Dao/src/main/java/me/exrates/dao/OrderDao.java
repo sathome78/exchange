@@ -30,6 +30,7 @@ import me.exrates.model.dto.openAPI.UserTradeHistoryDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.enums.OrderTableEnum;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
@@ -146,4 +147,6 @@ public interface OrderDao {
     List<ExOrder> findAllMarketOrderCandidates(Integer currencyId, OperationType operationType);
 
     Integer deleteClosedExorders();
+
+    OrderTableEnum getOrderTable(int id);
 }

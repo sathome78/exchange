@@ -1,5 +1,7 @@
 package me.exrates.model.enums;
 
+import org.apache.commons.lang3.StringUtils;
+
 public enum OrderTableEnum {
 
     EXORDERS,
@@ -12,5 +14,9 @@ public enum OrderTableEnum {
 
     public static OrderTableEnum getTableNameByStatusAndRole(OrderStatus orderStatus, UserRole role) {
         return OrderStatus.OPENED == orderStatus ? EXORDERS : getTableNameByRole(role);
+    }
+
+    public static OrderTableEnum convertToOrderTableEnum(String tableName) {
+        return StringUtils.isEmpty(tableName) ? OrderTableEnum.EXORDERS : OrderTableEnum.valueOf(tableName);
     }
 }

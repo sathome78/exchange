@@ -114,7 +114,6 @@ public class OrderDaoImpl implements OrderDao {
         return new UserOrdersDto(id, currencyPairName, amount, orderType, price, dateCreation, dateAcceptance);
     };
 
-    /*OK*/
     @Override
     public int createOrder(ExOrder exOrder) {
         String sql = "INSERT INTO EXORDERS" +
@@ -144,9 +143,7 @@ public class OrderDaoImpl implements OrderDao {
         return id;
     }
 
-    /*OK*/
-    /*todo: what with id generator?*/
-    /*USE FOR BOT ONLY!!!*/
+
     @Override
     public void postAcceptedOrderToDB(ExOrder exOrder) {
         String sql = "INSERT INTO BOT_ORDERS" +
@@ -174,7 +171,6 @@ public class OrderDaoImpl implements OrderDao {
         masterJdbcTemplate.update(sql, params);
     }
 
-    /*OK*/
     @Override
     public List<OrderListDto> getOrdersSellForCurrencyPair(CurrencyPair currencyPair, UserRole filterRole) {
         String sql = "SELECT EXORDERS.id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_fixed_amount" +
@@ -199,7 +195,6 @@ public class OrderDaoImpl implements OrderDao {
         });
     }
 
-    /*OK*/
     @Override
     public List<OrderListDto> getOrdersBuyForCurrencyPair(CurrencyPair currencyPair, UserRole filterRole) {
         String sql = "SELECT EXORDERS.id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_fixed_amount" +
@@ -224,7 +219,6 @@ public class OrderDaoImpl implements OrderDao {
         });
     }
 
-    /*OK*/
     @Override
     public List<OrderListDto> getMyOpenOrdersForCurrencyPair(CurrencyPair currencyPair, OrderType orderType, int userId) {
         String sql = "SELECT EXORDERS.id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_fixed_amount, order_source_id " +
@@ -248,7 +242,6 @@ public class OrderDaoImpl implements OrderDao {
         });
     }
 
-    /*OK*/
     @Override
     public Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(int currencyPairId, int operationTypeId) {
         String sql = "SELECT last_rate FROM RATES WHERE  currency_pair_id = :currency_pair_id";
@@ -261,7 +254,6 @@ public class OrderDaoImpl implements OrderDao {
         }
     }
 
-    /*OK*/
     @Override
     public Optional<BigDecimal> getLowestOpenOrderPriceByCurrencyPairAndOperationType(int currencyPairId, int operationTypeId) {
         String sql = "SELECT exrate FROM EXORDERS WHERE status_id = 2 AND currency_pair_id = :currency_pair_id AND operation_type_id = :operation_type_id " +
@@ -276,14 +268,12 @@ public class OrderDaoImpl implements OrderDao {
         }
     }
 
-    /*OK*/
     @Override
     public ExOrder getOrderById(int orderId) {
-        final String sql = "SELECT * FROM EXORDERS WHERE id = :id " +
-                "UNION ALL " +
-                "SELECT * FROM BOT_ORDERS WHERE id = :id " +
-                "UNION ALL " +
-                "SELECT * FROM ORDERS WHERE id = :id ";
+        OrderTableEnum orderTableEnum = getOrderTable(orderId);
+
+        final String sql =
+                "SELECT * FROM " + orderTableEnum.name() + " WHERE id = :id ";
 
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("id", String.valueOf(orderId));
@@ -295,10 +285,11 @@ public class OrderDaoImpl implements OrderDao {
         }
     }
 
-    /*OK*/
     @Override
     public boolean setStatus(int orderId, OrderStatus status) {
-        String sql = "UPDATE EXORDERS SET status_id=:status_id WHERE id = :id";
+        OrderTableEnum tableEnum = this.getOrderTable(orderId);
+
+        String sql = "UPDATE " + tableEnum.name() + " SET status_id=:status_id WHERE id = :id";
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("status_id", String.valueOf(status.getStatus()));
         namedParameters.put("id", String.valueOf(orderId));
@@ -306,7 +297,6 @@ public class OrderDaoImpl implements OrderDao {
         return result > 0;
     }
 
-    /*OK*/
     @Override
     public boolean updateOrder(ExOrder exOrder) {
         String sql = "update EXORDERS set user_acceptor_id=:user_acceptor_id, status_id=:status_id, " +
@@ -323,7 +313,6 @@ public class OrderDaoImpl implements OrderDao {
         return result > 0;
     }
 
-    /*to check*/
     @Override
     public ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval) {
         String sql = "SELECT FIRSTORDER.amount_base AS first_amount_base, FIRSTORDER.exrate AS first_exrate," +
@@ -378,7 +367,6 @@ public class OrderDaoImpl implements OrderDao {
         }
     }
 
-    /*to check*/
     @Override
     public OrderInfoDto getOrderInfo(int orderId, Locale locale) {
         OrderTableEnum orderTable = getOrderTable(orderId);
@@ -455,7 +443,6 @@ public class OrderDaoImpl implements OrderDao {
         }
     }
 
-    /*OK*/
     private List<Integer> getOrderChildren(int id) {
         String sql = " SELECT id FROM EXORDERS WHERE order_source_id = :id" +
                      " UNION ALL " +
@@ -463,7 +450,6 @@ public class OrderDaoImpl implements OrderDao {
         return slaveJdbcTemplate.queryForList(sql, Collections.singletonMap("id", id), Integer.class);
     }
 
-   /*to check*/
     @Override
     public List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(String email, BackDealInterval backDealInterval, Integer limit, CurrencyPair currencyPair) {
         String sql = "SELECT * " +
@@ -504,7 +490,6 @@ public class OrderDaoImpl implements OrderDao {
         });
     }
 
-    /*OK*/
     @Override
     public OrderCommissionsDto getCommissionForOrder(UserRole userRole) {
         final String sql =
@@ -533,7 +518,6 @@ public class OrderDaoImpl implements OrderDao {
         }
     }
 
-    /*OK*/
     @Override
     public CommissionsDto getAllCommissions(UserRole userRole) {
         final String sql =
@@ -583,8 +567,6 @@ public class OrderDaoImpl implements OrderDao {
         }
     }
 
-
-    /*to check*/
     @Override
     public List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, OrderStatus status,
                                                        OperationType operationType, String scope, Integer offset,
@@ -611,7 +593,7 @@ public class OrderDaoImpl implements OrderDao {
                 : " AND o.currency_pair_id = :currency_pair_id ";
 
 
-        String orderClause = " ORDER BY o.date_acception ASC, o.date_creation DESC ";
+        String orderClause = " ORDER BY o.date_acception DESC, o.date_creation DESC ";
 
         String limitClause = limit == -1
                 ? StringUtils.EMPTY
@@ -686,9 +668,6 @@ public class OrderDaoImpl implements OrderDao {
         });
     }
 
-    /* to check
-     * used for getMyOrdersWithState
-     * */
     @Override
     public int getUnfilteredOrdersCount(int id, CurrencyPair currencyPair, OrderStatus status, OperationType operationType, String scope, int offset, int limit, UserRole userRole) {
         if (StringUtils.isEmpty(scope)) {
@@ -743,10 +722,6 @@ public class OrderDaoImpl implements OrderDao {
         return slaveJdbcTemplate.queryForObject(sql, params, Integer.class);
     }
 
-
-    /* to check
-     * select from 1 table based on status
-     * */
     @Override
     public List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, String currencyName,
                                                        OrderStatus orderStatus, String scope, Integer limit, Integer offset,
@@ -888,8 +863,6 @@ public class OrderDaoImpl implements OrderDao {
         return slaveJdbcTemplate.query(sqlWithBothOrders, params, orderWithStateRowMapper(locale, userId));
     }
 
-
-    /*OK*/
     @Override
     public WalletsAndCommissionsForOrderCreationDto getWalletAndCommission(String email, Currency currency,
                                                                            OperationType operationType, UserRole userRole) {
@@ -926,7 +899,6 @@ public class OrderDaoImpl implements OrderDao {
         }
     }
 
-    /*OK*/
     @Override
     public boolean lockOrdersListForAcception(List<Integer> ordersList) {
         String sql = "SELECT id " +
@@ -942,20 +914,17 @@ public class OrderDaoImpl implements OrderDao {
         }
     }
 
-    /*to check
-    * select from  all tables
-    * */
     @Override
     public PagingData<List<OrderBasicInfoDto>> searchOrders(AdminOrderFilterData adminOrderFilterData, DataTableParams dataTableParams, Locale locale) {
 
         String limitAndOffset = dataTableParams.getLimitAndOffsetClause();
         String orderBy = dataTableParams.getOrderByClause();
 
-        String mainSelect = String.join(" ", "SELECT aggr.* FROM (%s) aggr " + orderBy + limitAndOffset );
+        String mainSelect = String.join(" ", "SELECT aggr.* FROM (%s) aggr " +  orderBy.replace("EXORDERS", "aggr") + limitAndOffset );
         String mainSelectCount = String.join(" ", "SELECT SUM(aggr.count) FROM (%s) aggr ");
         String union = " UNION ALL ";
 
-        String sqlSelect = " SELECT  " +
+        String sqlSelect = " (SELECT  " +
                 "     EXORDERS.id, EXORDERS.date_creation, EXORDERS.status_id AS status, EXORDERS.base_type, " +
                 "     CURRENCY_PAIR.name as currency_pair_name,  " +
                 "     UPPER(ORDER_OPERATION.name) AS order_type_name,  " +
@@ -966,7 +935,7 @@ public class OrderDaoImpl implements OrderDao {
                 "      JOIN OPERATION_TYPE AS ORDER_OPERATION ON (ORDER_OPERATION.id = EXORDERS.operation_type_id) " +
                 "      JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) " +
                 "      JOIN USER CREATOR ON (CREATOR.id = EXORDERS.user_id) ";
-        String sqlSelectCount = " SELECT COUNT(*) ";
+        String sqlSelectCount = " SELECT COUNT(*) as count ";
 
         Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("offset", dataTableParams.getStart());
@@ -976,7 +945,7 @@ public class OrderDaoImpl implements OrderDao {
         String whereClause = StringUtils.isNotEmpty(criteria) ? "WHERE " + criteria : "";
 
         String unionSelect = Arrays.stream(OrderTableEnum.values())
-                .map(p -> String.join(" ", sqlSelect, String.format(sqlFrom, p), whereClause, orderBy, limitAndOffset))
+                .map(p -> String.join(" ", sqlSelect, String.format(sqlFrom, p), whereClause, orderBy, limitAndOffset, ") "))
                 .collect(Collectors.joining(union));
 
         String unionSelectCount = Arrays.stream(OrderTableEnum.values())
@@ -1014,17 +983,14 @@ public class OrderDaoImpl implements OrderDao {
         return result;
     }
 
-    /*to check
-    * Select from all tables
-    * */
     @Override
     public List<OrderReportInfoDto> getOrdersForReport(AdminOrderFilterData adminOrderFilterData) {
         //Need, because table EXORDERS has many data
         String limit = "LIMIT 100000";
 
-        String mainSql = "SELECT * FROM (%s) aggr ORDER BY aggrr.date_creation ";
+        String mainSql = "SELECT aggr.* FROM (%s) aggr ORDER BY aggr.date_creation ";
 
-        String sqlSelect =   " SELECT EXORDERS.id, EXORDERS.date_creation, EXORDERS.date_acception, cp.name AS currency_pair_name, " +
+        String sqlSelect =   " (SELECT EXORDERS.id, EXORDERS.date_creation, EXORDERS.date_acception, cp.name AS currency_pair_name, " +
                              " UPPER(ORDER_OPERATION.name) as operation_type, EXORDERS.base_type as order_base_type, " +
                              " EXORDERS.exrate, EXORDERS.amount_base, CREATOR.email AS order_creator_email, " +
                              " CREATOR.roleid AS creator_role_id, ACCEPTOR.email AS order_acceptor_email, " +
@@ -1033,14 +999,14 @@ public class OrderDaoImpl implements OrderDao {
                              " JOIN OPERATION_TYPE AS ORDER_OPERATION ON (ORDER_OPERATION.id = EXORDERS.operation_type_id) " +
                              " JOIN CURRENCY_PAIR as cp ON (cp.id = EXORDERS.currency_pair_id) " +
                              " JOIN USER as CREATOR ON (CREATOR.id = EXORDERS.user_id) " +
-                             " LEFT JOIN USER as ACCEPTOR ON (ACCEPTOR.id = EXORDERS.user_acceptor_id)";
+                             " LEFT JOIN USER as ACCEPTOR ON (ACCEPTOR.id = EXORDERS.user_acceptor_id) ";
 
         Map<String, Object> namedParameters = new HashMap<>(adminOrderFilterData.getNamedParams());
 
         String criteria = adminOrderFilterData.getSQLFilterClause();
         String whereClause = StringUtils.isNotEmpty(criteria) ? "WHERE " + criteria : "";
-        String selectExOrdersQuery = String.join(" ", String.format(sqlSelect, OrderTableEnum.EXORDERS), whereClause, limit);
-        String selectOrdersQuery = String.join(" ", String.format(sqlSelect, OrderTableEnum.ORDERS), whereClause, limit);
+        String selectExOrdersQuery = String.join(" ", String.format(sqlSelect, OrderTableEnum.EXORDERS), whereClause, limit, ") ");
+        String selectOrdersQuery = String.join(" ", String.format(sqlSelect, OrderTableEnum.ORDERS), whereClause, limit, ") ");
 
         String query = String.format(mainSql, String.join(" UNION ALL ", selectExOrdersQuery, selectOrdersQuery));
 
@@ -1066,7 +1032,6 @@ public class OrderDaoImpl implements OrderDao {
         });
     }
 
-    /*OK*/
     @Override
     public List<ExOrder> selectTopOrders(Integer currencyPairId, BigDecimal exrate,
                                          OperationType orderType, boolean sameRoleOnly, Integer userAcceptorRoleId, OrderBaseType orderBaseType) {
@@ -1122,10 +1087,6 @@ public class OrderDaoImpl implements OrderDao {
         });
     }
 
-    /*to check
-    * uses in delete method
-    * search in 3 tables
-    * */
     @Override
     public OrderRoleInfoForDelete getOrderRoleInfo(int orderId) {
         OrderTableEnum orderTable = getOrderTable(orderId);
@@ -1157,7 +1118,6 @@ public class OrderDaoImpl implements OrderDao {
         return result;
     }
 
-    /*OK*/
     @Override
     public List<OrderBookItem> getOrderBookItemsForType(Integer currencyPairId, OrderType orderType) {
         String orderDirection = orderType == OrderType.BUY ? " DESC " : " ASC ";
@@ -1179,7 +1139,6 @@ public class OrderDaoImpl implements OrderDao {
         });
     }
 
-    /*OK*/
     @Override
     public List<OrderBookItem> getOrderBookItems(Integer currencyPairId) {
         String sql = "SELECT operation_type_id, amount_base, exrate FROM EXORDERS WHERE currency_pair_id = :currency_pair_id " +
@@ -1198,7 +1157,6 @@ public class OrderDaoImpl implements OrderDao {
         });
     }
 
-    /*OK*/
     @Override
     public List<OpenOrderDto> getOpenOrders(Integer currencyPairId, OrderType orderType) {
         String orderByDirection = orderType == OrderType.SELL ? " ASC " : " DESC ";
@@ -1222,10 +1180,6 @@ public class OrderDaoImpl implements OrderDao {
         });
     }
 
-    /*to check
-     *uses in open api
-     *slect form 2 tables and merge
-     * */
     @Override
     public List<TradeHistoryDto> getTradeHistory(Integer currencyPairId,
                                                  LocalDateTime fromDate,
@@ -1237,10 +1191,10 @@ public class OrderDaoImpl implements OrderDao {
                 : " ORDER BY o.date_acception DESC";
         String limitSql = nonNull(limit) ? " LIMIT :limit" : StringUtils.EMPTY;
 
-        String sql = "SELECT  * FROM " +
-                    "(SELECT o.id as order_id, " +
+        String sql = "SELECT  o.* FROM " +
+                    "((SELECT o.id as order_id, " +
                     "o.date_creation as created, " +
-                    "o.date_acception as accepted, " +
+                    "o.date_acception as date_acception, " +
                     "o.amount_base as amount, " +
                     "o.exrate as price, " +
                     "o.amount_convert as sum, " +
@@ -1252,10 +1206,10 @@ public class OrderDaoImpl implements OrderDao {
                     " AND o.date_acception BETWEEN :start_date AND :end_date"
                     + directionSql
                     + limitSql +
-                " UNION ALL " +
-                    "SELECT o.id as order_id, " +
+                ") UNION ALL " +
+                    "(SELECT o.id as order_id, " +
                     "o.date_creation as created, " +
-                    "o.date_acception as accepted, " +
+                    "o.date_acception as date_acception, " +
                     "o.amount_base as amount, " +
                     "o.exrate as price, " +
                     "o.amount_convert as sum, " +
@@ -1267,7 +1221,7 @@ public class OrderDaoImpl implements OrderDao {
                     " AND o.date_acception BETWEEN :start_date AND :end_date"
                     + directionSql
                     + limitSql +
-                    ") AGGR " +
+                    ")) o " +
                  directionSql +
                  limitSql;
 
@@ -1282,7 +1236,7 @@ public class OrderDaoImpl implements OrderDao {
             TradeHistoryDto tradeHistoryDto = new TradeHistoryDto();
             tradeHistoryDto.setOrderId(rs.getInt("order_id"));
             tradeHistoryDto.setDateCreation(rs.getTimestamp("created").toLocalDateTime());
-            tradeHistoryDto.setDateAcceptance(rs.getTimestamp("accepted").toLocalDateTime());
+            tradeHistoryDto.setDateAcceptance(rs.getTimestamp("date_acception").toLocalDateTime());
             tradeHistoryDto.setAmount(rs.getBigDecimal("amount"));
             tradeHistoryDto.setPrice(rs.getBigDecimal("price"));
             tradeHistoryDto.setTotal(rs.getBigDecimal("sum"));
@@ -1292,7 +1246,6 @@ public class OrderDaoImpl implements OrderDao {
         });
     }
 
-    /*OK*/
     @Override
     public List<UserOrdersDto> getUserOpenOrders(Integer userId, @Nullable Integer currencyPairId) {
         String currencyPairSql = currencyPairId == null ? "" : " AND EO.currency_pair_id = :currency_pair_id ";
@@ -1310,10 +1263,6 @@ public class OrderDaoImpl implements OrderDao {
         return masterJdbcTemplate.query(sql, params, userOrdersRowMapper);
     }
 
-    /* to check
-     * openapi
-     * chose table to select by status
-     */
     @Override
     public List<UserOrdersDto> getUserOrdersByStatus(Integer userId,
                                                      Integer currencyPairId,
@@ -1344,10 +1293,6 @@ public class OrderDaoImpl implements OrderDao {
         return slaveJdbcTemplate.query(sql, params, userOrdersRowMapper);
     }
 
-    /* to check
-     * openapi
-     * 1 or 2 table, based on user role
-     * */
     @Override
     public List<UserTradeHistoryDto> getUserTradeHistoryByCurrencyPair(Integer userId,
                                                                        Integer currencyPairId,
@@ -1378,7 +1323,7 @@ public class OrderDaoImpl implements OrderDao {
                 + limitSql;
 
         Map<String, Object> params = new HashMap<>();
-        params.put("status_id", orderStatus);
+        params.put("status_id", orderStatus.getStatus());
         params.put("user_id", userId);
         params.put("currency_pair_id", currencyPairId);
         params.put("start_date", fromDate);
@@ -1401,7 +1346,6 @@ public class OrderDaoImpl implements OrderDao {
         });
     }
 
-    /*OK*/
     @Override
     public List<ExOrder> getAllOpenedOrdersByUserId(Integer userId) {
         String sql = "SELECT o.id AS order_id, " +
@@ -1442,7 +1386,6 @@ public class OrderDaoImpl implements OrderDao {
         });
     }
 
-    /*OK*/
     @Override
     public List<ExOrder> getOpenedOrdersByCurrencyPair(Integer userId, String currencyPair) {
         String sql = "SELECT o.id AS order_id, " +
@@ -1485,10 +1428,6 @@ public class OrderDaoImpl implements OrderDao {
         });
     }
 
-
-    /*openapi, possible to select from 2 tables only
-    * to check
-    * */
     @Override
     public List<TransactionDto> getOrderTransactions(Integer userId, Integer orderId) {
         OrderTableEnum tableEnum = getOrderTable(orderId);
@@ -1528,7 +1467,6 @@ public class OrderDaoImpl implements OrderDao {
                 .build());
     }
 
-    /*OK*/
     @Override
     public List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverByPeriodAndRoles(LocalDateTime startTime,
                                                                                        LocalDateTime endTime,
@@ -1566,10 +1504,6 @@ public class OrderDaoImpl implements OrderDao {
                 .build());
     }
 
-    /*
-     * to check
-     * reports, 1 table, closed orders
-     * */
     @Override
     public List<UserSummaryOrdersDto> getUserBuyOrdersDataByPeriodAndRoles(LocalDateTime startTime,
                                                                            LocalDateTime endTime,
@@ -1620,9 +1554,6 @@ public class OrderDaoImpl implements OrderDao {
         }
     }
 
-    /*reports, 1 table, closed orders
-    * to check
-    * */
     @Override
     public List<UserSummaryOrdersDto> getUserSellOrdersDataByPeriodAndRoles(LocalDateTime startTime,
                                                                             LocalDateTime endTime,
@@ -1673,7 +1604,7 @@ public class OrderDaoImpl implements OrderDao {
         }
     }
 
-    /*used in outdated api V1, select from all tables, REMOVE it?*/
+    /*todo: used in outdated api V1, select from all tables, REMOVE it?*/
     @Override
     public List<UserOrdersDto> getUserOrders(Integer userId, Integer currencyPairId, int limit, int offset) {
 
@@ -1698,11 +1629,6 @@ public class OrderDaoImpl implements OrderDao {
     }
 
 
-    /*to check
-    uses in ngDashboard
-    * select orders by status
-    * select from1 table, depends on status
-    * */
     @Override
     public Integer getMyOrdersWithStateCount(Integer userId, CurrencyPair currencyPair, String currencyName,
                                              OrderStatus orderStatus, String scope, Boolean hideCanceled,
@@ -1810,9 +1736,7 @@ public class OrderDaoImpl implements OrderDao {
         }
     }
 
-    /*uses in getCurrencyPairInfo NG
-    * to check
-    * */
+
     @Override
     public Optional<BigDecimal> getLastOrderPriceByCurrencyPair(int currencyPairId) {
         String sql = "SELECT last_rate FROM RATES WHERE currency_pair_id = :currency_pair_id ";
@@ -1825,7 +1749,6 @@ public class OrderDaoImpl implements OrderDao {
         }
     }
 
-    /*OK*/
     @Override
     public List<OrderListDto> findAllByOrderTypeAndCurrencyId(Integer currencyId, OrderType... orderTypes) {
         String orderTypeIds = Arrays.stream(orderTypes)
@@ -1844,11 +1767,6 @@ public class OrderDaoImpl implements OrderDao {
         return slaveJdbcTemplate.query(sql, namedParameters, openOrderListDtoRowMapper());
     }
 
-    /* to check
-     * open api
-     * select order in any status by id
-     * will select from 3 tables
-     * */
     @Override
     public ExOrder getOrderById(int orderId, int userId) {
         OrderTableEnum tableEnum = getOrderTable(orderId);
@@ -1866,9 +1784,6 @@ public class OrderDaoImpl implements OrderDao {
         }
     }
 
-    /*rates holder
-     *  to check
-     * */
     @Override
     public List<ExOrderStatisticsShortByPairsDto> getRatesDataForCache(Integer currencyPairId) {
         String whereClause = StringUtils.EMPTY;
@@ -1894,10 +1809,6 @@ public class OrderDaoImpl implements OrderDao {
                 .build());
     }
 
-    /*rates holder
-     * to check
-     * accepted orders
-     * */
     @Override
     public ExOrderStatisticsShortByPairsDto getBeforeLastRateForCache(Integer currencyPairId) {
 
@@ -1921,11 +1832,6 @@ public class OrderDaoImpl implements OrderDao {
                 });
     }
 
-    /*rates holder
-     *to check
-     * will count by 2 tables
-     * accepted orders
-     * */
     @Override
     public List<ExOrderStatisticsShortByPairsDto> getAllDataForCache(Integer currencyPairId) {
         String whereClause = StringUtils.EMPTY;
@@ -1992,8 +1898,6 @@ public class OrderDaoImpl implements OrderDao {
                 .build());
     }
 
-
-    /*OK*/
     @Override
     public List<ExOrder> findAllMarketOrderCandidates(Integer currencyId, OperationType operationType) {
         String sortDirection = StringUtils.EMPTY;
@@ -2018,7 +1922,7 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public Integer deleteClosedExorders() {
-        final String sql = "DELETE FROM EXORDERS WHERE status_id = 3 LIMIT 300000";
+        final String sql = "DELETE FROM EXORDERS WHERE status_id > 2 LIMIT 300000";
         return masterJdbcTemplate.update(sql, Collections.EMPTY_MAP);
     }
 
@@ -2137,7 +2041,8 @@ public class OrderDaoImpl implements OrderDao {
         return null;
     }
 
-    private OrderTableEnum getOrderTable(int id) {
+    @Override
+    public OrderTableEnum getOrderTable(int id) {
         final String sql = String.format("SELECT" +
                 "       COALESCE((SELECT '%s' FROM %s WHERE id = :id)," +
                 "               (SELECT '%s' FROM %s WHERE id = :id AND status_id = %d)," +
@@ -2145,7 +2050,7 @@ public class OrderDaoImpl implements OrderDao {
                 OrderTableEnum.ORDERS, OrderTableEnum.ORDERS,
                 OrderTableEnum.EXORDERS, OrderTableEnum.EXORDERS, OrderStatus.OPENED.getStatus(),
                 OrderTableEnum.BOT_ORDERS, OrderTableEnum.BOT_ORDERS);
-        return masterJdbcTemplate.queryForObject(sql, Collections.singletonMap("id", id), OrderTableEnum.class);
+        return OrderTableEnum.convertToOrderTableEnum(masterJdbcTemplate.queryForObject(sql, Collections.singletonMap("id", id), String.class));
     }
 
 }

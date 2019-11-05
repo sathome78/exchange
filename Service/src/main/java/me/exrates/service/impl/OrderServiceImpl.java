@@ -269,9 +269,10 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private ChartApi chartApi;
 
+    /*todo change delete time*/
     @PostConstruct
     private void init() {
-        scheduledExecutorService.scheduleWithFixedDelay(this::cleanOrders, 1, 1, TimeUnit.HOURS);
+        scheduledExecutorService.scheduleWithFixedDelay(this::cleanOrders, 1, 10, TimeUnit.MINUTES);
     }
 
     @Override
@@ -1628,22 +1629,6 @@ public class OrderServiceImpl implements OrderService {
             }
         }
         return result;
-    }
-
-    private String getStatusString(OrderStatus status, Locale ru) {
-        String statusString = null;
-        switch (status) {
-            case INPROCESS:
-                statusString = messageSource.getMessage("orderstatus.inprocess", null, ru);
-                break;
-            case OPENED:
-                statusString = messageSource.getMessage("orderstatus.opened", null, ru);
-                break;
-            case CLOSED:
-                statusString = messageSource.getMessage("orderstatus.closed", null, ru);
-                break;
-        }
-        return statusString;
     }
 
     @Transactional
