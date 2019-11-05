@@ -22,7 +22,6 @@ import java.math.BigDecimal;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.anyInt;
@@ -63,7 +62,7 @@ public class AdGroupServiceImplTest {
     public void withdraw_ok() throws Exception {
         when(adGroupHttpClient.createPayOut(anyString(), anyString(), anyObject())).thenReturn(getWithdrawOk());
         Map<String, String> withdraw = adgroupService.withdraw(getWithdrawRequest());
-        assertTrue(withdraw.isEmpty());
+        assertEquals(2, withdraw.size());
     }
 
     private RefillRequestCreateDto getRefillRequestCreateDto() {
@@ -134,7 +133,8 @@ public class AdGroupServiceImplTest {
         return WithdrawMerchantOperationDto.builder()
                 .amount("100.00")
                 .currency("RUB")
-                .destinationTag("ewfwfwe")
+                .accountTo("ewfwfwe")
+                .id("13424234")
                 .build();
 
     }

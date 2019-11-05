@@ -1394,7 +1394,8 @@ public class WalletDaoImpl implements WalletDao {
                 "cewb.sign_of_certainty " +
                 " FROM COMPANY_EXTERNAL_WALLET_BALANCES cewb" +
                 " RIGHT JOIN CURRENCY cur on cewb.currency_id = cur.id" +
-                " ORDER BY currency_id";
+                " WHERE cur.name NOT IN ('TCCE','TCCCC','TCC','GDCB','AWSC')" +
+                " ORDER BY cewb.currency_id";
 
         return slaveJdbcTemplate.query(sql, (rs, row) -> ExternalWalletBalancesDto.builder()
                 .currencyId(rs.getInt("currency_id"))

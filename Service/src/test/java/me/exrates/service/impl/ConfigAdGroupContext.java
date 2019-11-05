@@ -9,6 +9,7 @@ import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
+import me.exrates.service.WithdrawService;
 import me.exrates.service.http.AdGroupHttpClient;
 import me.exrates.service.stomp.StompMessenger;
 import org.mockito.Mockito;
@@ -82,6 +83,11 @@ public class ConfigAdGroupContext {
     @Bean
     public AdGroupHttpClient ieoClaimRepository() {
         return Mockito.mock(AdGroupHttpClient.class);
+    }
+
+    @Bean
+    public WithdrawService getWithdrawService() {
+        return Mockito.mock(WithdrawService.class);
     }
 
 }

@@ -108,8 +108,7 @@ public class IEOServiceProcessing {
 
         if (amountInBtcLocked.compareTo(ieoClaim.getPriceInBtc()) < 0) {
             log.info("User active balance less claim amount, active {}, required {}", amountInBtcLocked, ieoClaim.getPriceInBtc());
-            String text = String.format("Unfortunately, You doesn't have required amount in BTC for purchase %s %s. Your amount is %s BTC",
-                    ieoClaim.getAmount(), ieoDetails.getCurrencyName(), amountInBtcLocked);
+            String text = String.format("Unfortunately, you don't have the required amount of BTC to purchase %s %s. Your amount is %s BTC", ieoClaim.getAmount(), ieoDetails.getCurrencyName(), amountInBtcLocked);
             String resultIeoMessage = String.format("Not enough user BTC amount %s", amountInBtcLocked);
             failedClaim(ieoClaim, ieoDetails.getAvailableAmount(), principalEmail, notificationMessage,
                     resultIeoMessage, text, ieoDetails);
@@ -119,9 +118,7 @@ public class IEOServiceProcessing {
         BigDecimal availableAmount = ieoDetails.getAvailableAmount();
         if (availableAmount.compareTo(BigDecimal.ZERO) == 0) {
             log.info("{} {} has 0 available balance", ieoDetails.getCurrencyName(), ieoDetails.getCurrencyDescription());
-            String text = String.format("Unfortunately, there are no tokens available in IEO %s (%s), asked amount %s %s",
-                    ieoDetails.getCurrencyDescription(), ieoDetails.getCurrencyName(), ieoClaim.getAmount().toPlainString(),
-                    ieoDetails.getCurrencyName());
+            String text = String.format("Unfortunately, there are no tokens available in IEO %s (%s). Asked amount %s %s", ieoDetails.getCurrencyDescription(), ieoDetails.getCurrencyName(), ieoClaim.getAmount().toPlainString(), ieoDetails.getCurrencyName());
             String resultIeoMessage = String.format("No tokens available in IEO %s", ieoDetails.getCurrencyName());
             failedClaim(ieoClaim, availableAmount, principalEmail, notificationMessage, resultIeoMessage, text, ieoDetails);
             return;
@@ -258,11 +255,11 @@ public class IEOServiceProcessing {
     private Email prepareEmail(String userEmail, UserNotificationMessage message) {
         Email email = new Email();
         email.setTo(userEmail);
-        email.setMessage(message.getText());
+        email.setMessage(String.format("<p style=\"MAX-WIDTH: 347px; FONT-FAMILY: Roboto; COLOR: #000000; MARGIN: auto auto 2.15em;font-weight: normal; font-size: 16px; line-height: 19px; text-align: center;\">%s</p>", message.getText()));
         email.setSubject(message.getNotificationType().name());
 
         Properties properties = new Properties();
-        properties.put("public_id", userService.getPubIdByEmail(userEmail));
+        properties.setProperty("public_id", userService.getPubIdByEmail(userEmail));
         email.setProperties(properties);
 
         return email;

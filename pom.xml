@@ -7,7 +7,6 @@
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules>
-        <module>API</module>
         <module>Security</module>
         <module>Model</module>
         <module>Service</module>
@@ -365,14 +364,8 @@
             <version>${scala.version}</version>
             <scope>test</scope>
         </dependency>
-        <!--        <dependency>-->
-        <!--            <groupId>org.imagination</groupId>-->
-        <!--            <artifactId>comparator</artifactId>-->
-        <!--            <version>1.1</version>-->
-        <!--            <scope>test</scope>-->
-        <!--        </dependency>-->
         <dependency>
-            <groupId>comparator</groupId>
+            <groupId>org.imagination</groupId>
             <artifactId>comparator</artifactId>
             <version>1.1</version>
         </dependency>
@@ -764,11 +757,11 @@
                 <updatePolicy>always</updatePolicy>
             </snapshots>
         </repository>
-        <repository>
-            <id>ProjectRepo</id>
-            <name>ProjectRepo</name>
-            <url>file://${project.basedir}/Service/libs</url>
-        </repository>
+<!--        <repository>-->
+<!--            <id>ProjectRepo</id>-->
+<!--            <name>ProjectRepo</name>-->
+<!--            <url>file://${project.basedir}/Service/libs</url>-->
+<!--        </repository>-->
         <repository>
             <id>oss.sonatype.org-snapshot</id>
             <url>http://oss.sonatype.org/content/repositories/snapshots</url>

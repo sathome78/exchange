@@ -490,6 +490,7 @@ public class WithdrawServiceImpl implements WithdrawService {
                 .accountTo(withdrawRequest.getWallet())
                 .userId(withdrawRequest.getUserId())
                 .destinationTag(withdrawRequest.getDestinationTag())
+                .id(String.valueOf(withdrawRequest.getId()))
                 .build();
         log.debug("Withdraw merchant operation summary: " + withdrawMerchantOperation);
         try {
@@ -777,7 +778,6 @@ public class WithdrawServiceImpl implements WithdrawService {
             }
         }
     }
-
 
 
     @Override

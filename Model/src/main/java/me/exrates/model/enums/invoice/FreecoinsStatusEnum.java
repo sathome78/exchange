@@ -18,21 +18,6 @@ public enum FreecoinsStatusEnum implements InvoiceStatus {
         @Override
         public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
         }
-    },
-    REVOKED(2) {
-        @Override
-        public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
-        }
-    },
-    CLOSED(3) {
-        @Override
-        public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
-        }
-    },
-    FAILED(4) {
-        @Override
-        public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
-        }
     };
 
     @Getter
@@ -105,9 +90,6 @@ public enum FreecoinsStatusEnum implements InvoiceStatus {
     public BaseStatus getBaseStatus() {
         switch (this) {
             case CREATED:
-            case REVOKED:
-            case CLOSED:
-            case FAILED:
                 return BaseStatus.COMPLETED;
             default:
                 return null;

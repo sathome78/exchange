@@ -25,6 +25,7 @@ import me.exrates.service.freecoins.FreecoinsService;
 import me.exrates.service.freecoins.FreecoinsSettingsService;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.stomp.StompMessenger;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -117,7 +118,7 @@ public class NgFreecoinsController {
         } catch (Exception ex) {
             sendPersonalMessageToUser(creatorEmail, "Free coins giveaway process was failed", false);
 
-            final String message = "Free coins giveaway process was failed";
+            final String message = String.format("Free coins giveaway process was failed: %s", ex.getMessage());
             throw new NgResponseException(ErrorApiTitles.FREE_COINS_GIVE_AWAY_PROCESS_FAILED, message);
         }
     }
@@ -132,15 +133,18 @@ public class NgFreecoinsController {
         final String receiverEmail = getUserEmailFromSecurityContext();
 
         try {
-            ReceiveResultDto receiveResultDto = freecoinsService.processReceive(giveawayId, receiverEmail);
+            Pair<Boolean, ReceiveResultDto> result = freecoinsService.processReceive(giveawayId, receiverEmail);
 
-            sendPersonalMessageToUser(receiverEmail, "Free coins was received", true);
-
-            return ResponseEntity.ok(receiveResultDto);
+            if (result.getLeft()) {
+                sendPersonalMessageToUser(receiverEmail, "Free coins was received", true);
+            } else {
+                sendPersonalMessageToUser(receiverEmail, "Free coins was not received. Try again later", false);
+            }
+            return ResponseEntity.ok(result.getRight());
         } catch (Exception ex) {
             sendPersonalMessageToUser(receiverEmail, "Free coins was not received", false);
 
-            final String message = "Free coins was not received";
+            final String message = String.format("Free coins was not received: %s", ex.getMessage());
             throw new NgResponseException(ErrorApiTitles.FREE_COINS_RECEIVE_PROCESS_FAILED, message);
         }
     }

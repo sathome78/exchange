@@ -2,7 +2,6 @@ package me.exrates.ngcontroller;
 
 import lombok.extern.log4j.Log4j;
 import me.exrates.controller.annotation.CheckActiveUserStatus;
-import me.exrates.service.annotation.LogIp;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.CreditsOperation;
@@ -16,7 +15,12 @@ import me.exrates.model.dto.TransferDto;
 import me.exrates.model.dto.TransferRequestCreateDto;
 import me.exrates.model.dto.TransferRequestFlatDto;
 import me.exrates.model.dto.TransferRequestParamsDto;
-import me.exrates.model.enums.*;
+import me.exrates.model.dto.UserMerchantCurrencyOperationDto;
+import me.exrates.model.enums.MerchantProcessType;
+import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TransferTypeVoucher;
+import me.exrates.model.enums.UserEventEnum;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
@@ -34,6 +38,7 @@ import me.exrates.service.InputOutputService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.TransferService;
 import me.exrates.service.UserService;
+import me.exrates.service.annotation.LogIp;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.UserOperationAccessException;
@@ -69,16 +74,14 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.PRESENT_VOUCHER;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RestController
 @PreAuthorize("!hasRole('ICO_MARKET_MAKER')")
 @RequestMapping(value = "/api/private/v2/balances/transfer",
-        consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 @Log4j
 @PropertySource(value = {"classpath:/angular.properties"})
@@ -126,6 +129,15 @@ public class NgTransferController {
         this.currencyService = currencyService;
     }
 
+    @GetMapping("/merchants")
+    public UserMerchantCurrencyOperationDto getTransferMerchants(@RequestParam String currency) {
+
+        boolean accessToOperationForUser = userOperationService
+                .getStatusAuthorityForUserByOperation(userService.getIdByEmail(getPrincipalEmail()), UserOperationAuthority.TRANSFER);
+        return new UserMerchantCurrencyOperationDto(accessToOperationForUser,
+                merchantService.findTransferMerchantCurrenciesByCurrency(currency));
+    }
+
     // /info/private/v2/balances/transfer/accept  PAYLOAD: {"CODE": "kdbfeyue743467"}
 
     /**
@@ -140,8 +152,8 @@ public class NgTransferController {
      */
     @LogIp(event = UserEventEnum.TRANSFER_CODE_ACCEPT)
     @CheckActiveUserStatus
-    @PostMapping(value = "/accept")
     @CheckUserAuthority(authority = UserOperationAuthority.TRANSFER)
+    @PostMapping(value = "/accept", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<TransferDto> acceptTransfer(@RequestBody Map<String, String> params) {
         String email = getPrincipalEmail();
         if (!rateLimitService.checkLimitsExceed(email)) {
@@ -177,8 +189,7 @@ public class NgTransferController {
      totalCommissionAmount: "0.0000033"
   */
     @CheckActiveUserStatus
-    @RequestMapping(value = "/voucher/commission", method = GET)
-    @ResponseBody
+    @GetMapping("/voucher/commission")
     public Map<String, String> getCommissionsForInnerVoucher(
             @RequestParam("amount") BigDecimal amount,
             @RequestParam("currency") Integer currencyId,
@@ -193,9 +204,8 @@ public class NgTransferController {
 
     @LogIp(event = UserEventEnum.TRANSFER_SEND)
     @CheckActiveUserStatus
-    @RequestMapping(value = "/voucher/request/create", method = POST)
     @CheckUserAuthority(authority = UserOperationAuthority.TRANSFER)
-    @ResponseBody
+    @PostMapping(value = "/voucher/request/create", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Map<String, Object> createTransferRequest(@RequestBody TransferRequestParamsDto requestParamsDto,
                                                      HttpServletRequest servletRequest) {
         String email = getPrincipalEmail();
@@ -242,6 +252,10 @@ public class NgTransferController {
 
     @GetMapping("/check_email")
     public ResponseModel<Boolean> checkEmailForTransfer(@RequestParam("email") String email) {
+        if (Objects.isNull(email)) {
+            return new ResponseModel<>(false, new ResponseCustomError("User email is not decoded"));
+        }
+
         String principalEmail = getPrincipalEmail();
 
         if (email.equalsIgnoreCase(principalEmail)) {
@@ -280,8 +294,8 @@ public class NgTransferController {
     }
 
     @CheckActiveUserStatus
-    @PostMapping(value = "/request/pin")
     @CheckUserAuthority(authority = UserOperationAuthority.TRANSFER)
+    @PostMapping(value = "/request/pin", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> sendUserPinCode(@RequestBody @Valid PinOrderInfoDto pinOrderInfoDto) {
         try {
             User user = userService.findByEmail(getPrincipalEmail());

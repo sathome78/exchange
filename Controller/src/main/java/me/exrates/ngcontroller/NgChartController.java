@@ -2,8 +2,6 @@ package me.exrates.ngcontroller;
 
 import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.dto.CandleDto;
-import me.exrates.model.enums.ChartResolution;
-import me.exrates.model.vo.BackDealInterval;
 import me.exrates.properties.chart.ChartProperty;
 import me.exrates.properties.chart.SymbolInfoProperty;
 import me.exrates.service.CurrencyService;
@@ -56,14 +54,10 @@ public class NgChartController {
             return ResponseEntity.badRequest().body(response);
         }
 
-        final LocalDateTime fromDate = LocalDateTime.ofEpochSecond(from, 0, ZoneOffset.UTC);
-        final LocalDateTime toDate = LocalDateTime.ofEpochSecond(to, 0, ZoneOffset.UTC);
-        final BackDealInterval interval = ChartResolution.ofResolution(resolution);
-
-        List<CandleDto> result = processingService.getData(symbol, fromDate, toDate, interval);
+        List<CandleDto> result = processingService.getData(symbol, from, to, resolution);
 
         if (CollectionUtil.isEmpty(result)) {
-            LocalDateTime nextTime = processingService.getLastCandleTimeBeforeDate(symbol, fromDate, interval);
+            LocalDateTime nextTime = processingService.getLastCandleTimeBeforeDate(symbol, from, resolution);
 
             response.put("s", "no_data");
 

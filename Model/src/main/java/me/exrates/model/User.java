@@ -42,6 +42,7 @@ public class User implements Serializable {
     private LocalDate birthDay;
     private String publicId;
     private Boolean verificationRequired;
+    private String ga;
 
     public User() {
     }
@@ -212,6 +213,14 @@ public class User implements Serializable {
 
     public void setVerificationRequired(Boolean verificationRequired) {
         this.verificationRequired = verificationRequired;
+    }
+
+    public String getGa() {
+        return ga;
+    }
+
+    public void setGa(String ga) {
+        this.ga = ga;
     }
 
     @Override

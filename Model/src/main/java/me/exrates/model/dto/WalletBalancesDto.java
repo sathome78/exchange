@@ -27,9 +27,9 @@ public class WalletBalancesDto {
                 .builder()
                 .currencyId(currencyId)
                 .currencyName(currencyName)
-                .external(ExternalWalletBalancesDto.getZeroBalances(currencyId, currencyName))
-                .rate(RateDto.zeroRate(currencyName))
-                .internals(Collections.emptyList())
+                .external(null)
+                .rate(null)
+                .internals(null)
                 .build();
     }
 }

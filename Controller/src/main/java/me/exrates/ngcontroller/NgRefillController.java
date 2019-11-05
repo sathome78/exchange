@@ -281,6 +281,7 @@ public class NgRefillController {
         CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, getPrincipalEmail(), locale)
                 .orElseThrow(InvalidAmountException::new);
         RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
+        request.setUserId(user.getId());
 
         try {
             if (merchantService.findById(request.getMerchantId()).getName().equalsIgnoreCase("FUG")) {

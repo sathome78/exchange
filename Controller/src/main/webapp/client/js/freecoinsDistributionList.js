@@ -24,7 +24,7 @@ function loadFreecoinsTable() {
             "order": [
                 [
                     0,
-                    "asc"
+                    "desc"
                 ]
             ],
             "deferRender": true,

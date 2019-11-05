@@ -71,6 +71,7 @@
     <c:set var="admin_currencyLimits" value="<%=AdminAuthority.SET_CURRENCY_LIMIT%>"/>
     <c:set var="admin_manageAccess" value="<%=AdminAuthority.MANAGE_ACCESS%>"/>
     <c:set var="admin_editUser" value="<%=AdminAuthority.EDIT_USER%>"/>
+    <c:set var="email_edit" value="<%=me.exrates.model.enums.UserRole.ADMIN_USER%>"/>
 <div class="sidebar">
     <ul>
         <li>
@@ -212,6 +213,13 @@
             <%--alert settings--%>
             <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
                 <a href="<c:url value='/2a8fy7b07dxe44/alerts'/>"><loc:message code="admin.alertsForUsers"/></a>
+            </sec:authorize>
+        </li>
+
+        <li>
+            <%--email settings--%>
+            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
+                <a href="<c:url value='/2a8fy7b07dxe44/email/page'/>"><loc:message code="admin.emailSettings"/></a>
             </sec:authorize>
         </li>
 

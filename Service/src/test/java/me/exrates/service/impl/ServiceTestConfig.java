@@ -18,15 +18,18 @@ import me.exrates.dao.OrderDao;
 import me.exrates.dao.ReferralLevelDao;
 import me.exrates.dao.ReferralTransactionDao;
 import me.exrates.dao.ReferralUserGraphDao;
+import me.exrates.dao.SettingsEmailRepository;
 import me.exrates.dao.StopOrderDao;
 import me.exrates.dao.TelegramSubscriptionDao;
 import me.exrates.dao.TransactionDao;
 import me.exrates.dao.UserDao;
+import me.exrates.dao.UserPinDao;
 import me.exrates.dao.UserRoleDao;
 import me.exrates.dao.UserSettingsDao;
 import me.exrates.dao.UserTransferDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.vo.TransactionDescription;
+import me.exrates.ngService.RedisUserNotificationService;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.CommissionService;
 import me.exrates.service.CompanyWalletService;
@@ -42,9 +45,12 @@ import me.exrates.service.UserService;
 import me.exrates.service.UserSettingService;
 import me.exrates.service.UserTransferService;
 import me.exrates.service.WalletService;
+import me.exrates.service.api.ChartApi;
 import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.api.WalletsApi;
 import me.exrates.service.cache.ExchangeRatesHolder;
+import me.exrates.service.cache.SettingsService;
+import me.exrates.service.cache.SettingsServiceImpl;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
@@ -97,20 +103,39 @@ import javax.servlet.http.HttpServletRequest;
 })
 public class ServiceTestConfig {
 
-    @Value("${precision.value1}") int precision1;
-    @Value("${precision.value2}") int precision2;
-    @Value("${precision.value3}") int precision3;
-    @Value("${precision.value4}") int precision4;
-    @Value("${precision.value5}") int precision5;
-    @Value("${precision.value6}") int precision6;
-    @Value("${precision.value7}") int precision7;
-    @Value("${precision.value8}") int precision8;
-    @Value("${precision.value9}") int precision9;
-    @Value("${precision.value10}") int precision10;
+    @Value("${precision.value1}")
+    int precision1;
+    @Value("${precision.value2}")
+    int precision2;
+    @Value("${precision.value3}")
+    int precision3;
+    @Value("${precision.value4}")
+    int precision4;
+    @Value("${precision.value5}")
+    int precision5;
+    @Value("${precision.value6}")
+    int precision6;
+    @Value("${precision.value7}")
+    int precision7;
+    @Value("${precision.value8}")
+    int precision8;
+    @Value("${precision.value9}")
+    int precision9;
+    @Value("${precision.value10}")
+    int precision10;
 
-    @Value("${api.wallets.url}") String url;
-    @Value("${api.wallets.username}") String username;
-    @Value("${api.wallets.password}") String password;
+    @Value("${api.wallets.url}")
+    String walletsUrl;
+    @Value("${api.wallets.username}")
+    String walletsUsername;
+    @Value("${api.wallets.password}")
+    String walletsPassword;
+
+    @Value("${api.chart.url}")
+    String chartUrl;
+
+    @Value("${api.chart.coinmarketcap-url}")
+    String coinmarketcapUrl;
 
     @Bean
     public CurrencyDao currencyDao() {
@@ -143,10 +168,14 @@ public class ServiceTestConfig {
     }
 
     @Bean
-    public IEOClaimRepository ieoClaimRepository(){
+    public IEOClaimRepository ieoClaimRepository() {
         return Mockito.mock(IEOClaimRepository.class);
     }
 
+    @Bean
+    public UserPinDao userPinDao() {
+        return Mockito.mock(UserPinDao.class);
+    }
 
     @Bean("ExratesSessionRegistry")
     public SessionRegistry sessionRegistry() {
@@ -156,6 +185,16 @@ public class ServiceTestConfig {
     @Bean
     public SendMailService sendMailService() {
         return new SendMailServiceImpl();
+    }
+
+    @Bean
+    public SettingsEmailRepository settingsEmailRepository() {
+        return Mockito.mock(SettingsEmailRepository.class);
+    }
+
+    @Bean
+    public SettingsService settingsServiceNew() {
+        return new SettingsServiceImpl(settingsEmailRepository());
     }
 
     @Bean("SupportMailSender")
@@ -260,13 +299,13 @@ public class ServiceTestConfig {
     }
 
     @Bean
-    public UserRoleService userRoleService () {
+    public UserRoleService userRoleService() {
         return Mockito.mock(UserRoleService.class);
     }
 
     @Bean
-    public BigDecimalConverter bigDecimalConverter () {
-        return new BigDecimalConverter(precision1,precision2,precision3,precision4,precision5,precision6,precision7,precision8,precision9,precision10);
+    public BigDecimalConverter bigDecimalConverter() {
+        return new BigDecimalConverter(precision1, precision2, precision3, precision4, precision5, precision6, precision7, precision8, precision9, precision10);
     }
 
     @Bean
@@ -275,7 +314,7 @@ public class ServiceTestConfig {
     }
 
     @Bean
-    public CommissionService commissionService () {
+    public CommissionService commissionService() {
         return new CommissionServiceImpl();
     }
 
@@ -285,22 +324,22 @@ public class ServiceTestConfig {
     }
 
     @Bean
-    public MerchantService merchantService () {
+    public MerchantService merchantService() {
         return new MerchantServiceImpl();
     }
 
     @Bean
-    public MerchantServiceContext merchantServiceContext () {
+    public MerchantServiceContext merchantServiceContext() {
         return new MerchantServiceContextImpl();
     }
 
     @Bean
-    public IMerchantService iMerchantService () {
+    public IMerchantService iMerchantService() {
         return new IcoServiceImpl();
     }
 
     @Bean
-    public WithdrawUtils withdrawUtils () {
+    public WithdrawUtils withdrawUtils() {
         return new WithdrawUtils();
     }
 
@@ -310,7 +349,7 @@ public class ServiceTestConfig {
     }
 
     @Bean("bitcoinServiceImpl")
-    public BitcoinService bitcoinService () {
+    public BitcoinService bitcoinService() {
         return Mockito.mock(BitcoinService.class);
     }
 
@@ -407,7 +446,13 @@ public class ServiceTestConfig {
 
     @Bean
     public StompMessenger stompMessenger() {
-        return new StompMessengerImpl();
+        return new StompMessengerImpl(defaultSimpUserRegistry(), objectMapper(), orderService(),
+                redisUserNotificationService(), simpMessagingTemplate(), userService());
+    }
+
+    @Bean
+    public RedisUserNotificationService redisUserNotificationService() {
+        return Mockito.mock(RedisUserNotificationService.class);
     }
 
     @Bean
@@ -427,7 +472,12 @@ public class ServiceTestConfig {
 
     @Bean
     public WalletsApi walletsApi() {
-        return new WalletsApi(url, username, password, currencyService());
+        return new WalletsApi(walletsUrl, walletsUsername, walletsPassword, currencyService());
+    }
+
+    @Bean
+    public ChartApi chartApi() {
+        return new ChartApi(chartUrl, coinmarketcapUrl);
     }
 
     @Bean

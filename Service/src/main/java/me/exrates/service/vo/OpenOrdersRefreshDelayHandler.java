@@ -35,7 +35,7 @@ public class OpenOrdersRefreshDelayHandler implements PersonalOrderRefreshDelayH
         if (semaphore.tryAcquire()) {
             try {
                 Thread.sleep(LATENCY);
-                stompMessenger.sendPersonalOpenOrdersToUser(userId, currencyPairName);
+//                stompMessenger.sendPersonalOpenOrdersToUser(userId, currencyPairName);
             } catch (InterruptedException e) {
                 log.error("interrupted ", e);
             } finally {

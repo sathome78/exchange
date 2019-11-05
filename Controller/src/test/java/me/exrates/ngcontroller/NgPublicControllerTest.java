@@ -111,8 +111,6 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
     private IEOService ieoService;
     @Autowired
     private NewsParser newsParser;
-    @Autowired
-    private SendMailService sendMailService;
 
     @InjectMocks
     private NgPublicController ngPublicController;
@@ -123,7 +121,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
     public void setUp() {
         ngPublicController = new NgPublicController(chatService, currencyService, ipBlockingService, ieoService, userService,
                 ngUserService, messagingTemplate, orderService, g2faService, ngOrderService, telegramChatDao, exchangeRatesHolder,
-                newsParser, sendMailService);
+                newsParser);
 
         HandlerExceptionResolver resolver = ((HandlerExceptionResolverComposite) webApplicationContext
                 .getBean("handlerExceptionResolver")).getExceptionResolvers().get(0);
