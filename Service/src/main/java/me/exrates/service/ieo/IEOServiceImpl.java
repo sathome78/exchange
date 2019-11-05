@@ -2,6 +2,7 @@ package me.exrates.service.ieo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
+import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.IEOClaimRepository;
 import me.exrates.dao.IEOSubscribeRepository;
@@ -38,6 +39,8 @@ import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -265,7 +268,8 @@ public class IEOServiceImpl implements IEOService {
         int creatorId = userService.getIdByEmail(SecurityContextHolder.getContext().getAuthentication().getName());
         currencyService.addCurrencyForIco(dto.getCurrencyName(), dto.getCurrencyDescription());
         currencyService.addCurrencyPairForIco(dto.getCurrencyName(), "BTC");
-        ieoDetailsRepository.save(dto.toIEODetails(makerId, creatorId));
+        IEODetails ieo = ieoDetailsRepository.save(dto.toIEODetails(makerId, creatorId));
+        ieoDetailsRepository.insertIeoPolicy(ieo.getId(), dto.getLicenseAgreement());
     }
 
     @Override
@@ -493,6 +497,54 @@ public class IEOServiceImpl implements IEOService {
         claims.forEach(c);
         accumulator.clear();
         claims.clear();
+    }
+
+    @Override
+    public boolean isUserAgreeWithPolicy(int userId, int ieoId) {
+        try {
+            return isUserAgreeWithIeoPolicy(userId, ieoId);
+        } catch (EmptyResultDataAccessException e) {
+            return false;
+        }
+    }
+
+    private boolean isUserAgreeWithIeoPolicy(int userId, int ieoId) throws EmptyResultDataAccessException {
+        return ieoDetailsRepository.isUserAgreeWithPolicy(userId, ieoId);
+    }
+
+    @Synchronized
+    @Transactional
+    @Override
+    public void setUserAgreeWithPolicy(int userId, int ieoId) {
+        try {
+            boolean isAgree = isUserAgreeWithIeoPolicy(userId, ieoId);
+            if (!isAgree) {
+                ieoDetailsRepository.setUserAgreeWithPolicy(userId, ieoId);
+            }
+        } catch (EmptyResultDataAccessException e) {
+            ieoDetailsRepository.insertUserAgreeWithPolicy(userId, ieoId);
+        }
+    }
+
+    @Override
+    public String getIeoPolicy(int ieoId) {
+        try {
+            return ieoDetailsRepository.getIeoPolicy(ieoId);
+        } catch (DataAccessException e) {
+            return StringUtils.EMPTY;
+        }
+    }
+
+    @Synchronized
+    @Transactional
+    @Override
+    public void updateIeoPolicy(Integer ieoId, String text) {
+        try {
+            ieoDetailsRepository.getIeoPolicy(ieoId);
+            ieoDetailsRepository.updateIeoPolicy(ieoId, text);
+        } catch (EmptyResultDataAccessException e) {
+            ieoDetailsRepository.insertIeoPolicy(ieoId, text);
+        }
     }
 
     private Collection<IEODetails> prepareMarketMakerIeos(User user) {

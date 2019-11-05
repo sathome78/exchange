@@ -1,10 +1,12 @@
 package me.exrates.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.ieo.IEODetailsFlatDto;
 import me.exrates.model.dto.ieo.IeoDetailsCreateDto;
 import me.exrates.model.dto.ieo.IeoDetailsUpdateDto;
 import me.exrates.model.enums.IEODetailsStatus;
+import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.service.IEOService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -80,6 +83,19 @@ public class AdminIeoController {
     public ResponseEntity updateIeo(@PathVariable("id") Integer id, @RequestBody @Valid IeoDetailsUpdateDto dto) {
         ieoService.updateIeo(id, dto);
         return ResponseEntity.ok(null);
+    }
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/ieoPolicy/{id}", method = PUT, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseBody
+    public ResponseEntity updateIeo(@PathVariable("id") Integer id, @RequestBody JsonNode licenseAgreement) {
+        ieoService.updateIeoPolicy(id, licenseAgreement.get("licenseAgreement").asText());
+        return ResponseEntity.ok(null);
+    }
+
+    @GetMapping(value = "/2a8fy7b07dxe44/ieo/policy/{ieoId}")
+    @ResponseBody
+    public ResponseModel<?> getUserAgreement(@PathVariable int ieoId) {
+        return new ResponseModel<>(ieoService.getIeoPolicy(ieoId));
     }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/ieo/revert/{id}", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)

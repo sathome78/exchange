@@ -67,6 +67,7 @@ import java.io.FileInputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -227,6 +228,12 @@ public class MerchantServiceImpl implements MerchantService {
     public List<MerchantCurrencyApiDto> findNonTransferMerchantCurrencies(Integer currencyId) {
         return findMerchantCurrenciesByCurrencyAndProcessTypes(currencyId, Arrays.stream(MerchantProcessType.values())
                 .filter(item -> item != MerchantProcessType.TRANSFER).map(Enum::name).collect(Collectors.toList()));
+    }
+
+    @Override
+    public List<MerchantCurrencyApiDto> findTransferMerchantCurrenciesByCurrency(String currencyName) {
+        return merchantDao.findAllMerchantCurrencies(currencyService.findByName(currencyName).getId(),
+                userService.getUserRoleFromSecurityContext(),  Collections.singletonList(MerchantProcessType.TRANSFER.name()));
     }
 
     @Override
