@@ -14,6 +14,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderEventEnum;
 import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.enums.OrderTableEnum;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.UserRole;
 import org.apache.commons.compress.utils.Lists;
@@ -47,7 +48,9 @@ import static org.junit.Assert.assertTrue;
 @ContextConfiguration(classes = {OrderDaoImplTest.InnerConf.class})
 public class OrderDaoImplTest extends DataComparisonTest {
 
-    private final String TABLE_EXORDERS = "EXORDERS";
+    private final String TABLE_EXORDERS = OrderTableEnum.EXORDERS.name();
+    private final String TABLE_ORDERS = OrderTableEnum.ORDERS.name();
+    private final String TABLE_BOT_ORDERS = OrderTableEnum.BOT_ORDERS.name();
     private final String TABLE_STOP_ORDERS = "STOP_ORDERS";
     private final String TABLE_CURRENCY_PAIR = "CURRENCY_PAIR";
     private final String TABLE_COMMISSION = "COMMISSION";
@@ -58,10 +61,10 @@ public class OrderDaoImplTest extends DataComparisonTest {
     @Override
     protected void before() {
         try {
-            truncateTables(TABLE_EXORDERS, TABLE_CURRENCY_PAIR, TABLE_STOP_ORDERS, TABLE_COMMISSION);
-            String sql = "INSERT INTO EXORDERS"
+            truncateTables(TABLE_EXORDERS, TABLE_ORDERS, TABLE_BOT_ORDERS, TABLE_CURRENCY_PAIR, TABLE_STOP_ORDERS, TABLE_COMMISSION);
+            String sql = "INSERT INTO EXORDERS "
                     + " (id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, "
-                    + "commission_id, commission_fixed_amount, status_id, order_source_id, base_type)"
+                    + "commission_id, commission_fixed_amount, status_id, order_source_id, base_type) "
                     + " VALUES "
                     + " (1, 1, 1, 1, 0.5, 1, 0.5, 1, 0.01, 2, 1, \'LIMIT\'), (2, 1, 1, 1, 0.5, 1, 0.5, 1, 0.01, 1, 1, \'ICO\')";
             prepareTestData(sql);
@@ -157,15 +160,6 @@ public class OrderDaoImplTest extends DataComparisonTest {
 
 
     @Test
-    public void postAcceptedOrderToDB_Ok() {
-        String sql = "SELECT * FROM " + TABLE_EXORDERS;
-
-        around()
-                .withSQL(sql)
-                .run(() -> orderDao.postAcceptedOrderToDB(getTestOrder()));
-    }
-
-    @Test
     public void getAllOpenedOrdersByUserId_Ok() {
         int userId = 1;
 
@@ -212,10 +206,9 @@ public class OrderDaoImplTest extends DataComparisonTest {
 
     @Test
     public void getLastOrderPriceByCurrencyPairAndOperationType_Ok() throws SQLException {
-        String sql = "INSERT INTO EXORDERS"
-                + " (id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, "
-                + "commission_id, commission_fixed_amount, status_id, order_source_id, base_type) VALUES "
-                + " (3, 3, 1, 3, 0.5, 1, 0.5, 1, 0.01, 3, 1, \'LIMIT\')";
+        String sql = "INSERT INTO RATES"
+                + " (currency_pair_id, previous_rate, last_rate, modified) VALUES "
+                + " (2, 3, 1, '2019-11-04 19:21:04')";
 
         prepareTestData(sql);
 
@@ -228,7 +221,7 @@ public class OrderDaoImplTest extends DataComparisonTest {
 
     @Test
     public void getLastOrderPriceByCurrencyPairAndOperationType_NotFound() {
-        int wrongCurrencyPairId = 1;
+        int wrongCurrencyPairId = 100;
         int wrongOperationTypeId = 3;
 
         Optional<BigDecimal> actual = orderDao.getLastOrderPriceByCurrencyPairAndOperationType(wrongCurrencyPairId, wrongOperationTypeId);
@@ -367,14 +360,13 @@ public class OrderDaoImplTest extends DataComparisonTest {
 
     @Test
     public void getLastOrderPriceByCurrencyPair_Ok() throws SQLException {
-        String sql = "INSERT INTO EXORDERS"
-                + " (id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, "
-                + "commission_id, commission_fixed_amount, status_id, order_source_id, base_type) VALUES "
-                + " (3, 3, 2, 3, 0.5, 1, 0.5, 1, 0.01, 3, 1, \'LIMIT\')";
+        String sql = "INSERT INTO RATES"
+                + " (currency_pair_id, previous_rate, last_rate, modified) VALUES "
+                + " (1, 3, 1, '2019-11-04 19:21:04')";
 
         prepareTestData(sql);
 
-        int currencyPairId = 2;
+        int currencyPairId = 1;
 
         Optional<BigDecimal> actual = orderDao.getLastOrderPriceByCurrencyPair(currencyPairId);
         assertTrue(actual.isPresent());
@@ -453,52 +445,6 @@ public class OrderDaoImplTest extends DataComparisonTest {
     }
 
     @Test
-    public void getMyOrdersWithState_ByAcceptor() throws SQLException {
-        String insertOrder = "INSERT INTO " + TABLE_EXORDERS
-                + " (id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, "
-                + "commission_id, commission_fixed_amount, status_id, order_source_id, base_type) VALUES "
-                + " (3, 3, 2, 3, 0.5, 1, 0.5, 1, 0.01, 2, 1, \'LIMIT\')";
-
-        String insertCP = "INSERT INTO " + TABLE_CURRENCY_PAIR +
-                "(id,name,currency1_id,currency2_id,ticker_name) " +
-                "VALUES " +
-                "(2,\'BTC/USD\',1,2,\'BTC/USD\');";
-
-        prepareTestData(insertOrder, insertCP);
-
-        String updateOrder = "UPDATE " + TABLE_EXORDERS + " SET date_acception = NOW(), date_creation = \'2019-01-01 12:12:12\', " +
-                "user_acceptor_id = 1, status_id = 3 WHERE id = 3";
-
-        String insertCommission = "INSERT INTO " + TABLE_COMMISSION + " (id, value, operation_type) VALUES (1, 1.0, 2)";
-
-        prepareTestData(updateOrder, insertCommission);
-
-        CurrencyPair currencyPair = new CurrencyPair("BTC/USD");
-        currencyPair.setId(2);
-
-        List<OrderWideListDto> actual = Lists.newArrayList();
-        around()
-                .withSQL("SELECT * FROM " + TABLE_EXORDERS)
-                .run(() -> actual.addAll(orderDao.getMyOrdersWithState(
-                        1,
-                        currencyPair,
-                        null,
-                        OrderStatus.CLOSED,
-                        "ALL",
-                        10,
-                        0,
-                        false,
-                        "DESC",
-                        LocalDateTime.now().minusYears(1),
-                        LocalDateTime.now(),
-                        Locale.ENGLISH,
-                        UserRole.USER)));
-
-        assertEquals(1, actual.size());
-        assertTrue(actual.get(0).getDateCreation().isAfter(LocalDateTime.now().minusHours(6)));
-    }
-
-    @Test
     public void getMyOrdersWithState_Ok_Scope_ALL() throws SQLException {
         String sql1 = "INSERT INTO EXORDERS"
                 + " (id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, "
@@ -539,11 +485,11 @@ public class OrderDaoImplTest extends DataComparisonTest {
 
     @Test
     public void getMyOrdersWithState_Ok_Scope_ACCEPTED() throws SQLException {
-        String sql1 = "INSERT INTO EXORDERS " +
+        String sql1 = "INSERT INTO ORDERS " +
                 "(id,user_id,operation_type_id,exrate,amount_base,amount_convert,commission_id,commission_fixed_amount," +
                 "user_acceptor_id,status_id,currency_pair_id,base_type) " +
                 "VALUES " +
-                "(3,16,3,41340.930000000,0.002221200,91.826473716,8,0.183652947,16,1,3,\'LIMIT\');";
+                "(3,16,3,41340.930000000,0.002221200,91.826473716,8,0.183652947,16,3,3,\'LIMIT\');";
 
         String sql2 = "INSERT INTO CURRENCY_PAIR " +
                 "(id,name,currency1_id,currency2_id,ticker_name) " +
@@ -556,7 +502,7 @@ public class OrderDaoImplTest extends DataComparisonTest {
         Integer userId = 16;
         CurrencyPair currencyPair = new CurrencyPair();
         currencyPair.setId(3);
-        OrderStatus status = OrderStatus.INPROCESS;
+        OrderStatus status = OrderStatus.CLOSED;
         OperationType operationType = OperationType.SELL;
         String scopeACCEPTED = "ACCEPTED";
         int offset = 0;
@@ -670,7 +616,7 @@ public class OrderDaoImplTest extends DataComparisonTest {
 
     @Test
     public void getMyOrdersWithState_Ok_ClosedOrders() throws SQLException {
-        String sql1 = "INSERT INTO EXORDERS " +
+        String sql1 = "INSERT INTO ORDERS " +
                 "(id, user_id, operation_type_id, exrate, amount_base, amount_convert, commission_id, commission_fixed_amount," +
                 "user_acceptor_id, status_id, currency_pair_id, base_type, date_creation, date_acception, status_modification_date) " +
                 "VALUES " +
@@ -856,7 +802,7 @@ public class OrderDaoImplTest extends DataComparisonTest {
                 "(id,user_id,operation_type_id,exrate,amount_base,amount_convert,commission_id,commission_fixed_amount," +
                 "user_acceptor_id,status_id,currency_pair_id,base_type) " +
                 "VALUES " +
-                "(3,16,3,41340.930000000,0.002221200,91.826473716,8,0.183652947,16,1,3,\'LIMIT\');";
+                "(3,16,3,41340.930000000,0.002221200,91.826473716,8,0.183652947,16,2,3,\'LIMIT\');";
 
         String sql2 = "INSERT INTO CURRENCY_PAIR " +
                 "(id,name,currency1_id,currency2_id,ticker_name) " +
@@ -868,7 +814,7 @@ public class OrderDaoImplTest extends DataComparisonTest {
         int id = 16;
         CurrencyPair currencyPair = new CurrencyPair();
         currencyPair.setId(3);
-        OrderStatus status = OrderStatus.INPROCESS;
+        OrderStatus status = OrderStatus.OPENED;
         OperationType operationType = OperationType.SELL;
         String scopeDefault = "";
         int offset = 0;
@@ -889,18 +835,18 @@ public class OrderDaoImplTest extends DataComparisonTest {
 
     @Test
     public void getUnfilteredOrdersCount_Ok_Scope_ALL() throws SQLException {
-        String sql = "INSERT INTO EXORDERS " +
+        String sql = "INSERT INTO ORDERS " +
                 "(id,user_id,operation_type_id,exrate,amount_base,amount_convert,commission_id,commission_fixed_amount," +
                 "user_acceptor_id,status_id,currency_pair_id,base_type) " +
                 "VALUES " +
-                "(3,16,3,41340.930000000,0.002221200,91.826473716,8,0.183652947,16,1,3,\'LIMIT\');";
+                "(3,16,3,41340.930000000,0.002221200,91.826473716,8,0.183652947,16,3,3,\'LIMIT\');";
 
         prepareTestData(sql);
 
         int id = 16;
         CurrencyPair currencyPair = new CurrencyPair();
         currencyPair.setId(3);
-        OrderStatus statuses = OrderStatus.INPROCESS;
+        OrderStatus statuses = OrderStatus.CLOSED;
         OperationType operationType = OperationType.SELL;
         String scopeALL = "ALL";
         int offset = 0;
@@ -921,18 +867,18 @@ public class OrderDaoImplTest extends DataComparisonTest {
 
     @Test
     public void getUnfilteredOrdersCount_Ok_Scope_ACCEPTED() throws SQLException {
-        String sql = "INSERT INTO EXORDERS " +
+        String sql = "INSERT INTO ORDERS " +
                 "(id,user_id,operation_type_id,exrate,amount_base,amount_convert,commission_id,commission_fixed_amount," +
                 "user_acceptor_id,status_id,currency_pair_id,base_type) " +
                 "VALUES " +
-                "(3,16,3,41340.930000000,0.002221200,91.826473716,8,0.183652947,16,1,3,\'LIMIT\');";
+                "(3,16,3,41340.930000000,0.002221200,91.826473716,8,0.183652947,16,3,3,\'LIMIT\');";
 
         prepareTestData(sql);
 
         int id = 16;
         CurrencyPair currencyPair = new CurrencyPair();
         currencyPair.setId(3);
-        OrderStatus status = OrderStatus.INPROCESS;
+        OrderStatus status = OrderStatus.CLOSED;
         OperationType operationType = OperationType.SELL;
         String scopeACCEPTED = "ACCEPTED";
         int offset = 0;

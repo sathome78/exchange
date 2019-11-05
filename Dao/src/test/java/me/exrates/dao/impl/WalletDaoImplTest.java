@@ -2,6 +2,7 @@ package me.exrates.dao.impl;
 
 import config.DataComparisonTest;
 import me.exrates.dao.CurrencyDao;
+import me.exrates.dao.OrderDao;
 import me.exrates.dao.TransactionDao;
 import me.exrates.dao.UserDao;
 import me.exrates.dao.WalletDao;
@@ -464,6 +465,11 @@ public class WalletDaoImplTest extends DataComparisonTest {
         @Bean
         public WalletDao walletDao() {
             return new WalletDaoImpl();
+        }
+
+        @Bean
+        public OrderDao orderDao() {
+            return new OrderDaoImpl();
         }
 
         @Bean
