@@ -269,11 +269,6 @@
         </div>
     <%--PIN | END--%>
 
-    <%-- Regitration with referral link | START --%>
-    <a id="pwd_referral_link_for_registration_hide" data-fancybox href="#registration" class="popup__bottom-link" style="display: none"><loc:message code="usermenu.referral"/></a>
-    <input id="referral_link_for_registration" hidden value='${refferalLink}'/>
-    <%-- Regitration with referral link | END --%>
-
     <%-- Regitration | START --%>
     <div id="registration" class="popup">
         <div class="popup__inner">
@@ -281,7 +276,7 @@
 
             <form id="create_me" class="form" method="post">
                 <input type="hidden"  class="csrfC" name="_csrf" value="${_csrf.token}"/>
-                <input id="userParentEmail" name="parentEmail" hidden value='${parentEmail}'>
+<%--                <input id="userParentEmail" name="parentEmail" hidden value='${parentEmail}'>--%>
 
                 <div class="field">
                     <div id="email_label" class="field__label">Email</div>

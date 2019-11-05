@@ -19,8 +19,6 @@
     <%----%>
     <%@include file="myorders-center.jsp" %>
     <%@include file="inputoutput-center.jsp" %>
-    <%@include file="myreferral-center.jsp" %>
-        <%@include file="refStrucutreWrapper.jsp" %>
 
 </div>
 

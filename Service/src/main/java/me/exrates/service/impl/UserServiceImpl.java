@@ -16,7 +16,6 @@ import me.exrates.model.PagingData;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
-import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.CallbackURL;
 import me.exrates.model.dto.IpLogDto;
 import me.exrates.model.dto.NotificationsUserSetting;
@@ -42,10 +41,8 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
-import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.ngExceptions.PincodeExpiredException;
 import me.exrates.service.NotificationService;
-import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.UserSettingService;
@@ -136,8 +133,8 @@ public class UserServiceImpl implements UserService {
     private HttpServletRequest request;
     @Autowired
     private TokenScheduler tokenScheduler;
-    @Autowired
-    private ReferralService referralService;
+//    @Autowired
+//    private ReferralService referralService;
     @Autowired
     private NotificationsSettingsService settingsService;
     @Autowired
@@ -228,7 +225,7 @@ public class UserServiceImpl implements UserService {
             User user = userDao.getUserById(temporalToken.getUserId());
             if (user.getUserStatus() == UserStatus.REGISTERED) {
                 LOGGER.debug(String.format("DELETING USER %s", user.getEmail()));
-                referralService.updateReferralParentForChildren(user);
+//                referralService.updateReferralParentForChildren(user);
                 result = userDao.delete(user);
                 if (!result) {
                     throw new UnRegisteredUserDeleteException();

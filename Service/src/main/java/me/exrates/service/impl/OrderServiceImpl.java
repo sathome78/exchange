@@ -76,7 +76,6 @@ import me.exrates.model.enums.OrderEventEnum;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.PrecissionsEnum;
-import me.exrates.model.enums.ReferralTransactionStatusEnum;
 import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.model.enums.RestrictedCountrys;
 import me.exrates.model.enums.TransactionSourceType;
@@ -96,7 +95,6 @@ import me.exrates.service.CompanyWalletService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.NotificationService;
 import me.exrates.service.OrderService;
-import me.exrates.service.ReferralService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
@@ -249,8 +247,8 @@ public class OrderServiceImpl implements OrderService {
     private CurrencyService currencyService;
     @Autowired
     private MessageSource messageSource;
-    @Autowired
-    private ReferralService referralService;
+//    @Autowired
+//    private ReferralService referralService;
     @Autowired
     private UserRoleService userRoleService;
     @Autowired
@@ -1468,8 +1466,8 @@ public class OrderServiceImpl implements OrderService {
              * referralService.processReferral(exOrder, amountComissionForAcceptor, currency.getId(), exOrder.getUserAcceptorId()); //Processing referral for Order Acceptor
              */
 
-            referralService.processReferral(exOrder, exOrder.getCommissionFixedAmount(), currency, exOrder.getUserId()); //Processing referral for Order Creator
-            referralService.processReferral(exOrder, amountComissionForAcceptor, currency, exOrder.getUserAcceptorId()); //Processing referral for Order Acceptor
+//            referralService.processReferral(exOrder, exOrder.getCommissionFixedAmount(), currency, exOrder.getUserId()); //Processing referral for Order Creator
+//            referralService.processReferral(exOrder, amountComissionForAcceptor, currency, exOrder.getUserAcceptorId()); //Processing referral for Order Acceptor
 
             if (!updateOrder(exOrder)) {
                 throw new OrderAcceptionException(messageSource.getMessage("orders.acceptsaveerror", null, locale));
@@ -2124,7 +2122,7 @@ public class OrderServiceImpl implements OrderService {
                 walletOperationData.setDescription(description);
                 walletOperationData.setOperationType(OperationType.OUTPUT);
                 walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
-                referralService.setRefTransactionStatus(ReferralTransactionStatusEnum.DELETED, transaction.getSourceId());
+//                referralService.setRefTransactionStatus(ReferralTransactionStatusEnum.DELETED, transaction.getSourceId());
                 companyWalletService.substractCommissionBalanceById(transaction.getCompanyWallet().getId(), transaction.getAmount().negate());
             } catch (Exception e) {
                 log.error("error unprocess ref transactions" + e);

@@ -111,10 +111,6 @@ function LeftSiderClass(type) {
             }
         });
         that.getStatisticsForMyWallets(undefined, type);
-        $('#refferal-generate').on('click', generateReferral);
-        $('#refferal-copy').on('click', function () {
-            selectAndCopyText($('#refferal-reference'));
-        });
         $('#pair-filter').on('keyup', function (e) {
             setPairFilter();
         });
@@ -129,7 +125,7 @@ function LeftSiderClass(type) {
                 localStorage.setItem('statWalletsCheckbox', false);
             }
         });
-        generateReferral();
+
     })(type);
 
     function setPairFilter() {
@@ -172,16 +168,6 @@ function LeftSiderClass(type) {
                 }
             }
         }
-    }
-
-
-    function generateReferral() {
-        $.ajax('/generateReferral', {
-            method: 'get'
-        }).done(function (e) {
-            $('#refferal-reference').html(e['referral']);
-        });
-        blink($('#refferal-reference'));
     }
 }
 

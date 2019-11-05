@@ -84,14 +84,12 @@ public class UserDaoImpl implements UserDao {
     private static final Logger LOGGER = LogManager.getLogger(UserDaoImpl.class);
 
     private final String SELECT_USER =
-            "SELECT USER.id, u.email AS parent_email, USER.finpassword, USER.nickname, USER.email, USER.password, USER.regdate, " +
+            "SELECT USER.id, USER.finpassword, USER.nickname, USER.email, USER.password, USER.regdate, " +
                     "USER.phone, USER.status, USER.kyc_status, USER_ROLE.name AS role_name, USER.country AS country, USER.pub_id, USER.verification_required, USER.GA FROM USER " +
-                    "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LEFT JOIN REFERRAL_USER_GRAPH " +
-                    "ON USER.id = REFERRAL_USER_GRAPH.child LEFT JOIN USER AS u ON REFERRAL_USER_GRAPH.parent = u.id ";
+                    "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id ";
 
     private final String SELECT_COUNT = "SELECT COUNT(*) FROM USER " +
-            "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LEFT JOIN REFERRAL_USER_GRAPH " +
-            "ON USER.id = REFERRAL_USER_GRAPH.child LEFT JOIN USER AS u ON REFERRAL_USER_GRAPH.parent = u.id ";
+            "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id ";
 
     @Autowired
     @Qualifier(value = "masterTemplate")
@@ -132,9 +130,6 @@ public class UserDaoImpl implements UserDao {
             user.setCountry(resultSet.getString("country"));
             user.setPublicId(resultSet.getString("pub_id"));
             user.setVerificationRequired(resultSet.getBoolean("verification_required"));
-            try {
-                user.setParentEmail(resultSet.getString("parent_email")); // May not exist for some users
-            } catch (final SQLException e) {/*NOP*/}
             if (resultSet.getString("GA") != null) {
                 user.setGa(resultSet.getString("GA"));
             }

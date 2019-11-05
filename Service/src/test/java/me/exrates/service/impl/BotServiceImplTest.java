@@ -1,12 +1,19 @@
 package me.exrates.service.impl;
 
 import me.exrates.dao.BotDao;
-import me.exrates.model.*;
+import me.exrates.model.BotLaunchSettings;
+import me.exrates.model.BotTrader;
+import me.exrates.model.BotTradingSettings;
+import me.exrates.model.Currency;
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.PriceGrowthDirection;
-import me.exrates.service.*;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.SendMailService;
+import me.exrates.service.UserRoleService;
+import me.exrates.service.UserService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,41 +30,36 @@ import java.util.Locale;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class BotServiceImplTest {
 
+    private final String TEST_USER_EMAIL = "talalai@talala.com";
     @Mock
     private OrderServiceImpl orderService;
     @Mock
     private UserService userService;
-
     @Mock
     private UserRoleService userRoleService;
-
     @Mock
     private SendMailService sendMailService;
-
-    @Mock
-    private ReferralService referralService;
-
     @Mock
     private MessageSource messageSource;
-
     @Mock
     private CurrencyService currencyService;
-
     @Mock
     private BotDao botDao;
-
     @Mock
     private Scheduler botOrderCreationScheduler;
-
     private BotTrader botTrader;
-
-    private final String TEST_USER_EMAIL = "talalai@talala.com";
-
     private BotTradingSettings testSettings;
 
     private CurrencyPair currencyPair;
@@ -122,7 +124,7 @@ public class BotServiceImplTest {
 
         when(botDao.retrieveBotTradingSettingsForCurrencyPairAndOrderType(botTrader.getId(), 1, OrderType.SELL))
                 .thenReturn(Optional.of(testSettings));
-            when(orderService.prepareNewOrder(any(), any(), anyString(), any(), any(), any())).thenCallRealMethod();
+        when(orderService.prepareNewOrder(any(), any(), anyString(), any(), any(), any())).thenCallRealMethod();
         when(orderService.createOrder(any(), eq(OrderActionEnum.CREATE))).thenReturn(111);
 
     }

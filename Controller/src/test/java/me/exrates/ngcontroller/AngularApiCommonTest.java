@@ -54,7 +54,6 @@ public abstract class AngularApiCommonTest {
         user.setId(1);
         user.setNickname("TEST_NICKNAME");
         user.setEmail("TEST_EMAIL");
-        user.setParentEmail("+380508008000");
         user.setUserStatus(UserStatus.REGISTERED);
         user.setPassword("TEST_PASSWORD");
         return user;

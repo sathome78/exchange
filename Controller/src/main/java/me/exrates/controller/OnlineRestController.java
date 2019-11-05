@@ -4,20 +4,15 @@ import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.CurrentParams;
 import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.OrderCommissionsDto;
-import me.exrates.model.dto.RefFilterData;
-import me.exrates.model.dto.ReferralInfoDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
-import me.exrates.model.dto.RefsListContainer;
 import me.exrates.model.dto.TableParams;
 import me.exrates.model.dto.WalletTotalUsdDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
-import me.exrates.model.dto.onlineTableDto.MyReferralDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.dto.onlineTableDto.NewsDto;
@@ -42,7 +37,6 @@ import me.exrates.service.MerchantService;
 import me.exrates.service.NewsService;
 import me.exrates.service.NotificationService;
 import me.exrates.service.OrderService;
-import me.exrates.service.ReferralService;
 import me.exrates.service.RefillService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
@@ -72,18 +66,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.security.web.csrf.CsrfToken;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
@@ -91,7 +73,6 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
@@ -125,7 +106,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 @PropertySource(value = {"classpath:session.properties"})
 @RestController
 public class OnlineRestController {
-    private static final Logger LOGGER = LogManager.getLogger(OnlineRestController.class);
     /* if SESSION_LIFETIME_HARD set, session will be killed after time expired, regardless of activity the session
     set SESSION_LIFETIME_HARD = 0 to ignore it*/
     /* public static final long SESSION_LIFETIME_HARD = Math.round(90 * 60); //SECONDS*/
@@ -144,64 +124,45 @@ public class OnlineRestController {
     final public static Integer TABLES_LIMIT_DEFAULT = -1;
     /*default type of the chart*/
     final public static ChartType CHART_TYPE_DEFAULT = ChartType.STOCK;
+    private static final Logger LOGGER = LogManager.getLogger(OnlineRestController.class);
     /*it's need to install only one: SESSION_LIFETIME_HARD or SESSION_LIFETIME_INACTIVE*/
-
+    private final String HEADER_SECURITY = "username";
+    @Autowired
+    CommissionService commissionService;
+    @Autowired
+    OrderService orderService;
+    @Autowired
+    WalletService walletService;
+    @Autowired
+    CurrencyService currencyService;
+    @Autowired
+    NewsService newsService;
+    @Autowired
+    TransactionService transactionService;
+    @Autowired
+    MerchantService merchantService;
+    @Autowired
+    MessageSource messageSource;
+    @Autowired
+    LocaleResolver localeResolver;
+    @Autowired
+    WithdrawService withdrawService;
+    @Autowired
+    InputOutputService inputOutputService;
+    @Autowired
+    StopOrderService stopOrderService;
     private @Value("${session.timeParamName}")
     String sessionTimeMinutes;
     private @Value("${session.lastRequestParamName}")
     String sessionLastRequestParamName;
-
-    @Autowired
-    CommissionService commissionService;
-
-    @Autowired
-    OrderService orderService;
-
-    @Autowired
-    WalletService walletService;
-
-    @Autowired
-    CurrencyService currencyService;
-
-    @Autowired
-    NewsService newsService;
-
-    @Autowired
-    ReferralService referralService;
-
-    @Autowired
-    TransactionService transactionService;
-
-    @Autowired
-    MerchantService merchantService;
-
     @Autowired
     private UserService userService;
-
     @Autowired
     private NotificationService notificationService;
-
-    @Autowired
-    MessageSource messageSource;
-
-    @Autowired
-    LocaleResolver localeResolver;
-
-    @Autowired
-    WithdrawService withdrawService;
-
-    @Autowired
-    InputOutputService inputOutputService;
-
-    @Autowired
-    StopOrderService stopOrderService;
-
     @Autowired
     private ExchangeRatesHolder exchangeRatesHolder;
     @Autowired
     private RefillService refillService;
-
-    private final String HEADER_SECURITY = "username";
 
     @PostMapping(value = "/afgssr/call/refill", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Map<String, String> generateRefill(@RequestBody RefillRequestCreateDto requestDto, HttpServletRequest servletRequest) {
@@ -406,8 +367,8 @@ public class OnlineRestController {
           }});
         }};
       }*//*
-            *//*if (session.getAttribute("QR_LOGGED_IN") != null) {
-             *//**//*after authentication via QR main page must be reloaded*//**//*
+     *//*if (session.getAttribute("QR_LOGGED_IN") != null) {
+     *//**//*after authentication via QR main page must be reloaded*//**//*
         session.removeAttribute("QR_LOGGED_IN");
         LOGGER.debug(" REDIRECT to /dashboard. SESSION: " + session.getId() + " is new: " + session.isNew() + " firstEntry: " + session.getAttribute("firstEntry"));
         return new HashMap<String, HashMap<String, String>>() {{
@@ -978,49 +939,49 @@ public class OnlineRestController {
         return result;
     }
 
-    /**
-     * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
-     * returns list the data of user's orders to show in pages "History"
-     *
-     * @param refreshIfNeeded: - "true" if view ought to repainted if data in DB was changed only.
-     *                         - "false" if data must repainted in any cases
-     * @param tableId          determines table on pages "History" to show data
-     * @param page,            direction - used for pgination. Details see in class TableParams
-     * @param principal
-     * @param request
-     * @return list the data of user's orders
-     */
-    @OnlineMethod
-    @RequestMapping(value = "/dashboard/myReferralData/{tableId}", method = RequestMethod.GET)
-    public List<MyReferralDetailedDto> getMyReferralData(
-            @RequestParam(required = false) Boolean refreshIfNeeded,
-            @PathVariable("tableId") String tableId,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) PagingDirection direction,
-            Principal principal,
-            HttpServletRequest request) {
-        if (principal == null) {
-            return null;
-        }
-        String email = principal.getName();
-        /**/
-        String attributeName = tableId + "Params";
-        TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
-        requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
-        tableParams.setOffsetAndLimitForSql(page, direction);
-        /**/
-        String cacheKey = "myReferralData" + tableId + request.getHeader("windowid");
-        refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
-        CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-        List<MyReferralDetailedDto> result = referralService.findAllMyReferral(cacheData, email, tableParams.getOffset(), tableParams.getLimit(), localeResolver.resolveLocale(request));
-        if (!result.isEmpty()) {
-            result.get(0).setPage(tableParams.getPageNumber());
-        }
-        Locale locale = localeResolver.resolveLocale(request);
-
-        tableParams.updateEofState(result);
-        return result;
-    }
+//    /**
+//     * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
+//     * returns list the data of user's orders to show in pages "History"
+//     *
+//     * @param refreshIfNeeded: - "true" if view ought to repainted if data in DB was changed only.
+//     *                         - "false" if data must repainted in any cases
+//     * @param tableId          determines table on pages "History" to show data
+//     * @param page,            direction - used for pgination. Details see in class TableParams
+//     * @param principal
+//     * @param request
+//     * @return list the data of user's orders
+//     */
+//    @OnlineMethod
+//    @RequestMapping(value = "/dashboard/myReferralData/{tableId}", method = RequestMethod.GET)
+//    public List<MyReferralDetailedDto> getMyReferralData(
+//            @RequestParam(required = false) Boolean refreshIfNeeded,
+//            @PathVariable("tableId") String tableId,
+//            @RequestParam(required = false) Integer page,
+//            @RequestParam(required = false) PagingDirection direction,
+//            Principal principal,
+//            HttpServletRequest request) {
+//        if (principal == null) {
+//            return null;
+//        }
+//        String email = principal.getName();
+//        /**/
+//        String attributeName = tableId + "Params";
+//        TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
+//        requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
+//        tableParams.setOffsetAndLimitForSql(page, direction);
+//        /**/
+//        String cacheKey = "myReferralData" + tableId + request.getHeader("windowid");
+//        refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
+//        CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
+//        List<MyReferralDetailedDto> result = referralService.findAllMyReferral(cacheData, email, tableParams.getOffset(), tableParams.getLimit(), localeResolver.resolveLocale(request));
+//        if (!result.isEmpty()) {
+//            result.get(0).setPage(tableParams.getPageNumber());
+//        }
+//        Locale locale = localeResolver.resolveLocale(request);
+//
+//        tableParams.updateEofState(result);
+//        return result;
+//    }
 
     /**
      * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
@@ -1159,24 +1120,24 @@ public class OnlineRestController {
         return Collections.emptyList();
     }
 
-    @RequestMapping(value = "/dashboard/myReferralStructure")
-    public RefsListContainer getMyReferralData(
-            @RequestParam("action") String action,
-            @RequestParam(value = "userId", required = false) Integer userId,
-            @RequestParam(value = "onPage", defaultValue = "20") int onPage,
-            @RequestParam(value = "page", defaultValue = "1") int page,
-            RefFilterData refFilterData,
-            Principal principal) {
-        if (principal == null) {
-            return null;
-        }
-        String email = principal.getName();
-        /**/
-        RefsListContainer container = referralService.getRefsContainerForReq(action, userId,
-                userService.getIdByEmail(email), onPage, page, refFilterData);
-        hideEmails(container.getReferralInfoDtos());
-        return container;
-    }
+//    @RequestMapping(value = "/dashboard/myReferralStructure")
+//    public RefsListContainer getMyReferralData(
+//            @RequestParam("action") String action,
+//            @RequestParam(value = "userId", required = false) Integer userId,
+//            @RequestParam(value = "onPage", defaultValue = "20") int onPage,
+//            @RequestParam(value = "page", defaultValue = "1") int page,
+//            RefFilterData refFilterData,
+//            Principal principal) {
+//        if (principal == null) {
+//            return null;
+//        }
+//        String email = principal.getName();
+//        /**/
+//        RefsListContainer container = referralService.getRefsContainerForReq(action, userId,
+//                userService.getIdByEmail(email), onPage, page, refFilterData);
+//        hideEmails(container.getReferralInfoDtos());
+//        return container;
+//    }
 
     @ResponseBody
     @RequestMapping(value = "/dashboard/getAllCurrencies")
@@ -1184,18 +1145,18 @@ public class OnlineRestController {
         return currencyService.findAllCurrenciesWithHidden();
     }
 
-    private void hideEmails(List<ReferralInfoDto> referralInfoDtos) {
-
-        for (ReferralInfoDto dto : referralInfoDtos) {
-            String email = dto.getEmail();
-            StringBuilder buf = new StringBuilder(email);
-            int start = 2;
-            int end = email.length() - 5;
-            for (int i = start; i < end; i++) {
-                buf.setCharAt(i, '*');
-            }
-            dto.setEmail(buf.toString());
-        }
-    }
+//    private void hideEmails(List<ReferralInfoDto> referralInfoDtos) {
+//
+//        for (ReferralInfoDto dto : referralInfoDtos) {
+//            String email = dto.getEmail();
+//            StringBuilder buf = new StringBuilder(email);
+//            int start = 2;
+//            int end = email.length() - 5;
+//            for (int i = start; i < end; i++) {
+//                buf.setCharAt(i, '*');
+//            }
+//            dto.setEmail(buf.toString());
+//        }
+//    }
 
 }

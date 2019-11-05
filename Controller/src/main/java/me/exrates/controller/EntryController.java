@@ -29,7 +29,6 @@ import me.exrates.security.service.SecureService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.NewsService;
 import me.exrates.service.NotificationService;
-import me.exrates.service.ReferralService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.SurveyService;
 import me.exrates.service.UserFilesService;
@@ -84,7 +83,6 @@ import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.Principal;
@@ -138,8 +136,6 @@ public class EntryController {
     private NotificationsSettingsService settingsService;
     @Autowired
     private NotificatorsService notificatorService;
-    @Autowired
-    private ReferralService referralService;
     @Autowired
     private CurrencyService currencyService;
     @Autowired
@@ -217,10 +213,6 @@ public class EntryController {
             model.addObject("userEmail", principal.getName());
             model.addObject("userStatus", userStatus);
             model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
-            model.addObject("referalPercents", referralService.findAllReferralLevels()
-                    .stream()
-                    .filter(p -> p.getPercent().compareTo(BigDecimal.ZERO) > 0)
-                    .collect(toList()));
         }
         if (principal == null) {
             request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
@@ -283,10 +275,6 @@ public class EntryController {
             model.addObject("userEmail", principal.getName());
             model.addObject("userStatus", userStatus);
             model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
-            model.addObject("referalPercents", referralService.findAllReferralLevels()
-                    .stream()
-                    .filter(p -> p.getPercent().compareTo(BigDecimal.ZERO) > 0)
-                    .collect(toList()));
         }
         if (principal == null) {
             request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());

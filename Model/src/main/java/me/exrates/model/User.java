@@ -31,7 +31,7 @@ public class User implements Serializable {
     private String confirmFinPassword;
     private boolean readRules;
     private UserRole role = UserRole.USER;
-    private String parentEmail;
+//    private String parentEmail;
     private List<UserFile> userFiles = Collections.emptyList();
     private String kycStatus;
     private String country;
@@ -159,14 +159,6 @@ public class User implements Serializable {
         this.confirmFinPassword = confirmFinPassword;
     }
 
-    public String getParentEmail() {
-        return parentEmail;
-    }
-
-    public void setParentEmail(final String parentEmail) {
-        this.parentEmail = parentEmail;
-    }
-
     public String getKycStatus() {
         return kycStatus;
     }
@@ -235,7 +227,6 @@ public class User implements Serializable {
                 ", ipaddress='" + ipaddress + '\'' +
                 ", readRules=" + readRules +
                 ", role=" + role +
-                ", parentEmail='" + parentEmail + '\'' +
                 ", userFiles=" + userFiles +
                 '}';
     }
