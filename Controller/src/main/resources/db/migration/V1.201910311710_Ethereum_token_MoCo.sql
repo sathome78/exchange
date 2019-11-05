@@ -22,6 +22,30 @@ INSERT IGNORE INTO CURRENCY_LIMIT(currency_id, operation_type_id, user_role_id, 
 
 INSERT IGNORE INTO `COMPANY_WALLET` (`currency_id`) VALUES ((select id from CURRENCY where name = 'MoCo'));
 
+INSERT IGNORE INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
+VALUES((select id from CURRENCY where name = 'MoCo'), (select id from CURRENCY where name = 'BTC'), 'MoCo/BTC', 160, 0, 'BTC', 'MoCo/BTC');
+
+INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
+SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
+                                                    JOIN USER_ROLE UR
+                                                    JOIN ORDER_TYPE OT where CP.name='MoCo/BTC';
+
+INSERT IGNORE INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
+VALUES((select id from CURRENCY where name = 'MoCo'), (select id from CURRENCY where name = 'ETH'), 'MoCo/ETH', 160, 0, 'ETH', 'MoCo/ETH');
+
+INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
+SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
+                                                    JOIN USER_ROLE UR
+                                                    JOIN ORDER_TYPE OT where CP.name='MoCo/ETH';
+
+INSERT IGNORE INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market, ticker_name)
+VALUES((select id from CURRENCY where name = 'MoCo'), (select id from CURRENCY where name = 'USD'), 'MoCo/USDT', 170, 0, 'USDT','MoCo/USDT');
+
+INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
+SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
+                                                    JOIN USER_ROLE UR
+                                                    JOIN ORDER_TYPE OT where CP.name='MoCo/USDT';
+
 INSERT IGNORE INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, withdraw_block, refill_block, transfer_block)
 VALUES ((SELECT id FROM MERCHANT WHERE name = 'SimpleTransfer'), (select id from CURRENCY where name = 'MoCo'), 0.000001, 1, 1, 0);
 
