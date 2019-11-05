@@ -15,8 +15,6 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngModel.PasswordCreateDto;
-import me.exrates.model.userOperation.UserOperationAuthorityOption;
-import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.security.service.NgUserService;
@@ -36,8 +34,13 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ResourceUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -165,11 +168,44 @@ public class NgUserServiceImpl implements NgUserService {
             authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
 //            ipBlockingService.successfulProcessing(IpUtils.getClientIpAddress(request), IpTypesOfChecking.LOGIN);
             userService.deleteTempTokenByValue(tempToken);
+
+            sendWelcomeMail(user.getEmail());
+
             return authTokenDto;
         } else {
             logger.error("Update fail, user id - {}, email - {}", user.getId(), user.getEmail());
             throw new NgDashboardException("Error while creating password");
         }
+    }
+
+    private void sendWelcomeMail(String emailAddress) {
+        String message;
+        try {
+            File file = ResourceUtils.getFile("classpath:email/welcome_letter.txt");
+
+
+            BufferedReader reader = Files.newBufferedReader(file.toPath());
+
+            StringBuilder builder = new StringBuilder();
+            reader.lines().forEach(line -> {
+                builder.append(line);
+                builder.append("\n");
+            });
+            message = builder.toString();
+        } catch (IOException ex) {
+            logger.error("Email text not found", ex);
+            return;
+        }
+        Email email = new Email();
+        email.setTo(emailAddress);
+        email.setSubject("New user registration");
+        email.setMessage(message);
+
+        Properties properties = new Properties();
+        properties.setProperty("public_id", userService.getPubIdByEmail(emailAddress));
+        email.setProperties(properties);
+
+        sendMailService.sendMail(email);
     }
 
     @Override
