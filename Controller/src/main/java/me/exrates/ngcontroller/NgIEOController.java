@@ -69,7 +69,7 @@ public class NgIEOController {
     public ResponseModel<?> setUserAgreeWithPolicy(@PathVariable int ieoId) {
         String email = getPrincipalEmail();
         final int userId = userService.getIdByEmail(email);
-        ieoService.setUserAgreeWithPolicy(userId, ieoId);
+        ieoService.setPolicyConfirmed(userId, ieoId);
         return new ResponseModel<>();
     }
 
