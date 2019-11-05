@@ -169,10 +169,10 @@ public class SyndexDaoImpl implements SyndexDao {
     }
 
     @Override
-    public SyndexOrderDto getByIdForUpdate(int id, int userId) {
+    public SyndexOrderDto getByIdForUpdate(int id, @Nullable Integer userId) {
         final String sql = "SELECT * FROM SYNDEX_ORDER" +
                 " WHERE refill_request_id = :id " +
-                " AND user_id = :user_id " +
+                (Objects.isNull(userId) ? "" : " AND user_id = :user_id") +
                 " FOR UPDATE ";
 
         MapSqlParameterSource parameters = new MapSqlParameterSource()

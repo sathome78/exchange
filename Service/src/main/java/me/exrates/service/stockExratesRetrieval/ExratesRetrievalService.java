@@ -3,7 +3,6 @@ package me.exrates.service.stockExratesRetrieval;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.StockExchange;
 import me.exrates.model.StockExchangeStats;
-import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,7 +26,7 @@ public class ExratesRetrievalService implements StockExrateRetrievalService {
 
     @Override
     public List<StockExchangeStats> retrieveStats(StockExchange stockExchange) {
-        return orderService.getCoinmarketcapDataForActivePairs(null, new BackDealInterval("1 DAY"))
+        return orderService.getCoinmarketcapDataForActivePairs(null, "D")
                 .stream()
                 .map(dto -> new StockExchangeStats(dto, stockExchange))
                 .collect(Collectors.toList());

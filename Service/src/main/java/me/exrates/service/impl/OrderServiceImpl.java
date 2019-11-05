@@ -86,7 +86,6 @@ import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.ngExceptions.MarketOrderAcceptionException;
 import me.exrates.model.ngExceptions.NgOrderValidationException;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
-import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
@@ -154,8 +153,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
-import javax.annotation.PostConstruct;
-import javax.swing.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
 import java.io.ByteArrayOutputStream;
@@ -811,6 +808,7 @@ public class OrderServiceImpl implements OrderService {
         LocalDateTime currentDate = LocalDateTime.now();
         order.setDateCreation(currentDate);
         order.setDateAcception(currentDate);
+
         orderDao.postAcceptedOrderToDB(order);
 
         eventPublisher.publishEvent(new AcceptOrderEvent(order));
@@ -1681,17 +1679,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<CoinmarketcapApiDto> getCoinmarketcapDataForActivePairs(String currencyPairName, BackDealInterval interval) {
-        return chartApi.getCoinmarketcapData(currencyPairName, interval);
+    public List<CoinmarketcapApiDto> getCoinmarketcapDataForActivePairs(String currencyPairName, String resolution) {
+        return chartApi.getCoinmarketcapData(currencyPairName, resolution);
     }
 
     @Override
     public List<CoinmarketcapApiDto> getDailyCoinmarketcapData(String currencyPairName) {
-        BackDealInterval interval = new BackDealInterval("1 DAY");
+        String resolution = "D"; //1 day
 
         return Objects.nonNull(currencyPairName)
-                ? coinmarketcapDataCache.get(currencyPairName, () -> getCoinmarketcapDataForActivePairs(currencyPairName, interval))
-                : coinmarketcapDataCache.get(ALL, () -> getCoinmarketcapDataForActivePairs(currencyPairName, interval));
+                ? coinmarketcapDataCache.get(currencyPairName, () -> getCoinmarketcapDataForActivePairs(currencyPairName, resolution))
+                : coinmarketcapDataCache.get(ALL, () -> getCoinmarketcapDataForActivePairs(currencyPairName, resolution));
     }
 
     @Override

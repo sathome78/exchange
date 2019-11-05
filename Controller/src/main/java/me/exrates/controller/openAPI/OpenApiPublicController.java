@@ -30,7 +30,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -106,23 +107,20 @@ public class OpenApiPublicController {
         return currencyService.findActiveCurrencyPairs();
     }
 
-
     @GetMapping(value = "/{currency_pair}/candle_chart", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseResponse<List<CandleDto>>> getCandleChartData(@PathVariable(value = "currency_pair") String pairName,
-                                                                            @RequestParam(value = "from_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
-                                                                            @RequestParam(value = "to_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+                                                                            @RequestParam(value = "from_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
+                                                                            @RequestParam(value = "to_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate,
                                                                             @RequestParam(value = "interval_type") IntervalType intervalType,
                                                                             @RequestParam(value = "interval_value") Integer intervalValue) {
         final CurrencyPair currencyPair = currencyService.getCurrencyPairByName(transformCurrencyPair(pairName));
         final BackDealInterval interval = new BackDealInterval(intervalValue, intervalType);
+        final long from = fromDate.atZone(ZoneOffset.UTC).toEpochSecond();
+        final long to = toDate.atZone(ZoneOffset.UTC).toEpochSecond();
 
-        List<CandleDto> dataForCandleChart = candleDataProcessingService.getData(
-                currencyPair.getName(),
-                fromDate.atTime(LocalTime.MIN),
-                toDate.minusDays(1).atTime(LocalTime.MAX),
-                interval);
+        List<CandleDto> data = candleDataProcessingService.getData(currencyPair.getName(), from, to, interval.getResolution());
 
-        return ResponseEntity.ok(BaseResponse.success(dataForCandleChart));
+        return ResponseEntity.ok(BaseResponse.success(data));
     }
 
     private void validateCurrencyPair(String currencyPairName) {

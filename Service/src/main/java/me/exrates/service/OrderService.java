@@ -219,7 +219,7 @@ public interface OrderService {
      */
     boolean updateOrder(ExOrder exOrder);
 
-    List<CoinmarketcapApiDto> getCoinmarketcapDataForActivePairs(String currencyPairName, BackDealInterval backDealInterval);
+    List<CoinmarketcapApiDto> getCoinmarketcapDataForActivePairs(String currencyPairName, String resolution);
 
     List<CoinmarketcapApiDto> getDailyCoinmarketcapData(String currencyPairName);
 
