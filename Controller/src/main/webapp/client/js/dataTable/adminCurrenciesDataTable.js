@@ -24,6 +24,7 @@ $(document).ready(function () {
             var currentMinLimit = rowData.minSum;
             var currentMaxLimit = rowData.maxSum;
             var currentMinUsdLimit = rowData.minSumUsdRate;
+            var currentMaxUsdLimit = rowData.maxSumUsd;
             var currentUsdRate = rowData.currencyUsdRate;
             var currentMaxDailyRequest = rowData.maxDailyRequest;
             var operationType = $('#operationType').val();
@@ -35,6 +36,7 @@ $(document).ready(function () {
             $($editCurrencyLimitForm).find('input[name="roleName"]').val(userRole);
             $($editCurrencyLimitForm).find('input[name="minAmount"]').val(currentMinLimit);
             $($editCurrencyLimitForm).find('input[name="minAmountUSD"]').val(currentMinUsdLimit);
+            $($editCurrencyLimitForm).find('input[name="maxAmountUSD"]').val(currentMaxUsdLimit);
             $($editCurrencyLimitForm).find('input[name="usdRate"]').val(currentUsdRate);
             $($editCurrencyLimitForm).find('input[name="maxAmount"]').val(currentMaxLimit);
             $($editCurrencyLimitForm).find('input[name="maxDailyRequest"]').val(currentMaxDailyRequest);
@@ -56,11 +58,29 @@ $(document).ready(function () {
         if (amount === Infinity || isNaN(amount)) {
             $('input#minAmount').val('0');
         } else {
-            formatMinAmount(amount);
+            formatAmount(amount, $('input#minAmount'));
         }
     });
 
-    function formatMinAmount(amount) {
+    $('input#maxAmount').keyup(function() {
+        var usdRate = $('#usdRate').val();
+        var amount = $(this).val() * usdRate;
+
+        $('input#maxAmountUSD').val(amount);
+    });
+
+    $('input#maxAmountUSD').keyup(function() {
+        var usdRate = $('#usdRate').val();
+        var amount = $(this).val() / usdRate;
+
+        if (amount === Infinity || isNaN(amount)) {
+            $('input#maxAmount').val('0');
+        } else {
+            formatAmount(amount, $('input#maxAmount'));
+        }
+    });
+
+    function formatAmount(amount, $input) {
         $.ajax({
             headers: {
                 'X-CSRF-Token': $("input[name='_csrf']").val()
@@ -71,11 +91,11 @@ $(document).ready(function () {
                 "minSum": amount
             },
             success: function (data) {
-                $('input#minAmount').val(data);
+                $input.val(data);
             },
             error: function (error) {
                 console.log(error);
-                $('input#minAmount').val('0');
+                $input.val('0');
             }
         });
     }
@@ -174,6 +194,15 @@ function updateCurrencyLimitsDataTable() {
                 },
                 {
                     "data": "maxSum",
+                    "render": function (data, type) {
+                        if (type === 'display') {
+                            return numbro(data).format('0.00[000000]');
+                        }
+                        return data;
+                    }
+                },
+                {
+                    "data": "maxSumUsd",
                     "render": function (data, type) {
                         if (type === 'display') {
                             return numbro(data).format('0.00[000000]');
