@@ -9,13 +9,13 @@ function OrderRoleFilterClass(filteringEnabled, onChange) {
             $($rowFilterBox).prop( "checked", that.filteringEnabled);
             $($rowFilterBox).on('change', function () {
                 that.filteringEnabled = $($rowFilterBox).prop("checked");
-                syncCurrentParams(null, null, null, null, that.filteringEnabled, null);
+                syncCurrentParams(null, null, that.filteringEnabled, null);
                 if (onChange) {
                     onChange();
                 }
             });
             $($rowFilterBox).onoff();
-            syncCurrentParams(null, null, null, null, that.filteringEnabled, null)
+            syncCurrentParams(null, null, that.filteringEnabled, null)
         }
     })();
 }

@@ -1,7 +1,7 @@
 package me.exrates.service.api;
 
 import lombok.extern.slf4j.Slf4j;
-import me.exrates.model.dto.CandleDto;
+import me.exrates.model.chart.CandleDto;
 import me.exrates.model.dto.CoinmarketcapApiDto;
 import me.exrates.service.exception.ChartApiException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +13,6 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -56,40 +55,6 @@ public class ChartApi {
             return Collections.emptyList();
         }
         return Arrays.asList(responseEntity.getBody());
-    }
-
-    public CandleDto getLastCandleData(String pairName, String resolution) {
-        final String queryParams = buildQueryParams(pairName, null, null, resolution);
-
-        ResponseEntity<CandleDto> responseEntity;
-        try {
-            responseEntity = restTemplate.getForEntity(String.format("%s/last?%s", url, queryParams), CandleDto.class);
-            if (responseEntity.getStatusCodeValue() != 200) {
-                throw new ChartApiException("Chart server is not available");
-            }
-        } catch (Exception ex) {
-            log.warn("Chart service did not return valid data: server not available");
-            return null;
-        }
-        return responseEntity.getBody();
-    }
-
-    public LocalDateTime getLastCandleTimeBeforeDate(String pairName,
-                                                     Long date,
-                                                     String resolution) {
-        final String queryParams = buildQueryParams(pairName, null, date, resolution);
-
-        ResponseEntity<LocalDateTime> responseEntity;
-        try {
-            responseEntity = restTemplate.getForEntity(String.format("%s/last-date?%s", url, queryParams), LocalDateTime.class);
-            if (responseEntity.getStatusCodeValue() != 200) {
-                throw new ChartApiException("Chart server is not available");
-            }
-        } catch (Exception ex) {
-            log.warn("Chart service did not return valid data: server not available");
-            return null;
-        }
-        return responseEntity.getBody();
     }
 
     public List<CoinmarketcapApiDto> getCoinmarketcapData(String pairName, String resolution) {

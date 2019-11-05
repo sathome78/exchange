@@ -418,7 +418,6 @@ function OrdersClass(currentCurrencyPair, cpData) {
     function onDeleteOrderSuccess(data) {
         that.updateAndShowAll();
         that.getAndShowMySellAndBuyOrdersData();
-        leftSider.getStatisticsForMyWallets();
         successNoty(data.result);
     }
 

@@ -154,7 +154,9 @@ $(function () {
         $('#logo_upd').val(data.logo);
         $('#content_upd').val(data.content);
         $('#soldAt').val(data.soldAt);
+        $('#policy_upd').val(data.licenseAgreement);
         $('#update_ieo').show();
+        getPolicy(data.id);
     }
 
 
@@ -200,7 +202,38 @@ $(function () {
         })
     }
 
+    $('#ieo_policy_update_send').click(function () {
+        var id = $('#id_upd').val();
+        var datastring = JSON.stringify($("#policyUpdForm").serializeArray().map(function(x){this[x.name] = x.value; return this;}.bind({}))[0]);
+        $.ajax({
+            type: "PUT",
+            url: "/2a8fy7b07dxe44/ieoPolicy/" + id,
+            data: datastring,
+            contentType:"application/json; charset=utf-8",
+            success: function(data) {
+                successNoty("Ieo policy updated!");
+                getPolicy(id)
+            },
+            error: function(errMsg) {
+                errorNoty('error update ieo policy ' + errMsg);
+            }
+        })
+    });
 
+    function getPolicy(id) {
+        $.ajax({
+            type: "GET",
+            url: "/2a8fy7b07dxe44/ieo/policy/" + id,
+            contentType:"application/json; charset=utf-8",
+            success: function(data) {
+                console.log(data.data);
+                $('#policy_upd').val(data.data);
+            },
+            error: function(errMsg) {
+                $('#policy_upd').val('error loading policy: ' + errMsg);
+            }
+        })
+    }
 
 
     function loadIeoTable() {
