@@ -1147,7 +1147,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
             CurrencyPairWithRestriction pair = new CurrencyPairWithRestriction(currencyPairRowMapper.mapRow(rs, rowNum));
             String restrictions = rs.getString("restrictions");
             if (!StringUtils.isEmpty(restrictions)) {
-                pair.setTradeRestrictions(Arrays.stream(restrictions.split(","))
+                pair.setTradeRestriction(Arrays.stream(restrictions.split(","))
                         .map(CurrencyPairRestrictionsEnum::valueOf)
                         .collect(Collectors.toList()));
             }
@@ -1196,12 +1196,10 @@ public class CurrencyDaoImpl implements CurrencyDao {
             result.setTopMarketVolume(rs.getObject("top_market_volume") == null ? null :
                     rs.getBigDecimal("top_market_volume"));
             String restrictions = rs.getString("restrictions");
-            if (StringUtils.isNoneEmpty(restrictions)) {
-                result.setTradeRestrictions(Arrays.stream(restrictions.split(","))
+            if (!StringUtils.isEmpty(restrictions)) {
+                result.setTradeRestriction(Arrays.stream(restrictions.split(","))
                         .map(CurrencyPairRestrictionsEnum::valueOf)
                         .collect(Collectors.toList()));
-            } else {
-                result.setTradeRestrictions(Collections.emptyList());
             }
             return result;
         });

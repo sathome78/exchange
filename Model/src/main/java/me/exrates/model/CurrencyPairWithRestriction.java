@@ -3,7 +3,6 @@ package me.exrates.model;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import me.exrates.model.enums.RestrictedOperation;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.List;
@@ -13,14 +12,14 @@ import java.util.List;
 @NoArgsConstructor
 public class CurrencyPairWithRestriction extends CurrencyPair {
 
-    private List<CurrencyPairRestrictionsEnum> tradeRestrictions;
+    private List<CurrencyPairRestrictionsEnum> tradeRestriction;
 
     public CurrencyPairWithRestriction(String pairName) {
         super(pairName);
     }
 
     public boolean hasTradeRestriction() {
-        return !CollectionUtils.isEmpty(tradeRestrictions);
+        return !CollectionUtils.isEmpty(tradeRestriction);
     }
 
     public CurrencyPairWithRestriction(CurrencyPair currencyPair) {

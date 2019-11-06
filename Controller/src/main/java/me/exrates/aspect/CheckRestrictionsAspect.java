@@ -75,7 +75,7 @@ public class CheckRestrictionsAspect {
                 return;
             }
 
-            if (currencyPair.getTradeRestrictions().stream().anyMatch(r -> r == CurrencyPairRestrictionsEnum.ESCAPE_USA)) {
+            if (currencyPair.getTradeRestriction().stream().anyMatch(r -> r == CurrencyPairRestrictionsEnum.ESCAPE_USA)) {
 
                 final String userEmail = userService.getUserEmailFromSecurityContext();
                 final User user = userService.findByEmail(userEmail);

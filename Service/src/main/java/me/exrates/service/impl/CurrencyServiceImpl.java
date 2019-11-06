@@ -657,7 +657,7 @@ public class CurrencyServiceImpl implements CurrencyService {
             log.warn("Failed to retrieve cache data for currency pair with id: " + currencyPairId, e);
             CurrencyPairWithRestriction currencyPairWithRestriction = new CurrencyPairWithRestriction();
             currencyPairWithRestriction.setId(currencyPairId);
-            currencyPairWithRestriction.setTradeRestrictions(Collections.emptyList());
+            currencyPairWithRestriction.setTradeRestriction(Collections.emptyList());
             return currencyPairWithRestriction;
         }
     }
@@ -684,7 +684,7 @@ public class CurrencyServiceImpl implements CurrencyService {
             @Override
             public ListenableFuture<CurrencyPairWithRestriction> reload(final Integer currencyPairId,
                                                                         CurrencyPairWithRestriction dto) {
-                if (dto.getTradeRestrictions().isEmpty()) {
+                if (dto.getTradeRestriction().isEmpty()) {
                     return Futures.immediateFuture(dto);
                 }
 
