@@ -31,7 +31,6 @@ public class User implements Serializable {
     private String confirmFinPassword;
     private boolean readRules;
     private UserRole role = UserRole.USER;
-//    private String parentEmail;
     private List<UserFile> userFiles = Collections.emptyList();
     private String kycStatus;
     private String country;
@@ -43,6 +42,7 @@ public class User implements Serializable {
     private String publicId;
     private Boolean verificationRequired;
     private String ga;
+    private String inviteReferralLink;
 
     public User() {
     }
@@ -205,6 +205,14 @@ public class User implements Serializable {
 
     public void setVerificationRequired(Boolean verificationRequired) {
         this.verificationRequired = verificationRequired;
+    }
+
+    public String getInviteReferralLink() {
+        return inviteReferralLink;
+    }
+
+    public void setInviteReferralLink(String inviteReferralLink) {
+        this.inviteReferralLink = inviteReferralLink;
     }
 
     public String getGa() {

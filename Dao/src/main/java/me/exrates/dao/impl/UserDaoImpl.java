@@ -85,7 +85,7 @@ public class UserDaoImpl implements UserDao {
 
     private final String SELECT_USER =
             "SELECT USER.id, USER.finpassword, USER.nickname, USER.email, USER.password, USER.regdate, " +
-                    "USER.phone, USER.status, USER.kyc_status, USER_ROLE.name AS role_name, USER.country AS country, USER.pub_id, USER.verification_required, USER.GA FROM USER " +
+                    "USER.phone, USER.status, USER.kyc_status, USER_ROLE.name AS role_name, USER.country AS country, USER.pub_id, USER.verification_required, USER.GA, USER.invite_referral_link FROM USER " +
                     "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id ";
 
     private final String SELECT_COUNT = "SELECT COUNT(*) FROM USER " +
@@ -132,6 +132,9 @@ public class UserDaoImpl implements UserDao {
             user.setVerificationRequired(resultSet.getBoolean("verification_required"));
             if (resultSet.getString("GA") != null) {
                 user.setGa(resultSet.getString("GA"));
+            }
+            if (resultSet.getString("invite_referral_link") != null) {
+                user.setInviteReferralLink(resultSet.getString("invite_referral_link"));
             }
             return user;
         };
