@@ -27,7 +27,7 @@ import me.exrates.model.dto.AdminOrderInfoDto;
 import me.exrates.model.dto.AlertDto;
 import me.exrates.model.dto.BotTradingSettingsShortDto;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
-import me.exrates.model.dto.CandleDto;
+import me.exrates.model.chart.CandleDto;
 import me.exrates.model.dto.ComissionCountDto;
 import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.dto.CurrencyPairLimitDto;
@@ -183,6 +183,7 @@ import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -225,6 +226,9 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 public class AdminController {
 
     private static final Logger LOG = LogManager.getLogger(AdminController.class);
+
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
     public static String adminAnyAuthority;
     public static String nonAdminAnyAuthority;
     public static String traderAuthority;
@@ -712,7 +716,6 @@ public class AdminController {
             /*updateUserDto.setPassword(user.getPassword());*/
             updateUserDto.setPhone(user.getPhone());
             updateUserDto.setVerificationRequired(user.getVerificationRequired());
-            updateUserDto.setTradesPrivileges(user.hasTradePrivileges());
             /*todo: Temporary commented for security reasons*/
             if (currentUserRole == ADMINISTRATOR) {
                 //Add to easy change user role to USER or VIP_USER !!! Not other
@@ -1293,10 +1296,10 @@ public class AdminController {
                                               @RequestParam("startTime") String startTimeString) {
         final CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
         final BackDealInterval backDealInterval = new BackDealInterval(interval);
-        final LocalDateTime fromDate = LocalDateTime.parse(startTimeString, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        final LocalDateTime toDate = LocalDateTime.now();
+        final long from = LocalDateTime.parse(startTimeString, FORMATTER).atZone(ZoneOffset.UTC).toEpochSecond();
+        final long to = LocalDateTime.now().atZone(ZoneOffset.UTC).toEpochSecond();
 
-        return candleDataProcessingService.getData(currencyPair.getName(), fromDate, toDate, backDealInterval);
+        return candleDataProcessingService.getData(currencyPair.getName(), from, to, backDealInterval.getResolution());
     }
 
     private BitcoinService getBitcoinServiceByMerchantName(String merchantName) {
@@ -2003,11 +2006,11 @@ public class AdminController {
     @PostMapping(value = "/2a8fy7b07dxe44/withdrawCommission/submit")
     @ResponseBody
     public ResponseEntity withdrawCommissionToUser(@RequestParam String email,
-                                              @RequestParam("currency") Integer currencyId,
-                                              @RequestParam BigDecimal amount,
-                                              @RequestParam String comment,
-                                              Locale locale,
-                                              Principal principal) {
+                                                   @RequestParam("currency") Integer currencyId,
+                                                   @RequestParam BigDecimal amount,
+                                                   @RequestParam String comment,
+                                                   Locale locale,
+                                                   Principal principal) {
 
 
         LOG.debug(" withdraw commission to user email = " + email + ", currencyId = " + currencyId + ", amount = " + amount);

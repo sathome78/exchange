@@ -21,7 +21,6 @@ import me.exrates.model.Transaction;
 import me.exrates.model.User;
 import me.exrates.model.UserRoleSettings;
 import me.exrates.model.Wallet;
-import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AdminOrderInfoDto;
 import me.exrates.model.dto.CallBackLogDto;
 import me.exrates.model.dto.CoinmarketcapApiDto;
@@ -215,12 +214,6 @@ public class OrderServiceImpl implements OrderService {
     private static final int ORDERS_QUERY_DEFAULT_LIMIT = 20;
     private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
     private static final Logger txLogger = LogManager.getLogger("ordersTxLogger");
-    private final List<BackDealInterval> intervals = Arrays.stream(ChartPeriodsEnum.values())
-            .map(ChartPeriodsEnum::getBackDealInterval)
-            .collect(Collectors.toList());
-    private final List<ChartTimeFrame> timeFrames = Arrays.stream(ChartTimeFramesEnum.values())
-            .map(ChartTimeFramesEnum::getTimeFrame)
-            .collect(Collectors.toList());
     private final Object autoAcceptLock = new Object();
     private final Object restOrderCreationLock = new Object();
     //    @Value("#{BigDecimal.valueOf('${orders.max-exrate-deviation-percent}')}")
@@ -266,16 +259,6 @@ public class OrderServiceImpl implements OrderService {
     private Cache coinmarketcapDataCache;
     @Autowired
     private ChartApi chartApi;
-
-    @Override
-    public List<BackDealInterval> getIntervals() {
-        return intervals;
-    }
-
-    @Override
-    public List<ChartTimeFrame> getChartTimeFrames() {
-        return timeFrames;
-    }
 
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
@@ -387,7 +370,7 @@ public class OrderServiceImpl implements OrderService {
         User user = userService.findByEmail(userEmail);
 
         if (activeCurrencyPair.hasTradeRestriction()) {
-            if (activeCurrencyPair.getTradeRestrictions().contains(CurrencyPairRestrictionsEnum.ESCAPE_USA) && user.getVerificationRequired()) {
+            if (activeCurrencyPair.getTradeRestriction().contains(CurrencyPairRestrictionsEnum.ESCAPE_USA) && user.getVerificationRequired()) {
                 if (Objects.isNull(user.getCountry())) {
                     throw new NeedVerificationException("Sorry, you must pass verification to trade this pair.");
                 } else if (user.getCountry().equalsIgnoreCase(RestrictedCountrys.USA.name())) {
@@ -894,7 +877,7 @@ public class OrderServiceImpl implements OrderService {
         User user = userService.findByEmail(userEmail);
 
         if (activeCurrencyPair.hasTradeRestriction()) {
-            if (activeCurrencyPair.getTradeRestrictions().contains(CurrencyPairRestrictionsEnum.ESCAPE_USA) && user.getVerificationRequired()) {
+            if (activeCurrencyPair.getTradeRestriction().contains(CurrencyPairRestrictionsEnum.ESCAPE_USA) && user.getVerificationRequired()) {
                 if (Objects.isNull(user.getCountry())) {
                     throw new NeedVerificationException("Sorry, you must pass verification to trade this pair.");
                 } else if (user.getCountry().equalsIgnoreCase(RestrictedCountrys.USA.name())) {
@@ -1680,17 +1663,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<CoinmarketcapApiDto> getCoinmarketcapDataForActivePairs(String currencyPairName, BackDealInterval interval) {
-        return chartApi.getCoinmarketcapData(currencyPairName, interval);
+    public List<CoinmarketcapApiDto> getCoinmarketcapDataForActivePairs(String currencyPairName, String resolution) {
+        return chartApi.getCoinmarketcapData(currencyPairName, resolution);
     }
 
     @Override
     public List<CoinmarketcapApiDto> getDailyCoinmarketcapData(String currencyPairName) {
-        BackDealInterval interval = new BackDealInterval("1 DAY");
+        String resolution = "D"; //1 day
 
         return Objects.nonNull(currencyPairName)
-                ? coinmarketcapDataCache.get(currencyPairName, () -> getCoinmarketcapDataForActivePairs(currencyPairName, interval))
-                : coinmarketcapDataCache.get(ALL, () -> getCoinmarketcapDataForActivePairs(currencyPairName, interval));
+                ? coinmarketcapDataCache.get(currencyPairName, () -> getCoinmarketcapDataForActivePairs(currencyPairName, resolution))
+                : coinmarketcapDataCache.get(ALL, () -> getCoinmarketcapDataForActivePairs(currencyPairName, resolution));
     }
 
     @Override

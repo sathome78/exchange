@@ -24,6 +24,7 @@ import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.ChartPeriodsEnum;
 import me.exrates.model.enums.RestrictedOperation;
 import me.exrates.model.enums.CurrencyPairType;
+import me.exrates.model.enums.IntervalType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderBaseType;
@@ -34,6 +35,7 @@ import me.exrates.model.ngExceptions.NgOrderValidationException;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.util.BigDecimalToStringSerializer;
+import me.exrates.model.vo.BackDealInterval;
 import me.exrates.ngService.NgOrderService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
@@ -331,7 +333,7 @@ public class NgOrderServiceImpl implements NgOrderService {
             }
 
             ExOrderStatisticsDto orderStatistic =
-                    orderService.getOrderStatistic(currencyPair, ChartPeriodsEnum.HOURS_24.getBackDealInterval(), null);
+                    orderService.getOrderStatistic(currencyPair, new BackDealInterval(24, IntervalType.HOUR), null);
             log.debug("Current statistic for currency {}, statistic: {}", currencyPair.getName(), orderStatistic);
             if (orderStatistic != null) {
                 result.setLastCurrencyRate(orderStatistic.getFirstOrderRate());//or orderStatistic.getLastOrderRate() ??

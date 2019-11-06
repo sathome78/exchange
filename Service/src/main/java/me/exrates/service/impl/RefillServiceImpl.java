@@ -919,7 +919,7 @@ public class RefillServiceImpl implements RefillService {
         RefillStatusEnum newStatus = (RefillStatusEnum) currentStatus.nextState(action);
 
         IRefillable iRefillable = (IRefillable)merchantServiceContext.getMerchantService(refillRequest.getMerchantId());
-        iRefillable.cancelMerchantRequest(requestId, SecurityContextHolder.getContext().getAuthentication().getName());
+        iRefillable.cancelMerchantRequest(requestId);
 
         refillRequestDao.setStatusById(requestId, newStatus);
     }
