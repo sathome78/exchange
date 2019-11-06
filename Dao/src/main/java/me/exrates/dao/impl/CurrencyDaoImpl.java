@@ -1183,25 +1183,21 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
     @Override
     public List<CurrencyPairWithRestriction> findAllCurrencyPairWithRestrictions() {
-        String sql = "SELECT id, name, hidden, permitted_link, top_market_volume, " +
+        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, top_market, top_market_volume, " +
+                "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
+                "(select name from CURRENCY where id = currency2_id) as currency2_name, " +
                 "(select group_concat(cpr.restriction_name) from CURRENCY_PAIR_RESTRICTION cpr " +
-                "   where currency_pair_id = id ) as restrictions " +
-                "FROM CURRENCY_PAIR";
-        return masterJdbcTemplate.query(sql, (rs, i) -> {
-            CurrencyPairWithRestriction result = new CurrencyPairWithRestriction();
-            result.setId(rs.getInt("id"));
-            result.setName(rs.getString("name"));
-            result.setHidden(rs.getBoolean("hidden"));
-            result.setPermittedLink(rs.getBoolean("permitted_link"));
-            result.setTopMarketVolume(rs.getObject("top_market_volume") == null ? null :
-                    rs.getBigDecimal("top_market_volume"));
+                "   where currency_pair_id = CURRENCY_PAIR.id ) as restrictions " +
+                " FROM CURRENCY_PAIR ";
+        return slaveJdbcTemplate.query(sql, (rs, rowNum) -> {
+            CurrencyPairWithRestriction pair = new CurrencyPairWithRestriction(currencyPairRowMapper.mapRow(rs, rowNum));
             String restrictions = rs.getString("restrictions");
             if (!StringUtils.isEmpty(restrictions)) {
-                result.setTradeRestriction(Arrays.stream(restrictions.split(","))
+                pair.setTradeRestriction(Arrays.stream(restrictions.split(","))
                         .map(CurrencyPairRestrictionsEnum::valueOf)
                         .collect(Collectors.toList()));
             }
-            return result;
+            return pair;
         });
     }
 
