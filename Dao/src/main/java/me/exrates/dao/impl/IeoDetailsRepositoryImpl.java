@@ -209,22 +209,12 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
     }
 
     @Override
-    public void setPolicyConfirmed(int userId, int ieoId) {
-        final String sql = "UPDATE IEO_USER_AGREEMENT SET is_agree = TRUE "
-                + "         WHERE user_id = :user_id AND ieo_id = :ieo_id ";
-        MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("ieo_id", ieoId);
-        params.addValue("user_id", userId);
-        if (jdbcTemplate.update(sql, params) <= 0) {
-            throw new RuntimeException("Agree not updated");
-        }
-    }
-
-    @Override
     public void insertPolicyConfirmation(int userId, int ieoId) {
         final String sql = "INSERT INTO IEO_USER_AGREEMENT "
-                + "         (user_id, ieo_id)"
-                + "         VALUES(:user_id, :ieo_id)";
+                + "         (user_id, ieo_id, is_agree)"
+                + "         VALUES(:user_id, :ieo_id, TRUE) " +
+                "           ON DUPLICATE KEY UPDATE" +
+                "           is_agree = TRUE ";
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("ieo_id", ieoId);
         params.addValue("user_id", userId);
