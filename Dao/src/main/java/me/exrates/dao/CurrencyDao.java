@@ -3,6 +3,7 @@ package me.exrates.dao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairRestrictionsEnum;
 import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.MarketVolume;
 import me.exrates.model.dto.CurrencyPairLimitDto;
@@ -157,9 +158,9 @@ public interface CurrencyDao {
 
     CurrencyPairWithRestriction findCurrencyPairWithRestrictionRestrictions(Integer currencyPairId);
 
-    void insertCurrencyPairRestriction(Integer currencyPairId, RestrictedOperation restrictionsEnum);
+    void insertCurrencyPairRestriction(Integer currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum);
 
-    void deleteCurrencyPairRestriction(Integer currencyPairId, RestrictedOperation restrictionsEnum);
+    void deleteCurrencyPairRestriction(Integer currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum);
 
     List<CurrencyPairWithRestriction> findAllCurrencyPairWithRestrictions();
 }

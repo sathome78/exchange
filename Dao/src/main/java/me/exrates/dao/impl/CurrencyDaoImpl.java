@@ -1156,7 +1156,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     }
 
     @Override
-    public void insertCurrencyPairRestriction(Integer currencyPairId, RestrictedOperation restrictionsEnum) {
+    public void insertCurrencyPairRestriction(Integer currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum) {
         final String sql = "INSERT INTO CURRENCY_PAIR_RESTRICTION (currency_pair_id, restriction_name) values (:id, :name)";
         MapSqlParameterSource parameters = new MapSqlParameterSource()
             .addValue("id", currencyPairId)
@@ -1169,7 +1169,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     }
 
     @Override
-    public void deleteCurrencyPairRestriction(Integer currencyPairId, RestrictedOperation restrictionsEnum) {
+    public void deleteCurrencyPairRestriction(Integer currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum) {
         final String sql = "DELETE FROM CURRENCY_PAIR_RESTRICTION WHERE restriction_name = :name and currency_pair_id = :id ";
         MapSqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("id", currencyPairId)

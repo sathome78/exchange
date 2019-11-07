@@ -3,6 +3,7 @@ package me.exrates.service;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairRestrictionsEnum;
 import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.MarketVolume;
 import me.exrates.model.User;
@@ -186,7 +187,7 @@ public interface CurrencyService {
 
     CurrencyPairWithRestriction findCurrencyPairByIdWithRestrictions(Integer currencyPairId);
 
-    void addRestrictionForCurrencyPairById(int currencyPairId, RestrictedOperation restrictionsEnum);
+    void addRestrictionForCurrencyPairById(int currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum);
 
-    void deleteRestrictionForCurrencyPairById(int currencyPairId, RestrictedOperation restrictionsEnum);
+    void deleteRestrictionForCurrencyPairById(int currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum);
 }

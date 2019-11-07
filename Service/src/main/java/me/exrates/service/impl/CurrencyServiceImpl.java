@@ -12,6 +12,7 @@ import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairRestrictionsEnum;
 import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.MarketVolume;
 import me.exrates.model.User;
@@ -24,7 +25,6 @@ import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
-import me.exrates.model.enums.RestrictedOperation;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.Market;
 import me.exrates.model.enums.MerchantProcessType;
@@ -663,13 +663,13 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
-    public void addRestrictionForCurrencyPairById(int currencyPairId, RestrictedOperation restrictionsEnum) {
+    public void addRestrictionForCurrencyPairById(int currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum) {
         currencyDao.insertCurrencyPairRestriction(currencyPairId, restrictionsEnum);
         currencyRestrictionsCache.refresh(currencyPairId);
     }
 
     @Override
-    public void deleteRestrictionForCurrencyPairById(int currencyPairId, RestrictedOperation restrictionsEnum) {
+    public void deleteRestrictionForCurrencyPairById(int currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum) {
         currencyDao.deleteCurrencyPairRestriction(currencyPairId, restrictionsEnum);
         currencyRestrictionsCache.invalidate(currencyPairId);
     }

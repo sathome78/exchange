@@ -17,6 +17,7 @@ import me.exrates.model.Comment;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairRestrictionsEnum;
 import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.MarketVolume;
 import me.exrates.model.Merchant;
@@ -1110,7 +1111,7 @@ public class AdminController {
 
     @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess", method = RequestMethod.GET)
     public String merchantAccess(Model model) {
-        model.addAttribute("pairsRestrictions", Arrays.stream(RestrictedOperation.values())
+        model.addAttribute("pairsRestrictions", Arrays.stream(CurrencyPairRestrictionsEnum.values())
                                                                    .map(Enum::name)
                                                                    .collect(Collectors.joining(",")));
         model.addAttribute("kyc_types", Arrays.stream(MerchantVerificationType.values())
@@ -1237,7 +1238,7 @@ public class AdminController {
     @ResponseBody
     @PostMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPair/restriction")
     public ResponseEntity<Void> addRestrictionCurrencyPairById(@RequestParam("currencyPairId") int currencyPairId,
-                                                               @RequestParam("restriction") RestrictedOperation restrictionsEnum) {
+                                                               @RequestParam("restriction") CurrencyPairRestrictionsEnum restrictionsEnum) {
         currencyService.addRestrictionForCurrencyPairById(currencyPairId, restrictionsEnum);
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -1245,7 +1246,7 @@ public class AdminController {
     @ResponseBody
     @DeleteMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPair/restriction")
     public ResponseEntity<Void> deleteRestrictionCurrencyPairById(@RequestParam("currencyPairId") int currencyPairId,
-                                                               @RequestParam("restriction") RestrictedOperation restrictionsEnum) {
+                                                               @RequestParam("restriction") CurrencyPairRestrictionsEnum restrictionsEnum) {
         currencyService.deleteRestrictionForCurrencyPairById(currencyPairId, restrictionsEnum);
         return new ResponseEntity<>(HttpStatus.OK);
     }
