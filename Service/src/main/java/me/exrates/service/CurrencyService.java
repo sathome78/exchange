@@ -15,7 +15,7 @@ import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
-import me.exrates.model.enums.CurrencyPairRestrictionsEnum;
+import me.exrates.model.enums.RestrictedOperation;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
@@ -186,7 +186,7 @@ public interface CurrencyService {
 
     CurrencyPairWithRestriction findCurrencyPairByIdWithRestrictions(Integer currencyPairId);
 
-    void addRestrictionForCurrencyPairById(int currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum);
+    void addRestrictionForCurrencyPairById(int currencyPairId, RestrictedOperation restrictionsEnum);
 
-    void deleteRestrictionForCurrencyPairById(int currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum);
+    void deleteRestrictionForCurrencyPairById(int currencyPairId, RestrictedOperation restrictionsEnum);
 }

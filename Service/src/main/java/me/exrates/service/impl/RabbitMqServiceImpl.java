@@ -6,12 +6,14 @@ import me.exrates.service.RabbitMqService;
 import me.exrates.service.chart.OrderDataDto;
 import me.exrates.service.exception.RabbitMqException;
 import org.springframework.amqp.AmqpException;
+import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
+@EnableRabbit
 @PropertySource(value = {"classpath:/rabbit.properties"})
 @Log4j2
 @Service
