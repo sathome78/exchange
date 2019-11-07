@@ -21,14 +21,12 @@ import me.exrates.model.dto.SimpleOrderBookItem;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.enums.ActionType;
-import me.exrates.model.enums.CurrencyPairRestrictionsEnum;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.IntervalType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
-import me.exrates.model.enums.RestrictedCountrys;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngExceptions.NgOrderValidationException;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
@@ -42,8 +40,6 @@ import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.cache.ExchangeRatesHolder;
-import me.exrates.service.exception.NeedVerificationException;
-import me.exrates.service.exception.OrderCreationRestrictedException;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.userOperation.UserOperationService;
 import org.apache.commons.lang.StringUtils;
@@ -56,7 +52,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -123,15 +118,15 @@ public class NgOrderServiceImpl implements NgOrderService {
         User user = userService.findByEmail(email);
         CurrencyPairWithRestriction currencyPair = currencyService.findCurrencyPairByIdWithRestrictions(inputOrder.getCurrencyPairId());
 
-        if (currencyPair.hasTradeRestriction()) {
-            if (currencyPair.getTradeRestriction().contains(CurrencyPairRestrictionsEnum.ESCAPE_USA) && user.getVerificationRequired()) {
-                if (Objects.isNull(user.getCountry())) {
-                    throw new NeedVerificationException("Sorry, you must pass verification to trade this pair.");
-                } else if (user.getCountry().equalsIgnoreCase(RestrictedCountrys.USA.name())) {
-                    throw new OrderCreationRestrictedException("Sorry, you are not allowed to trade this pair");
-                }
-            }
-        }
+//        if (currencyPair.hasTradeRestriction()) {
+//            if (currencyPair.getTradeRestriction().contains(RestrictedOperation.ESCAPE_USA) && user.getVerificationRequired()) {
+//                if (Objects.isNull(user.getCountry())) {
+//                    throw new NeedVerificationException("Sorry, you must pass verification to trade this pair.");
+//                } else if(user.getCountry().equalsIgnoreCase(RestrictedCountrys.USA.name())) {
+//                    throw new OrderCreationRestrictedException("Sorry, you are not allowed to trade this pair");
+//                }
+//            }
+//        }
 
         OrderCreateDto prepareNewOrder = orderService.prepareNewOrder(currencyPair, operationType, user.getEmail(),
                 inputOrder.getAmount(), inputOrder.getRate(), baseType);

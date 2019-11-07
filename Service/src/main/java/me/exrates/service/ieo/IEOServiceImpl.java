@@ -228,7 +228,8 @@ public class IEOServiceImpl implements IEOService {
         }
 
         boolean policyCheck = userService.existPolicyByUserIdAndPolicy(user.getId(), PolicyEnum.IEO.getName());
-        return new IEOStatusInfo(kycCheck, policyCheck, checkCountry, countryDto);
+        boolean isPolicyConfirmed = isPolicyConfirmed(user.getId(), idIeo);
+        return new IEOStatusInfo(kycCheck, policyCheck, checkCountry, countryDto, isPolicyConfirmed);
     }
 
     @Override
@@ -500,29 +501,25 @@ public class IEOServiceImpl implements IEOService {
     }
 
     @Override
-    public boolean isUserAgreeWithPolicy(int userId, int ieoId) {
+    public boolean isPolicyConfirmed(int userId, int ieoId) {
         try {
-            return isUserAgreeWithIeoPolicy(userId, ieoId);
+            return ieoDetailsRepository.isPolicyConfirmed(userId, ieoId);
         } catch (EmptyResultDataAccessException e) {
             return false;
         }
     }
 
-    private boolean isUserAgreeWithIeoPolicy(int userId, int ieoId) throws EmptyResultDataAccessException {
-        return ieoDetailsRepository.isUserAgreeWithPolicy(userId, ieoId);
-    }
-
     @Synchronized
     @Transactional
     @Override
-    public void setUserAgreeWithPolicy(int userId, int ieoId) {
+    public void setPolicyConfirmed(int userId, int ieoId) {
         try {
-            boolean isAgree = isUserAgreeWithIeoPolicy(userId, ieoId);
+            boolean isAgree = ieoDetailsRepository.isPolicyConfirmed(userId, ieoId);
             if (!isAgree) {
-                ieoDetailsRepository.setUserAgreeWithPolicy(userId, ieoId);
+                ieoDetailsRepository.setPolicyConfirmed(userId, ieoId);
             }
         } catch (EmptyResultDataAccessException e) {
-            ieoDetailsRepository.insertUserAgreeWithPolicy(userId, ieoId);
+            ieoDetailsRepository.insertPolicyConfirmation(userId, ieoId);
         }
     }
 

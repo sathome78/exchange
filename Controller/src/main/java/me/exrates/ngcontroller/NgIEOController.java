@@ -64,20 +64,12 @@ public class NgIEOController {
         return new ResponseModel<>(ieoService.findAll(user));
     }
 
-    @GetMapping(value = "/policy/check/{ieoId}")
-    @ResponseBody
-    public ResponseModel<?> checkUserAgreement(@PathVariable int ieoId) {
-        String email = getPrincipalEmail();
-        final int userId = userService.getIdByEmail(email);
-        return new ResponseModel<>(ieoService.isUserAgreeWithPolicy(userId, ieoId));
-    }
-
     @PostMapping(value = "/policy/check/{ieoId}")
     @ResponseBody
     public ResponseModel<?> setUserAgreeWithPolicy(@PathVariable int ieoId) {
         String email = getPrincipalEmail();
         final int userId = userService.getIdByEmail(email);
-        ieoService.setUserAgreeWithPolicy(userId, ieoId);
+        ieoService.setPolicyConfirmed(userId, ieoId);
         return new ResponseModel<>();
     }
 

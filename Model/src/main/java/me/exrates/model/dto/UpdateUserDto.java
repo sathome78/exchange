@@ -17,6 +17,7 @@ public class UpdateUserDto {
 	private String finpassword;
 	private UserRole role;
 	private Boolean verificationRequired;
+	private Boolean tradesPrivileges;
 	private String publicId;
 
 	/*constructors*/

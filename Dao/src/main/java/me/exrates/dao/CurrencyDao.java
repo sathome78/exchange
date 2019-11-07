@@ -14,7 +14,7 @@ import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
-import me.exrates.model.enums.CurrencyPairRestrictionsEnum;
+import me.exrates.model.enums.RestrictedOperation;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.Market;
 import me.exrates.model.enums.MerchantProcessType;
@@ -157,9 +157,9 @@ public interface CurrencyDao {
 
     CurrencyPairWithRestriction findCurrencyPairWithRestrictionRestrictions(Integer currencyPairId);
 
-    void insertCurrencyPairRestriction(Integer currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum);
+    void insertCurrencyPairRestriction(Integer currencyPairId, RestrictedOperation restrictionsEnum);
 
-    void deleteCurrencyPairRestriction(Integer currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum);
+    void deleteCurrencyPairRestriction(Integer currencyPairId, RestrictedOperation restrictionsEnum);
 
     List<CurrencyPairWithRestriction> findAllCurrencyPairWithRestrictions();
 }

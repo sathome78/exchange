@@ -36,11 +36,11 @@ public interface IeoDetailsRepository {
 
     boolean updateIeoDetailStatus(IEODetailsStatus status, int idIeo);
 
-    boolean isUserAgreeWithPolicy(int userId, int ieoId);
+    boolean isPolicyConfirmed(int userId, int ieoId);
 
-    void setUserAgreeWithPolicy(int userId, int ieoId);
+    void setPolicyConfirmed(int userId, int ieoId);
 
-    void insertUserAgreeWithPolicy(int userId, int ieoId);
+    void insertPolicyConfirmation(int userId, int ieoId);
 
     String getIeoPolicy(int ieoId);
 

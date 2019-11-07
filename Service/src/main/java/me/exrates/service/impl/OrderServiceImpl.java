@@ -11,6 +11,7 @@ import me.exrates.model.Commission;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairRestrictionsEnum;
 import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.ExOrder;
 import me.exrates.model.MarketVolume;
@@ -63,7 +64,6 @@ import me.exrates.model.dto.openAPI.UserOrdersDto;
 import me.exrates.model.dto.openAPI.UserTradeHistoryDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.BusinessUserRoleEnum;
-import me.exrates.model.enums.CurrencyPairRestrictionsEnum;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
@@ -150,6 +150,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
+import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
 import java.io.ByteArrayOutputStream;
@@ -789,7 +790,6 @@ public class OrderServiceImpl implements OrderService {
         LocalDateTime currentDate = LocalDateTime.now();
         order.setDateCreation(currentDate);
         order.setDateAcception(currentDate);
-
         orderDao.postAcceptedOrderToDB(order);
 
         eventPublisher.publishEvent(new AcceptOrderEvent(order));

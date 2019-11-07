@@ -42,9 +42,9 @@ public interface IEOService {
 
     boolean isUserSubscribeForIEOTelegram(String email);
 
-    boolean isUserAgreeWithPolicy(int userId, int ieoId);
+    boolean isPolicyConfirmed(int userId, int ieoId);
 
-    void setUserAgreeWithPolicy(int userId, int ieoId);
+    void setPolicyConfirmed(int userId, int ieoId);
 
     String getIeoPolicy(int ieoId);
 
