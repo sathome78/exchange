@@ -19,8 +19,6 @@
 
     <%----------------------------------------%>
     <%@include file="tools/google_head.jsp"%>
-    <%@include file="tools/alexa.jsp" %>
-    <%--<%@include file="tools/yandex.jsp" %>--%>
 
     <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
 

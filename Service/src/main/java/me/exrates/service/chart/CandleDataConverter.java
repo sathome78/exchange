@@ -3,10 +3,9 @@ package me.exrates.service.chart;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.dto.CandleDto;
+import me.exrates.model.chart.CandleDto;
 
 import java.math.BigDecimal;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -28,7 +27,7 @@ public final class CandleDataConverter {
         List<BigDecimal> v = new ArrayList<>();
 
         data.forEach(candle -> {
-            t.add(candle.getTime().toEpochSecond(ZoneOffset.UTC));
+            t.add(candle.getTime());
             o.add(candle.getOpen());
             h.add(candle.getHigh());
             l.add(candle.getLow());

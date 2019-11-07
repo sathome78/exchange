@@ -18,11 +18,6 @@
     <%----------%>
     <%--TOOLS ... --%>
     <%@include file="../tools/google_head.jsp"%>
-    <%--ZOPIM CHAT--%>
-    <%--<%@include file="../tools/zopim.jsp" %>--%>
-    <%-- ... TOOLS--%>
-   <%-- <%@include file="../tools/alexa.jsp" %>--%>
-    <%--<%@include file="../tools/yandex.jsp" %>--%>
 
     <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
 
@@ -44,13 +39,10 @@
     <script type="text/javascript" src="<c:url value='/client/js/sockjs114.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/globalPages/settings-init.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/siders/leftSider.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/siders/rightSider.js'/>"></script>
     <%----%>
     <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/dashboard/chat.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/notifications/notification-settings.js'/>"></script>
 
@@ -79,7 +71,6 @@
 
 <main class="container">
     <div class="row_big">
-        <%@include file="../fragments/left-sider.jsp" %>
         <div class="cols-md-8 background_white">
             <div class="row">
                 <h4 class="h4_green">
@@ -112,7 +103,6 @@
 
             </div>
         </div>
-        <%@include file="../fragments/right-sider.jsp" %>
     </div>
 </main>
 <%@include file='../fragments/footer.jsp' %>
