@@ -1,0 +1,2 @@
+TRUNCATE CURRENCY_PAIR_RESTRICTION;
+alter table CURRENCY_PAIR_RESTRICTION modify restriction_name enum('NONE', 'TRADE', 'WITHDRAW', 'REFILL', 'IEO', 'UNDEFINED') not null;
