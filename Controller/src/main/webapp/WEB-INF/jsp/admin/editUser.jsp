@@ -277,7 +277,7 @@
                                             </div>
 
                                             <div class="col-md-4 input-block-wrapper__input-wrapper">
-                                                <form:checkbox path="hasTradePrivileges"
+                                                <form:checkbox path="hasTradesPrivileges"
                                                 />
                                             </div>
                                         </div>
