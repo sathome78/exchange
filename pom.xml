@@ -11,7 +11,6 @@
         <module>Model</module>
         <module>Service</module>
         <module>Dao</module>
-        <module>JDBC</module>
         <module>Controller</module>
     </modules>
 
