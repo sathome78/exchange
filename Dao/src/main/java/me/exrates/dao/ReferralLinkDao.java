@@ -9,7 +9,7 @@ public interface ReferralLinkDao {
 
     Optional<ReferralLink> findByUserIdAndLink(int userId, String link);
 
-    List<ReferralLink> findByLink(String link);
+    Optional<ReferralLink> findByLink(String link);
 
     List<ReferralLink> findByUserId(int userId);
 

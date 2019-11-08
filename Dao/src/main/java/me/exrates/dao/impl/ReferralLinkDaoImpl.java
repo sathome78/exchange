@@ -55,9 +55,15 @@ public class ReferralLinkDaoImpl implements ReferralLinkDao {
     }
 
     @Override
-    public List<ReferralLink> findByLink(String link) {
+    public Optional<ReferralLink> findByLink(String link) {
         final String sql = "SELECT " + columns + " FROM REFERRAL_LINK WHERE link = :link";
-        return slaveJdbcTemplate.query(sql, Collections.singletonMap("link", link), referralLinkRowMapper);
+        try {
+            return Optional.of(slaveJdbcTemplate.queryForObject(sql,
+                    Collections.singletonMap("link", link),
+                    referralLinkRowMapper));
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
     @Override
