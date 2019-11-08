@@ -29,6 +29,7 @@ import me.exrates.dao.UserSettingsDao;
 import me.exrates.dao.UserTransferDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.vo.TransactionDescription;
+import me.exrates.ngService.GeoLocationService;
 import me.exrates.ngService.RedisUserNotificationService;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.CommissionService;
@@ -45,6 +46,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.UserSettingService;
 import me.exrates.service.UserTransferService;
 import me.exrates.service.WalletService;
+import me.exrates.service.api.ChartApi;
 import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.api.WalletsApi;
 import me.exrates.service.cache.ExchangeRatesHolder;
@@ -75,6 +77,7 @@ import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.BigDecimalConverter;
 import me.exrates.service.util.RestApiUtilComponent;
 import me.exrates.service.util.WithdrawUtils;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -124,11 +127,17 @@ public class ServiceTestConfig {
     int precision10;
 
     @Value("${api.wallets.url}")
-    String url;
+    String walletsUrl;
     @Value("${api.wallets.username}")
-    String username;
+    String walletsUsername;
     @Value("${api.wallets.password}")
-    String password;
+    String walletsPassword;
+
+    @Value("${api.chart.url}")
+    String chartUrl;
+
+    @Value("${api.chart.coinmarketcap-url}")
+    String coinmarketcapUrl;
 
     @Bean
     public CurrencyDao currencyDao() {
@@ -183,6 +192,11 @@ public class ServiceTestConfig {
     @Bean
     public SettingsEmailRepository settingsEmailRepository() {
         return Mockito.mock(SettingsEmailRepository.class);
+    }
+
+    @Bean
+    public GeoLocationService geoLocationService() {
+        return Mockito.mock(GeoLocationService.class);
     }
 
     @Bean
@@ -465,7 +479,12 @@ public class ServiceTestConfig {
 
     @Bean
     public WalletsApi walletsApi() {
-        return new WalletsApi(url, username, password, currencyService());
+        return new WalletsApi(walletsUrl, walletsUsername, walletsPassword, currencyService());
+    }
+
+    @Bean
+    public ChartApi chartApi() {
+        return new ChartApi(chartUrl, coinmarketcapUrl);
     }
 
     @Bean

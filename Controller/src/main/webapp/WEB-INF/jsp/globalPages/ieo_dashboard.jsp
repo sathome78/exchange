@@ -17,10 +17,6 @@
 
     <%--TOOLS ... --%>
     <%@include file="../tools/google_head.jsp"%>
-    <%--alexa закоментировано т.к. не используется в данный момент--%>
-    <%--<%@include file="../tools/alexa.jsp" %>--%>
-    <%--ZOPIM CHAT--%>
-    <%--<%@include file="../tools/zopim.jsp" %>--%>
     <%-- ... TOOLS--%>
 
     <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
@@ -47,8 +43,6 @@
     <script type="text/javascript" src="<c:url value='/client/js/lib/numeral/numbro.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/globalPages/dashboard_ico-init.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/siders/leftSider.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/siders/rightSider.js'/>"></script>
     <%----%>
     <script type="text/javascript" src="<c:url value='/client/js/trading/trading_ico.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/currencypair/currencyPairSelector.js'/>"></script>
@@ -56,10 +50,8 @@
     <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/dashboard/chat.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/moment-with-locales.min.js'/>"></script>
-    <script src='//cdn.tinymce.com/4/tinymce.min.js'></script>
     <script type="text/javascript" src="<c:url value='/client/js/historyRefStr.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/jquery.tmpl.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/jquery.twbsPagination.min.js'/>"></script>
@@ -67,16 +59,6 @@
     <script type="text/javascript" src="<c:url value='/client/js/order/orderRoleFilter.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/inputOutput/valueInputControl.js'/>"></script>
     <%-- <script src="<c:url value='/client/js/lib/survey/survey.jquery.min.js'/>"></script>--%>
-    <script src="<c:url value='/client/js/lib/charting_library/charting_library.min.js' />"></script>
-    <script src="<c:url value='/client/js/datafeeds/udf/dist/polyfills.js' />"></script>
-    <script src="<c:url value='/client/js/datafeeds/udf/dist/bundle.js' />"></script>
-    <!-- Amcharts Charts ... -->
-    <script src="/client/js/chart-amcharts/amcharts.js" type="text/javascript"></script>
-    <script src="/client/js/chart-amcharts/serial.js" type="text/javascript"></script>
-    <script src="/client/js/chart-amcharts/amstock.js" type="text/javascript"></script>
-    <script src="/client/js/chart-amcharts/chartInit2.js" type="text/javascript"></script>
-    <script src="/client/js/chart-amcharts/stockChart.js" type="text/javascript"></script>
-    <!-- ... Amcharts Charts -->
     <script type="text/javascript" src="<c:url value='/client/js/news/news.js'/>"></script>
     <%----%>
     <script type="text/javascript" src="<c:url value='/client/js/kinetic.js'/>"></script>
@@ -96,7 +78,6 @@
     <input id="noty2fa" hidden value='${notify2fa}'/>
     <input id="preferedCurrencyPairName" hidden value='${preferedCurrencyPairName}'/>
     <div class="row_big">
-        <%@include file="../fragments/left-sider.jsp" %>
         <div class="cols-md-8 background_white">
             <div id="startup-page-id" class="center-dummy" style="height: 1px; visibility: hidden">
                 <%--to keep panel when all pages are hidden--%>
@@ -108,10 +89,8 @@
                 <%--and to keep startup page ID--%>
                 ${startupSubPage}
             </div>
-            <%-- <%@include file="../fragments/ico_trading_center.jsp" %> --%>
             <%@include file="../fragments/IEO_main_block.jsp"%>
         </div>
-        <%@include file="../fragments/right-sider.jsp" %>
     </div>
 </main>
 <%@include file='../fragments/footer.jsp' %>

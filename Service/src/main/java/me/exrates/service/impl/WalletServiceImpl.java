@@ -12,6 +12,7 @@ import me.exrates.model.Commission;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.Email;
 import me.exrates.model.IEOClaim;
 import me.exrates.model.IEODetails;
 import me.exrates.model.IEOResult;
@@ -55,6 +56,7 @@ import me.exrates.service.CommissionService;
 import me.exrates.service.CompanyWalletService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.NotificationService;
+import me.exrates.service.SendMailService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
@@ -87,6 +89,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -144,6 +147,9 @@ public class WalletServiceImpl implements WalletService {
     private IEOClaimRepository ieoClaimRepository;
     @Autowired
     private CurrencyDao currencyDao;
+
+    @Autowired
+    private SendMailService sendMailService;
 
 
     @Override
@@ -1090,6 +1096,18 @@ public class WalletServiceImpl implements WalletService {
 
             CompletableFuture.runAsync(() -> writeTransactionsAsyncForReveryIeo(ieoClaim, makerBtcActiveBalance, makerWallet,
                     userIeoWalletActiveBalance, userWallet, userMainWallet, IeoStatusEnum.REVOKED_BY_IEO_FAILURE));
+
+            User user = userService.getUserById(ieoClaim.getUserId());
+            Email email = new Email();
+            email.setTo(user.getEmail());
+            email.setSubject("Revert IEO");
+            email.setMessage(String.format("<p style=\"MAX-WIDTH: 347px; FONT-FAMILY: Roboto; COLOR: #000000; MARGIN: auto auto 2.15em;font-weight: normal; font-size: 16px; line-height: 19px; text-align: center;\">" +
+                    "<span style=\"font-weight: 600;\">IEO</span> for %s has been canceled. All funds returned</p>", ieoClaim.getCurrencyName()));
+            Properties properties = new Properties();
+            properties.setProperty("public_id", user.getPublicId());
+            email.setProperties(properties);
+
+            sendMailService.sendMail(email);
         }
         return updateResult;
     }

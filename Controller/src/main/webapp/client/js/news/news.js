@@ -50,8 +50,6 @@ function NewsClass($loadingImg) {
                     $newsTable.find('.news_item').remove();
                     data.forEach(function (e) {
                         var $newItem = $(tmpl($tmpl, e));
-                        $newItem.find('.news__admin__delete-news-variant').attr('onclick', 'rightSider.newsList.deleteNewsVariant('+ e.id+', "'+ e.resource+'","'+ e.variant+'")');
-                        $newItem.find('.news__admin__add-news-variant').attr('onclick', 'rightSider.newsList.updateVariant('+ e.id+', "'+ e.resource+'")');
                         $newsTable.append($newItem);
                     });
                     blink($newsTable);
@@ -73,7 +71,6 @@ function NewsClass($loadingImg) {
         $('#newsIdEd').val(null);
         $('#variantEd').val($('#language').text().trim().toLowerCase());
         clearAddNewsForm();
-        $("#news-add-info__add-news").attr('onclick', 'rightSider.newsList.submitNews('+newNews+')');
         $(".news-add-info__date").css({'height': '2rem'});
         $("#newsId").val(null);
         $('#news-add-modal').modal();
@@ -87,7 +84,6 @@ function NewsClass($loadingImg) {
     };
 
     this.deleteNewsVariant = function(newsId, resource, variant) {
-        $("#news-delete-info__delete-news").attr('onclick', 'rightSider.newsList.removeNewsVariant()');
         $("#delete-newsId").val(newsId);
         $("#delete-newsVariant").val(variant);
         $("#delete-resource").val(resource);
@@ -333,7 +329,6 @@ function NewsClass($loadingImg) {
 
     this.updateVariant = function (newsId, resource) {
         var newNews = false;
-        $("#news-add-info__add-news").attr('onclick', 'rightSider.newsList.submitNews('+newNews+')');
         if ($('#news-add-modal').find('li').has('a[href="#editor"]').hasClass('active')) {
             updateNewsInEditor(newsId)
         } else {

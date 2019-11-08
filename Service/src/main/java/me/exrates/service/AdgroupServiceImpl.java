@@ -193,59 +193,63 @@ public class AdgroupServiceImpl implements AdgroupService {
     }
 
     public void regularlyCheckStatusTransactions() {
-        log.info("*** Ad_Group starting check tx ***");
-        Merchant merchantWallet = merchantService.findByName("Adgroup_Wallet");
-        Merchant merchantPaymentCard = merchantService.findByName("Adgroup_PaymentCard");
-        List<RefillRequestFlatDto> pendingTx = refillRequestDao.getByMerchantIdAndRemark(merchantWallet.getId(), "PENDING");
-        List<RefillRequestFlatDto> pendingTxPaymentCard = refillRequestDao.getByMerchantIdAndRemark(merchantPaymentCard.getId(), "PENDING");
-        pendingTx.addAll(pendingTxPaymentCard);
+        try {
+            log.info("*** Ad_Group starting check tx ***");
+            Merchant merchantWallet = merchantService.findByName("Adgroup_Wallet");
+            Merchant merchantPaymentCard = merchantService.findByName("Adgroup_PaymentCard");
+            List<RefillRequestFlatDto> pendingTx = refillRequestDao.getByMerchantIdAndRemark(merchantWallet.getId(), "PENDING");
+            List<RefillRequestFlatDto> pendingTxPaymentCard = refillRequestDao.getByMerchantIdAndRemark(merchantPaymentCard.getId(), "PENDING");
+            pendingTx.addAll(pendingTxPaymentCard);
 
-        if (pendingTx.isEmpty()) {
-            log.info("*** Ad_Group stopped check tx, empty list ***");
-            return;
-        }
-        log.info("Staring check transactions size {}", pendingTx.size());
-        final String requestUrl = url + "/transfer/get-merchant-tx";
-        List<String> txStrings = pendingTx.stream().map(RefillRequestFlatDto::getMerchantTransactionId).collect(Collectors.toList());
+            if (pendingTx.isEmpty()) {
+                log.info("*** Ad_Group stopped check tx, empty list ***");
+                return;
+            }
+            log.info("Staring check transactions size {}", pendingTx.size());
+            final String requestUrl = url + "/transfer/get-merchant-tx";
+            List<String> txStrings = pendingTx.stream().map(RefillRequestFlatDto::getMerchantTransactionId).collect(Collectors.toList());
 
-        CommonAdGroupHeaderDto header = new CommonAdGroupHeaderDto("fetchMerchTx", 0.1);
-        AdGroupFetchTxDto requestBody = AdGroupFetchTxDto.builder()
-                .start(0)
-                .limit(pendingTx.size())
-                .txStatus(new String[]{"PENDING", "APPROVED", "REJECTED", "CREATED", "INVOICE"})
-                .orderId(txStrings.toArray(new String[0]))
-                .build();
+            CommonAdGroupHeaderDto header = new CommonAdGroupHeaderDto("fetchMerchTx", 0.1);
+            AdGroupFetchTxDto requestBody = AdGroupFetchTxDto.builder()
+                    .start(0)
+                    .limit(pendingTx.size())
+                    .txStatus(new String[]{"PENDING", "APPROVED", "REJECTED", "CREATED", "INVOICE"})
+                    .orderId(txStrings.toArray(new String[0]))
+                    .build();
 
-        AdGroupCommonRequestDto requestDto = new AdGroupCommonRequestDto<>(header, requestBody);
-        AdGroupResponseDto<ResponseListTxDto> responseDto =
-                httpClient.getTransactions(requestUrl, getAuthorizationKey(), requestDto);
+            AdGroupCommonRequestDto requestDto = new AdGroupCommonRequestDto<>(header, requestBody);
+            AdGroupResponseDto<ResponseListTxDto> responseDto =
+                    httpClient.getTransactions(requestUrl, getAuthorizationKey(), requestDto);
 
-        log.info("Response from adgroup size tx {}", responseDto.getResponseData().getTransactions().size());
-        for (RefillRequestFlatDto transaction : pendingTx) {
-            for (TransactionResponseDto tx : responseDto.getResponseData().getTransactions()) {
-                if (transaction.getMerchantTransactionId().equalsIgnoreCase(tx.getId())) {
-                    TxStatus txStatus = TxStatus.valueOf(tx.getTxStatus());
+            log.info("Response from adgroup size tx {}", responseDto.getResponseData().getTransactions().size());
+            for (RefillRequestFlatDto transaction : pendingTx) {
+                for (TransactionResponseDto tx : responseDto.getResponseData().getTransactions()) {
+                    if (transaction.getMerchantTransactionId().equalsIgnoreCase(tx.getId())) {
+                        TxStatus txStatus = TxStatus.valueOf(tx.getTxStatus());
 
-                    if (txStatus == TxStatus.APPROVED) {
-                        Map<String, String> params = new HashMap<>();
-                        params.put("amount", tx.getAmount().toString());
-                        params.put("currency", tx.getCurrency());
-                        params.put("paymentId", transaction.getMerchantTransactionId());
-                        params.put("userId", String.valueOf(transaction.getUserId()));
-                        params.put("merchantId", String.valueOf(transaction.getMerchantId()));
-                        params.put("requestId", String.valueOf(transaction.getId()));
-                        try {
-                            processPayment(params);
-                        } catch (RefillRequestAppropriateNotFoundException e) {
-                            log.error("Error while processing payment {}, e {}", params, e);
+                        if (txStatus == TxStatus.APPROVED) {
+                            Map<String, String> params = new HashMap<>();
+                            params.put("amount", tx.getAmount().toString());
+                            params.put("currency", tx.getCurrency());
+                            params.put("paymentId", transaction.getMerchantTransactionId());
+                            params.put("userId", String.valueOf(transaction.getUserId()));
+                            params.put("merchantId", String.valueOf(transaction.getMerchantId()));
+                            params.put("requestId", String.valueOf(transaction.getId()));
+                            try {
+                                processPayment(params);
+                            } catch (RefillRequestAppropriateNotFoundException e) {
+                                log.error("Error while processing payment {}, e {}", params, e);
+                            }
                         }
-                    }
 
-                    if (txStatus == TxStatus.REJECTED) {
-                        refillRequestDao.setRemarkById(transaction.getId(), "REJECTED");
+                        if (txStatus == TxStatus.REJECTED) {
+                            refillRequestDao.setRemarkById(transaction.getId(), "REJECTED");
+                        }
                     }
                 }
             }
+        } catch (Exception e) {
+            log.error("Error happened", e);
         }
     }
 

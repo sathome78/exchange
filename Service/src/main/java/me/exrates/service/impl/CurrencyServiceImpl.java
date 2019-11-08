@@ -1,11 +1,18 @@
 package me.exrates.service.impl;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListenableFutureTask;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CurrencyDao;
 import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairRestrictionsEnum;
 import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.MarketVolume;
 import me.exrates.model.User;
@@ -18,7 +25,6 @@ import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
-import me.exrates.model.enums.CurrencyPairRestrictionsEnum;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.Market;
 import me.exrates.model.enums.MerchantProcessType;
@@ -46,14 +52,17 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -90,6 +99,11 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     private static Map<Integer, CurrencyPair> allPairs = new HashMap<>();
     private static Map<String, BigDecimal> defaultMarketVolumes = new HashMap<>();
+    private final ExecutorService executorService = Executors.newCachedThreadPool();
+    private LoadingCache<Integer, CurrencyPairWithRestriction> currencyRestrictionsCache = CacheBuilder.newBuilder()
+            .refreshAfterWrite(1, TimeUnit.HOURS)
+            .build(createCacheLoader());
+
     @Autowired
     UserRoleService userRoleService;
     @Autowired
@@ -118,8 +132,11 @@ public class CurrencyServiceImpl implements CurrencyService {
         allPairs = findAllCurrencyPair()
                 .stream().collect(Collectors.toMap(CurrencyPair::getId, Function.identity()));
 
-//        defaultMarketVolumes = getAllMarketVolumes().stream()
-//                .collect(Collectors.toMap(MarketVolume::getName, MarketVolume::getMarketVolume));
+        defaultMarketVolumes = getAllMarketVolumes().stream()
+                .collect(Collectors.toMap(MarketVolume::getName, MarketVolume::getMarketVolume));
+
+        findAllCurrencyPairWithRestrictions()
+                .forEach(cp -> currencyRestrictionsCache.put(cp.getId(), cp));
     }
 
     @Override
@@ -634,17 +651,48 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Override
     public CurrencyPairWithRestriction findCurrencyPairByIdWithRestrictions(Integer currencyPairId) {
-        return currencyDao.findCurrencyPairWithRestrictionRestrictions(currencyPairId);
+        try {
+            return currencyRestrictionsCache.get(currencyPairId);
+        } catch (ExecutionException e) {
+            log.warn("Failed to retrieve cache data for currency pair with id: " + currencyPairId, e);
+            CurrencyPairWithRestriction currencyPairWithRestriction = new CurrencyPairWithRestriction();
+            currencyPairWithRestriction.setId(currencyPairId);
+            currencyPairWithRestriction.setTradeRestriction(Collections.emptyList());
+            return currencyPairWithRestriction;
+        }
     }
-
 
     @Override
     public void addRestrictionForCurrencyPairById(int currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum) {
         currencyDao.insertCurrencyPairRestriction(currencyPairId, restrictionsEnum);
+        currencyRestrictionsCache.refresh(currencyPairId);
     }
 
     @Override
     public void deleteRestrictionForCurrencyPairById(int currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum) {
         currencyDao.deleteCurrencyPairRestriction(currencyPairId, restrictionsEnum);
+        currencyRestrictionsCache.invalidate(currencyPairId);
+    }
+
+    private CacheLoader<Integer, CurrencyPairWithRestriction> createCacheLoader() {
+        return new CacheLoader<Integer, CurrencyPairWithRestriction>() {
+            @Override
+            public CurrencyPairWithRestriction load(Integer currencyPairId) {
+                return currencyDao.findCurrencyPairWithRestrictionRestrictions(currencyPairId);
+            }
+
+            @Override
+            public ListenableFuture<CurrencyPairWithRestriction> reload(final Integer currencyPairId,
+                                                                        CurrencyPairWithRestriction dto) {
+                if (dto.getTradeRestriction().isEmpty()) {
+                    return Futures.immediateFuture(dto);
+                }
+
+                ListenableFutureTask<CurrencyPairWithRestriction> command = ListenableFutureTask
+                                .create(() -> currencyDao.findCurrencyPairWithRestrictionRestrictions(currencyPairId));
+                executorService.execute(command);
+                return command;
+            }
+        };
     }
 }

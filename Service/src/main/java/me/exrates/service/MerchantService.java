@@ -40,6 +40,9 @@ public interface MerchantService {
 
     List<MerchantCurrencyApiDto> findNonTransferMerchantCurrencies(Integer currencyId);
 
+
+    List<MerchantCurrencyApiDto> findTransferMerchantCurrenciesByCurrency(String currencyName);
+
     Optional<MerchantCurrency> findByMerchantAndCurrency(int merchantId, int currencyId);
 
     List<TransferMerchantApiDto> findTransferMerchants();

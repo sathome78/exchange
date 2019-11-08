@@ -82,6 +82,7 @@ import me.exrates.service.exception.WithdrawRequestPostException;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
+import me.exrates.service.syndex.SyndexService;
 import me.exrates.service.vo.ProfileData;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -92,6 +93,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.mail.MailException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -129,8 +131,7 @@ import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REVOKE;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.START_BCH_EXAMINE;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.TAKE_TO_WORK;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
-import static me.exrates.model.enums.invoice.RefillStatusEnum.CREATED_BY_FACT;
-import static me.exrates.model.enums.invoice.RefillStatusEnum.EXPIRED;
+import static me.exrates.model.enums.invoice.RefillStatusEnum.*;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
 /**
@@ -317,7 +318,7 @@ public class RefillServiceImpl implements RefillService {
                     }
                     break;
                 case shuftipro:
-                    merchantCurrency.setNeedKycRefill(!user.getKycStatus().equalsIgnoreCase("SUCCESS"));
+                    merchantCurrency.setNeedKycRefill(!user.getKycStatus().equalsIgnoreCase("ACCEPTED"));
                     break;
             }
         }
@@ -716,6 +717,14 @@ public class RefillServiceImpl implements RefillService {
         }
     }
 
+    @Override
+    @Transactional
+    public void acceptAdminRefillRequest(RefillRequestAcceptDto requestAcceptDto) {
+        IRefillable iRefillable = (IRefillable)merchantServiceContext.getMerchantService(requestAcceptDto.getMerchantId());
+        iRefillable.acceptAdmin(requestAcceptDto.getRequestId());
+        acceptRefillRequest(requestAcceptDto);
+    }
+
 
     @Override
     @Transactional
@@ -904,9 +913,14 @@ public class RefillServiceImpl implements RefillService {
     public void revokeRefillRequest(int requestId) {
         RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
                 .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
+
         RefillStatusEnum currentStatus = refillRequest.getStatus();
         InvoiceActionTypeEnum action = REVOKE;
         RefillStatusEnum newStatus = (RefillStatusEnum) currentStatus.nextState(action);
+
+        IRefillable iRefillable = (IRefillable)merchantServiceContext.getMerchantService(refillRequest.getMerchantId());
+        iRefillable.cancelMerchantRequest(requestId);
+
         refillRequestDao.setStatusById(requestId, newStatus);
     }
 
@@ -1064,9 +1078,16 @@ public class RefillServiceImpl implements RefillService {
                     .concat("): ");
             refillRequest.setRemark(comment, prefix);
             String remark = refillRequest.getRemark();
+
             if (!StringUtils.isEmpty(remark)) {
                 refillRequestDao.setRemarkById(requestId, remark);
             }
+
+            if (currentStatus == ON_PENDING) {
+                IRefillable iRefillable = (IRefillable)merchantServiceContext.getMerchantService(refillRequest.getMerchantId());
+                iRefillable.declineAdmin(requestId);
+            }
+
             if (currentStatus != CREATED_BY_FACT) {
                 Locale locale = getLocale(refillRequest.getUserId());
                 String title = messageSource.getMessage("refill.declined.title", new Integer[]{requestId}, locale);

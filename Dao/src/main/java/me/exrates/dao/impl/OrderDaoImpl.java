@@ -7,12 +7,10 @@ import me.exrates.dao.WalletDao;
 import me.exrates.dao.exception.OrderDaoException;
 import me.exrates.dao.exception.notfound.CommissionsNotFoundException;
 import me.exrates.dao.exception.notfound.WalletNotFoundException;
-import me.exrates.jdbc.OrderRowMapper;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.PagingData;
-import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.OrderBasicInfoDto;
@@ -69,7 +67,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -93,8 +90,6 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 public class OrderDaoImpl implements OrderDao {
 
     private static final Logger LOGGER = LogManager.getLogger(OrderDaoImpl.class);
-
-    private static final String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd HH:mm:ss";
 
     @Autowired
     @Qualifier(value = "masterTemplate")
@@ -177,10 +172,9 @@ public class OrderDaoImpl implements OrderDao {
             put("status_id", exOrder.getStatus().getStatus());
             put("order_source_id", exOrder.getSourceId());
             put("user_acceptor_id", exOrder.getUserAcceptorId());
-            Timestamp currentDate = Timestamp.valueOf(LocalDateTime.now());
-            put("date_creation", currentDate);
-            put("date_acception", currentDate);
-            put("status_modification_date", currentDate);
+            put("date_creation", exOrder.getDateCreation());
+            put("date_acception", exOrder.getDateAcception());
+            put("status_modification_date", exOrder.getDateAcception());
         }};
         masterJdbcTemplate.update(sql, params);
     }
@@ -292,7 +286,7 @@ public class OrderDaoImpl implements OrderDao {
         namedParameters.put("id", String.valueOf(orderId));
 
         try {
-            return masterJdbcTemplate.queryForObject(sql, namedParameters, new OrderRowMapper());
+            return masterJdbcTemplate.queryForObject(sql, namedParameters, getExOrderRowMapper());
         } catch (EmptyResultDataAccessException ex) {
             return null;
         }
@@ -534,33 +528,6 @@ public class OrderDaoImpl implements OrderDao {
         exOrderStatisticsDto.setCurrency1Id(rs.getInt("currency1_id"));
         return exOrderStatisticsDto;
     };
-
-    @Override
-    public List<CoinmarketApiDto> getCoinmarketData(String currencyPairName) {
-        String s = "{call GET_COINMARKETCAP_STATISTICS('" + currencyPairName + "')}";
-        return masterJdbcTemplate.execute(s, ps -> {
-            ResultSet rs = ps.executeQuery();
-            List<CoinmarketApiDto> list = new ArrayList();
-            while (rs.next()) {
-                CoinmarketApiDto coinmarketApiDto = new CoinmarketApiDto();
-                coinmarketApiDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
-                coinmarketApiDto.setCurrency_pair_name(rs.getString("currency_pair_name"));
-                coinmarketApiDto.setFirst(rs.getBigDecimal("first"));
-                coinmarketApiDto.setLast(rs.getBigDecimal("last"));
-                coinmarketApiDto.setLowestAsk(rs.getBigDecimal("lowestAsk"));
-                coinmarketApiDto.setHighestBid(rs.getBigDecimal("highestBid"));
-                coinmarketApiDto.setPercentChange(BigDecimalProcessing.doAction(coinmarketApiDto.getFirst(), coinmarketApiDto.getLast(), ActionType.PERCENT_GROWTH));
-                coinmarketApiDto.setBaseVolume(rs.getBigDecimal("baseVolume"));
-                coinmarketApiDto.setQuoteVolume(rs.getBigDecimal("quoteVolume"));
-                coinmarketApiDto.setIsFrozen(rs.getInt("isFrozen"));
-                coinmarketApiDto.setHigh24hr(rs.getBigDecimal("high24hr"));
-                coinmarketApiDto.setLow24hr(rs.getBigDecimal("low24hr"));
-                list.add(coinmarketApiDto);
-            }
-            rs.close();
-            return list;
-        });
-    }
 
     @Override
     public OrderInfoDto getOrderInfo(int orderId, Locale locale) {
@@ -2202,9 +2169,7 @@ public class OrderDaoImpl implements OrderDao {
         } else if (operationType == OperationType.SELL) {
             sortDirection = "ASC";
         }
-        String sql = "SELECT E.id, E.user_id, E.currency_pair_id, E.operation_type_id, E.exrate, E.amount_base, E.amount_convert, E.commission_fixed_amount," +
-                " E.commission_id, E.date_creation, E.status_id, E.base_type " +
-                " FROM EXORDERS E" +
+        String sql = "SELECT E.* FROM EXORDERS E" +
                 " JOIN USER U ON U.id = E.user_id" +
                 " JOIN USER_ROLE_SETTINGS URS ON URS.user_role_id = U.roleid" +
                 " WHERE E.status_id = 2 AND E.operation_type_id = :typeId AND E.currency_pair_id = :pairId AND URS.order_acception_same_role_only = 0" +
@@ -2231,6 +2196,12 @@ public class OrderDaoImpl implements OrderDao {
             exOrder.setDateCreation(convertTimeStampToLocalDateTime(rs, "date_creation"));
             exOrder.setStatus(OrderStatus.convert(rs.getInt("status_id")));
             exOrder.setOrderBaseType(OrderBaseType.valueOf(rs.getString("base_type")));
+            exOrder.setUserAcceptorId(rs.getInt("user_acceptor_id"));
+            exOrder.setSourceId(rs.getInt("order_source_id"));
+            final Timestamp dateAcceptionTmsp = rs.getTimestamp("date_acception");
+            if (Objects.nonNull(dateAcceptionTmsp)) {
+                exOrder.setDateAcception(dateAcceptionTmsp.toLocalDateTime());
+            }
             return exOrder;
         };
     }
