@@ -221,6 +221,14 @@ public class User implements Serializable {
         return hasTradesPrivileges;
     }
 
+    public Boolean getHasTradesPrivileges() {
+        return hasTradesPrivileges;
+    }
+
+    public void setHasTradesPrivileges(Boolean hasTradesPrivileges) {
+        this.hasTradesPrivileges = hasTradesPrivileges;
+    }
+
     public void setTradePrivileges(Boolean tradesAllowed) {
         this.hasTradesPrivileges = tradesAllowed;
     }
