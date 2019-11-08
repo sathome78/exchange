@@ -183,21 +183,6 @@ public class OnlineRestController {
 
     private final String HEADER_SECURITY = "username";
 
-    @PostMapping(value = "/afgssr/call/refill", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Map<String, String> generateRefill(@RequestBody RefillRequestCreateDto requestDto, HttpServletRequest servletRequest) {
-        try {
-            Preconditions.checkNotNull(requestDto.getServiceBeanName(), "wrong params");
-            String usernameHeader = servletRequest.getHeader(HEADER_SECURITY);
-            Preconditions.checkArgument(!StringUtils.isEmpty(usernameHeader), "invalid request");
-            String username = new String(Base64.getDecoder().decode(usernameHeader.getBytes()));
-            Preconditions.checkArgument(username.equals(requestDto.getUserEmail()) && userService.findByEmail(username) != null, "user not found or wrong user");
-            return refillService.callRefillIRefillable(requestDto);
-        } catch (Exception e) {
-            log.error(e);
-            throw new RefillRequestMerchantException(e.getMessage());
-        }
-    }
-
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler({
             RefillRequestMerchantException.class,
