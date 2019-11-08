@@ -35,4 +35,14 @@ public interface IeoDetailsRepository {
     boolean updateIeoSoldOutTime(int ieoId);
 
     boolean updateIeoDetailStatus(IEODetailsStatus status, int idIeo);
+
+    boolean isPolicyConfirmed(int userId, int ieoId);
+
+    void insertPolicyConfirmation(int userId, int ieoId);
+
+    String getIeoPolicy(int ieoId);
+
+    void updateIeoPolicy(int ieoId, String text);
+
+    void insertIeoPolicy(int ieoId, String text);
 }

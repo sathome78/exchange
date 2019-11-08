@@ -1220,6 +1220,17 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "ADB", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "mocoServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService mocoService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x06A8F2BCc622ac55d596ea02CE5bb5f318F485e9");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "MoCo",
+                "MoCo", true, ExConvert.Unit.ETHER);
+    }
+
     @Bean(name = "cedexServiceImpl")
     @Conditional(MonolitConditional.class)
     public EthTokenService cedexService() {
@@ -2102,7 +2113,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Conditional(MonolitConditional.class)
     public EthTokenService mexcServiceImpl() {
         List<String> tokensList = ImmutableList.of("0x7de2d123042994737105802d2abd0a10a7bde276");
-        return new EthTokenServiceImpl(tokensList, "MEXC", "MEXC", true, ExConvert.Unit.ETHER);
+        return new EthTokenServiceImpl(tokensList, "MEXC", "MEXC", false, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "czoServiceImpl")

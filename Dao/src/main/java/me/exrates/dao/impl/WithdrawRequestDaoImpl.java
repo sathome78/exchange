@@ -364,38 +364,42 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
 
     @Override
     public boolean checkOutputRequests(int currencyId, String email) {
-        String sql = "SELECT " +
-                " (SELECT COUNT(*) FROM WITHDRAW_REQUEST REQUEST " +
-                " JOIN USER ON(USER.id = REQUEST.user_id) " +
-                " WHERE USER.email = :email and REQUEST.currency_id = :currency_id " +
-                " and DATE(REQUEST.date_creation) = CURDATE()) <=  " +
-                " " +
-                "(SELECT CURRENCY_LIMIT.max_daily_request FROM CURRENCY_LIMIT  " +
-                " JOIN USER ON (USER.roleid = CURRENCY_LIMIT.user_role_id)" +
-                " WHERE USER.email = :email AND operation_type_id = 2 AND currency_id = :currency_id) ;";
+        final String sql = "SELECT " +
+                "(SELECT COUNT(*)" +
+                " FROM WITHDRAW_REQUEST wr" +
+                " JOIN USER u ON u.id = wr.user_id" +
+                " WHERE u.email = :email AND wr.currency_id = :currency_id AND wr.status_id NOT IN (:statuses) AND wr.date_creation > CURDATE())" +
+                " <= " +
+                "(SELECT cl.max_daily_request" +
+                " FROM CURRENCY_LIMIT cl" +
+                " JOIN USER u ON u.roleid = cl.user_role_id" +
+                " WHERE u.email = :email AND cl.operation_type_id = 2 AND cl.currency_id = :currency_id)";
 
         Map<String, Object> params = new HashMap<>();
         params.put("currency_id", currencyId);
         params.put("email", email);
+        params.put("statuses", Arrays.asList(7, 8, 12));
 
         return jdbcTemplate.queryForObject(sql, params, Integer.class) == 1;
     }
 
     @Override
     public boolean checkOutputMaxSum(int currencyId, String email, BigDecimal newSum) {
-        String sql = "SELECT " +
-                " ((SELECT IFNULL(SUM(WR.amount), 0) FROM WITHDRAW_REQUEST WR " +
-                " JOIN USER ON(USER.id = WR.user_id) " +
-                " WHERE USER.email = :email and WR.currency_id = :currency_id and WR.status_id NOT IN (:statuses) and WR.date_creation > CURDATE()) + :newSum) " +
-                "<= " +
-                "(SELECT IFNULL(CL.max_sum, 999999999999)  FROM CURRENCY_LIMIT CL  " +
-                " JOIN USER ON (USER.roleid = CL.user_role_id) " +
-                " WHERE USER.email = :email AND operation_type_id = 2 AND currency_id = :currency_id) ";
+        final String sql = "SELECT " +
+                "((SELECT IFNULL(SUM(wr.amount), 0)" +
+                " FROM WITHDRAW_REQUEST wr" +
+                " JOIN USER u ON u.id = wr.user_id" +
+                " WHERE u.email = :email AND wr.currency_id = :currency_id AND wr.status_id NOT IN (:statuses) AND wr.date_creation > CURDATE()) + :newSum)" +
+                " <= " +
+                "(SELECT IFNULL(cl.max_sum, 999999999999)" +
+                " FROM CURRENCY_LIMIT cl" +
+                " JOIN USER u ON u.roleid = cl.user_role_id" +
+                " WHERE u.email = :email AND cl.operation_type_id = 2 AND cl.currency_id = :currency_id) ";
 
         Map<String, Object> params = new HashMap<>();
         params.put("currency_id", currencyId);
         params.put("email", email);
-        params.put("statuses", Arrays.asList(7,8,12));
+        params.put("statuses", Arrays.asList(7, 8, 12));
         params.put("newSum", newSum);
 
         return jdbcTemplate.queryForObject(sql, params, Integer.class) == 1;
@@ -558,32 +562,34 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
 
     @Override
     public BigDecimal getLeftOutputRequestsCount(int currencyId, String email) {
-        String sql = "SELECT " +
-                "(SELECT CURRENCY_LIMIT.max_daily_request FROM CURRENCY_LIMIT  " +
-                " JOIN USER ON (USER.roleid = CURRENCY_LIMIT.user_role_id)" +
-                " WHERE USER.email = :email AND operation_type_id = 2 AND currency_id = :currency_id) - " +
-                " (SELECT COUNT(*) FROM WITHDRAW_REQUEST REQUEST " +
-                " JOIN USER ON(USER.id = REQUEST.user_id) " +
-                " WHERE USER.email = :email and REQUEST.currency_id = :currency_id " +
-                " and DATE(REQUEST.date_creation) = CURDATE())";
+        final String sql = "SELECT " +
+                "(SELECT cl.max_daily_request FROM CURRENCY_LIMIT cl" +
+                " JOIN USER u ON u.roleid = cl.user_role_id" +
+                " WHERE u.email = :email AND cl.operation_type_id = 2 AND cl.currency_id = :currency_id)" +
+                " - " +
+                "(SELECT COUNT(*) FROM WITHDRAW_REQUEST wr" +
+                " JOIN USER u ON u.id = wr.user_id" +
+                " WHERE u.email = :email AND wr.currency_id = :currency_id AND wr.status_id NOT IN (:statuses) AND wr.date_creation > CURDATE())";
 
         Map<String, Object> params = new HashMap<>();
         params.put("currency_id", currencyId);
         params.put("email", email);
+        params.put("statuses", Arrays.asList(7, 8, 12));
 
         return jdbcTemplate.queryForObject(sql, params, BigDecimal.class);
     }
 
     @Override
     public BigDecimal getDailyWithdrawalSumByCurrency(String email, Integer currencyId) {
-        final String sql = "SELECT IFNULL(SUM(WR.amount), 0) " +
-                "           FROM WITHDRAW_REQUEST WR " +
-                "           JOIN USER U ON U.id = WR.user_id " +
-                "           WHERE U.email = :email and WR.currency_id = :currency_id and WR.status_id NOT IN (:statuses) and WR.date_creation > CURDATE()";
+        final String sql = "SELECT IFNULL(SUM(wr.amount), 0)" +
+                " FROM WITHDRAW_REQUEST wr " +
+                " JOIN USER u ON u.id = wr.user_id " +
+                " WHERE u.email = :email AND wr.currency_id = :currency_id AND wr.status_id NOT IN (:statuses) AND wr.date_creation > CURDATE()";
+
         Map<String, Object> params = new HashMap<>();
         params.put("currency_id", currencyId);
         params.put("email", email);
-        params.put("statuses", Arrays.asList(7,8,12));
+        params.put("statuses", Arrays.asList(7, 8, 12));
 
         return jdbcTemplate.queryForObject(sql, params, BigDecimal.class);
     }

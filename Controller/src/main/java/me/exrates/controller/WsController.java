@@ -115,7 +115,7 @@ public class WsController {
 //        redisWsSessionService.removeSession(message.get("email"));
 //    }
 
-//    @SubscribeMapping("/message/private/{pubId}")
+    //    @SubscribeMapping("/message/private/{pubId}")
 //    public WsMessageObject subscribePersonalMessages(Principal principal, @DestinationVariable String pubId) {
 //        Preconditions.checkArgument(userService.getEmailByPubId(pubId).equals(principal.getName()));
 //        final Collection<UserNotificationMessage> messages = redisUserNotificationService.findAllByUser(principal.getName());
@@ -148,10 +148,10 @@ public class WsController {
     }
 
     @SubscribeMapping("/ieo/ieo_details/{detailId}")
-    public IEODetails subscribeIeoDetails(@DestinationVariable Integer detailId) {
+    public Object subscribeIeoDetails(@DestinationVariable Integer detailId) {
         IEODetails ieoDetails = ieoService.findOne(Preconditions.checkNotNull(detailId));
         if (ieoDetails == null) {
-            throw new RuntimeException("Ieo details cannot be null");
+            return "none";
         }
         return ieoDetails;
     }

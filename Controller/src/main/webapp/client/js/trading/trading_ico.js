@@ -1,7 +1,3 @@
-/**
- * Created by Valk on 02.06.2016.
- */
-
 function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
     if (TradingClass.__instance) {
         return TradingClass.__instance;
@@ -11,22 +7,14 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
     TradingClass.__instance = this;
     /**/
     var that = this;
-    var chart = null;
     var orderRoleFilter = null;
     var currentPair = currentCurrencyPair;
 
-    var $tradingContainer = $('#trading');
     var dashboardCurrencyPairSelector;
-    var timeOutIdForOrders;
-    var ordersRefreshInterval = 5000 * REFRESH_INTERVAL_MULTIPLIER;
-    var timeOutIdForStatistics;
-    var statisticsRefreshInterval = 10000 * REFRESH_INTERVAL_MULTIPLIER;
-/*    var $graphicsLoadingImg = $('#graphics-container').find('.loading');*/
     var $totalForBuyInput = $('#totalForBuy');
     var $exchangeRateBuyInput = $('#exchangeRateBuy');
     var $amountBuyInput = $('#amountBuy');
     var $amountStopInput = $('#amount-stop');
-    var $stopRateInput = $('#stop');
     var $limitRateInput = $('#limit-stop');
     var $totalStopInput = $('#totalForStop');
 
@@ -52,35 +40,13 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
         else {
             currentPair = $('.currency-pair-selector__menu-item.active').prop('id');
         }
-        that.getChart().switchCurrencyPair(currentPair);
-        that.updateAndShowAll();
         that.fillOrderCreationFormFields();
     }
-
-    this.getChart = function () {
-        return chart;
-    };
 
     this.syncCurrencyPairSelector = function (cpName) {
         dashboardCurrencyPairSelector.syncState('ICO', function () {
         });
         currentPair = cpName;
-        that.getChart().switchCurrencyPair(cpName);
-    };
-
-    this.updateAndShowStatistics = function (refreshIfNeeded) {
-        if (showLog) {
-            console.log("statistics");
-        }
-        that.getAndShowStatisticsForCurrency();
-    };
-
-    this.updateAndShowOrders = function (refreshIfNeeded) {
-        /* if (showLog) {
-             console.log("orders");
-         }
-         that.getAndShowSellOrders(refreshIfNeeded);
-         that.getAndShowBuyOrders(refreshIfNeeded);*/
     };
 
     this.updateAndShowBuyOrders = function (orders, refreshIfNeeded) {
@@ -126,65 +92,6 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
         });
         blink($ordersHistoryTable);
     };
-
-
-    this.updateAndShowStatistic = function (data) {
-        /*todo*/
-    };
-
-
-    this.updateAndShowAll = function (refreshIfNeeded) {
-        if (showLog) {
-            console.log("all");
-        }
-        that.updateAndShowStatistics(refreshIfNeeded);
-        that.updateAndShowOrders(refreshIfNeeded);
-    };
-
-    this.getAndShowStatisticsForCurrency = function () {
-        if ($tradingContainer.hasClass('hidden') || !windowIsActive) {
-            return;
-        }
-        var url = '/dashboard/ordersForPairStatistics';
-        $.ajax({
-            url: url,
-            type: 'GET',
-            success: function (data) {
-                if (!data){
-                    return;
-                }
-                $('#lastOrderAmountBase').find('span').text(data.lastOrderAmountBase + ' ' + data.currencyPair.currency1.name);
-                $('#firstOrderRate').find('span').text(data.firstOrderRate + ' ' + data.currencyPair.currency2.name);
-                $('#lastOrderRate').find('span').text(data.lastOrderRate + ' ' + data.currencyPair.currency2.name);
-                $('#sumBase').find('span').text(data.sumBase + ' ' + data.currencyPair.currency1.name);
-                $('#sumConvert').find('span').text(data.sumConvert + ' ' + data.currencyPair.currency2.name);
-                var $percentChangeSpan = $('#percentChange').find('span');
-
-                $($percentChangeSpan).text(data.percentChange + '%');
-                var percentChangeClass = data.lastOrderRate == data.firstOrderRate ? "black" : data.percentChange[0] == '-' ? "red" :
-                    "green";
-                $($percentChangeSpan).removeClass();
-                $($percentChangeSpan).addClass(percentChangeClass);
-                $('#minRate').text(data.minRate + ' ' + data.currencyPair.currency2.name);
-                $('#maxRate').text(data.maxRate + ' ' + data.currencyPair.currency2.name);
-            }
-        });
-    };
-
-    this.getAndShowChart = function () {
-        if (showLog) {
-            console.log("chart")
-        }
-        if ($tradingContainer.hasClass('hidden') || !windowIsActive) {
-            return;
-        }
-        if (chart) {
-            chart.drawChart();
-        }
-    };
-
-
-
 
     this.fillOrderCreationFormFields = function () {
         $(document).one("ajaxStop", function () {
@@ -246,7 +153,6 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
             return numbro(parseNumber(lastRate)).format(that.numeralFormat);
         }
     }
-
 
     this.resetOrdersListForAccept = function () {
         if (that.ordersListForAccept.length != 0) {
@@ -332,7 +238,6 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
         fillCommissionFieldsSell(totalForSell);
     }
 
-
     function fillCommissionFieldsBuy(totalForBuy) {
         var commission = that.commissionBuy;
         var calculatedCommissionForBuy = +(totalForBuy * commission / 100).toFixed(that.ROUND_SCALE);
@@ -340,6 +245,7 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
         $('#calculatedCommissionForBuy').find('span:first').text(calculatedCommissionForBuy.toFixed(that.ROUND_SCALE));
         $('#totalWithCommissionForBuy').find('span:first').text(totalWithCommissionForBuy.toFixed(that.ROUND_SCALE));
     }
+
     function fillCommissionFieldsSell(totalForSell) {
         var commission = that.commissionSell;
         var calculatedCommissionForSell = +(totalForSell * commission / 100).toFixed(that.ROUND_SCALE);
@@ -348,33 +254,15 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
         $('#totalWithCommissionForSell').find('span:first').text(totalWithCommissionForSell.toFixed(that.ROUND_SCALE));
     }
 
-
-
     /*=========================================================*/
     (function init(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
         getOrderCommissions();
         dashboardCurrencyPairSelector = new CurrencyPairSelectorClass('dashboard-currency-pair-selector', currentCurrencyPair, cpData);
         dashboardCurrencyPairSelector.init(onCurrencyPairChange, 'ICO');
-   /*     try {
-            chart = new ChartGoogleClass();
-        } catch (e) {
-        }*/
-        try {
-            chart = new ChartAmchartsClass2(currentCurrencyPair);
-        } catch (e) {
-        }
-/*        if (chart) {
-            try {
-                chart.init(chartType);
-            } catch (e) {
-            }
-        }*/
         try {
             orderRoleFilter = new OrderRoleFilterClass(orderRoleFilterEnabled, onCurrencyPairChange());
         } catch (e) {
         }
-
-        that.updateAndShowAll(false);
         that.fillOrderCreationFormFields();
 
         /**/
@@ -405,11 +293,8 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
             var $tableId = $('#' + $(this).data('tableid'));
             $('.orders-history-table').addClass('hidden');
             $tableId.removeClass('hidden');
-            /*that.getAndShowAcceptedOrdersHistory(); move on sockets*/
-           /* that.getAndShowAcceptedOrdersHistory_myDeals();*/
         });
         /**/
-       /* switchCreateOrAcceptButtons();*/
     })(currentCurrencyPair, orderRoleFilterEnabled, cpData);
 
     function fillOrdersFormFromCurrentOrder() {
@@ -451,7 +336,6 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
         /**/
         calculateFieldsForSell();
         calculateFieldsForBuy();
-        /*switchCreateOrAcceptButtons(orderType, that.ordersListForAccept.length);*/
     }
 
 
@@ -567,56 +451,17 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
     function orderCreate(event) {
         event.preventDefault();
         $('#order-create-confirm__modal').one('hidden.bs.modal', function (e) {
-            createOrder(onCreateOrderSuccess, onCreateOrderError);
+            createOrder(onCreateOrderSuccess);
         });
         $('#order-create-confirm__modal').modal('hide');
     }
 
     function onCreateOrderSuccess(data) {
-        leftSider.getStatisticsForMyWallets();
         that.fillOrderCreationFormFields();
-        /*that.clearOrdersCreationForm();*/
         successNoty(data.result, 'successOrder');
     }
 
-    function onCreateOrderError(jqXHR, textStatus, errorThrown) {
-    }
-
-    /*... CALL CREATION THE SUBMITTED ORDER AND CONTROL RESULT*/
-
-    /*PREPARE DATA FOR ACCEPTION ORDER ... */
-
-    /*function orderSellAccept(event) {
-        event.preventDefault();
-        orderAccept(event);
-    }*/
-
-    /*... PREPARE DATA FOR ACCEPTION ORDER */
-
-    /*CALL ACCEPTANCE THE ORDERS LIST AND CONTROL RESULT ... */
-    /*function orderAccept(event) {
-        event.preventDefault();
-        var ordersList = that.ordersListForAccept.map(function (e) {
-            return e.orderId;
-        });
-        console.log(ordersList);
-        that.clearOrdersCreationForm();
-        /!*switchCreateOrAcceptButtons();*!/
-        acceptOrder(ordersList, onAcceptOrderSuccess, onAcceptOrderError);
-    }*/
-
-    /*function onAcceptOrderSuccess(data) {
-        that.ordersListForAccept = [];
-        that.updateAndShowAll();
-        leftSider.getStatisticsForMyWallets();
-        successNoty(data.result, 'successOrder');
-    }
-
-    function onAcceptOrderError(jqXHR, textStatus, errorThrown) {
-        that.ordersListForAccept = [];
-    }*/
-
-    function createOrder(onSuccess, onError) {
+    function createOrder(onSuccess) {
         $.ajax({
             headers: {
                 'X-CSRF-Token': $("input[name='_csrf']").val()
@@ -630,9 +475,5 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
                 onError(jqXHR, textStatus, errorThrown);
             }
         });
-    };
-
-    /*... CALL ACCEPTANCE THE ORDERS LIST AND CONTROL RESULT*/
-
-
+    }
 }

@@ -11,28 +11,6 @@
 <%@ taglib uri="http://www.springframework.org/tags" prefix="loc" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<div id="dashboard" class="dashboard center-frame-container">
-    <div class="graphInfo__wrapper clearfix">
-        <div id="dashboard-currency-pair-selector" class="currency-pair-selector dropdown">
-            <%@include file="currencyPairSelector.jsp" %>
-        </div>
-
-        <div class="graphInfo">
-            <div id="lastOrderAmountBase" class="graphInfo__item lightblue"><loc:message
-                    code="dashboard.lastOrder"/><span class="green">USD</span></div>
-            <div id="sumBase" class="graphInfo__item lightblue"><loc:message code="dashboard.volume"/><span
-                    class="green">BTC</span></div>
-            <div id="sumConvert" class="graphInfo__item"><span class="red">USD</span></div>
-            <div id="firstOrderRate" class="graphInfo__item lightblue"><loc:message
-                    code="dashboard.priceStart"/><span
-                    class="green">USD</span></div>
-            <div id="lastOrderRate" class="graphInfo__item lightblue"><loc:message code="dashboard.priceEnd"/><span
-                    class="green">USD</span></div>
-        </div>
-    </div>
-
-    <%@include file="amcharts-graphics2.jsp"%>
-
     <div class="row">
         <div class="cols-md-4">
 
