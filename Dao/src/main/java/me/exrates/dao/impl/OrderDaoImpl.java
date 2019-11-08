@@ -7,7 +7,6 @@ import me.exrates.dao.WalletDao;
 import me.exrates.dao.exception.OrderDaoException;
 import me.exrates.dao.exception.notfound.CommissionsNotFoundException;
 import me.exrates.dao.exception.notfound.WalletNotFoundException;
-import me.exrates.jdbc.OrderRowMapper;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
@@ -91,8 +90,6 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 public class OrderDaoImpl implements OrderDao {
 
     private static final Logger LOGGER = LogManager.getLogger(OrderDaoImpl.class);
-
-    private static final String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd HH:mm:ss";
 
     @Autowired
     @Qualifier(value = "masterTemplate")
@@ -289,7 +286,7 @@ public class OrderDaoImpl implements OrderDao {
         namedParameters.put("id", String.valueOf(orderId));
 
         try {
-            return masterJdbcTemplate.queryForObject(sql, namedParameters, new OrderRowMapper());
+            return masterJdbcTemplate.queryForObject(sql, namedParameters, getExOrderRowMapper());
         } catch (EmptyResultDataAccessException ex) {
             return null;
         }
@@ -2201,6 +2198,12 @@ public class OrderDaoImpl implements OrderDao {
             exOrder.setDateCreation(convertTimeStampToLocalDateTime(rs, "date_creation"));
             exOrder.setStatus(OrderStatus.convert(rs.getInt("status_id")));
             exOrder.setOrderBaseType(OrderBaseType.valueOf(rs.getString("base_type")));
+            exOrder.setUserAcceptorId(rs.getInt("user_acceptor_id"));
+            exOrder.setSourceId(rs.getInt("order_source_id"));
+            final Timestamp dateAcceptionTmsp = rs.getTimestamp("date_acception");
+            if (Objects.nonNull(dateAcceptionTmsp)) {
+                exOrder.setDateAcception(dateAcceptionTmsp.toLocalDateTime());
+            }
             return exOrder;
         };
     }
