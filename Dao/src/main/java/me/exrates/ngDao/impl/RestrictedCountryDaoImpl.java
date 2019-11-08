@@ -33,17 +33,15 @@ public class RestrictedCountryDaoImpl implements RestrictedCountryDao {
 
     @Override
     public RestrictedCountry save(RestrictedCountry restrictedCountry) {
-        String sql = "INSERT INTO " + TABLE_NAME + " ( + " + String.join(", ", COLUMN_RESTRICTED_OP, COLUMN_OP_ID,
+        String sql = "INSERT INTO " + TABLE_NAME + " ( + " + String.join(", ", COLUMN_RESTRICTED_OP_NAME,
                 COLUMN_COUNTRY_NAME, COLUMN_COUNTRY_CODE) + ") VALUE "
                 + "(:opName, :opId, :countryName, :countryCode) "
                 + "ON DUPLICATE KEY UPDATE "
-                + COLUMN_RESTRICTED_OP + ":opName, "
-                + COLUMN_OP_ID + ":opId, "
+                + COLUMN_RESTRICTED_OP_NAME + ":opName, "
                 + COLUMN_COUNTRY_NAME + ":countryName, "
                 + COLUMN_COUNTRY_CODE + ":countryCode, ";
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("opName", restrictedCountry.getOperation().name())
-                .addValue("opId", restrictedCountry.getOperationId())
                 .addValue("countryName", restrictedCountry.getCountryName())
                 .addValue("countryCode", restrictedCountry.getCountryCode());
         KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -67,17 +65,8 @@ public class RestrictedCountryDaoImpl implements RestrictedCountryDao {
 
     @Override
     public Set<RestrictedCountry> findAll(RestrictedOperation operation) {
-        String sql = "SELECT * FROM " + TABLE_NAME + " WHERE " + COLUMN_RESTRICTED_OP + " = :opName";
+        String sql = "SELECT * FROM " + TABLE_NAME + " WHERE " + COLUMN_RESTRICTED_OP_NAME + " = :opName";
         MapSqlParameterSource params = new MapSqlParameterSource("opName", operation.name());
-        return new HashSet<>(slaveOperations.query(sql, params, getRowMapper()));
-    }
-
-    @Override
-    public Set<RestrictedCountry> findAll(RestrictedOperation operation, int operationId) {
-        String sql = "SELECT * FROM " + TABLE_NAME + " WHERE " + COLUMN_RESTRICTED_OP + " = :opName "
-                + " AND " + COLUMN_OP_ID + " = :opId";
-        MapSqlParameterSource params = new MapSqlParameterSource("opName", operation.name())
-                .addValue("opId", operationId);
         return new HashSet<>(slaveOperations.query(sql, params, getRowMapper()));
     }
 
@@ -96,7 +85,7 @@ public class RestrictedCountryDaoImpl implements RestrictedCountryDao {
 
     @Override
     public boolean delete(RestrictedOperation operation, String countryCode) {
-        String sql = "DELETE FROM " + TABLE_NAME + " WHERE " + COLUMN_RESTRICTED_OP + " = :opName "
+        String sql = "DELETE FROM " + TABLE_NAME + " WHERE " + COLUMN_RESTRICTED_OP_NAME + " = :opName "
                 + " AND " + COLUMN_COUNTRY_CODE + " = :code";
         MapSqlParameterSource params = new MapSqlParameterSource("opName", operation.name())
                 .addValue("code", countryCode);
@@ -106,10 +95,9 @@ public class RestrictedCountryDaoImpl implements RestrictedCountryDao {
     private RowMapper<RestrictedCountry> getRowMapper() {
         return (rs, i) -> RestrictedCountry.builder()
                 .id(rs.getInt(COLUMN_ID))
-                .operationId(rs.getInt(COLUMN_OP_ID))
                 .countryCode(rs.getString(COLUMN_COUNTRY_CODE))
                 .countryName(rs.getString(COLUMN_COUNTRY_NAME))
-                .operation(RestrictedOperation.valueOf(rs.getString(COLUMN_OP_ID)))
+                .operation(RestrictedOperation.valueOf(rs.getString(COLUMN_RESTRICTED_OP_NAME)))
                 .build();
     }
 }
