@@ -44,6 +44,9 @@ public class User implements Serializable {
     private Boolean verificationRequired;
     private String ga;
 
+    // to skip trade restrictions check
+    private Boolean hasTradesPrivileges;
+
     public User() {
     }
 
@@ -213,6 +216,13 @@ public class User implements Serializable {
 
     public void setVerificationRequired(Boolean verificationRequired) {
         this.verificationRequired = verificationRequired;
+    }
+    public Boolean hasTradePrivileges() {
+        return hasTradesPrivileges;
+    }
+
+    public void setTradePrivileges(Boolean tradesAllowed) {
+        this.hasTradesPrivileges = tradesAllowed;
     }
 
     public String getGa() {

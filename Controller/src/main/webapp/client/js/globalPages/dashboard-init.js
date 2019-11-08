@@ -1,9 +1,3 @@
-/**
- * Created by Valk on 18.06.2016.
- */
-
-var leftSider;
-var rightSider;
 var trading;
 var myWallets;
 var myStatements;
@@ -15,18 +9,14 @@ var notifications;
 
 var ordersSubscription;
 var tradesSubscription;
-var chartSubscription;
 var eventsSubscrition;
 var alertsSubscription;
-var currencyPairStatisticSubscription;
 var personalSubscription;
 var openOrdersSubscription;
 var connectedPS = false;
 var currentCurrencyPairId;
 var currentPairName;
 var subscribedCurrencyPairId;
-var chartPeriod;
-var newChartPeriod = null;
 
 var socket_url = '/public_socket';
 var socket;
@@ -42,13 +32,12 @@ var currencyPairs;
 var timer;
 
 
-
 var onConnectFail = function () {
     connectedPS = false;
     setTimeout(connectAndReconnect, 5000);
 };
 
-var onConnect = function() {
+var onConnect = function () {
     connectedPS = true;
     subscribeAll()
 };
@@ -58,7 +47,6 @@ function subscribeAll() {
         subscribeTradeOrders();
     }
     if (connectedPS) {
-        subscribeStatistics();
         subscribeForAlerts();
         subscribeEvents();
     }
@@ -70,7 +58,7 @@ function subscribeAll() {
 }
 
 function connectAndReconnect() {
-    reconnectsCounter ++;
+    reconnectsCounter++;
     console.log("try to reconnect " + reconnectsCounter);
     if (reconnectsCounter > 5) {
         location.reload()
@@ -78,7 +66,7 @@ function connectAndReconnect() {
     socket = new SockJS(socket_url);
     client = Stomp.over(socket);
     client.debug = null;
-    var headers = {'X-CSRF-TOKEN' : csrf};
+    var headers = {'X-CSRF-TOKEN': csrf};
     client.connect(headers, onConnect, onConnectFail);
 }
 
@@ -95,15 +83,14 @@ function subscribeForAlerts() {
     }
 }
 
-
 function subscribeForMyTrades() {
     if (personalSubscription != undefined) {
         personalSubscription.unsubscribe();
     }
-    var headers = {'X-CSRF-TOKEN' : csrf};
-    personalSubscription = client.subscribe("/user/queue/personal/" + currentCurrencyPairId, function(message) {
+    var headers = {'X-CSRF-TOKEN': csrf};
+    personalSubscription = client.subscribe("/user/queue/personal/" + currentCurrencyPairId, function (message) {
         var messageBody = JSON.parse(message.body);
-        messageBody.forEach(function(object){
+        messageBody.forEach(function (object) {
             initTrades(JSON.parse(object), currentCurrencyPairId);
         });
     }, headers);
@@ -117,7 +104,7 @@ function subscribeForMyOpenOrders() {
     var headers = {};
     var addr = "/user/queue/open_orders/" + currentPairName.replace('/', '_').toLowerCase();
     console.log(addr);
-    openOrdersSubscription = client.subscribe(addr, function(message) {
+    openOrdersSubscription = client.subscribe(addr, function (message) {
         var messageBody = JSON.parse(message.body);
         console.log(messageBody);
     }, headers);
@@ -128,13 +115,13 @@ function subscribeTradeOrders() {
     if (ordersSubscription != undefined) {
         ordersSubscription.unsubscribe();
     }
-    var headers = {'X-CSRF-TOKEN' : csrf};
+    var headers = {'X-CSRF-TOKEN': csrf};
     var fn = enableF ? '/user/queue/trade_orders/f/' : '/app/trade_orders/';
     var tradeOrdersSubscr = fn + currentCurrencyPairId;
-    ordersSubscription = client.subscribe(tradeOrdersSubscr, function(message) {
+    ordersSubscription = client.subscribe(tradeOrdersSubscr, function (message) {
         subscribedCurrencyPairId = currentCurrencyPairId;
         var messageBody = $.parseJSON(message.body);
-        messageBody.forEach(function(object){
+        messageBody.forEach(function (object) {
             initTradeOrders(object);
         });
     }, headers);
@@ -146,30 +133,16 @@ function subscribeTrades() {
     if (tradesSubscription != undefined) {
         tradesSubscription.unsubscribe();
     }
-    var headers = {'X-CSRF-TOKEN' : csrf};
+    var headers = {'X-CSRF-TOKEN': csrf};
     var path = '/app/trades/' + currentCurrencyPairId;
-    tradesSubscription = client.subscribe(path, function(message) {
+    tradesSubscription = client.subscribe(path, function (message) {
         var messageBody = JSON.parse(message.body);
-        messageBody.forEach(function(object){
+        messageBody.forEach(function (object) {
             initTrades(JSON.parse(object), currentCurrencyPairId);
         });
 
     }, headers);
 }
-
-function subscribeStatistics() {
-    if (currencyPairStatisticSubscription == undefined) {
-        var headers = {'X-CSRF-TOKEN': csrf};
-        var path = '/app/statistics/MAIN_CURRENCIES_STATISTIC';
-        currencyPairStatisticSubscription = client.subscribe(path, function (message) {
-            var messageBody = JSON.parse(message.body);
-            messageBody.forEach(function(object){
-                handleStatisticMessages(JSON.parse(object));
-            });
-        }, headers);
-    }
-}
-
 
 function subscribeEvents() {
     if (eventsSubscrition == undefined) {
@@ -182,7 +155,7 @@ function subscribeEvents() {
 }
 
 function handleAlerts(object) {
-    switch (object.alertType){
+    switch (object.alertType) {
         case "TECHNICAL_WORKS" : {
             drawTechAlert(object);
             break;
@@ -210,13 +183,13 @@ function showHideUpdAlert(object) {
 
 function drawUpdateALert(object) {
     var remain = object.timeRemainSeconds;
-        var timeNow = Date.now()/1000;
-        var endTime = timeNow + (remain);
-        $('.countdown').final_countdown({
+    var timeNow = Date.now() / 1000;
+    var endTime = timeNow + (remain);
+    $('.countdown').final_countdown({
             start: timeNow,
             end: endTime,
             now: timeNow,
-        selectors: {
+            selectors: {
                 value_seconds: '.clock-seconds .val',
                 canvas_seconds: 'canvas_seconds',
                 value_minutes: '.clock-minutes .val',
@@ -237,8 +210,9 @@ function drawUpdateALert(object) {
             hours: {
                 borderColor: '#ECEFCB',
                 borderWidth: '6'
-            }},
-        function() {
+            }
+        },
+        function () {
             // Finish callback
         });
 }
@@ -246,28 +220,12 @@ function drawUpdateALert(object) {
 function drawTechAlert(object) {
     var $tech_block = $('#tech_alert');
     var $tech_text = $('#tech_alert_text');
-    if(object.enabled) {
+    if (object.enabled) {
         $tech_block.show();
         $tech_text.text(object.text)
     } else {
         $tech_block.hide();
         $tech_text.text('')
-    }
-}
-
-function handleStatisticMessages(object) {
-    switch (object.type){
-        case "MAIN_CURRENCIES_STATISTIC" : {
-            leftSider.updateStatisticsForAllCurrencies(object.data);
-            break;
-        }
-        case "MAIN_CURRENCY_STATISTIC" : {
-            object.data.forEach(function(object){
-                leftSider.updateStatisticsForCurrency(object);
-            });
-
-            break;
-        }
     }
 }
 
@@ -289,7 +247,7 @@ function initTrades(object, currentCurrencyPair) {
     if (object.currencyPairId != currentCurrencyPair) {
         return;
     }
-    switch (object.type){
+    switch (object.type) {
         case "ALL_TRADES" : {
             trading.updateAndShowAllTrades(object.data);
             break;
@@ -306,7 +264,7 @@ function initTradeOrders(object) {
     if (object.currencyPairId != subscribedCurrencyPairId) {
         return
     }
-    switch (object.type){
+    switch (object.type) {
         case "BUY" : {
             trading.updateAndShowBuyOrders(object.data, true);
             break;
@@ -317,8 +275,6 @@ function initTradeOrders(object) {
         }
     }
 }
-
-
 
 
 $(function dashdoardInit() {
@@ -372,16 +328,6 @@ $(function dashdoardInit() {
         /*FOR HEADER...*/
         notifications = new NotificationsClass();
 
-
-        $('#menu-traiding').on('click', onMenuTraidingItemClick);
-        function onMenuTraidingItemClick(e) {
-            if (e) e.preventDefault();
-            trading.syncCurrencyPairSelector(currentPairName);
-            showPage('trading');
-            trading.updateAndShowAll();
-            trading.fillOrderCreationFormFields();
-        }
-
         $('#menu-mywallets').on('click', function (e) {
             e.preventDefault();
             if (!e.ctrlKey) {
@@ -414,34 +360,6 @@ $(function dashdoardInit() {
                 return false;
             }
         });
-    //TODO temporary disabled
-    //    $('#login-qr').html("<img src='https://chart.googleapis.com/chart?chs=150x150&chld=L|2&cht=qr&chl=" + sessionId + "'>");
-        /*...FOR HEADER*/
-
-        /*FOR LEFT-SIDER ...*/
-
-
-        $('#currency_table').on('click', 'td:first-child', function (e) {
-            var newCurrentCurrencyPairName = $(this).text().trim();
-            syncCurrentParams(newCurrentCurrencyPairName, null, null, null, null, 'MAIN', function (data) {
-                if ($currentPageMenuItem.length) {
-                    $currentPageMenuItem.click();
-                    if ($currentSubMenuItem && $currentSubMenuItem.length) {
-                        $currentSubMenuItem.click();
-                    }
-                } else {
-                    onMenuTraidingItemClick();
-                }
-            });
-            trading.fillOrderCreationFormFields();
-            });
-        $('#currency_table_wrapper, #mywallets_table_wrapper').mCustomScrollbar({
-            theme: "dark",
-            axis: "yx",
-            live: true
-
-        });
-        /*...FOR LEFT-SIDER*/
 
         /*FOR CENTER ON START UP ...*/
 
@@ -451,7 +369,7 @@ $(function dashdoardInit() {
             live: true
         });
 
-        syncCurrentParams(null, null, null, null, null, 'MAIN', function (data) {
+        syncCurrentParams(null, null, null, 'MAIN', function (data) {
             showPage($('#startup-page-id').text().trim());
             var url = '/dashboard/createPairSelectorMenu?pairs=ALL';
             $.ajax({
@@ -463,15 +381,10 @@ $(function dashdoardInit() {
                     delete(tradingCpData.ICO);
                     var infoCpData = sortCpDataInOrder(cpData);
                     trading = new TradingClass(data.currencyPair.name, data.orderRoleFilterEnabled, tradingCpData);
-                    newChartPeriod = data.period;
                     myWallets = new MyWalletsClass();
                     myStatements = new MyStatementsClass();
                     myHistory = new MyHistoryClass(data.currencyPair.name, infoCpData);
                     orders = new OrdersClass(data.currencyPair.name, infoCpData);
-                    leftSider = new LeftSiderClass();
-                    leftSider.setOnWalletsRefresh(function () {
-                        trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
-                    });
                     /**/
                     connectAndReconnect();
                 }
@@ -480,16 +393,6 @@ $(function dashdoardInit() {
             showSubPage($('#startup-subPage-id').text().trim());
         });
         /*...FOR CENTER ON START UP*/
-
-        /*FOR RIGHT-SIDER ...*/
-        $('#news_table_wrapper').mCustomScrollbar({
-            theme: "dark",
-            axis: "yx",
-            live: true
-        });
-
-        rightSider = new RightSiderClass();
-        /*...FOR RIGHT-SIDER*/
 
         /*FOR POLL ...*/
        /*var startPoll = $("#start-poll").val() == 'true';
@@ -537,7 +440,6 @@ $(function dashdoardInit() {
     $('.safety_agree_button').on('click', function () {
         $infoModal.modal('hide');
     });
-
 });
 
 function checkAgreeButton() {
@@ -570,7 +472,8 @@ function sortCpDataInOrder(cpData) {
     if (!cpData.ICO) {
         return cpData;
     }
-    var icoData = { ICO :
+    var icoData = {
+        ICO:
         cpData.ICO
     };
     var newData = jQuery.extend(true, {}, cpData);
@@ -578,19 +481,16 @@ function sortCpDataInOrder(cpData) {
     return $.extend({}, icoData, newData);
 }
 
-
-function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enableFilter, cpType, callback) {
+function syncCurrentParams(currencyPairName, showAllPairs, enableFilter, cpType, callback) {
     var url = '/dashboard/currentParams?';
     /*if parameter is empty, in response will be retrieved current value is set or default if non*/
 
-    if($("#preferedCurrencyPairName").val()!=""){
+    if ($("#preferedCurrencyPairName").val() != "") {
         currencyPairName = $("#preferedCurrencyPairName").val();
         $("#preferedCurrencyPairName").val("");
     }
     url = url + (cpType ? '&currencyPairType=' + cpType : '');
     url = url + (currencyPairName ? '&currencyPairName=' + currencyPairName : '');
-    url = url + (period ? '&period=' + period : '');
-    url = url + (chart ? '&chart=' + chart : '');
     url = url + (showAllPairs != null ? '&showAllPairs=' + showAllPairs : '');
     url = url + (enableFilter != null ? '&orderRoleFilterEnabled=' + enableFilter : '');
     $.ajax({
@@ -604,9 +504,6 @@ function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enable
             currentCurrencyPairId = data.currencyPair.id;
             currentPairName = data.currencyPair.name;
             enableF = enableFilter;
-            if (period != null) {
-                newChartPeriod = period;
-            }
             subscribeAll();
             if (callback) {
                 callback(data);

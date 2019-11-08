@@ -6,7 +6,6 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.ExOrder;
 import me.exrates.model.User;
-import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AdminOrderInfoDto;
 import me.exrates.model.dto.CallBackLogDto;
 import me.exrates.model.dto.CoinmarketcapApiDto;
@@ -251,10 +250,6 @@ public interface OrderService {
      * @return ID the found order, or -1 if order with the parameters has not be found
      */
     Integer searchOrderByAdmin(Integer currencyPair, String orderType, String orderDate, BigDecimal orderRate, BigDecimal orderVolume);
-
-    List<BackDealInterval> getIntervals();
-
-    List<ChartTimeFrame> getChartTimeFrames();
 
     /**
      * Returns object that contains data with statistics of orders for currencyPair.

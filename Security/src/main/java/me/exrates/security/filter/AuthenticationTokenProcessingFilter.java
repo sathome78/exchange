@@ -3,8 +3,10 @@ package me.exrates.security.filter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.security.exception.TokenException;
 import me.exrates.security.service.AuthTokenService;
+import me.exrates.service.UserService;
 import me.exrates.service.exception.api.ApiError;
 import me.exrates.service.exception.api.ErrorCode;
+import me.exrates.service.session.UserLoginSessionsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,6 +21,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Created by OLEG on 22.08.2016.
@@ -29,12 +32,17 @@ public class AuthenticationTokenProcessingFilter extends AbstractAuthenticationP
 
     @Autowired
     private AuthTokenService authTokenService;
+    @Autowired
+    private UserLoginSessionsServiceImpl userLoginSessionsService;
+    @Autowired
+    private UserService userService;
 
     public AuthenticationTokenProcessingFilter(String defaultFilterProcessesUrl) {
         super(defaultFilterProcessesUrl);
         setAuthenticationSuccessHandler((request, response, authentication) ->
         {
             String pathInfo = request.getPathInfo() == null ? "" : request.getPathInfo();
+            CompletableFuture.runAsync(() -> userLoginSessionsService.update(request, authentication));
             request.getRequestDispatcher(request.getServletPath() + pathInfo).forward(request, response);
         });
         setAuthenticationFailureHandler((request, response, authenticationException) -> {
@@ -66,6 +74,7 @@ public class AuthenticationTokenProcessingFilter extends AbstractAuthenticationP
         String token = request.getHeader(HEADER_SECURITY_TOKEN);
 
         UserDetails userDetails = authTokenService.getUserByToken(token);
+        CompletableFuture.runAsync(() -> userService.updateUserTradeRestrictions(request, userDetails));
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails.getUsername(), null, userDetails.getAuthorities());
         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         return authentication;

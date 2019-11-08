@@ -1,0 +1,44 @@
+<p style="MAX-WIDTH: 620px; FONT-FAMILY: Roboto; COLOR: #000000; MARGIN: auto auto 2.15em;font-weight: normal; font-size: 16px; line-height: 19px; text-align: justify;">
+    Congratulations
+    on registering! Now you already have
+    everything to start trading on the exchange.
+    We will take care of the rest. In the
+    meantime, just get cryptocurrency in our
+    Free-coin section. I wonder what we cooked
+    there? <a href="https://exrates.me/free-coins"
+        target="_blank">https://exrates.me/free-coins</a>
+    <br>
+    <br>
+    Here is more about getting the coins <br> <a
+        href="https://support.exrates.me/article/get-free-coins">https://support.exrates.me/article/get-free-coins</a>
+</p>
+<p>
+    <img style="width: 100%;max-width: 620px;display: block;margin: 0 auto 10px;"
+        src="http://exrates-icons.r4x.agency/111.jpg"
+        alt="">
+</p>
+<p style="MAX-WIDTH: 620px; FONT-FAMILY: Roboto; COLOR: #000000; MARGIN: auto auto 18px;font-weight: normal; font-size: 16px; line-height: 19px; text-align: justify;">
+    Briefly about the trading interface: <br>
+    At Exrates, you can use the standard set of
+    order types, the most popular of them: <br>
+    Market - for a quick sale or purchase <br><a
+        href="https://support.exrates.me/article/how-use-market-order">https://support.exrates.me/article/how-use-market-order</a>
+    <br><br>Limit - pending order for a deal at a
+    certain
+    price <br><a
+        href="https://support.exrates.me/article/how-use-limit-order">https://support.exrates.me/article/how-use-limit-order</a>
+</p>
+<p style="MAX-WIDTH: 620px; FONT-FAMILY: Roboto; COLOR: #000000; MARGIN: auto auto 2.05em;font-weight: normal; font-size: 16px; line-height: 19px; text-align: justify;">
+    There are many replenishment options available
+    on the Exrates exchange, if you want to
+    replenish a cryptocurrency - here we detailed
+    how to do it quickly and easily <br>
+
+    <a style="color: #237BEF;text-decoration: underline;"
+        href="https://support.exrates.me/article/refill-crypto-balance">https://support.exrates.me/article/refill-crypto-balance</a>
+</p>
+<p>
+   <img style="width: 100%;max-width: 620px;display: block;margin: 0 auto 2em;"
+       src="http://exrates-icons.r4x.agency/222.jpg"
+       alt="">
+</p>

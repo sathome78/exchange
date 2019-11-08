@@ -44,8 +44,6 @@
                     </a>
                 </li>
                 <sec:authorize access="isAuthenticated()">
-                    <li id="menu-traiding"><a href="#" class="nav__link nav__link_active "><loc:message
-                            code="dashboard.trading"/></a></li>
                     <li id="menu-mywallets"><a href="#" class="nav__link"><loc:message code="usermenu.mywallets"/></a>
                     </li>
                     <li id="menu-myhistory"><a href="#" class="nav__link"><loc:message code="usermenu.myorders"/></a>

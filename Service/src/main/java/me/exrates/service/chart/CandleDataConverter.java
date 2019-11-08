@@ -3,7 +3,7 @@ package me.exrates.service.chart;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.dto.CandleDto;
+import me.exrates.model.chart.CandleDto;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
