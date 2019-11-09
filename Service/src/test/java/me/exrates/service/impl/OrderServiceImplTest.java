@@ -16,12 +16,8 @@ import me.exrates.model.ExOrder;
 import me.exrates.model.PagingData;
 import me.exrates.model.User;
 import me.exrates.model.UserRoleSettings;
-import me.exrates.model.chart.ChartResolution;
-import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AdminOrderInfoDto;
 import me.exrates.model.dto.CallBackLogDto;
-import me.exrates.model.dto.CandleChartItemDto;
-import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
@@ -60,10 +56,8 @@ import me.exrates.model.dto.openAPI.TransactionDto;
 import me.exrates.model.dto.openAPI.UserOrdersDto;
 import me.exrates.model.dto.openAPI.UserTradeHistoryDto;
 import me.exrates.model.enums.BusinessUserRoleEnum;
-import me.exrates.model.enums.ChartResolutionTimeUnit;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.IntervalType;
-import me.exrates.model.enums.IntervalType2;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderBaseType;
@@ -106,7 +100,6 @@ import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.util.BiTuple;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.json.JSONArray;
 import org.junit.Before;
@@ -141,13 +134,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.IntStream;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -216,66 +207,6 @@ public class OrderServiceImplTest {
         currencyPairLimitDto.setMaxAmount(BigDecimal.valueOf(1000000000));
         when(currencyService.findLimitForRoleByCurrencyPairAndType(anyInt(),
                 any(OperationType.class))).thenReturn(currencyPairLimitDto);
-    }
-
-    @Test
-    public void getIntervals() {
-        BackDealInterval bdi1 = getMockBackDealInterval();
-
-        BackDealInterval bdi2 = new BackDealInterval();
-        bdi2.setIntervalValue(24);
-        bdi2.setIntervalType(IntervalType.HOUR);
-
-        BackDealInterval bdi3 = new BackDealInterval();
-        bdi3.setIntervalValue(7);
-        bdi3.setIntervalType(IntervalType.DAY);
-
-        BackDealInterval bdi4 = new BackDealInterval();
-        bdi4.setIntervalValue(1);
-        bdi4.setIntervalType(IntervalType.MONTH);
-
-        BackDealInterval bdi5 = new BackDealInterval();
-        bdi5.setIntervalValue(6);
-        bdi5.setIntervalType(IntervalType.MONTH);
-
-        List<BackDealInterval> expected = Arrays.asList(bdi1, bdi2, bdi3, bdi4, bdi5);
-
-        List<BackDealInterval> intervals = orderService.getIntervals();
-
-        assertNotNull(intervals);
-        assertEquals(expected.size(), intervals.size());
-        assertThat(expected, is(intervals));
-        assertEquals(expected, intervals);
-    }
-
-    @Test
-    public void getChartTimeFrames() {
-        ChartTimeFrame ctf1 = new ChartTimeFrame(new ChartResolution(30, ChartResolutionTimeUnit.MINUTE), 5, IntervalType2.DAY);
-        ChartTimeFrame ctf2 = new ChartTimeFrame(new ChartResolution(60, ChartResolutionTimeUnit.MINUTE), 7, IntervalType2.DAY);
-        ChartTimeFrame ctf3 = new ChartTimeFrame(new ChartResolution(240, ChartResolutionTimeUnit.MINUTE), 10, IntervalType2.DAY);
-        ChartTimeFrame ctf4 = new ChartTimeFrame(new ChartResolution(720, ChartResolutionTimeUnit.MINUTE), 15, IntervalType2.DAY);
-        ChartTimeFrame ctf5 = new ChartTimeFrame(new ChartResolution(1, ChartResolutionTimeUnit.MINUTE), 7, IntervalType2.MONTH);
-
-        List<ChartTimeFrame> expected = Arrays.asList(ctf1, ctf2, ctf3, ctf4, ctf5);
-
-        List<ChartTimeFrame> chartTimeFrames = orderService.getChartTimeFrames();
-
-        assertNotNull(chartTimeFrames);
-        assertEquals(expected.size(), chartTimeFrames.size());
-        assertEquals(expected.get(0).getResolution(), chartTimeFrames.get(0).getResolution());
-        assertEquals(expected.get(0).getTimeValue(), chartTimeFrames.get(0).getTimeValue());
-        assertEquals(expected.get(0).getTimeUnit(), chartTimeFrames.get(0).getTimeUnit());
-        assertEquals(expected.get(1).getResolution(), chartTimeFrames.get(1).getResolution());
-        assertEquals(expected.get(1).getTimeValue(), chartTimeFrames.get(1).getTimeValue());
-        assertEquals(expected.get(1).getTimeUnit(), chartTimeFrames.get(1).getTimeUnit());
-        assertEquals(expected.get(2).getResolution(), chartTimeFrames.get(2).getResolution());
-        assertEquals(expected.get(2).getTimeValue(), chartTimeFrames.get(2).getTimeValue());
-        assertEquals(expected.get(2).getTimeUnit(), chartTimeFrames.get(2).getTimeUnit());
-        assertEquals(expected.get(3).getResolution(), chartTimeFrames.get(3).getResolution());
-        assertEquals(expected.get(3).getTimeValue(), chartTimeFrames.get(3).getTimeValue());
-        assertEquals(expected.get(3).getTimeUnit(), chartTimeFrames.get(3).getTimeUnit());
-        assertEquals(expected.get(4).getTimeValue(), chartTimeFrames.get(4).getTimeValue());
-        assertEquals(expected.get(4).getTimeUnit(), chartTimeFrames.get(4).getTimeUnit());
     }
 
     @Test
@@ -4128,85 +4059,6 @@ public class OrderServiceImplTest {
     }
 
     @Test
-    public void getCoinmarketData() {
-        CurrencyPair mockCurrencyPair = getMockCurrencyPair(CurrencyPairType.ALL);
-        mockCurrencyPair.setName("BTC/USD");
-
-        when(orderDao.getCoinmarketData(anyString())).thenReturn(Collections.singletonList(getMockCoinmarketApiDto()));
-        when(currencyService.getAllCurrencyPairs(any(CurrencyPairType.class)))
-                .thenReturn(Collections.singletonList(mockCurrencyPair));
-
-        List<CoinmarketApiDto> coinmarketData = orderService.getCoinmarketData("BTC/USD", new BackDealInterval());
-
-        assertNotNull(coinmarketData);
-        assertEquals(1, coinmarketData.size());
-        assertEquals(Integer.valueOf(mockCurrencyPair.getId()), coinmarketData.get(0).getCurrencyPairId());
-        assertEquals(mockCurrencyPair.getName(), coinmarketData.get(0).getCurrency_pair_name());
-        assertEquals(BigDecimal.TEN, coinmarketData.get(0).getFirst());
-        assertEquals(BigDecimal.ONE, coinmarketData.get(0).getLast());
-
-        verify(orderDao, atLeastOnce()).getCoinmarketData(anyString());
-        verify(currencyService, atLeastOnce()).getAllCurrencyPairs(any(CurrencyPairType.class));
-    }
-
-    @Test
-    public void getCoinmarketDataForActivePairs() {
-        CoinmarketApiDto dto = getMockCoinmarketApiDto();
-
-        when(orderDao.getCoinmarketData(anyString())).thenReturn(Collections.singletonList(dto));
-
-        List<CoinmarketApiDto> hourlyCoinmarketData = orderService.getCoinmarketDataForActivePairs(
-                "BTC/USD",
-                new BackDealInterval());
-
-        assertNotNull(hourlyCoinmarketData);
-        assertEquals(1, hourlyCoinmarketData.size());
-        assertEquals(dto.getCurrencyPairId(), hourlyCoinmarketData.get(0).getCurrencyPairId());
-        assertEquals(dto.getCurrency_pair_name(), hourlyCoinmarketData.get(0).getCurrency_pair_name());
-        assertEquals(dto.getFirst(), hourlyCoinmarketData.get(0).getFirst());
-        assertEquals(dto.getLast(), hourlyCoinmarketData.get(0).getLast());
-
-        verify(orderDao, atLeastOnce()).getCoinmarketData(anyString());
-    }
-
-    @Test
-    public void getDailyCoinmarketData_currencyPairName_empty() {
-        CoinmarketApiDto dto = getMockCoinmarketApiDto();
-
-        when(orderDao.getCoinmarketData(anyString())).thenReturn(Collections.singletonList(dto));
-        when(orderDao.getCoinmarketData(anyString())).thenReturn(Collections.singletonList(dto));
-
-        List<CoinmarketApiDto> hourlyCoinmarketData = orderService.getDailyCoinmarketData("");
-
-        assertNotNull(hourlyCoinmarketData);
-        assertEquals(1, hourlyCoinmarketData.size());
-        assertEquals(dto.getCurrencyPairId(), hourlyCoinmarketData.get(0).getCurrencyPairId());
-        assertEquals(dto.getCurrency_pair_name(), hourlyCoinmarketData.get(0).getCurrency_pair_name());
-        assertEquals(dto.getFirst(), hourlyCoinmarketData.get(0).getFirst());
-        assertEquals(dto.getLast(), hourlyCoinmarketData.get(0).getLast());
-
-        verify(orderDao, atLeastOnce()).getCoinmarketData(anyString());
-    }
-
-    @Test
-    public void getHourlyCoinmarketData() {
-        CoinmarketApiDto dto = getMockCoinmarketApiDto();
-
-        when(orderDao.getCoinmarketData(anyString())).thenReturn(Collections.singletonList(dto));
-
-        List<CoinmarketApiDto> hourlyCoinmarketData = orderService.getHourlyCoinmarketData("BTC/USD");
-
-        assertNotNull(hourlyCoinmarketData);
-        assertEquals(1, hourlyCoinmarketData.size());
-        assertEquals(dto.getCurrencyPairId(), hourlyCoinmarketData.get(0).getCurrencyPairId());
-        assertEquals(dto.getCurrency_pair_name(), hourlyCoinmarketData.get(0).getCurrency_pair_name());
-        assertEquals(dto.getFirst(), hourlyCoinmarketData.get(0).getFirst());
-        assertEquals(dto.getLast(), hourlyCoinmarketData.get(0).getLast());
-
-        verify(orderDao, atLeastOnce()).getCoinmarketData(anyString());
-    }
-
-    @Test
     public void getOrderInfo() {
         OrderInfoDto dto = new OrderInfoDto();
 
@@ -6555,15 +6407,6 @@ public class OrderServiceImplTest {
                 LocalDateTime.of(2019, 4, 1, 15, 35, 21));
     }
 
-    private CoinmarketApiDto getMockCoinmarketApiDto() {
-        CoinmarketApiDto dto = new CoinmarketApiDto();
-        dto.setCurrencyPairId(100);
-        dto.setCurrency_pair_name("BTC/USD");
-        dto.setFirst(BigDecimal.TEN);
-        dto.setLast(BigDecimal.ONE);
-        return dto;
-    }
-
     private ExOrder getMockExOrder() {
         return getMockExOrder(3, BigDecimal.TEN);
     }
@@ -6645,21 +6488,6 @@ public class OrderServiceImplTest {
         interval.setIntervalType(IntervalType.HOUR);
 
         return interval;
-    }
-
-    private CandleChartItemDto getMockCandleChartItemDto() {
-        CandleChartItemDto candleChartItemDto = new CandleChartItemDto();
-        candleChartItemDto.setBeginPeriod(LocalDateTime.of(2019, 4, 4, 15, 9, 10));
-        candleChartItemDto.setEndPeriod(LocalDateTime.of(2019, 4, 4, 15, 15, 10));
-        candleChartItemDto.setOpenRate(BigDecimal.TEN);
-        candleChartItemDto.setCloseRate(BigDecimal.TEN);
-        candleChartItemDto.setLowRate(BigDecimal.TEN);
-        candleChartItemDto.setHighRate(BigDecimal.TEN);
-        candleChartItemDto.setBaseVolume(BigDecimal.TEN);
-        candleChartItemDto.setBeginDate(Timestamp.valueOf(LocalDateTime.of(2019, 4, 4, 15, 9, 10)));
-        candleChartItemDto.setEndDate(Timestamp.valueOf(LocalDateTime.of(2019, 4, 4, 15, 15, 10)));
-
-        return candleChartItemDto;
     }
 
     private WalletsAndCommissionsForOrderCreationDto getMockWalletsAndCommissionsForOrderCreationDto() {

@@ -3,11 +3,10 @@ package me.exrates.controller.openAPI;
 import me.exrates.controller.openAPI.config.WebAppTestConfig;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.constants.ErrorApiTitles;
-import me.exrates.model.dto.CandleDto;
+import me.exrates.model.chart.CandleDto;
 import me.exrates.model.enums.IntervalType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.exceptions.OpenApiException;
-import me.exrates.model.vo.BackDealInterval;
 import me.exrates.security.config.OpenApiSecurityConfig;
 import me.exrates.service.util.OpenApiUtils;
 import org.junit.Test;
@@ -50,7 +49,7 @@ public class OpenApiPublicOldControllerTest extends OpenApiCommonTest {
         mockMvc.perform(MockMvcRequestBuilders.get(uriComponents.toUri().toString()))
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
-        verify(orderService, times(1)).getDailyCoinmarketData(null);
+        verify(orderService, times(1)).getDailyCoinmarketcapData(null);
     }
 
     @Test
@@ -65,7 +64,7 @@ public class OpenApiPublicOldControllerTest extends OpenApiCommonTest {
         mockMvc.perform(MockMvcRequestBuilders.get(uriComponents.toUri().toString()))
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
-        verify(orderService, times(1)).getDailyCoinmarketData(OpenApiUtils.transformCurrencyPair(cpName));
+        verify(orderService, times(1)).getDailyCoinmarketcapData(OpenApiUtils.transformCurrencyPair(cpName));
         verify(currencyService, times(1)).findCurrencyPairIdByName(OpenApiUtils.transformCurrencyPair(cpName));
     }
 
@@ -265,8 +264,8 @@ public class OpenApiPublicOldControllerTest extends OpenApiCommonTest {
     @Test
     public void getCandleChartData() throws Exception {
         String cpName = "btc_usd";
-        LocalDate datesFrom = LocalDate.now().minusDays(1);
-        LocalDate datesTo = LocalDate.now();
+        LocalDateTime datesFrom = LocalDateTime.now().minusDays(1);
+        LocalDateTime datesTo = LocalDateTime.now();
         IntervalType intervalType = IntervalType.HOUR;
         Integer intervalValue = 1;
 
@@ -280,13 +279,13 @@ public class OpenApiPublicOldControllerTest extends OpenApiCommonTest {
                 .expand(cpName);
 
         when(currencyService.getCurrencyPairByName(anyString())).thenReturn(new CurrencyPair("BTC/USD"));
-        when(candleDataProcessingService.getData(anyString(), any(LocalDateTime.class), any(LocalDateTime.class), any(BackDealInterval.class)))
+        when(candleDataProcessingService.getData(anyString(), any(Long.class), any(Long.class), anyString()))
                 .thenReturn(Collections.singletonList(new CandleDto()));
 
         mockMvc.perform(MockMvcRequestBuilders.get(uriComponents.toUri().toString()))
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
         verify(currencyService, times(1)).getCurrencyPairByName(transformCurrencyPair(cpName));
-        verify(candleDataProcessingService, times(1)).getData(anyString(), any(LocalDateTime.class), any(LocalDateTime.class), any(BackDealInterval.class));
+        verify(candleDataProcessingService, times(1)).getData(anyString(), any(Long.class), any(Long.class), anyString());
     }
 }

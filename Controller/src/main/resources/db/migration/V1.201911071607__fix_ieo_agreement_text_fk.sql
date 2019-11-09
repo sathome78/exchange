@@ -1,0 +1,4 @@
+ALTER TABLE IEO_AGREEMENT_TEXT
+    DROP FOREIGN KEY ieo_user_agreement_ieo_id_user_fk;
+
+ALTER TABLE IEO_AGREEMENT_TEXT ADD CONSTRAINT ieo_user_agreement_ieo_id_user_fk FOREIGN KEY(ieo_id) REFERENCES IEO_DETAILS(id)

@@ -11,6 +11,7 @@ import me.exrates.model.Commission;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairRestrictionsEnum;
 import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.ExOrder;
 import me.exrates.model.MarketVolume;
@@ -20,10 +21,9 @@ import me.exrates.model.Transaction;
 import me.exrates.model.User;
 import me.exrates.model.UserRoleSettings;
 import me.exrates.model.Wallet;
-import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AdminOrderInfoDto;
 import me.exrates.model.dto.CallBackLogDto;
-import me.exrates.model.dto.CoinmarketApiDto;
+import me.exrates.model.dto.CoinmarketcapApiDto;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
@@ -64,9 +64,6 @@ import me.exrates.model.dto.openAPI.UserOrdersDto;
 import me.exrates.model.dto.openAPI.UserTradeHistoryDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.BusinessUserRoleEnum;
-import me.exrates.model.enums.ChartPeriodsEnum;
-import me.exrates.model.enums.ChartTimeFramesEnum;
-import me.exrates.model.enums.CurrencyPairRestrictionsEnum;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
@@ -86,7 +83,6 @@ import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.ngExceptions.MarketOrderAcceptionException;
 import me.exrates.model.ngExceptions.NgOrderValidationException;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
-import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
@@ -102,6 +98,7 @@ import me.exrates.service.TransactionService;
 import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
+import me.exrates.service.api.ChartApi;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CancelOrderEvent;
@@ -131,7 +128,6 @@ import me.exrates.service.exception.process.WalletCreationException;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.util.BiTuple;
-import me.exrates.service.util.Cache;
 import me.exrates.service.util.CollectionUtil;
 import me.exrates.service.vo.ProfileData;
 import org.apache.commons.lang3.StringUtils;
@@ -144,6 +140,8 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.Cache;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
@@ -152,8 +150,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
-import javax.annotation.PostConstruct;
-import javax.swing.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
 import java.io.ByteArrayOutputStream;
@@ -179,16 +175,13 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
+import static me.exrates.configurations.CacheConfiguration.COINMARKETCAP_DATA_CACHE;
 import static me.exrates.model.dto.dataTable.DataTableParams.OrderDirection.DESC;
 import static me.exrates.model.enums.OrderActionEnum.ACCEPT;
 import static me.exrates.model.enums.OrderActionEnum.ACCEPTED;
@@ -205,22 +198,15 @@ import static me.exrates.service.util.CollectionUtil.isEmpty;
 @PropertySource("classpath:/orders.properties")
 public class OrderServiceImpl implements OrderService {
 
+    private static final String ALL = "ALL";
+
     public static final String BUY = "BUY";
     public static final String SELL = "SELL";
     public static final String SCOPE = "ALL";
-    private final static String CONTENT_DISPOSITION = "Content-Disposition";
-    private final static String ATTACHMENT = "attachment; filename=";
     private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final DateTimeFormatter FORMATTER_FOR_NAME = DateTimeFormatter.ofPattern("dd_MM_yyyy_HH_mm");
     private static final int ORDERS_QUERY_DEFAULT_LIMIT = 20;
     private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
-    private static final Logger txLogger = LogManager.getLogger("ordersTxLogger");
-    private final List<BackDealInterval> intervals = Arrays.stream(ChartPeriodsEnum.values())
-            .map(ChartPeriodsEnum::getBackDealInterval)
-            .collect(Collectors.toList());
-    private final List<ChartTimeFrame> timeFrames = Arrays.stream(ChartTimeFramesEnum.values())
-            .map(ChartTimeFramesEnum::getTimeFrame)
-            .collect(Collectors.toList());
     private final Object autoAcceptLock = new Object();
     private final Object restOrderCreationLock = new Object();
     //    @Value("#{BigDecimal.valueOf('${orders.max-exrate-deviation-percent}')}")
@@ -233,9 +219,6 @@ public class OrderServiceImpl implements OrderService {
     TransactionDescription transactionDescription;
     @Autowired
     StopOrderService stopOrderService;
-
-    private List<CoinmarketApiDto> coinmarketCachedData = new CopyOnWriteArrayList<>();
-    private ScheduledExecutorService coinmarketScheduler = Executors.newSingleThreadScheduledExecutor();
     @Autowired
     private OrderDao orderDao;
     @Autowired
@@ -264,24 +247,11 @@ public class OrderServiceImpl implements OrderService {
     private ApplicationEventPublisher eventPublisher;
     @Autowired
     private ExchangeRatesHolder exchangeRatesHolder;
-
-    @PostConstruct
-    public void init() {
-        coinmarketScheduler.scheduleAtFixedRate(() -> {
-            List<CoinmarketApiDto> newData = getCoinmarketDataForActivePairs(null, new BackDealInterval("24 HOUR"));
-            coinmarketCachedData = new CopyOnWriteArrayList<>(newData);
-        }, 0, 15, TimeUnit.MINUTES);
-    }
-
-    @Override
-    public List<BackDealInterval> getIntervals() {
-        return intervals;
-    }
-
-    @Override
-    public List<ChartTimeFrame> getChartTimeFrames() {
-        return timeFrames;
-    }
+    @Autowired
+    @Qualifier(COINMARKETCAP_DATA_CACHE)
+    private Cache coinmarketcapDataCache;
+    @Autowired
+    private ChartApi chartApi;
 
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
@@ -396,7 +366,7 @@ public class OrderServiceImpl implements OrderService {
             if (activeCurrencyPair.getTradeRestriction().contains(CurrencyPairRestrictionsEnum.ESCAPE_USA) && user.getVerificationRequired()) {
                 if (Objects.isNull(user.getCountry())) {
                     throw new NeedVerificationException("Sorry, you must pass verification to trade this pair.");
-                } else if(user.getCountry().equalsIgnoreCase(RestrictedCountrys.USA.name())) {
+                } else if (user.getCountry().equalsIgnoreCase(RestrictedCountrys.USA.name())) {
                     throw new OrderCreationRestrictedException("Sorry, you are not allowed to trade this pair");
                 }
             }
@@ -813,6 +783,9 @@ public class OrderServiceImpl implements OrderService {
         ExOrder order = new ExOrder(orderCreateDto);
         order.setUserAcceptorId(orderCreateDto.getUserId());
         order.setStatus(OrderStatus.CLOSED);
+        LocalDateTime currentDate = LocalDateTime.now();
+        order.setDateCreation(currentDate);
+        order.setDateAcception(currentDate);
         orderDao.postAcceptedOrderToDB(order);
 
         eventPublisher.publishEvent(new AcceptOrderEvent(order));
@@ -900,7 +873,7 @@ public class OrderServiceImpl implements OrderService {
             if (activeCurrencyPair.getTradeRestriction().contains(CurrencyPairRestrictionsEnum.ESCAPE_USA) && user.getVerificationRequired()) {
                 if (Objects.isNull(user.getCountry())) {
                     throw new NeedVerificationException("Sorry, you must pass verification to trade this pair.");
-                } else if(user.getCountry().equalsIgnoreCase(RestrictedCountrys.USA.name())) {
+                } else if (user.getCountry().equalsIgnoreCase(RestrictedCountrys.USA.name())) {
                     throw new OrderCreationRestrictedException("Sorry, you are not allowed to trade this pair");
                 }
             }
@@ -1186,7 +1159,7 @@ public class OrderServiceImpl implements OrderService {
                                                        OperationType operationType,
                                                        String scope, Integer offset, Integer limit, Locale locale) {
         List<OrderWideListDto> orders = orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, scope, offset, limit, locale);
-        if (Cache.checkCache(cacheData, orders)) {
+        if (me.exrates.service.util.Cache.checkCache(cacheData, orders)) {
             orders = new ArrayList<OrderWideListDto>() {{
                 add(new OrderWideListDto(false));
             }};
@@ -1682,39 +1655,19 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.updateOrder(exOrder);
     }
 
-    public List<CoinmarketApiDto> getCoinmarketData(String currencyPairName, BackDealInterval backDealInterval) {
-        final List<CoinmarketApiDto> result = orderDao.getCoinmarketData(currencyPairName);
-        List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairs(CurrencyPairType.ALL);
-        result.addAll(currencyPairList
-                .stream()
-                .filter(e -> (StringUtils.isEmpty(currencyPairName) || e.getName().equals(currencyPairName))
-                        && result
-                        .stream()
-                        .noneMatch(r -> r.getCurrency_pair_name().equals(e.getName())))
-                .map(CoinmarketApiDto::new)
-                .collect(Collectors.toList()));
-        return result;
+    @Override
+    public List<CoinmarketcapApiDto> getCoinmarketcapDataForActivePairs(String currencyPairName, String resolution) {
+        return chartApi.getCoinmarketcapData(currencyPairName, resolution);
     }
 
     @Override
-    public List<CoinmarketApiDto> getCoinmarketDataForActivePairs(String currencyPairName, BackDealInterval backDealInterval) {
-        return orderDao.getCoinmarketData(currencyPairName);
-    }
+    public List<CoinmarketcapApiDto> getDailyCoinmarketcapData(String currencyPairName) {
+        String resolution = "D"; //1 day
 
-    @Override
-    public List<CoinmarketApiDto> getDailyCoinmarketData(String currencyPairName) {
-        if (StringUtils.isEmpty(currencyPairName) && coinmarketCachedData != null && !coinmarketCachedData.isEmpty()) {
-            return coinmarketCachedData;
-        } else {
-            return getCoinmarketDataForActivePairs(currencyPairName, new BackDealInterval("24 HOUR"));
-        }
+        return Objects.nonNull(currencyPairName)
+                ? coinmarketcapDataCache.get(currencyPairName, () -> getCoinmarketcapDataForActivePairs(currencyPairName, resolution))
+                : coinmarketcapDataCache.get(ALL, () -> getCoinmarketcapDataForActivePairs(currencyPairName, resolution));
     }
-
-    @Override
-    public List<CoinmarketApiDto> getHourlyCoinmarketData(String currencyPairName) {
-        return getCoinmarketDataForActivePairs(currencyPairName, new BackDealInterval("1 HOUR"));
-    }
-
 
     @Override
     public OrderInfoDto getOrderInfo(int orderId, Locale locale) {
@@ -1841,7 +1794,7 @@ public class OrderServiceImpl implements OrderService {
         UserRole filterRole = orderRoleFilterEnabled ? userService.getUserRoleFromSecurityContext() : null;
         List<OrderListDto> result = aggregateOrders(serviceCacheableProxy.getAllBuyOrders(currencyPair, filterRole, evictEhCache), OperationType.BUY, evictEhCache);
         result = new ArrayList<>(result);
-        if (Cache.checkCache(cacheData, result)) {
+        if (me.exrates.service.util.Cache.checkCache(cacheData, result)) {
             result = new ArrayList<OrderListDto>() {{
                 add(new OrderListDto(false));
             }};
@@ -1899,7 +1852,7 @@ public class OrderServiceImpl implements OrderService {
         UserRole filterRole = orderRoleFilterEnabled ? userService.getUserRoleFromSecurityContext() : null;
         List<OrderListDto> result = aggregateOrders(serviceCacheableProxy.getAllSellOrders(currencyPair, filterRole, evictEhCache), OperationType.SELL, evictEhCache);
         result = new ArrayList<>(result);
-        if (Cache.checkCache(cacheData, result)) {
+        if (me.exrates.service.util.Cache.checkCache(cacheData, result)) {
             result = new ArrayList<OrderListDto>() {{
                 add(new OrderListDto(false));
             }};
