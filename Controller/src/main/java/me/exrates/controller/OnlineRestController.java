@@ -605,32 +605,6 @@ public class OnlineRestController {
 
     /**
      * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
-     * returns list the data of user's wallet to show in page "Balance"
-     *
-     * @param refreshIfNeeded: - "true" if view ought to repainted if data in DB was changed only.
-     *                         - "false" if data must repainted in any cases
-     * @param principal
-     * @param request
-     * @return list the data of user's wallet
-     * @author ValkSam
-     */
-    @OnlineMethod
-    @RequestMapping(value = "/dashboard/myWalletsData", method = RequestMethod.GET)
-    public List<MyWalletsDetailedDto> getMyWalletsData(@RequestParam(required = false) Boolean refreshIfNeeded,
-                                                       Principal principal, HttpServletRequest request) {
-        if (principal == null) {
-            return null;
-        }
-        String email = principal.getName();
-        String cacheKey = "myWalletsData" + request.getHeader("windowid");
-        refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
-        CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-        List<MyWalletsDetailedDto> result = walletService.getAllWalletsForUserDetailed(cacheData, email, Locale.ENGLISH);
-        return result;
-    }
-
-    /**
-     * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
      * returns list the data of user's orders to show in pages "History" and "Orders"
      *
      * @param refreshIfNeeded: - "true" if view ought to repainted if data in DB was changed only.
@@ -766,44 +740,6 @@ public class OnlineRestController {
         }
         Locale locale = localeResolver.resolveLocale(request);
 
-        tableParams.updateEofState(result);
-        return result;
-    }
-
-    /**
-     * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
-     * returns list the data of user's wallet statement to show in pages "Balance" button "History"
-     *
-     * @param refreshIfNeeded: - "true" if view ought to repainted if data in DB was changed only.
-     *                         - "false" if data must repainted in any cases
-     * @param tableId          determines table to show data
-     * @param walletId         is id of user's wallet
-     * @param page,            direction - used for pgination. Details see in class TableParams
-     * @param request
-     * @return list the data of user's wallet statement
-     */
-    @OnlineMethod
-    @RequestMapping(value = "/dashboard/myStatementData/{tableId}/{walletId}", method = RequestMethod.GET)
-    public List<AccountStatementDto> getMyAccountStatementData(
-            @RequestParam(required = false) Boolean refreshIfNeeded,
-            @PathVariable("tableId") String tableId,
-            @PathVariable("walletId") String walletId,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) PagingDirection direction,
-            HttpServletRequest request) {
-        /**/
-        String attributeName = tableId + "Params";
-        TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
-        requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
-        tableParams.setOffsetAndLimitForSql(page, direction);
-        /**/
-        String cacheKey = "myAccountStatement" + tableId + walletId + request.getHeader("windowid");
-        refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
-        CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-        List<AccountStatementDto> result = transactionService.getAccountStatement(cacheData, Integer.valueOf(walletId), tableParams.getOffset(), tableParams.getLimit(), localeResolver.resolveLocale(request));
-        if (!result.isEmpty()) {
-            result.get(0).setPage(tableParams.getPageNumber());
-        }
         tableParams.updateEofState(result);
         return result;
     }

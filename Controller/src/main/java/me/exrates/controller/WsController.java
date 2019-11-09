@@ -61,16 +61,6 @@ public class WsController {
         this.usersAlertsService = usersAlertsService;
     }
 
-//    @SubscribeMapping("/users_alerts/{loc}")
-//    public String usersAlerts(@DestinationVariable String loc) throws JsonProcessingException {
-//        if (!userService.getLocalesList().contains(loc)) {
-//            throw new RuntimeException("unsupported locale");
-//        }
-//        Locale locale = Locale.forLanguageTag(loc);
-//        List<AlertDto> list = usersAlertsService.getAllAlerts(locale);
-//        return objectMapper.writeValueAsString(list);
-//    }
-
     @SubscribeMapping("/statisticsNew")
     public String subscribeStatisticNew() {
         return orderService.getAllCurrenciesStatForRefreshForAllPairs();
@@ -105,22 +95,6 @@ public class WsController {
         return orderService.getOpenOrdersForWs(OpenApiUtils.transformCurrencyPair(currencyPairName));
     }
 
-//    @MessageMapping("/register")
-//    public void processMessage(@Payload Map<String, String> message, SimpMessageHeaderAccessor simpMessageHeaderAccessor) throws Exception {
-//        redisWsSessionService.addSession(message.get("email"), message.get("sessionId"));
-//    }
-//
-//    @MessageMapping("/unregister")
-//    public void processOffMessage(@Payload Map<String, String> message, SimpMessageHeaderAccessor simpMessageHeaderAccessor) throws Exception {
-//        redisWsSessionService.removeSession(message.get("email"));
-//    }
-
-    //    @SubscribeMapping("/message/private/{pubId}")
-//    public WsMessageObject subscribePersonalMessages(Principal principal, @DestinationVariable String pubId) {
-//        Preconditions.checkArgument(userService.getEmailByPubId(pubId).equals(principal.getName()));
-//        final Collection<UserNotificationMessage> messages = redisUserNotificationService.findAllByUser(principal.getName());
-//        return new WsMessageObject(WsSourceTypeEnum.SUBSCRIBE, messages);
-//    }
     @SubscribeMapping("/orders/open/{pairName}/{pubId}")
     public String getUserOpenOrdersByPairName(Principal principal,
                                               @DestinationVariable String pairName,

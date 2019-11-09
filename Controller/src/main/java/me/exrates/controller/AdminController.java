@@ -837,6 +837,16 @@ public class AdminController {
 
     }
 
+    @ResponseBody
+    @RequestMapping(value = "/2a8fy7b07dxe44/walletsSummaryTable", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public List<UserWalletSummaryDto> findRequestByStatus(
+            @RequestParam("viewType") String viewTypeName,
+            Principal principal) {
+        Integer requesterUserId = userService.getIdByEmail(principal.getName());
+        List<Integer> realRoleList = userRoleService.getRealUserRoleIdByBusinessRoleList(viewTypeName);
+        return walletService.getUsersWalletsSummaryForPermittedCurrencyList(requesterUserId, realRoleList);
+    }
+
     @RequestMapping(value = "/2a8fy7b07dxe44/userStatements/{walletId}")
     public ModelAndView accountStatementPage(@PathVariable("walletId") Integer walletId) {
         return new ModelAndView("/admin/user_statement", "walletId", walletId);
@@ -850,6 +860,11 @@ public class AdminController {
         Integer offset = Integer.parseInt(params.getOrDefault("start", "0"));
         Integer limit = Integer.parseInt(params.getOrDefault("length", "-1"));
         return transactionService.getAccountStatementForAdmin(walletId, offset, limit, localeResolver.resolveLocale(request));
+    }
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinConfirmation")
+    public ModelAndView bitcoinTransactions() {
+        return new ModelAndView("admin/transaction_bitcoin");
     }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/sessionControl")

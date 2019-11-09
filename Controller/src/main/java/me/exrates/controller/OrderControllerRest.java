@@ -298,17 +298,6 @@ public class OrderControllerRest {
         }
     }
 
-    @RequestMapping(value = "/order/orderinfo", method = RequestMethod.GET)
-    public OrderInfoDto getOrderInfo(@RequestParam int id, HttpServletRequest request) {
-        long before = System.currentTimeMillis();
-        try {
-            return orderService.getOrderInfo(id, localeResolver.resolveLocale(request));
-        } finally {
-            long after = System.currentTimeMillis();
-            LOGGER.debug("completed... ms: " + (after - before));
-        }
-    }
-
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     @ExceptionHandler(OrderParamsWrongException.class)
     @ResponseBody
