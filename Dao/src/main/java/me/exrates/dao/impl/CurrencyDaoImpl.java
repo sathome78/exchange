@@ -1134,7 +1134,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
     @Override
     public CurrencyPairWithRestriction findCurrencyPairWithRestrictionRestrictions(Integer currencyPairId) {
-        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, top_market, top_market_volume, " +
+        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, top_market, top_market_volume,  hidden, top_market, top_market_volume, " +
                 "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
                 "(select name from CURRENCY where id = currency2_id) as currency2_name, " +
                 "(select group_concat(cpr.restriction_name) from CURRENCY_PAIR_RESTRICTION cpr " +
@@ -1146,6 +1146,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         return slaveJdbcTemplate.queryForObject(sql, namedParameters, (rs, rowNum) -> {
             CurrencyPairWithRestriction pair = new CurrencyPairWithRestriction(currencyPairRowMapper.mapRow(rs, rowNum));
             String restrictions = rs.getString("restrictions");
+            pair.setHidden(rs.getBoolean("hidden"));
             if (!StringUtils.isEmpty(restrictions)) {
                 pair.setTradeRestriction(Arrays.stream(restrictions.split(","))
                         .map(CurrencyPairRestrictionsEnum::valueOf)
@@ -1183,7 +1184,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
     @Override
     public List<CurrencyPairWithRestriction> findAllCurrencyPairWithRestrictions() {
-        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, top_market, top_market_volume, " +
+        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, top_market, top_market_volume, hidden, top_market, top_market_volume, " +
                 "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
                 "(select name from CURRENCY where id = currency2_id) as currency2_name, " +
                 "(select group_concat(cpr.restriction_name) from CURRENCY_PAIR_RESTRICTION cpr " +
@@ -1192,6 +1193,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         return slaveJdbcTemplate.query(sql, (rs, rowNum) -> {
             CurrencyPairWithRestriction pair = new CurrencyPairWithRestriction(currencyPairRowMapper.mapRow(rs, rowNum));
             String restrictions = rs.getString("restrictions");
+            pair.setHidden(rs.getBoolean("hidden"));
             if (!StringUtils.isEmpty(restrictions)) {
                 pair.setTradeRestriction(Arrays.stream(restrictions.split(","))
                         .map(CurrencyPairRestrictionsEnum::valueOf)
