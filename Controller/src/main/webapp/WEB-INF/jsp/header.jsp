@@ -38,7 +38,6 @@
 <%--</html>--%>
 
 <header class="header">
-    <%@include file="../jsp/tools/google_head.jsp"%>
 
     <!-- begin Right block -->
     <div class="header__right__box">

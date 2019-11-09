@@ -16,10 +16,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="interkassa-verification" content="c4deb5425361141d96dd48d235b6fc4a"/>
 
-    <%--TOOLS ... --%>
-    <%@include file="../tools/google_head.jsp"%>
-    <%-- ... TOOLS--%>
-
     <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
     <script src="<c:url value="/client/js/polyfill/polyfill.js"/>" type="text/javascript"></script>
     <script src="<c:url value="/client/js/jquery_1.11.3.min.js"/>" type="text/javascript"></script>
@@ -45,7 +41,6 @@
     <script type="text/javascript" src="<c:url value='/client/js/stomp.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/lib/numeral/numbro.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/globalPages/dashboard-init.js'/>"></script>
     <%----%>
     <script type="text/javascript" src="<c:url value='/client/js/trading/trading.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/mywallets/mywallets.js'/>"></script>
@@ -83,7 +78,6 @@
 <body>
 
 <%@include file="../fragments/header.jsp" %>
-<%@include file="../tools/google_body.jsp"%>
 <main class="container">
 
     <%@include file="../fragments/alerts.jsp" %>
@@ -104,14 +98,9 @@
                 <%--and to keep startup page ID--%>
                 ${startupSubPage}
             </div>
-            <%@include file="../fragments/mywallets-center.jsp" %>
-            <%@include file="../fragments/statement-center.jsp" %>
-            <%@include file="../fragments/history-center.jsp" %>
-            <%@include file="../fragments/orders-center.jsp" %>
         </div>
     </div>
 </main>
-<%@include file='../fragments/footer.jsp' %>
 <%@include file="../fragments/modal/G2fa_noty_modal.jsp" %>
 <%@include file="../fragments/modal/g2fa_login_warning_modal.jsp" %>
 <span hidden id="successNoty">${successNoty}</span>

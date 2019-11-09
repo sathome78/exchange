@@ -16,8 +16,6 @@
 
     <script src="<c:url value="/client/js/jquery_1.11.3.min.js"/>" type="text/javascript"></script>
 
-    <%@include file="../tools/google_head.jsp"%>
-
     <!-- New design -->
     <link rel="stylesheet" href="client/assets/css/main.min.css">
     <link rel="stylesheet" href="client/assets/css/libs.min.css">
@@ -28,7 +26,6 @@
 
 </head>
 <body>
-    <%@include file="../tools/google_body.jsp"%>
     <input id="successConfirm" hidden value='${successConfirm}'/>
     <input type="hidden" class="s_csrf" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 

@@ -15,10 +15,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="interkassa-verification" content="c4deb5425361141d96dd48d235b6fc4a"/>
 
-    <%--TOOLS ... --%>
-    <%@include file="../tools/google_head.jsp"%>
-    <%-- ... TOOLS--%>
-
     <link href='https://fonts.googleapis.com/css?family=Roboto:400,700,300' rel='stylesheet' type='text/css'>
 
     <script src="<c:url value='/client/js/jquery_1.11.3.min.js'/>" type="text/javascript"></script>
@@ -61,7 +57,6 @@
 <body>
 
 <%@include file="../fragments/header-simple.jsp" %>
-<%@include file="../tools/google_body.jsp"%>
 
 <main class="container">
     <div class="row_big">
@@ -70,7 +65,6 @@
         </div>
     </div>
 </main>
-<%@include file='../fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>
 <span hidden id="tabIdx">${tabIdx}</span>
