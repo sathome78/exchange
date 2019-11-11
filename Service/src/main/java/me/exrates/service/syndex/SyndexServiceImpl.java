@@ -116,11 +116,6 @@ public class SyndexServiceImpl implements SyndexService {
         syndexDao.updateSyndexOrder(createdOrder.getId(), syndexOrder.getId(),
                 syndexOrder.getPaymentDetails(), syndexOrder.getEndPaymentTime(),
                 syndexOrder.getStatus(), amountToRefill);
-        createdOrder.setAmountToRefill(amountToRefill);
-        createdOrder.setSyndexId(syndexOrder.getId());
-        createdOrder.setPaymentDetails(syndexOrder.getPaymentDetails());
-        createdOrder.setPaymentEndTime(syndexOrder.getEndPaymentTime());
-        createdOrder.setStatus(SyndexOrderStatusEnum.convert(syndexOrder.getStatus()));
 
         return new HashMap<String, String>() {{
             put("$__response_object",  objectMapper.writeValueAsString(createdOrder));
