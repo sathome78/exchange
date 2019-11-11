@@ -753,6 +753,16 @@ public class WalletDaoImpl implements WalletDao {
     }
 
     @Override
+    public Wallet findByIdAndLock(Integer walletId) {
+        final String sql = "SELECT WALLET.id,WALLET.currency_id,WALLET.user_id,WALLET.active_balance, WALLET.reserved_balance, WALLET.referral_balance, CURRENCY.name as name " +
+                "FROM WALLET " +
+                "INNER JOIN CURRENCY ON WALLET.currency_id = CURRENCY.id " +
+                "WHERE WALLET.id = :id FOR UPDATE ";
+        final Map<String, Integer> params = Collections.singletonMap("id", walletId);
+        return jdbcTemplate.queryForObject(sql, params, walletRowMapper);
+    }
+
+    @Override
     public Wallet createWallet(User user, int currencyId) {
         return createWallet(user.getId(), currencyId);
     }
@@ -777,13 +787,14 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public boolean update(Wallet wallet) {
-        final String sql = "UPDATE WALLET SET active_balance = :activeBalance, reserved_balance = :reservedBalance, ieo_reserve = :ieo_reserve WHERE id = :id";
+        final String sql = "UPDATE WALLET SET active_balance = :activeBalance, reserved_balance = :reservedBalance, ieo_reserve = :ieo_reserve, referral_balance = :referral_balance WHERE id = :id";
         final Map<String, Object> params = new HashMap<String, Object>() {
             {
                 put("id", wallet.getId());
                 put("activeBalance", wallet.getActiveBalance());
                 put("reservedBalance", wallet.getReservedBalance());
                 put("ieo_reserve", wallet.getIeoReserved());
+                put("referral_balance", wallet.getReferralBalance());
             }
         };
         return jdbcTemplate.update(sql, params) == 1;

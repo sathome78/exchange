@@ -5,7 +5,7 @@ import me.exrates.model.referral.ReferralTransaction;
 import java.util.List;
 
 public interface ReferralTransactionDao {
-    ReferralTransaction createReferralTransaction(ReferralTransaction referralTransaction);
+    boolean createReferralTransaction(ReferralTransaction referralTransaction);
 
     List<ReferralTransaction> findTransactionByUserIdAndLink(int userId, String link);
 

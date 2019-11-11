@@ -1155,6 +1155,17 @@ public class WalletServiceImpl implements WalletService {
         return walletDao.getActiveBalanceByUserAndCurrency(email, currencyId);
     }
 
+    @Transactional(propagation = Propagation.NESTED)
+    @Override
+    public boolean performReferralBalanceUpdate(int walletId, BigDecimal amount) {
+        Wallet wallet = walletDao.findByIdAndLock(walletId);
+        BigDecimal oldReferralBalance = wallet.getReferralBalance();
+        BigDecimal newReferralBalance =
+                BigDecimalProcessing.doAction(oldReferralBalance, amount, ActionType.ADD, RoundingMode.HALF_DOWN);
+        wallet.setReferralBalance(newReferralBalance);
+        return walletDao.update(wallet);
+    }
+
     private Transaction prepareTransaction(BigDecimal initialAmount, BigDecimal amount, Wallet wallet,
                                            IEOClaim ieoClaim, InvoiceStatus status, OperationType operationType) {
         Currency currency = currencyService.findById(wallet.getCurrencyId());

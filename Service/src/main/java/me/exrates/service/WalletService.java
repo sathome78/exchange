@@ -199,4 +199,6 @@ public interface WalletService {
 
     BigDecimal getActiveBalanceByUserAndCurrency(String email, Integer currencyId);
 
+    boolean performReferralBalanceUpdate(int walletId, BigDecimal amount);
+
 }

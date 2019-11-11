@@ -39,7 +39,7 @@ public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
     }
 
     @Override
-    public ReferralTransaction createReferralTransaction(ReferralTransaction referralTransaction) {
+    public boolean createReferralTransaction(ReferralTransaction referralTransaction) {
         final String sql = "INSERT INTO REFERRAL_TRANSACTION(currency_id, currency_name, user_id, amount, link) " +
                 "VALUES (:currency_id, :currency_name, :user_id, :amount, :link)";
         MapSqlParameterSource params = new MapSqlParameterSource()
@@ -51,7 +51,7 @@ public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         masterJdbcTemplate.update(sql, params, keyHolder);
         referralTransaction.setId((int) keyHolder.getKey().longValue());
-        return referralTransaction;
+        return referralTransaction.getId() != null;
     }
 
     @Override
