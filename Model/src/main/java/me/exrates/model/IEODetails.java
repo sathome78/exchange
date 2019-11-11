@@ -47,6 +47,7 @@ public class IEODetails {
     private int createdBy;
     private int version;
     private String content;
+    private String licenseAgreement;
 
     @JsonProperty(value = "multiplyProcessing")
     private Boolean testIeo;

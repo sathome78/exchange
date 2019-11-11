@@ -85,7 +85,8 @@ public class UserDaoImpl implements UserDao {
 
     private final String SELECT_USER =
             "SELECT USER.id, u.email AS parent_email, USER.finpassword, USER.nickname, USER.email, USER.password, USER.regdate, " +
-                    "USER.phone, USER.status, USER.kyc_status, USER_ROLE.name AS role_name, USER.country AS country, USER.pub_id, USER.verification_required FROM USER " +
+                    "USER.phone, USER.status, USER.kyc_status, USER_ROLE.name AS role_name, USER.country AS country, USER.pub_id, USER.verification_required, " +
+                    "USER.has_trade_privileges, USER.GA FROM USER " +
                     "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LEFT JOIN REFERRAL_USER_GRAPH " +
                     "ON USER.id = REFERRAL_USER_GRAPH.child LEFT JOIN USER AS u ON REFERRAL_USER_GRAPH.parent = u.id ";
 
@@ -132,9 +133,13 @@ public class UserDaoImpl implements UserDao {
             user.setCountry(resultSet.getString("country"));
             user.setPublicId(resultSet.getString("pub_id"));
             user.setVerificationRequired(resultSet.getBoolean("verification_required"));
+            user.setTradePrivileges(resultSet.getBoolean("has_trade_privileges"));
             try {
                 user.setParentEmail(resultSet.getString("parent_email")); // May not exist for some users
             } catch (final SQLException e) {/*NOP*/}
+            if (resultSet.getString("GA") != null) {
+                user.setGa(resultSet.getString("GA"));
+            }
             return user;
         };
     }
@@ -190,8 +195,8 @@ public class UserDaoImpl implements UserDao {
     }
 
     public boolean create(User user) {
-        String sqlUser = "insert into USER(pub_id, nickname, email, password, phone, status, roleid, verification_required ) " +
-                "values(SUBSTRING(MD5(:email), 1, 20), :nickname, :email, :password, :phone, :status, :roleid, :need_verification)";
+        String sqlUser = "insert into USER(pub_id, nickname, email, password, phone, status, roleid, verification_required, has_trade_privileges ) " +
+                "values(SUBSTRING(MD5(:email), 1, 20), :nickname, :email, :password, :phone, :status, :roleid, :need_verification, :has_trade_privileges)";
         String sqlWallet = "INSERT INTO WALLET (currency_id, user_id) select id, :user_id from CURRENCY;";
         String sqlNotificationOptions = "INSERT INTO NOTIFICATION_OPTIONS(notification_event_id, user_id, send_notification, send_email) " +
                 "select id, :user_id, default_send_notification, default_send_email FROM NOTIFICATION_EVENT; ";
@@ -201,6 +206,7 @@ public class UserDaoImpl implements UserDao {
         namedParameters.put("email", user.getEmail());
         namedParameters.put("nickname", user.getNickname());
         namedParameters.put("need_verification", user.getVerificationRequired());
+        namedParameters.put("has_trade_privileges", user.hasTradePrivileges());
         if (user.getPassword() != null) {
             BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
             String hashedPassword = passwordEncoder.encode(user.getPassword());
@@ -488,7 +494,7 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public User getCommonReferralRoot() {
-        final String sql = "SELECT USER.id, nickname, email, password, finpassword, regdate, phone, status, USER_ROLE.name as role_name, USER.pub_id, USER.verification_required " +
+        final String sql = "SELECT USER.id, nickname, email, password, finpassword, regdate, phone, status, USER_ROLE.name as role_name, USER.pub_id, USER.verification_required, USER.has_trade_privileges " +
                 "FROM COMMON_REFERRAL_ROOT INNER JOIN USER ON COMMON_REFERRAL_ROOT.user_id = USER.id INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LIMIT 1";
         final List<User> result = masterTemplate.query(sql, getUserRowMapper());
         if (result.isEmpty()) {
@@ -663,6 +669,9 @@ public class UserDaoImpl implements UserDao {
         }
         if (user.getVerificationRequired() != null) {
             fieldsStr.append("verification_required = " + user.getVerificationRequired()).append(",");
+        }
+        if (user.getTradesPrivileges() != null) {
+            fieldsStr.append("has_trade_privileges = " + user.getTradesPrivileges()).append(",");
         }
         if (fieldsStr.toString().trim().length() == 0) {
             return true;
@@ -1599,6 +1608,17 @@ public class UserDaoImpl implements UserDao {
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("email", email);
             put("subscribe", subscribe);
+        }};
+        return masterTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public boolean setUserVerificationRequired(int userId, boolean isRequired) {
+        final String sql = "UPDATE USER u SET u.verification_required = :isRequired WHERE u.id = :userId";
+
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("isRequired", isRequired);
+            put("userId", userId);
         }};
         return masterTemplate.update(sql, params) > 0;
     }

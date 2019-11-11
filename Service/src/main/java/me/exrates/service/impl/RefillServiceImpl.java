@@ -178,12 +178,6 @@ public class RefillServiceImpl implements RefillService {
     private QuberaService quberaService;
 
     @Override
-    public Map<String, String> callRefillIRefillable(RefillRequestCreateDto request) {
-        IRefillable merchantService = (IRefillable) merchantServiceContext.getMerchantService(request.getServiceBeanName());
-        return merchantService.refill(request);
-    }
-
-    @Override
     @Transactional
     public Map<String, Object> createRefillRequest(RefillRequestCreateDto request) {
         ProfileData profileData = new ProfileData(1000);
@@ -208,6 +202,10 @@ public class RefillServiceImpl implements RefillService {
                 }
             });
             String merchantRequestSign = (String) result.get("sign");
+            if (result.containsKey("amount_to_refill")) {
+                BigDecimal amountToPay = new BigDecimal(result.get("amount_to_refill").toString());
+                refillRequestDao.setAmountById(request.getId(), amountToPay);
+            }
             request.setMerchantRequestSign(merchantRequestSign);
             if (merchantRequestSign != null) {
                 refillRequestDao.setMerchantRequestSignById(request.getId(), merchantRequestSign);
@@ -662,6 +660,13 @@ public class RefillServiceImpl implements RefillService {
 
     @Override
     @Transactional
+    public void autoAcceptRefillRequestAndSetActualAmount(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {
+        refillRequestDao.setAmountById(requestAcceptDto.getRequestId(), requestAcceptDto.getAmount());
+        autoAcceptRefillRequest(requestAcceptDto);
+    }
+
+    @Override
+    @Transactional
     public void autoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {
         Integer requestId = requestAcceptDto.getRequestId();
         if (requestId == null) {
@@ -919,7 +924,7 @@ public class RefillServiceImpl implements RefillService {
         RefillStatusEnum newStatus = (RefillStatusEnum) currentStatus.nextState(action);
 
         IRefillable iRefillable = (IRefillable)merchantServiceContext.getMerchantService(refillRequest.getMerchantId());
-        iRefillable.cancelMerchantRequest(requestId, SecurityContextHolder.getContext().getAuthentication().getName());
+        iRefillable.cancelMerchantRequest(requestId);
 
         refillRequestDao.setStatusById(requestId, newStatus);
     }

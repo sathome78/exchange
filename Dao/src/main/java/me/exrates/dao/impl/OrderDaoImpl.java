@@ -8,7 +8,6 @@ import me.exrates.dao.WalletDao;
 import me.exrates.dao.exception.OrderDaoException;
 import me.exrates.dao.exception.notfound.CommissionsNotFoundException;
 import me.exrates.dao.exception.notfound.WalletNotFoundException;
-import me.exrates.jdbc.OrderRowMapper;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
@@ -91,6 +90,8 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 @Repository
 @Log4j2
 public class OrderDaoImpl implements OrderDao {
+
+    private static final Logger LOGGER = LogManager.getLogger(OrderDaoImpl.class);
 
     @Autowired
     @Qualifier(value = "masterTemplate")
@@ -279,7 +280,7 @@ public class OrderDaoImpl implements OrderDao {
         namedParameters.put("id", String.valueOf(orderId));
 
         try {
-            return masterJdbcTemplate.queryForObject(sql, namedParameters, new OrderRowMapper());
+            return masterJdbcTemplate.queryForObject(sql, namedParameters, getExOrderRowMapper());
         } catch (EmptyResultDataAccessException ex) {
             return null;
         }
@@ -1906,9 +1907,7 @@ public class OrderDaoImpl implements OrderDao {
         } else if (operationType == OperationType.SELL) {
             sortDirection = "ASC";
         }
-        String sql = "SELECT E.id, E.user_id, E.currency_pair_id, E.operation_type_id, E.exrate, E.amount_base, E.amount_convert, E.commission_fixed_amount," +
-                " E.commission_id, E.date_creation, E.status_id, E.base_type " +
-                " FROM EXORDERS E" +
+        String sql = "SELECT E.* FROM EXORDERS E" +
                 " JOIN USER U ON U.id = E.user_id" +
                 " JOIN USER_ROLE_SETTINGS URS ON URS.user_role_id = U.roleid" +
                 " WHERE E.status_id = 2 AND E.operation_type_id = :typeId AND E.currency_pair_id = :pairId AND URS.order_acception_same_role_only = 0" +
@@ -1941,6 +1940,12 @@ public class OrderDaoImpl implements OrderDao {
             exOrder.setDateCreation(convertTimeStampToLocalDateTime(rs, "date_creation"));
             exOrder.setStatus(OrderStatus.convert(rs.getInt("status_id")));
             exOrder.setOrderBaseType(OrderBaseType.valueOf(rs.getString("base_type")));
+            exOrder.setUserAcceptorId(rs.getInt("user_acceptor_id"));
+            exOrder.setSourceId(rs.getInt("order_source_id"));
+            final Timestamp dateAcceptionTmsp = rs.getTimestamp("date_acception");
+            if (Objects.nonNull(dateAcceptionTmsp)) {
+                exOrder.setDateAcception(dateAcceptionTmsp.toLocalDateTime());
+            }
             return exOrder;
         };
     }

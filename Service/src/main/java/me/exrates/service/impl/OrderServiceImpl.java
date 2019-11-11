@@ -11,6 +11,7 @@ import me.exrates.model.Commission;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairRestrictionsEnum;
 import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.ExOrder;
 import me.exrates.model.MarketVolume;
@@ -20,7 +21,6 @@ import me.exrates.model.Transaction;
 import me.exrates.model.User;
 import me.exrates.model.UserRoleSettings;
 import me.exrates.model.Wallet;
-import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AdminOrderInfoDto;
 import me.exrates.model.dto.CallBackLogDto;
 import me.exrates.model.dto.CoinmarketcapApiDto;
@@ -64,9 +64,6 @@ import me.exrates.model.dto.openAPI.UserOrdersDto;
 import me.exrates.model.dto.openAPI.UserTradeHistoryDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.BusinessUserRoleEnum;
-import me.exrates.model.enums.ChartPeriodsEnum;
-import me.exrates.model.enums.ChartTimeFramesEnum;
-import me.exrates.model.enums.CurrencyPairRestrictionsEnum;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
@@ -86,7 +83,6 @@ import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.ngExceptions.MarketOrderAcceptionException;
 import me.exrates.model.ngExceptions.NgOrderValidationException;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
-import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
@@ -155,8 +151,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
-import javax.annotation.PostConstruct;
-import javax.swing.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
 import java.io.ByteArrayOutputStream;
@@ -218,12 +212,6 @@ public class OrderServiceImpl implements OrderService {
     private static final DateTimeFormatter FORMATTER_FOR_NAME = DateTimeFormatter.ofPattern("dd_MM_yyyy_HH_mm");
     private static final int ORDERS_QUERY_DEFAULT_LIMIT = 20;
     private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
-    private final List<BackDealInterval> intervals = Arrays.stream(ChartPeriodsEnum.values())
-            .map(ChartPeriodsEnum::getBackDealInterval)
-            .collect(Collectors.toList());
-    private final List<ChartTimeFrame> timeFrames = Arrays.stream(ChartTimeFramesEnum.values())
-            .map(ChartTimeFramesEnum::getTimeFrame)
-            .collect(Collectors.toList());
     private final Object autoAcceptLock = new Object();
     private final Object restOrderCreationLock = new Object();
     private final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
@@ -273,16 +261,6 @@ public class OrderServiceImpl implements OrderService {
     @PostConstruct
     private void init() {
         scheduledExecutorService.scheduleWithFixedDelay(this::cleanOrders, 1, 10, TimeUnit.MINUTES);
-    }
-
-    @Override
-    public List<BackDealInterval> getIntervals() {
-        return intervals;
-    }
-
-    @Override
-    public List<ChartTimeFrame> getChartTimeFrames() {
-        return timeFrames;
     }
 
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
@@ -1638,17 +1616,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<CoinmarketcapApiDto> getCoinmarketcapDataForActivePairs(String currencyPairName, BackDealInterval interval) {
-        return chartApi.getCoinmarketcapData(currencyPairName, interval);
+    public List<CoinmarketcapApiDto> getCoinmarketcapDataForActivePairs(String currencyPairName, String resolution) {
+        return chartApi.getCoinmarketcapData(currencyPairName, resolution);
     }
 
     @Override
     public List<CoinmarketcapApiDto> getDailyCoinmarketcapData(String currencyPairName) {
-        BackDealInterval interval = new BackDealInterval("1 DAY");
+        String resolution = "D"; //1 day
 
         return Objects.nonNull(currencyPairName)
-                ? coinmarketcapDataCache.get(currencyPairName, () -> getCoinmarketcapDataForActivePairs(currencyPairName, interval))
-                : coinmarketcapDataCache.get(ALL, () -> getCoinmarketcapDataForActivePairs(currencyPairName, interval));
+                ? coinmarketcapDataCache.get(currencyPairName, () -> getCoinmarketcapDataForActivePairs(currencyPairName, resolution))
+                : coinmarketcapDataCache.get(ALL, () -> getCoinmarketcapDataForActivePairs(currencyPairName, resolution));
     }
 
     @Override

@@ -9,6 +9,7 @@ import me.exrates.model.OrderWsDetailDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderEventEnum;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.RabbitMqService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
@@ -65,6 +66,9 @@ public class OrdersEventHandleService {
     @Autowired
     private RabbitMqService rabbitMqService;
 
+    @Autowired
+    private GtagService gtagService;
+
     private Map<Integer, OrdersEventsHandler> mapSell = new ConcurrentHashMap<>();
     private Map<Integer, OrdersEventsHandler> mapBuy = new ConcurrentHashMap<>();
 
@@ -79,8 +83,21 @@ public class OrdersEventHandleService {
     @TransactionalEventListener
     public void handleOrderEventAsync(CreateOrderEvent event) {
         ExOrder order = (ExOrder) event.getSource();
-        CompletableFuture.runAsync(() -> rabbitMqService.sendOrderInfo(order), handlersExecutors);
-        onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
+
+        log.info("order created: {}", order.getCurrencyPair().getName());
+
+        List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
+        completableFutures.add(CompletableFuture.runAsync(() -> rabbitMqService.sendOrderInfoToChartService(order), handlersExecutors));
+        completableFutures.add(CompletableFuture.runAsync(() -> rabbitMqService.sendOrderInfoToExternalService(order), handlersExecutors));
+        completableFutures.add(CompletableFuture.runAsync(() -> onOrdersEvent(order.getCurrencyPairId(), order.getOperationType()), handlersExecutors));
+
+        try {
+            CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0]))
+                    .exceptionally(ex -> null)
+                    .get(5, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            ExceptionUtils.printRootCauseStackTrace(e);
+        }
         sendOrderEventNotification(order).run();
     }
 
@@ -106,10 +123,13 @@ public class OrdersEventHandleService {
     @TransactionalEventListener
     public void handleOrderEventAsync(AcceptOrderEvent event) {
         ExOrder order = (ExOrder) event.getSource();
+
+        log.info("order accepted: {}", order.getCurrencyPair().getName());
+
         dealsSync.execute(order.getCurrencyPairId(), () -> {
             List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
-            log.info("order accepted " + order.getCurrencyPair().getName());
-            completableFutures.add(CompletableFuture.runAsync(() -> rabbitMqService.sendOrderInfo(order), handlersExecutors));
+            completableFutures.add(CompletableFuture.runAsync(() -> rabbitMqService.sendOrderInfoToChartService(order), handlersExecutors));
+            completableFutures.add(CompletableFuture.runAsync(() -> rabbitMqService.sendOrderInfoToExternalService(order), handlersExecutors));
             completableFutures.add(CompletableFuture.runAsync(() -> {
                 onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
                 handleAllTrades(order);
@@ -118,6 +138,7 @@ public class OrdersEventHandleService {
                 ratesHolder.onRatesChange(order);
                 currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
             }, handlersExecutors));
+            gtagService.sendTradeEvent(order.getUserId());
             try {
                 CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0]))
                         .exceptionally(ex -> null)

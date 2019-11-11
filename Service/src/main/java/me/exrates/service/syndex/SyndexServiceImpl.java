@@ -106,17 +106,20 @@ public class SyndexServiceImpl implements SyndexService {
     @Transactional(propagation = Propagation.NESTED)
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
-        SyndexOrderDto orderDto = new SyndexOrderDto(request);
-        orderDto.setStatus(SyndexOrderStatusEnum.CREATED);
-        syndexDao.saveOrder(orderDto);
+        SyndexOrderDto createdOrder = new SyndexOrderDto(request);
+        createdOrder.setStatus(SyndexOrderStatusEnum.CREATED);
+        syndexDao.saveOrder(createdOrder);
 
-        SyndexClient.OrderInfo orderInfo = syndexClient.createOrder(new SyndexClient.CreateOrderRequest(orderDto));
-        syndexDao.updateStatus(orderDto.getId(), orderInfo.getStatus());
-        syndexDao.updateSyndexId(orderDto.getId(), orderInfo.getId());
-        syndexDao.updatePaymentDetailsAndEndDate(orderDto.getId(), orderInfo.getPaymentDetails(), orderInfo.getEndPaymentTime());
+        SyndexClient.OrderInfo syndexOrder = syndexClient.createOrder(new SyndexClient.CreateOrderRequest(createdOrder));
+
+        BigDecimal amountToRefill = countAmountToRefill(syndexOrder);
+        syndexDao.updateSyndexOrder(createdOrder.getId(), syndexOrder.getId(),
+                syndexOrder.getPaymentDetails(), syndexOrder.getEndPaymentTime(),
+                syndexOrder.getStatus(), amountToRefill);
 
         return new HashMap<String, String>() {{
-            put("$__response_object",  objectMapper.writeValueAsString(orderInfo));
+            put("$__response_object",  objectMapper.writeValueAsString(createdOrder));
+            put("$__amount_to_refill", amountToRefill.toString());
         }};
     }
 
@@ -135,7 +138,7 @@ public class SyndexServiceImpl implements SyndexService {
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
 
-        refillService.autoAcceptRefillRequest(requestAcceptDto);
+        refillService.autoAcceptRefillRequestAndSetActualAmount(requestAcceptDto);
 
         final String gaTag = refillService.getUserGAByRequestId(requestId);
         log.debug("Process of sending data to Google Analytics...");
@@ -144,15 +147,17 @@ public class SyndexServiceImpl implements SyndexService {
 
     @Transactional
     @Override
-    public void cancelMerchantRequest(int id, String email) {
-        SyndexOrderDto currentOrder = syndexDao.getByIdForUpdate(id, userService.getIdByEmail(email));
+    public void cancelMerchantRequest(int id) {
 
-        if (currentOrder.getStatus() != SyndexOrderStatusEnum.CREATED) {
+        SyndexOrderDto currentOrder = syndexDao.getByIdForUpdate(id, null);
+
+        if (currentOrder.getStatus() == SyndexOrderStatusEnum.CREATED) {
+            syndexDao.updateStatus(id, SyndexOrderStatusEnum.CANCELLED.getStatusId());
+            syndexClient.cancelOrder(currentOrder.getSyndexId());
+
+        } else if (currentOrder.getStatus() != SyndexOrderStatusEnum.CANCELLED) {
             throw new SyndexOrderException("Current status not suitable for cancellation");
         }
-
-        syndexDao.updateStatus(id, SyndexOrderStatusEnum.CANCELLED.getStatusId());
-        syndexClient.cancelOrder(currentOrder.getSyndexId());
     }
 
     @Transactional
@@ -205,6 +210,12 @@ public class SyndexServiceImpl implements SyndexService {
         SyndexClient.OrderInfo retrievedOrder = syndexClient.getOrderInfo(syndexOrderId);
         SyndexOrderStatusEnum lastSavedStatus = currentOrderFromDb.getStatus();
         SyndexOrderStatusEnum newStatus = SyndexOrderStatusEnum.convert(retrievedOrder.getStatus());
+        BigDecimal amountToRefill = countAmountToRefill(retrievedOrder);
+
+        if (currentOrderFromDb.getAmountToRefill() == null || amountToRefill.compareTo(currentOrderFromDb.getAmountToRefill()) != 0) {
+            currentOrderFromDb.setAmountToRefill(amountToRefill);
+            syndexDao.updateAmountToRefill(currentOrderFromDb.getId(), amountToRefill);
+        }
 
         if (lastSavedStatus != newStatus) {
             syndexDao.updateStatus(currentOrderFromDb.getId(), newStatus.getStatusId());
@@ -216,12 +227,8 @@ public class SyndexServiceImpl implements SyndexService {
 
         if (lastSavedStatus.isInPendingStatus() && newStatus == SyndexOrderStatusEnum.COMPLETE) {
             tryToRefill(currentOrderFromDb);
-
         } else if (lastSavedStatus.isInPendingStatus() && newStatus == SyndexOrderStatusEnum.CANCELLED) {
             refillService.revokeRefillRequest(currentOrderFromDb.getId());
-
-        }  else {
-            log.debug("do nothing on order {}", retrievedOrder);
         }
     }
 
@@ -238,9 +245,15 @@ public class SyndexServiceImpl implements SyndexService {
     @SneakyThrows
     private void tryToRefill(SyndexOrderDto currentOrderFromDb) {
        Map<String, String> paramsMap = new HashMap<>();
+
        paramsMap.put(PAYMENT_ID, String.valueOf(currentOrderFromDb.getId()));
        paramsMap.put(SYNDEX_ID, String.valueOf(currentOrderFromDb.getSyndexId()));
-       paramsMap.put(AMOUNT_PARAM, currentOrderFromDb.getAmount().toString());
+       paramsMap.put(AMOUNT_PARAM, currentOrderFromDb.getAmountToRefill().toString());
+
        processPayment(paramsMap);
+    }
+
+    private BigDecimal countAmountToRefill(SyndexClient.OrderInfo orderInfo) {
+        return orderInfo.getAmountBtc().multiply(orderInfo.getTempPriceUsd());
     }
 }

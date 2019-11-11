@@ -6,7 +6,6 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.ExOrder;
 import me.exrates.model.User;
-import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AdminOrderInfoDto;
 import me.exrates.model.dto.CallBackLogDto;
 import me.exrates.model.dto.CoinmarketcapApiDto;
@@ -205,7 +204,7 @@ public interface OrderService {
      */
     boolean updateOrder(ExOrder exOrder);
 
-    List<CoinmarketcapApiDto> getCoinmarketcapDataForActivePairs(String currencyPairName, BackDealInterval backDealInterval);
+    List<CoinmarketcapApiDto> getCoinmarketcapDataForActivePairs(String currencyPairName, String resolution);
 
     List<CoinmarketcapApiDto> getDailyCoinmarketcapData(String currencyPairName);
 
@@ -226,9 +225,17 @@ public interface OrderService {
 
     Object deleteOrderForPartialAccept(int orderId, List<ExOrder> acceptEventsList);
 
-    List<BackDealInterval> getIntervals();
-
-    List<ChartTimeFrame> getChartTimeFrames();
+    /**
+     * Searches order by its params:
+     *
+     * @param currencyPair
+     * @param orderType
+     * @param orderDate
+     * @param orderRate
+     * @param orderVolume
+     * @return ID the found order, or -1 if order with the parameters has not be found
+     */
+    Integer searchOrderByAdmin(Integer currencyPair, String orderType, String orderDate, BigDecimal orderRate, BigDecimal orderVolume);
 
     /**
      * Returns object that contains data with statistics of orders for currencyPair.

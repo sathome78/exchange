@@ -42,9 +42,6 @@
                 <li id="menu-traiding">
                     <a class="nav__link ieo-text" style="color: #d9dbff;" href="<c:url value='#'/>">IEO</a>
                 </li>
-                <li><a href="/dashboard" class="nav__link"><loc:message
-                        code="dashboard.trading"/></a></li>
-                <li>
                 <sec:authorize access="isAuthenticated()">
                     <li><a href="/dashboard?startupPage=balance-page" class="nav__link"><loc:message code="usermenu.mywallets"/></a>
                     </li>

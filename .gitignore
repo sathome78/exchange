@@ -18,6 +18,8 @@ RawBlameHistory     50 lines (38 sloc)  621 Bytes
 Thumbs.db
 ehthumbs.db
 
+db_data/*
+
 # Folder config file
 Desktop.ini
 

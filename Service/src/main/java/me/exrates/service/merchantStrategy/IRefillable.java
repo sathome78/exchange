@@ -46,7 +46,7 @@ public interface IRefillable extends IMerchantService{
     return "Not defined";
   }
 
-  default void cancelMerchantRequest(int id, String email) {
+  default void cancelMerchantRequest(int id) {
     /*default - do nothing*/
   }
 

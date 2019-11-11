@@ -75,7 +75,7 @@ public interface SyndexClient {
         public CreateOrderRequest(SyndexOrderDto syndexOrderDto) {
             this.countryCode = syndexOrderDto.getCountryId();
             this.currency = syndexOrderDto.getCurrency();
-            this.amount = syndexOrderDto.getAmount();
+            this.amount = syndexOrderDto.getAmountToPay();
             this.paymentMethod = syndexOrderDto.getPaymentSystemId();
         }
     }

@@ -17,8 +17,16 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -33,35 +41,49 @@ import static java.util.Objects.isNull;
 @Component
 public class SyndexClientImpl implements SyndexClient {
 
-    /*X-Auth-Sign = sha256 (concated, sorted by keys values + api_secret)*/
-    @Value("${x-auth-token}")
+    @Value("${syndex_public_key}")
     private String token;
-    @Value(("${x-auth-sign}"))
+    @Value("${syndex_secret_key}")
     private String secretKey;
 
     private OkHttpClient client;
     private ObjectMapper objectMapper;
 
-    private static final String POST_COUNTRY = "https://api.syndex.io/merchant/api/get-country-list";
-    private static final String POST_CURRENCY = "https://api.syndex.io/merchant/api/get-currency-list";
-    private static final String POST_PAYMENT_SYSTEM = "https://api.syndex.io/merchant/api/get-payment-list";
-    private static final String POST_CREATE_ORDER = "https://api.syndex.io/merchant/api/create-refill-order";
-    private static final String POST_CONFIRM_ORDER = "https://api.syndex.io/merchant/api/confirm-order";
-    private static final String POST_CANCEL_ORDER = "https://api.syndex.io/merchant/api/cancel-order";
-    private static final String POST_OPEN_DISPUTE = "https://api.syndex.io/merchant/api/open-dispute";
-    private static final String POST_ORDER_INFO = "https://api.syndex.io/merchant/api/info-order";
+    private final String POST_COUNTRY;
+    private final String POST_CURRENCY;
+    private final String POST_PAYMENT_SYSTEM;
+    private final String POST_CREATE_ORDER;
+    private final String POST_CONFIRM_ORDER;
+    private final String POST_CANCEL_ORDER;
+    private final String POST_OPEN_DISPUTE;
+    private final String POST_ORDER_INFO;
 
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
+    public SyndexClientImpl(@Value("${syndex_public_key}") String token,
+                            @Value("${syndex_secret_key}") String secretKey,
+                            @Value("${syndex_host}") String host) {
+        this.token = token;
+        this.secretKey = secretKey;
+
+        POST_COUNTRY = host.concat("/merchant/api/get-country-list");
+        POST_CURRENCY = host.concat("/merchant/api/get-currency-list");
+        POST_PAYMENT_SYSTEM = host.concat("/merchant/api/get-payment-list");
+        POST_CREATE_ORDER = host.concat("/merchant/api/create-refill-order");
+        POST_CONFIRM_ORDER = host.concat("/merchant/api/confirm-order");
+        POST_CANCEL_ORDER = host.concat("/merchant/api/cancel-order");
+        POST_OPEN_DISPUTE = host.concat("/merchant/api/open-dispute");
+        POST_ORDER_INFO = host.concat("/merchant/api/info-order");
+    }
 
     @PostConstruct
     private void init() {
+
         objectMapper = new ObjectMapper();
 
-        client = new OkHttpClient
-                .Builder()
-                .connectTimeout(20, TimeUnit.SECONDS)
-                .readTimeout(15, TimeUnit.SECONDS)
+        client = getUnsafeOkHttpClient()
+                .connectTimeout(1, TimeUnit.MINUTES)
+                .readTimeout(1, TimeUnit.MINUTES)
                 .retryOnConnectionFailure(false)
                 .addInterceptor(chain -> {
                     Request original = chain.request();
@@ -249,36 +271,6 @@ public class SyndexClientImpl implements SyndexClient {
         }
     }
 
-    public static void main(String[] args) {
-        SyndexClientImpl syndexClient = new SyndexClientImpl();
-        syndexClient.objectMapper = new ObjectMapper();
-        syndexClient.client =  new OkHttpClient
-                .Builder()
-                .connectTimeout(20, TimeUnit.SECONDS)
-                .readTimeout(15, TimeUnit.SECONDS)
-                .retryOnConnectionFailure(false)
-                .addInterceptor(chain -> {
-                    Request original = chain.request();
-                    String fieldsForSign = syndexClient.getFieldsForSign(original);
-
-                    Request request = original.newBuilder()
-                            .header("X-Auth-Token", "579802d19d191598daf828ba99cfc4075296ffee8fc0c14b6613b0bc1592050f")
-                            .header("X-Auth-Sign", DigestUtils.sha256Hex(fieldsForSign.concat("9e20266ed1442e7dfd227ec2bb8a4c431d16416fa56a9888dfbe17819bb24ca3")))
-                            .method(original.method(), original.body())
-                            .build();
-
-                    return chain.proceed(request);
-                })
-                .build();
-
-        Request request = new Request.Builder()
-                .post(syndexClient.buildRequestBody(new BaseRequestEntity()))
-                .url("https://api.syndex.io/merchant/api/get-list")
-                .build();
-        String response = syndexClient.executeRequest(request, String.class);
-        System.out.println(response);
-    }
-
     @SneakyThrows
     private RequestBody buildRequestBody(Object payload) {
         return RequestBody.create(JSON, objectMapper.writeValueAsString(payload));
@@ -286,5 +278,41 @@ public class SyndexClientImpl implements SyndexClient {
 
     private String getSignature(String requestValues) {
         return DigestUtils.sha256Hex(requestValues.concat(secretKey));
+    }
+
+    private static OkHttpClient.Builder getUnsafeOkHttpClient() {
+        try {
+            // Create a trust manager that does not validate certificate chains
+            final TrustManager[] trustAllCerts = new TrustManager[]{
+                    new X509TrustManager() {
+                        @Override
+                        public void checkClientTrusted(java.security.cert.X509Certificate[] chain,
+                                                       String authType) {
+                        }
+
+                        @Override
+                        public void checkServerTrusted(java.security.cert.X509Certificate[] chain,
+                                                       String authType) {
+                        }
+
+                        @Override
+                        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                            return new X509Certificate[0];
+                        }
+                    }
+            };
+            // Install the all-trusting trust manager
+            final SSLContext sslContext = SSLContext.getInstance("SSL");
+            sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+            // Create an ssl socket factory with our all-trusting manager
+            final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+
+            return new OkHttpClient.Builder()
+                    .sslSocketFactory(sslSocketFactory, (X509TrustManager) trustAllCerts[0])
+                    .hostnameVerifier((hostname, session) -> true);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
