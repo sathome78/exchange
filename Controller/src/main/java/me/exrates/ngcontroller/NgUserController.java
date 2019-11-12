@@ -2,8 +2,6 @@ package me.exrates.ngcontroller;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.LoadingCache;
-import jnr.ffi.annotations.In;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.User;
@@ -62,7 +60,6 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static me.exrates.service.util.RestUtil.getUrlFromRequest;
 import static org.apache.commons.lang.StringUtils.isEmpty;
@@ -162,9 +159,9 @@ public class NgUserController {
                     String message = String.format("Invalid email auth code from user %s", authenticationDto.getEmail());
                     throw new NgResponseException(emailAuthorizationFailedCode, message);
                 }
-            } catch (NgResponseException e) {
+            } catch (PincodeExpiredException e) {
                 secureService.sendLoginPincode(user, request, ipAddress);
-                throw e;
+                throw e.toErrorResponse();
             }
             PINCODE_CHECK_TRIES.invalidate(user.getEmail());
             userService.deleteUserPin(user.getEmail(), NotificationMessageEventEnum.LOGIN);
@@ -174,11 +171,6 @@ public class NgUserController {
         userService.logIP(user.getId(), ipAddress, UserEventEnum.LOGIN_SUCCESS, getUrlFromRequest(request));
         CompletableFuture.runAsync(() -> userLoginSessionsService.insert(request, authTokenDto.getToken(), user.getEmail()));
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK); // 200
-    }
-
-    private void incrementPinCodeTries(String email) {
-        int previousTries = numberOfTries(email);
-        PINCODE_CHECK_TRIES.put(email, previousTries + 1);
     }
 
     private int numberOfTries(String email) {
