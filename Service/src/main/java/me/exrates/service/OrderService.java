@@ -129,20 +129,6 @@ public interface OrderService {
     Optional<OrderCreationResultDto> autoAcceptOrders(OrderCreateDto orderCreateDto, Locale locale);
 
     /**
-     * TODO ADD JAVADOC
-     */
-    List<OrderWideListDto> getMyOrdersWithState(
-            CacheData cacheData,
-            String email, CurrencyPair currencyPair, OrderStatus status,
-            OperationType operationType,
-            String scope, Integer offset, Integer limit, Locale locale);
-
-    /**
-     * TODO ADD JAVADOC
-     */
-    OrderCreateDto getMyOrderById(int orderId);
-
-    /**
      * Returns entity ExOrder by its ID
      *
      * @param orderId
@@ -262,25 +248,6 @@ public interface OrderService {
      */
     ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval, Locale locale);
 
-    /**
-     * Returns data for area type chart for <i>currencyPair</i> for for period: from current moment to <i></>interval</i> back
-     *
-     * @param currencyPair
-     * @param interval
-     * @return data for area chart
-     * @author ValkSam
-     */
-    List<Map<String, Object>> getDataForAreaChart(CurrencyPair currencyPair, BackDealInterval interval);
-
-    /**
-     * Returns data for the history of accepted orders
-     *
-     * @param backDealInterval
-     * @param limit
-     * @param locale
-     * @return
-     */
-    List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(CacheData cacheData, String email, BackDealInterval backDealInterval, Integer limit, CurrencyPair currencyPair, Locale locale);
 
     @Transactional
     List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriodEx(String email,
@@ -343,29 +310,16 @@ public interface OrderService {
 
     List<OrderWideListDto> getUsersOrdersWithStateForAdmin(int id, CurrencyPair currencyPair, OrderStatus status,
                                                            OperationType operationType, Integer offset, Integer limit,
-                                                           Locale locale);
+                                                           Locale locale, UserRole userRole);
 
     int getUsersOrdersWithStateForAdminCount(int id, CurrencyPair currencyPair, OrderStatus orderStatus,
-                                             OperationType operationType, int offset, int limit);
-
-    List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
-                                                OperationType operationType, String scope,
-                                                Integer offset, Integer limit, Locale locale);
-
-    List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(String email,
-                                                            BackDealInterval backDealInterval,
-                                                            Integer limit, CurrencyPair currencyPair, Locale locale);
+                                             OperationType operationType, int offset, int limit, UserRole userRole);
 
     List<OrderListDto> getAllBuyOrders(CurrencyPair currencyPair, Locale locale);
 
     List<OrderListDto> getAllSellOrders(CurrencyPair currencyPair, Locale locale);
 
-    List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(Integer requesterUserId, String startDate, String endDate, List<Integer> roles);
-
     BiTuple getTradesForRefresh(Integer pairId, String email, RefreshObjectsEnum refreshObjectEnum);
-
-    @Transactional(readOnly = true)
-    String getAllAndMyTradesForInit(int pairId, Principal principal) throws JsonProcessingException;
 
     Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(CurrencyPair currencyPair, OperationType operationType);
 
