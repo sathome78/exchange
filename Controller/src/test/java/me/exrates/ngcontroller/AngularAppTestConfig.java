@@ -46,6 +46,7 @@ import me.exrates.service.freecoins.FreecoinsSettingsService;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.G2faService;
+import me.exrates.service.session.UserLoginSessionsService;
 import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.userOperation.UserOperationService;
@@ -81,6 +82,11 @@ public class AngularAppTestConfig {
     @Bean
     public NgUserService ngUserService() {
         return Mockito.mock(NgUserService.class);
+    }
+
+    @Bean
+    public UserLoginSessionsService userLoginSessionsService() {
+        return Mockito.mock(UserLoginSessionsService.class);
     }
 
     @Bean

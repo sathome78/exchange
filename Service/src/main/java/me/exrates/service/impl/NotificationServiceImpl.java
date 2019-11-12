@@ -54,7 +54,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public long createLocalizedNotification(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
                                             Object[] messageArgs) {
-         Locale locale = new Locale(userService.getPreferedLang(userId));
+        Locale locale = new Locale(userService.getPreferedLang(userId));
         return 0L /*createNotification(userId, messageSource.getMessage(titleCode, null, locale),
                 messageSource.getMessage(messageCode, normalizeArgs(messageArgs), locale), cause)*/;
 
@@ -93,7 +93,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void notifyUser(Integer userId, NotificationEvent cause, String titleMessage, String message) {
-      User user = userService.getUserById(userId);
+        User user = userService.getUserById(userId);
         Email email = new Email();
         email.setSubject(titleMessage);
         email.setMessage(message);
@@ -141,7 +141,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private String[] normalizeArgs(Object... args) {
-       return Arrays.toString(args).replaceAll("[\\[\\]]", "").split("\\s*,\\s*");
+        return Arrays.toString(args).replaceAll("[\\[\\]]", "").split("\\s*,\\s*");
     }
 
     @Override

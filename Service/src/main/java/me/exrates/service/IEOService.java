@@ -8,7 +8,6 @@ import me.exrates.model.dto.ieo.IeoDetailsCreateDto;
 import me.exrates.model.dto.ieo.IeoDetailsUpdateDto;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Collection;
 
 public interface IEOService {
@@ -42,4 +41,12 @@ public interface IEOService {
     boolean isUserSubscribeForIEOEmail(String email);
 
     boolean isUserSubscribeForIEOTelegram(String email);
+
+    boolean isPolicyConfirmed(int userId, int ieoId);
+
+    void setPolicyConfirmed(int userId, int ieoId);
+
+    String getIeoPolicy(int ieoId);
+
+    void updateIeoPolicy(Integer id, String text);
 }

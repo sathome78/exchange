@@ -14,6 +14,7 @@ import me.exrates.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.util.AbstractMap;
 
 @RequestMapping("/api/private/v2/ieo")
 @RestController
@@ -62,6 +64,21 @@ public class NgIEOController {
         String email = getPrincipalEmail();
         User user = userService.findByEmail(email);
         return new ResponseModel<>(ieoService.findAll(user));
+    }
+
+    @PostMapping(value = "/policy/check/{ieoId}")
+    @ResponseBody
+    public ResponseEntity setUserAgreeWithPolicy(@PathVariable int ieoId) {
+        String email = getPrincipalEmail();
+        final int userId = userService.getIdByEmail(email);
+        ieoService.setPolicyConfirmed(userId, ieoId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping(value = "/policy/{ieoId}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseBody
+    public AbstractMap.SimpleEntry getUserAgreement(@PathVariable int ieoId) {
+        return new AbstractMap.SimpleEntry<>("policy", ieoService.getIeoPolicy(ieoId));
     }
 
     private String getPrincipalEmail() {

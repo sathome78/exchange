@@ -271,6 +271,17 @@
                                             </div>
                                         </div>
 
+                                        <div class="input-block-wrapper">
+                                            <div class="col-md-8 input-block-wrapper__label-wrapper">
+                                                <label class="input-block-wrapper__label">Trades are allowed</label>
+                                            </div>
+
+                                            <div class="col-md-4 input-block-wrapper__input-wrapper">
+                                                <form:checkbox path="hasTradesPrivileges"
+                                                />
+                                            </div>
+                                        </div>
+
                                         <sec:authorize access="hasAuthority('${admin_editUser}')">
                                             <div class="admin-submit-group">
                                                 <div>

@@ -231,7 +231,7 @@ public class RefillRequestController {
                 .remark(acceptDto.getRemark())
                 .merchantTransactionId(acceptDto.getMerchantTxId())
                 .build();
-        refillService.acceptRefillRequest(requestAcceptDto);
+        refillService.acceptAdminRefillRequest(requestAcceptDto);
     }
 
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)

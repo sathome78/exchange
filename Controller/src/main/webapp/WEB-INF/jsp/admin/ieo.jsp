@@ -242,6 +242,18 @@
                         </div>
                     </div>
 
+                    <%--Policy--%>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label">
+                                <loc:message code="ieo.policy"/>
+                            </label>
+                        </div>
+                        <div class="col-md-9 input-block-wrapper__input-wrapper" style="height: auto;">
+                            <textarea name="licenseAgreement"></textarea>
+                        </div>
+                    </div>
+
                 </form>
                 <button id="ieo_create_send" class="blue-box" style="cursor: pointer"><loc:message
                         code="ieo.create_new"/></button>
@@ -546,6 +558,23 @@
                     <a id="ieo_revert_send" class="blue-box" style="cursor: pointer; background-color: red"><loc:message
                             code="ieo.revert_ieo"/></a>
 
+                </form>
+
+                <form id="policyUpdForm">
+                    <%--Policy--%>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label">
+                                <loc:message code="ieo.policy"/>
+                            </label>
+                        </div>
+                        <div class="col-md-9 input-block-wrapper__input-wrapper" style="height: auto;">
+                            <textarea id="policy_upd" name="licenseAgreement"></textarea>
+                        </div>
+                    </div>
+
+                    <a id="ieo_policy_update_send" class="blue-box" style="cursor: pointer"><loc:message
+                            code="button.updatePolicy"/></a>
                 </form>
 
             </div>

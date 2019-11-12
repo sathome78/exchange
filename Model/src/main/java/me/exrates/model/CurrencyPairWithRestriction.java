@@ -3,7 +3,6 @@ package me.exrates.model;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import me.exrates.model.enums.CurrencyPairRestrictionsEnum;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.List;

@@ -6,10 +6,9 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.ExOrder;
 import me.exrates.model.User;
-import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AdminOrderInfoDto;
 import me.exrates.model.dto.CallBackLogDto;
-import me.exrates.model.dto.CoinmarketApiDto;
+import me.exrates.model.dto.CoinmarketcapApiDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.InputCreateOrderDto;
@@ -219,20 +218,9 @@ public interface OrderService {
      */
     boolean updateOrder(ExOrder exOrder);
 
-    /**
-     * Returns data for CoinMarketCap API
-     *
-     * @param currencyPairName
-     * @param backDealInterval
-     * @return list the CoinmarketApiDto, which consists info about currency pairs according to API
-     */
-    List<CoinmarketApiDto> getCoinmarketData(String currencyPairName, BackDealInterval backDealInterval);
+    List<CoinmarketcapApiDto> getCoinmarketcapDataForActivePairs(String currencyPairName, String resolution);
 
-    List<CoinmarketApiDto> getCoinmarketDataForActivePairs(String currencyPairName, BackDealInterval backDealInterval);
-
-    List<CoinmarketApiDto> getDailyCoinmarketData(String currencyPairName);
-
-    List<CoinmarketApiDto> getHourlyCoinmarketData(String currencyPairName);
+    List<CoinmarketcapApiDto> getDailyCoinmarketcapData(String currencyPairName);
 
     /**
      * Returns detailed info about the order, including info from related transactions
@@ -262,10 +250,6 @@ public interface OrderService {
      * @return ID the found order, or -1 if order with the parameters has not be found
      */
     Integer searchOrderByAdmin(Integer currencyPair, String orderType, String orderDate, BigDecimal orderRate, BigDecimal orderVolume);
-
-    List<BackDealInterval> getIntervals();
-
-    List<ChartTimeFrame> getChartTimeFrames();
 
     /**
      * Returns object that contains data with statistics of orders for currencyPair.
