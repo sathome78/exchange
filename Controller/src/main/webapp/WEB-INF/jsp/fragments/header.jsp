@@ -8,7 +8,6 @@
 
 <script type="text/javascript" src="/client/js/jquery.cookie.js"></script>
 <script src="<c:url value="/client/js/jquery.noty.packaged.min.js"/>"></script>
-<script src="<c:url value="/client/js/notifications/notifications.js"/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/login.js'/>"></script>
 <script src="https://www.google.com/recaptcha/api.js" type="text/javascript"></script>

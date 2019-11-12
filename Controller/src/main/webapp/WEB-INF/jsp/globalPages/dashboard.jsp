@@ -42,15 +42,8 @@
     <script type="text/javascript" src="<c:url value='/client/js/lib/numeral/numbro.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>
     <%----%>
-    <script type="text/javascript" src="<c:url value='/client/js/trading/trading.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/mywallets/mywallets.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/history/history.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/myorders/myorders.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/inputOutput/refillConfirmationDialog.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/inputOutput/inputOutput.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/myreferral/myreferral.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/mywallets/statements.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/order/orders.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/currencypair/currencyPairSelector.js'/>"></script>
     <%----%>
     <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
@@ -58,13 +51,11 @@
     <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/moment-with-locales.min.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/historyRefStr.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/jquery.tmpl.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/jquery.twbsPagination.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/lib/jquery.onoff.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/order/orderRoleFilter.js'/>"></script>
     <%-- <script src="<c:url value='/client/js/lib/survey/survey.jquery.min.js'/>"></script>--%>
-    <script type="text/javascript" src="<c:url value='/client/js/news/news.js'/>"></script>
     <%----%>
     <script type="text/javascript" src="<c:url value='/client/js/kinetic.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/jquery.final-countdown.js'/>"></script>

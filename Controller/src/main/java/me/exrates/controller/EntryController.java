@@ -205,7 +205,6 @@ public class EntryController {
                     .limit(1)
                     .forEach(p -> model.addObject("preferedCurrencyPairName", currencyPair));
         }
-
         return model;
     }
 

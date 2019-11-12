@@ -8,7 +8,6 @@
 
 <script type="text/javascript" src="/client/js/jquery.cookie.js"></script>
 <script src="<c:url value="/client/js/jquery.noty.packaged.min.js"/>"></script>
-<script src="<c:url value="/client/js/notifications/notifications.js"/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>
 <link href="https://fonts.googleapis.com/css?family=Montserrat:500,700" rel="stylesheet">
 
