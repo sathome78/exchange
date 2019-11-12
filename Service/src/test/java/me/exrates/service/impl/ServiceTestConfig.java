@@ -77,7 +77,6 @@ import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.BigDecimalConverter;
 import me.exrates.service.util.RestApiUtilComponent;
 import me.exrates.service.util.WithdrawUtils;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -138,6 +137,9 @@ public class ServiceTestConfig {
 
     @Value("${api.chart.coinmarketcap-url}")
     String coinmarketcapUrl;
+
+    @Value("${api.chart.exchange-rates-url}")
+    String exchangeRatesUrl;
 
     @Bean
     public CurrencyDao currencyDao() {
@@ -484,7 +486,7 @@ public class ServiceTestConfig {
 
     @Bean
     public ChartApi chartApi() {
-        return new ChartApi(chartUrl, coinmarketcapUrl);
+        return new ChartApi(chartUrl, coinmarketcapUrl, exchangeRatesUrl);
     }
 
     @Bean

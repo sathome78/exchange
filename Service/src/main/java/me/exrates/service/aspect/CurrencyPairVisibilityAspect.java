@@ -1,5 +1,6 @@
 package me.exrates.service.aspect;
 
+import me.exrates.model.CurrencyPair;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import org.aspectj.lang.JoinPoint;
@@ -30,12 +31,14 @@ public class CurrencyPairVisibilityAspect {
         if (Objects.isNull(args) || args.length == 0) {
             return;
         }
-        Integer currencyPairId = (Integer) args[0];
-        boolean isHidden = currencyService.isCurrencyPairHidden(currencyPairId);
-        if (isHidden) {
-            exchangeRatesHolder.deleteCurrencyPairFromCache(currencyPairId);
+        final Integer currencyPairId = (Integer) args[0];
+
+        CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
+
+        if (currencyPair.isHidden()) {
+            exchangeRatesHolder.deleteCurrencyPairFromCache(currencyPair);
         } else {
-            exchangeRatesHolder.addCurrencyPairToCache(currencyPairId);
+            exchangeRatesHolder.addCurrencyPairToCache(currencyPair);
         }
     }
 }

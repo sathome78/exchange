@@ -1,5 +1,6 @@
 package me.exrates.service.cache;
 
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.enums.TradeMarket;
@@ -11,19 +12,19 @@ import java.util.Set;
 
 public interface ExchangeRatesHolder {
 
-    void onRatesChange(ExOrder exOrder);
+    void onRatesChange(ExOrder order);
 
-    ExOrderStatisticsShortByPairsDto getOne(Integer currencyPairId);
+    ExOrderStatisticsShortByPairsDto getOne(String currencyPairName);
 
     List<ExOrderStatisticsShortByPairsDto> getAllRates();
 
-    List<ExOrderStatisticsShortByPairsDto> getCurrenciesRates(Set<Integer> id);
+    List<ExOrderStatisticsShortByPairsDto> getCurrenciesRates(Set<String> names);
 
     Map<String, BigDecimal> getRatesForMarket(TradeMarket market);
 
     BigDecimal getBtcUsdRate();
 
-    void addCurrencyPairToCache(int currencyPairId);
+    void addCurrencyPairToCache(CurrencyPair currencyPair);
 
-    void deleteCurrencyPairFromCache(int currencyPairId);
+    void deleteCurrencyPairFromCache(CurrencyPair currencyPair);
 }

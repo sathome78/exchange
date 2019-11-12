@@ -398,20 +398,7 @@ public class BalanceServiceImpl implements BalanceService {
 
             if (btcRate.compareTo(BigDecimal.ZERO) > 0) result.setBalanceBtc(sumBalances.multiply(btcRate));
             if (usdRate.compareTo(BigDecimal.ZERO) > 0) result.setBalanceUsd(sumBalances.multiply(usdRate));
-
-            return result;
         }
-
-//        if (optionalBtc.isPresent()) {
-//            BigDecimal btcRate = optionalBtc.get().getLastOrderRate();
-//            if (btcRate.compareTo(BigDecimal.ZERO) > 0) {
-//                BigDecimal btcValue = sumBalances.multiply(btcRate);
-//                result.setBalanceBtc(btcValue);
-//                BigDecimal usdValue = btcValue.multiply(btcUsdRate);
-//                result.setBalanceUsd(usdValue);
-//            }
-//        }
-
         return result;
     }
 

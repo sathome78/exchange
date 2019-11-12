@@ -4,7 +4,7 @@ import me.exrates.controller.model.BaseResponse;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.chart.CandleDto;
 import me.exrates.model.constants.ErrorApiTitles;
-import me.exrates.model.dto.CoinmarketcapApiDto;
+import me.exrates.model.chart.CoinmarketcapApiDto;
 import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
 import me.exrates.model.dto.openAPI.OrderBookItem;

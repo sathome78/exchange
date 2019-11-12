@@ -21,9 +21,9 @@ import me.exrates.model.Transaction;
 import me.exrates.model.User;
 import me.exrates.model.UserRoleSettings;
 import me.exrates.model.Wallet;
+import me.exrates.model.chart.CoinmarketcapApiDto;
 import me.exrates.model.dto.AdminOrderInfoDto;
 import me.exrates.model.dto.CallBackLogDto;
-import me.exrates.model.dto.CoinmarketcapApiDto;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
@@ -304,7 +304,14 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<ExOrderStatisticsShortByPairsDto> getStatForSomeCurrencies(Set<Integer> pairsIds) {
-        List<ExOrderStatisticsShortByPairsDto> dto = exchangeRatesHolder.getCurrenciesRates(pairsIds);
+        if (isEmpty(pairsIds)) {
+            return Collections.emptyList();
+        }
+        Set<String> names = pairsIds.stream()
+                .map(p -> currencyService.findCurrencyPairById(p).getName())
+                .collect(Collectors.toSet());
+
+        List<ExOrderStatisticsShortByPairsDto> dto = exchangeRatesHolder.getCurrenciesRates(names);
         Locale locale = Locale.ENGLISH;
         try {
             processStats(dto, locale);
@@ -639,15 +646,15 @@ public class OrderServiceImpl implements OrderService {
         return orderValidationDto;
     }
 
-    private void validateExrate(OrderCreateDto dto, Map<String, Object> errors) {
-        BigDecimal lastRate = new BigDecimal(exchangeRatesHolder.getOne(dto.getCurrencyPair().getId()).getLastOrderRate());
-        BigDecimal bound = lastRate.multiply(exrateDeviationPercent).divide(BigDecimal.valueOf(100), 8, RoundingMode.HALF_UP);
-        BigDecimal delta = dto.getExchangeRate().subtract(lastRate).abs();
-
-        if (delta.compareTo(bound) > 0) {
-            errors.put("exrate_" + errors.size(), "order.invalid_rate");
-        }
-    }
+//    private void validateExrate(OrderCreateDto dto, Map<String, Object> errors) {
+//        BigDecimal lastRate = new BigDecimal(exchangeRatesHolder.getOne(dto.getCurrencyPair().getId()).getLastOrderRate());
+//        BigDecimal bound = lastRate.multiply(exrateDeviationPercent).divide(BigDecimal.valueOf(100), 8, RoundingMode.HALF_UP);
+//        BigDecimal delta = dto.getExchangeRate().subtract(lastRate).abs();
+//
+//        if (delta.compareTo(bound) > 0) {
+//            errors.put("exrate_" + errors.size(), "order.invalid_rate");
+//        }
+//    }
 
     private void validateIcoOrder(Map<String, Object> errors, Map<String, Object[]> errorParams, OrderCreateDto orderCreateDto) {
         if (orderCreateDto.getOrderBaseType() != OrderBaseType.ICO) {
@@ -2735,7 +2742,9 @@ public class OrderServiceImpl implements OrderService {
                 .total(getWrapperTotal(simpleOrderBookItems))
                 .build();
 
-        ExOrderStatisticsShortByPairsDto statistic = exchangeRatesHolder.getOne(currencyId);
+        CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyId);
+
+        ExOrderStatisticsShortByPairsDto statistic = exchangeRatesHolder.getOne(currencyPair.getName());
         if (nonNull(statistic)) {
             final BigDecimal lastOrderRate = new BigDecimal(statistic.getLastOrderRate());
             final BigDecimal predLastOrderRate = new BigDecimal(statistic.getPredLastOrderRate());
@@ -2756,7 +2765,9 @@ public class OrderServiceImpl implements OrderService {
                 .peek(n -> n.setExrate(new BigDecimal(n.getExrate()).round(context).toPlainString()))
                 .collect(Collectors.toList());
 
-        ExOrderStatisticsShortByPairsDto statistic = exchangeRatesHolder.getOne(currencyId);
+        CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyId);
+
+        ExOrderStatisticsShortByPairsDto statistic = exchangeRatesHolder.getOne(currencyPair.getName());
 
         Map<PrecissionsEnum, String> result = new HashMap<>();
         precissionsList.forEach(p -> {
@@ -2784,23 +2795,6 @@ public class OrderServiceImpl implements OrderService {
             }
         });
         return result;
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public List<ExOrderStatisticsShortByPairsDto> getRatesDataForCache(Integer currencyPairId) {
-        return orderDao.getRatesDataForCache(currencyPairId);
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public List<ExOrderStatisticsShortByPairsDto> getAllDataForCache(Integer currencyPairId) {
-        return orderDao.getAllDataForCache(currencyPairId);
-    }
-
-    @Override
-    public ExOrderStatisticsShortByPairsDto getBeforeLastRateForCache(Integer currencyPairId) {
-        return orderDao.getBeforeLastRateForCache(currencyPairId);
     }
 
     private boolean safeCompareBigDecimals(BigDecimal last, BigDecimal beforeLast) {

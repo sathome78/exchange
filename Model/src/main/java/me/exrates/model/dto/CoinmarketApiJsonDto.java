@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import me.exrates.model.chart.CoinmarketcapApiDto;
 import me.exrates.model.serializer.BigDecimalNonePointSerializer;
 
 import java.math.BigDecimal;

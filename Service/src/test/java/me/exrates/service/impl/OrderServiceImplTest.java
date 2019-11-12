@@ -350,7 +350,8 @@ public class OrderServiceImplTest {
 
     @Test
     public void getStatForSomeCurrencies() {
-        when(exchangeRatesHolder.getCurrenciesRates(anySetOf(Integer.class)))
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(new CurrencyPair());
+        when(exchangeRatesHolder.getCurrenciesRates(anySetOf(String.class)))
                 .thenReturn(Collections.singletonList(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.MAIN)));
 
         List<ExOrderStatisticsShortByPairsDto> statForSomeCurrencies = orderService
@@ -381,7 +382,8 @@ public class OrderServiceImplTest {
 
     @Test
     public void getStatForSomeCurrencies_null() {
-        when(exchangeRatesHolder.getCurrenciesRates(anySetOf(Integer.class))).thenReturn(null);
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(new CurrencyPair());
+        when(exchangeRatesHolder.getCurrenciesRates(anySetOf(String.class))).thenReturn(null);
 
         List<ExOrderStatisticsShortByPairsDto> statForSomeCurrencies = orderService
                 .getStatForSomeCurrencies(new HashSet<Integer>() {{
@@ -392,7 +394,8 @@ public class OrderServiceImplTest {
 
         assertNull(statForSomeCurrencies);
 
-        verify(exchangeRatesHolder, atLeastOnce()).getCurrenciesRates(anySetOf(Integer.class));
+        verify(currencyService, times(3)).findCurrencyPairById(anyInt());
+        verify(exchangeRatesHolder, atLeastOnce()).getCurrenciesRates(anySetOf(String.class));
     }
 
     @Test
@@ -509,7 +512,7 @@ public class OrderServiceImplTest {
         when(currencyService.findLimitForRoleByCurrencyPairAndType(anyInt(), any(OperationType.class)))
                 .thenReturn(getMockCurrencyPairLimitDto());
 
-        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("10"));
+        when(exchangeRatesHolder.getOne(anyString())).thenReturn(new ExOrderStatisticsShortByPairsDto("10"));
 
         OrderValidationDto orderValidationDto = orderService
                 .validateOrder(getMockOrderCreateDto(BigDecimal.TEN), Boolean.FALSE, new User());
@@ -542,7 +545,7 @@ public class OrderServiceImplTest {
                 any(OperationType.class),
                 any(User.class))).thenReturn(getMockCurrencyPairLimitDto());
 
-        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
+        when(exchangeRatesHolder.getOne(anyString())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
 
         OrderValidationDto orderValidationDto = orderService
                 .validateOrder(getMockOrderCreateDto(BigDecimal.ZERO), Boolean.TRUE, new User());
@@ -586,7 +589,7 @@ public class OrderServiceImplTest {
                 any(OperationType.class),
                 any(User.class))).thenReturn(getMockCurrencyPairLimitDto());
 
-        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
+        when(exchangeRatesHolder.getOne(anyString())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
 
         OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto, Boolean.TRUE, new User());
 
@@ -629,7 +632,7 @@ public class OrderServiceImplTest {
                 CurrencyPairType.ALL,
                 BigDecimal.ZERO,
                 BigDecimal.ONE);
-        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
+        when(exchangeRatesHolder.getOne(anyString())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
         when(currencyService.findLimitForRoleByCurrencyPairAndTypeAndUser(
                 anyInt(),
                 any(OperationType.class),
@@ -684,7 +687,7 @@ public class OrderServiceImplTest {
                 any(OperationType.class),
                 any(User.class))).thenReturn(getMockCurrencyPairLimitDto());
 
-        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
+        when(exchangeRatesHolder.getOne(anyString())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
 
         OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto, Boolean.TRUE, new User());
 
@@ -735,7 +738,7 @@ public class OrderServiceImplTest {
                 any(OperationType.class),
                 any(User.class))).thenReturn(getMockCurrencyPairLimitDto());
 
-        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
+        when(exchangeRatesHolder.getOne(anyString())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
 
         try {
             orderService.validateOrder(orderCreateDto, Boolean.TRUE, new User());
@@ -757,7 +760,7 @@ public class OrderServiceImplTest {
                 BigDecimal.ZERO,
                 BigDecimal.valueOf(11));
 
-        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
+        when(exchangeRatesHolder.getOne(anyString())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
 
         when(currencyService.findLimitForRoleByCurrencyPairAndTypeAndUser(
                 anyInt(),
@@ -806,7 +809,7 @@ public class OrderServiceImplTest {
                 BigDecimal.valueOf(11),
                 BigDecimal.valueOf(11));
 
-        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("11"));
+        when(exchangeRatesHolder.getOne(anyString())).thenReturn(new ExOrderStatisticsShortByPairsDto("11"));
 
         when(currencyService.findLimitForRoleByCurrencyPairAndTypeAndUser(
                 anyInt(),
@@ -847,7 +850,7 @@ public class OrderServiceImplTest {
     public void validateOrder_has_one_argument() {
         when(currencyService.findLimitForRoleByCurrencyPairAndType(anyInt(), any(OperationType.class)))
                 .thenReturn(getMockCurrencyPairLimitDto());
-        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
+        when(exchangeRatesHolder.getOne(anyString())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
         OrderValidationDto orderValidationDto = orderService.validateOrder(getMockOrderCreateDto(BigDecimal.ZERO));
 
         assertNotNull(orderValidationDto);
@@ -887,7 +890,7 @@ public class OrderServiceImplTest {
                 anyInt(),
                 any(OperationType.class))).thenReturn(getMockCurrencyPairLimitDto());
 
-        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
+        when(exchangeRatesHolder.getOne(anyString())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
 
         OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto);
 
@@ -932,7 +935,7 @@ public class OrderServiceImplTest {
                 anyInt(),
                 any(OperationType.class))).thenReturn(getMockCurrencyPairLimitDto());
 
-        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
+        when(exchangeRatesHolder.getOne(anyString())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
 
         OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto);
 
@@ -975,7 +978,7 @@ public class OrderServiceImplTest {
                 BigDecimal.ZERO,
                 BigDecimal.valueOf(11));
 
-        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
+        when(exchangeRatesHolder.getOne(anyString())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
 
         when(currencyService.findLimitForRoleByCurrencyPairAndType(
                 anyInt(),
@@ -1022,7 +1025,7 @@ public class OrderServiceImplTest {
                 BigDecimal.ZERO,
                 BigDecimal.valueOf(11));
 
-        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
+        when(exchangeRatesHolder.getOne(anyString())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
 
         when(currencyService.findLimitForRoleByCurrencyPairAndType(anyInt(), any(OperationType.class)))
                 .thenReturn(getMockCurrencyPairLimitDto());
@@ -1049,7 +1052,7 @@ public class OrderServiceImplTest {
         when(currencyService.findLimitForRoleByCurrencyPairAndType(anyInt(), any(OperationType.class)))
                 .thenReturn(getMockCurrencyPairLimitDto());
 
-        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("11"));
+        when(exchangeRatesHolder.getOne(anyString())).thenReturn(new ExOrderStatisticsShortByPairsDto("11"));
         OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto);
 
         assertNotNull(orderValidationDto);
@@ -1789,7 +1792,7 @@ public class OrderServiceImplTest {
         dto.setOrderType(OperationType.BUY);
         dto.setAmount(BigDecimal.TEN);
         dto.setRate(BigDecimal.ONE);
-        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
+        when(exchangeRatesHolder.getOne(anyString())).thenReturn(new ExOrderStatisticsShortByPairsDto("0"));
         when(currencyService.findCurrencyPairByIdWithRestrictions(anyInt())).thenReturn(new CurrencyPairWithRestriction("BTC/USD"));
         when(orderDao.getWalletAndCommission(
                 anyString(),
@@ -1824,7 +1827,7 @@ public class OrderServiceImplTest {
         CurrencyPairLimitDto mockCurrencyPairLimitDto = getMockCurrencyPairLimitDto();
         mockCurrencyPairLimitDto.setMinAmount(BigDecimal.ZERO);
         mockCurrencyPairLimitDto.setMinRate(BigDecimal.ZERO);
-        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(new ExOrderStatisticsShortByPairsDto("1"));
+        when(exchangeRatesHolder.getOne(anyString())).thenReturn(new ExOrderStatisticsShortByPairsDto("1"));
         when(currencyService.findCurrencyPairByIdWithRestrictions(anyInt())).thenReturn(new CurrencyPairWithRestriction("BTC/USD"));
         when(orderDao.getWalletAndCommission(
                 anyString(),
@@ -5225,7 +5228,8 @@ public class OrderServiceImplTest {
     public void getSomeCurrencyStatForRefresh_dtos_isEmpty() {
         Set<Integer> currencyIds = new HashSet<>(Arrays.asList(1, 2, 3));
 
-        when(exchangeRatesHolder.getCurrenciesRates(anySetOf(Integer.class))).thenReturn(Collections.EMPTY_LIST);
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(new CurrencyPair());
+        when(exchangeRatesHolder.getCurrenciesRates(anySetOf(String.class))).thenReturn(Collections.EMPTY_LIST);
 
         RefreshStatisticDto someCurrencyStatForRefresh = orderService.getSomeCurrencyStatForRefresh(currencyIds);
 
@@ -5234,7 +5238,8 @@ public class OrderServiceImplTest {
         assertNull(someCurrencyStatForRefresh.getMainCurrenciesData());
         assertNull(someCurrencyStatForRefresh.getStatisticInfoDtos());
 
-        verify(exchangeRatesHolder, atLeastOnce()).getCurrenciesRates(anySetOf(Integer.class));
+        verify(currencyService, times(3)).findCurrencyPairById(anyInt());
+        verify(exchangeRatesHolder, atLeastOnce()).getCurrenciesRates(anySetOf(String.class));
     }
 
     @Test
@@ -5245,7 +5250,8 @@ public class OrderServiceImplTest {
 
         String expected = responseJson();
 
-        when(exchangeRatesHolder.getCurrenciesRates(anySetOf(Integer.class)))
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(new CurrencyPair());
+        when(exchangeRatesHolder.getCurrenciesRates(anySetOf(String.class)))
                 .thenReturn(exOrderStatisticsShortByPairsDtos);
         when(objectMapper.writeValueAsString(any())).thenReturn(responseJson());
 
@@ -5258,7 +5264,8 @@ public class OrderServiceImplTest {
         assertTrue(someCurrencyStatForRefresh.getStatisticInfoDtos().containsKey("BTC/USD"));
         assertTrue(someCurrencyStatForRefresh.getStatisticInfoDtos().containsValue(responseJson()));
 
-        verify(exchangeRatesHolder, atLeastOnce()).getCurrenciesRates(anySetOf(Integer.class));
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+        verify(exchangeRatesHolder, atLeastOnce()).getCurrenciesRates(anySetOf(String.class));
         verify(objectMapper, atLeastOnce()).writeValueAsString(any(OrdersListWrapper.class));
     }
 
@@ -5268,7 +5275,8 @@ public class OrderServiceImplTest {
         List<ExOrderStatisticsShortByPairsDto> exOrderStatisticsShortByPairsDtos = Collections
                 .singletonList(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.ICO));
 
-        when(exchangeRatesHolder.getCurrenciesRates(anySetOf(Integer.class)))
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(new CurrencyPair());
+        when(exchangeRatesHolder.getCurrenciesRates(anySetOf(String.class)))
                 .thenReturn(exOrderStatisticsShortByPairsDtos);
         doThrow(JsonProcessingException.class).when(objectMapper).writeValueAsString(any(OrdersListWrapper.class));
 
@@ -5280,7 +5288,8 @@ public class OrderServiceImplTest {
             assertEquals("com.fasterxml.jackson.core.JsonProcessingException: N/A", e.getMessage());
         }
 
-        verify(exchangeRatesHolder, atLeastOnce()).getCurrenciesRates(anySetOf(Integer.class));
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+        verify(exchangeRatesHolder, atLeastOnce()).getCurrenciesRates(anySetOf(String.class));
         verify(objectMapper, atLeastOnce()).writeValueAsString(any(OrdersListWrapper.class));
     }
 
@@ -5292,7 +5301,8 @@ public class OrderServiceImplTest {
 
         String expected = responseJson();
 
-        when(exchangeRatesHolder.getCurrenciesRates(anySetOf(Integer.class)))
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(new CurrencyPair());
+        when(exchangeRatesHolder.getCurrenciesRates(anySetOf(String.class)))
                 .thenReturn(exOrderStatisticsShortByPairsDtos);
         when(objectMapper.writeValueAsString(any())).thenReturn(responseJson());
 
@@ -5305,7 +5315,8 @@ public class OrderServiceImplTest {
         assertTrue(someCurrencyStatForRefresh.getStatisticInfoDtos().containsKey("BTC/USD"));
         assertTrue(someCurrencyStatForRefresh.getStatisticInfoDtos().containsValue(responseJson()));
 
-        verify(exchangeRatesHolder, atLeastOnce()).getCurrenciesRates(anySetOf(Integer.class));
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+        verify(exchangeRatesHolder, atLeastOnce()).getCurrenciesRates(anySetOf(String.class));
         verify(objectMapper, atLeastOnce()).writeValueAsString(any(OrdersListWrapper.class));
     }
 
@@ -5315,7 +5326,8 @@ public class OrderServiceImplTest {
         List<ExOrderStatisticsShortByPairsDto> exOrderStatisticsShortByPairsDtos = Collections
                 .singletonList(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.MAIN));
 
-        when(exchangeRatesHolder.getCurrenciesRates(anySetOf(Integer.class))).thenReturn(exOrderStatisticsShortByPairsDtos);
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(new CurrencyPair());
+        when(exchangeRatesHolder.getCurrenciesRates(anySetOf(String.class))).thenReturn(exOrderStatisticsShortByPairsDtos);
         doThrow(JsonProcessingException.class).when(objectMapper).writeValueAsString(any(OrdersListWrapper.class));
 
         try {
@@ -5326,14 +5338,16 @@ public class OrderServiceImplTest {
             assertEquals("com.fasterxml.jackson.core.JsonProcessingException: N/A", e.getMessage());
         }
 
-        verify(exchangeRatesHolder, atLeastOnce()).getCurrenciesRates(anySetOf(Integer.class));
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+        verify(exchangeRatesHolder, atLeastOnce()).getCurrenciesRates(anySetOf(String.class));
         verify(objectMapper, atLeastOnce()).writeValueAsString(any(OrdersListWrapper.class));
     }
 
     @Test
     public void getStatForPair_ExOrderStatisticsShortByPairsDto_not_empty() {
         when(currencyService.getCurrencyPairByName(anyString())).thenReturn(getMockCurrencyPair(CurrencyPairType.ICO));
-        when(exchangeRatesHolder.getCurrenciesRates(anySetOf(Integer.class)))
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(new CurrencyPair());
+        when(exchangeRatesHolder.getCurrenciesRates(anySetOf(String.class)))
                 .thenReturn(Collections.singletonList(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.ICO)));
 
         ResponseInfoCurrencyPairDto statForPair = orderService.getStatForPair("BTC/USD");
@@ -5349,20 +5363,23 @@ public class OrderServiceImplTest {
         assertEquals("BTC/USD", statForPair.getPairName());
 
         verify(currencyService, atLeastOnce()).getCurrencyPairByName(anyString());
-        verify(exchangeRatesHolder, atLeastOnce()).getCurrenciesRates(anySetOf(Integer.class));
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+        verify(exchangeRatesHolder, atLeastOnce()).getCurrenciesRates(anySetOf(String.class));
     }
 
     @Test
     public void getStatForPair_ExOrderStatisticsShortByPairsDto_isEmpty() {
         when(currencyService.getCurrencyPairByName(anyString())).thenReturn(getMockCurrencyPair(CurrencyPairType.ICO));
-        when(exchangeRatesHolder.getCurrenciesRates(anySetOf(Integer.class))).thenReturn(Collections.EMPTY_LIST);
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(new CurrencyPair());
+        when(exchangeRatesHolder.getCurrenciesRates(anySetOf(String.class))).thenReturn(Collections.EMPTY_LIST);
 
         ResponseInfoCurrencyPairDto statForPair = orderService.getStatForPair("BTC/USD");
 
         assertNull(statForPair);
 
         verify(currencyService, atLeastOnce()).getCurrencyPairByName(anyString());
-        verify(exchangeRatesHolder, atLeastOnce()).getCurrenciesRates(anySetOf(Integer.class));
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+        verify(exchangeRatesHolder, atLeastOnce()).getCurrenciesRates(anySetOf(String.class));
     }
 
     @Test
@@ -6238,7 +6255,10 @@ public class OrderServiceImplTest {
         BigDecimal total = item1.add(item2);
 
         when(orderDao.findAllByOrderTypeAndCurrencyId(anyInt(), any(OrderType.class))).thenReturn(getMockOrderListDto());
-        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.MAIN));
+        CurrencyPair currencyPair = new CurrencyPair();
+        currencyPair.setName("BTC/USD");
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(currencyPair);
+        when(exchangeRatesHolder.getOne(anyString())).thenReturn(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.MAIN));
 
         OrderBookWrapperDto orderBookWrapperDto = orderService.findAllOrderBookItems(OrderType.SELL, 1, 5);
 
@@ -6257,7 +6277,8 @@ public class OrderServiceImplTest {
         assertEquals(BigDecimal.valueOf(0.055629498), orderBookWrapperDto.getOrderBookItems().get(0).getSumAmount());
 
         verify(orderDao, times(1)).findAllByOrderTypeAndCurrencyId(anyInt(), any(OrderType.class));
-        verify(exchangeRatesHolder, times(1)).getOne(anyInt());
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+        verify(exchangeRatesHolder, times(1)).getOne(anyString());
     }
 
     @Test
@@ -6267,7 +6288,10 @@ public class OrderServiceImplTest {
         BigDecimal total = item1.add(item2);
 
         when(orderDao.findAllByOrderTypeAndCurrencyId(anyInt(), any(OrderType.class))).thenReturn(getMockOrderListDto());
-        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(null);
+        CurrencyPair currencyPair = new CurrencyPair();
+        currencyPair.setName("BTC/USD");
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(currencyPair);
+        when(exchangeRatesHolder.getOne(anyString())).thenReturn(null);
 
         OrderBookWrapperDto orderBookWrapperDto = orderService.findAllOrderBookItems(OrderType.SELL, 1, 5);
 
@@ -6286,7 +6310,8 @@ public class OrderServiceImplTest {
         assertEquals(BigDecimal.valueOf(0.055629498), orderBookWrapperDto.getOrderBookItems().get(0).getSumAmount());
 
         verify(orderDao, times(1)).findAllByOrderTypeAndCurrencyId(anyInt(), any(OrderType.class));
-        verify(exchangeRatesHolder, times(1)).getOne(anyInt());
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+        verify(exchangeRatesHolder, times(1)).getOne(anyString());
     }
 
     @Test
@@ -6299,7 +6324,10 @@ public class OrderServiceImplTest {
                 PrecissionsEnum.FIVE);
 
         when(orderDao.findAllByOrderTypeAndCurrencyId(anyInt(), any(OrderType.class))).thenReturn(getMockOrderListDto());
-        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.MAIN));
+        CurrencyPair currencyPair = new CurrencyPair();
+        currencyPair.setName("BTC/USD");
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(currencyPair);
+        when(exchangeRatesHolder.getOne(anyString())).thenReturn(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.MAIN));
 
         Map<PrecissionsEnum, String> allOrderBookItemsForAllPrecisions = orderService
                 .findAllOrderBookItemsForAllPrecissions(OrderType.SELL, 1, precisionsList);
@@ -6313,7 +6341,8 @@ public class OrderServiceImplTest {
         assertTrue(allOrderBookItemsForAllPrecisions.containsKey(PrecissionsEnum.FIVE));
 
         verify(orderDao, atLeastOnce()).findAllByOrderTypeAndCurrencyId(anyInt(), any(OrderType.class));
-        verify(exchangeRatesHolder, atLeastOnce()).getOne(anyInt());
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+        verify(exchangeRatesHolder, atLeastOnce()).getOne(anyString());
     }
 
     @Test
@@ -6326,7 +6355,10 @@ public class OrderServiceImplTest {
                 PrecissionsEnum.FIVE);
 
         when(orderDao.findAllByOrderTypeAndCurrencyId(anyInt(), any(OrderType.class))).thenReturn(getMockOrderListDto());
-        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.MAIN));
+        CurrencyPair currencyPair = new CurrencyPair();
+        currencyPair.setName("BTC/USD");
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(currencyPair);
+        when(exchangeRatesHolder.getOne(anyString())).thenReturn(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.MAIN));
         doThrow(JsonProcessingException.class).when(objectMapper).writeValueAsString(any(Object.class));
 
         Map<PrecissionsEnum, String> allOrderBookItemsForAllPrecisions = orderService
@@ -6336,64 +6368,9 @@ public class OrderServiceImplTest {
         assertEquals(0, allOrderBookItemsForAllPrecisions.size());
 
         verify(orderDao, atLeastOnce()).findAllByOrderTypeAndCurrencyId(anyInt(), any(OrderType.class));
-        verify(exchangeRatesHolder, atLeastOnce()).getOne(anyInt());
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+        verify(exchangeRatesHolder, atLeastOnce()).getOne(anyString());
         verify(objectMapper, atLeastOnce()).writeValueAsString(any(Object.class));
-    }
-
-    @Test
-    public void getRatesDataForCache() {
-        when(orderDao.getRatesDataForCache(anyInt()))
-                .thenReturn(Collections.singletonList(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.MAIN)));
-
-        List<ExOrderStatisticsShortByPairsDto> ratesDataForCache = orderService.getRatesDataForCache(1);
-
-        assertNotNull(ratesDataForCache);
-        assertEquals(1, ratesDataForCache.size());
-        assertEquals(new Integer(1), ratesDataForCache.get(0).getCurrencyPairId());
-        assertEquals("BTC/USD", ratesDataForCache.get(0).getCurrencyPairName());
-        assertEquals(new Integer(2), ratesDataForCache.get(0).getCurrencyPairPrecision());
-        assertEquals("0", ratesDataForCache.get(0).getLastOrderRate());
-        assertEquals("0", ratesDataForCache.get(0).getPredLastOrderRate());
-        assertEquals("0", ratesDataForCache.get(0).getPercentChange());
-        assertEquals("FIAT", ratesDataForCache.get(0).getMarket());
-        assertEquals("0", ratesDataForCache.get(0).getPriceInUSD());
-        assertEquals(CurrencyPairType.MAIN, ratesDataForCache.get(0).getType());
-        assertEquals("0.000000000", ratesDataForCache.get(0).getVolume());
-        assertEquals("0.000000000", ratesDataForCache.get(0).getCurrencyVolume());
-        assertEquals("0.000000000", ratesDataForCache.get(0).getHigh24hr());
-        assertEquals("0.000000000", ratesDataForCache.get(0).getLow24hr());
-        assertEquals("0.000000000", ratesDataForCache.get(0).getLastOrderRate24hr());
-        assertEquals("2019-04-03 14:52:14", ratesDataForCache.get(0).getLastUpdateCache());
-
-        verify(orderDao, times(1)).getRatesDataForCache(anyInt());
-    }
-
-    @Test
-    public void getAllDataForCache() {
-        when(orderDao.getAllDataForCache(anyInt()))
-                .thenReturn(Collections.singletonList(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.MAIN)));
-
-        List<ExOrderStatisticsShortByPairsDto> ratesDataForCache = orderService.getAllDataForCache(1);
-
-        assertNotNull(ratesDataForCache);
-        assertEquals(1, ratesDataForCache.size());
-        assertEquals(new Integer(1), ratesDataForCache.get(0).getCurrencyPairId());
-        assertEquals("BTC/USD", ratesDataForCache.get(0).getCurrencyPairName());
-        assertEquals(new Integer(2), ratesDataForCache.get(0).getCurrencyPairPrecision());
-        assertEquals("0", ratesDataForCache.get(0).getLastOrderRate());
-        assertEquals("0", ratesDataForCache.get(0).getPredLastOrderRate());
-        assertEquals("0", ratesDataForCache.get(0).getPercentChange());
-        assertEquals("FIAT", ratesDataForCache.get(0).getMarket());
-        assertEquals("0", ratesDataForCache.get(0).getPriceInUSD());
-        assertEquals(CurrencyPairType.MAIN, ratesDataForCache.get(0).getType());
-        assertEquals("0.000000000", ratesDataForCache.get(0).getVolume());
-        assertEquals("0.000000000", ratesDataForCache.get(0).getCurrencyVolume());
-        assertEquals("0.000000000", ratesDataForCache.get(0).getHigh24hr());
-        assertEquals("0.000000000", ratesDataForCache.get(0).getLow24hr());
-        assertEquals("0.000000000", ratesDataForCache.get(0).getLastOrderRate24hr());
-        assertEquals("2019-04-03 14:52:14", ratesDataForCache.get(0).getLastUpdateCache());
-
-        verify(orderDao, times(1)).getAllDataForCache(anyInt());
     }
 
     private UserOrdersDto getUserOrdersDto() {

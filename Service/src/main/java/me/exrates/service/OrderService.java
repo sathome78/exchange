@@ -8,7 +8,7 @@ import me.exrates.model.ExOrder;
 import me.exrates.model.User;
 import me.exrates.model.dto.AdminOrderInfoDto;
 import me.exrates.model.dto.CallBackLogDto;
-import me.exrates.model.dto.CoinmarketcapApiDto;
+import me.exrates.model.chart.CoinmarketcapApiDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.InputCreateOrderDto;
@@ -444,10 +444,4 @@ public interface OrderService {
     OrderBookWrapperDto findAllOrderBookItems(OrderType orderType, Integer currencyId, int precision);
 
     Map<PrecissionsEnum, String> findAllOrderBookItemsForAllPrecissions(OrderType orderType, Integer currencyId, List<PrecissionsEnum> precissionsList);
-
-    List<ExOrderStatisticsShortByPairsDto> getRatesDataForCache(Integer currencyPairId);
-
-    List<ExOrderStatisticsShortByPairsDto> getAllDataForCache(Integer currencyPairId);
-
-    ExOrderStatisticsShortByPairsDto getBeforeLastRateForCache(Integer currencyPairId);
 }

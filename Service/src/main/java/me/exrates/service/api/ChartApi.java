@@ -2,7 +2,8 @@ package me.exrates.service.api;
 
 import lombok.extern.slf4j.Slf4j;
 import me.exrates.model.chart.CandleDto;
-import me.exrates.model.dto.CoinmarketcapApiDto;
+import me.exrates.model.chart.CoinmarketcapApiDto;
+import me.exrates.model.chart.ExchangeRatesDto;
 import me.exrates.service.exception.ChartApiException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,14 +28,17 @@ public class ChartApi {
 
     private final String url;
     private final String coinmarketcapUrl;
+    private final String exchangeRatesUrl;
 
     private final RestTemplate restTemplate;
 
     @Autowired
     public ChartApi(@Value("${api.chart.url}") String url,
-                    @Value("${api.chart.coinmarketcap-url}") String coinmarketcapUrl) {
+                    @Value("${api.chart.coinmarketcap-url}") String coinmarketcapUrl,
+                    @Value("${api.chart.exchange-rates-url}") String exchangeRatesUrl) {
         this.url = url;
         this.coinmarketcapUrl = coinmarketcapUrl;
+        this.exchangeRatesUrl = exchangeRatesUrl;
         this.restTemplate = new RestTemplate(getClientHttpRequestFactory());
     }
 
@@ -73,11 +77,27 @@ public class ChartApi {
         return Arrays.asList(responseEntity.getBody());
     }
 
+    public List<ExchangeRatesDto> getExchangeRatesData(String pairName, String resolution) {
+        final String queryParams = buildQueryParams(pairName, null, null, resolution);
+
+        ResponseEntity<ExchangeRatesDto[]> responseEntity;
+        try {
+            responseEntity = restTemplate.getForEntity(String.format("%s?%s", exchangeRatesUrl, queryParams), ExchangeRatesDto[].class);
+            if (responseEntity.getStatusCodeValue() != 200) {
+                throw new ChartApiException("Chart server is not available");
+            }
+        } catch (Exception ex) {
+            log.warn("Chart service did not return valid data: server not available");
+            return Collections.emptyList();
+        }
+        return Arrays.asList(responseEntity.getBody());
+    }
+
     private ClientHttpRequestFactory getClientHttpRequestFactory() {
         HttpComponentsClientHttpRequestFactory httpRequestFactory = new HttpComponentsClientHttpRequestFactory();
-        httpRequestFactory.setConnectTimeout(10000);
-        httpRequestFactory.setConnectionRequestTimeout(10000);
-        httpRequestFactory.setReadTimeout(10000);
+        httpRequestFactory.setConnectTimeout(30000);
+        httpRequestFactory.setConnectionRequestTimeout(30000);
+        httpRequestFactory.setReadTimeout(30000);
 
         return httpRequestFactory;
     }

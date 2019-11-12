@@ -1,4 +1,4 @@
-package me.exrates.model.dto;
+package me.exrates.model.chart;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
