@@ -1,6 +1,7 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.ReferralLinkDao;
+import me.exrates.model.dto.referral.UserReferralLink;
 import me.exrates.model.referral.ReferralLink;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -70,6 +71,23 @@ public class ReferralLinkDaoImpl implements ReferralLinkDao {
     public List<ReferralLink> findByUserId(int userId) {
         final String sql = "SELECT " + columns + " FROM REFERRAL_LINK WHERE user_id = :user_id";
         return slaveJdbcTemplate.query(sql, Collections.singletonMap("user_id", userId), referralLinkRowMapper);
+    }
+
+    @Override
+    public List<ReferralLink> findByListUserId(List<Integer> userIds) {
+        final String sql = "SELECT " + columns + " FROM REFERRAL_LINK WHERE user_id in(:user_ids)";
+        return slaveJdbcTemplate.query(sql, Collections.singletonMap("user_ids", userIds), referralLinkRowMapper);
+    }
+
+    @Override
+    public List<String> findUsersLinks(List<String> links) {
+        final String sql = "SELECT id FROM USER WHERE invite_referral_link in (:links)";
+        return slaveJdbcTemplate.queryForList(sql, Collections.singletonMap("links", links), String.class);
+    }
+
+    @Override
+    public List<UserReferralLink> findUsersByLink(String link) {
+        return null;
     }
 
     @Override

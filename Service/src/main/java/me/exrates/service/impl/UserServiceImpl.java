@@ -989,4 +989,9 @@ public class UserServiceImpl implements UserService {
     public void deleteUserPin(String email, NotificationMessageEventEnum login) {
         userPinDao.delete(email, login);
     }
+
+    @Override
+    public List<User> findByInviteReferralLink(String link) {
+        return userDao.findByInviteReferralLink(link);
+    }
 }

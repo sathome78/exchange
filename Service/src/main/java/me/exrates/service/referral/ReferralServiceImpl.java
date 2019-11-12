@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 
 @PropertySource({"classpath:referral.properties"})
@@ -134,9 +135,9 @@ public class ReferralServiceImpl implements ReferralService {
     @Override
     public List<ReferralStructureDto> getReferralStructure(String email) {
         User user = userService.findByEmail(email);
-        List<ReferralLink> links = referralLinkDao.findByUserId(user.getId());
+        List<ReferralLink> userLinks = referralLinkDao.findByUserId(user.getId());
 
-        if (links.isEmpty()) {
+        if (userLinks.isEmpty()) {
             ReferralLink link = ReferralLink.builder()
                     .main(true)
                     .name(defaultNameStructure)
@@ -160,9 +161,50 @@ public class ReferralServiceImpl implements ReferralService {
             }
         }
 
-        List<ReferralStructureDto> result = new ArrayList<>(links.size());
-        for (ReferralLink link : links) {
+        List<ReferralStructureDto> result = new ArrayList<>(userLinks.size());
+        List<String> userLinkStrings = userLinks.stream().map(ReferralLink::getLink).collect(Collectors.toList());
+        List<String> firstLevelLinks = referralLinkDao.findUsersLinks(userLinkStrings);
+
+        List<String> secondLinks;
+        if (!firstLevelLinks.isEmpty()) {
+            secondLinks = referralLinkDao.findUsersLinks(firstLevelLinks);
+        } else {
+            secondLinks = Collections.emptyList();
         }
+
+        List<String> third;
+        if (!secondLinks.isEmpty()) {
+            third = referralLinkDao.findUsersLinks(secondLinks);
+        } else {
+            third = Collections.emptyList();
+        }
+
+        for (ReferralLink link : userLinks) {
+            int count = 0;
+            ReferralStructureDto structureDto = new ReferralStructureDto();
+
+            structureDto.setLink(link.getLink());
+            structureDto.setName(link.getName());
+
+            BigDecimal earnedOnBTC = BigDecimal.ZERO;
+            BigDecimal earnedOnUSD = BigDecimal.ZERO;
+            BigDecimal earnedOnUSDT = BigDecimal.ZERO;
+
+            List<User> secondReferralUsers = userService.findByInviteReferralLink(link.getLink());
+            count += secondReferralUsers.size();
+
+            if (secondReferralUsers.isEmpty()) continue;
+
+            List<ReferralLink> secondLevelsLinks =
+                    referralLinkDao.findByListUserId(secondReferralUsers.stream().map(User::getId).collect(Collectors.toList()));
+
+            for (ReferralLink secondLevelLink : secondLevelsLinks) {
+
+            }
+
+
+        }
+
 
         return null;
     }

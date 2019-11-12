@@ -255,4 +255,6 @@ public interface UserService {
     boolean subscribeToMailingByEmail(String email, boolean subscribe);
 
     void deleteUserPin(String email, NotificationMessageEventEnum login);
+
+    List<User> findByInviteReferralLink(String link);
 }
