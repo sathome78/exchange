@@ -1,20 +1,22 @@
-package me.exrates.model.referral;
+package me.exrates.model.dto.referral;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.math.BigDecimal;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ReferralLink {
-    private int userId;
+public class ReferralStructureDto {
+    private int numberChild;
     private String name;
     private String link;
-    private Date createdAt;
+    private BigDecimal earnedBTC;
+    private BigDecimal earnedUSD;
+    private BigDecimal earnedUSDT;
     private boolean main;
 }

@@ -10,17 +10,13 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 @Repository
 public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
 
     private final NamedParameterJdbcTemplate masterJdbcTemplate;
     private final NamedParameterJdbcTemplate slaveJdbcTemplate;
 
-    private final RowMapper<ReferralTransaction> referralTransactionRowMapper = (rs, row) -> {
+    private  final RowMapper<ReferralTransaction> referralTransactionRowMapper = (rs, row) -> {
         ReferralTransaction referralTransaction = new ReferralTransaction();
         referralTransaction.setId(rs.getInt("id"));
         referralTransaction.setUserId(rs.getInt("user_id"));
@@ -52,15 +48,5 @@ public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
         masterJdbcTemplate.update(sql, params, keyHolder);
         referralTransaction.setId((int) keyHolder.getKey().longValue());
         return referralTransaction.getId() != null;
-    }
-
-    @Override
-    public List<ReferralTransaction> findTransactionByUserIdAndLink(int userId, String link) {
-        final String sql = "SELECT * FROM REFERRAL_TRANSACTION WHERE user_id = :user_id AND link = :link";
-        Map<String, Object> params = new HashMap<String, Object>() {{
-            put("user_id", userId);
-            put("link", link);
-        }};
-        return slaveJdbcTemplate.query(sql, params, referralTransactionRowMapper);
     }
 }

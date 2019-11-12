@@ -20,5 +20,4 @@ public class ReferralTransaction {
     private int userId;
     private BigDecimal amount;
     private String link;
-
 }

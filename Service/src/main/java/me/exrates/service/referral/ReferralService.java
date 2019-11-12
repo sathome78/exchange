@@ -1,7 +1,12 @@
 package me.exrates.service.referral;
 
-import java.math.BigDecimal;
+import me.exrates.model.dto.referral.ReferralStructureDto;
+import me.exrates.model.referral.ReferralRequest;
+
+import java.util.List;
 
 public interface ReferralService {
-    void processReferralAndCommission(int currencyId, BigDecimal totalCommission, int userId);
+    void saveReferralRequest(List<ReferralRequest> requests);
+
+    List<ReferralStructureDto> getReferralStructure(String email);
 }
