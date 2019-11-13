@@ -87,7 +87,6 @@ public class OrdersEventHandleService {
         log.info("order created: {}", order.getCurrencyPair().getName());
 
         List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
-        completableFutures.add(CompletableFuture.runAsync(() -> rabbitMqService.sendOrderInfoToChartService(order), handlersExecutors));
         completableFutures.add(CompletableFuture.runAsync(() -> rabbitMqService.sendOrderInfoToExternalService(order), handlersExecutors));
         completableFutures.add(CompletableFuture.runAsync(() -> onOrdersEvent(order.getCurrencyPairId(), order.getOperationType()), handlersExecutors));
 

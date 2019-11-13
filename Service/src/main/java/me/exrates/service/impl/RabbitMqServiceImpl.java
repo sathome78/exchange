@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.ExOrder;
 import me.exrates.service.RabbitMqService;
 import me.exrates.service.chart.OrderDataDto;
+import me.exrates.service.chart.TradeDataDto;
 import me.exrates.service.exception.RabbitMqException;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
@@ -37,7 +38,7 @@ public class RabbitMqServiceImpl implements RabbitMqService {
     public void sendOrderInfoToChartService(ExOrder order) {
         log.info("Start sending order data to chart service");
         try {
-            rabbitTemplate.convertAndSend(chartQueue, new OrderDataDto(order));
+            rabbitTemplate.convertAndSend(chartQueue, new TradeDataDto(order));
 
             log.info("End sending order data to chart service");
         } catch (AmqpException ex) {
