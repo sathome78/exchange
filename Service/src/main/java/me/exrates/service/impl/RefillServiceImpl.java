@@ -720,7 +720,10 @@ public class RefillServiceImpl implements RefillService {
     @Override
     @Transactional
     public void acceptAdminRefillRequest(RefillRequestAcceptDto requestAcceptDto) {
-        IRefillable iRefillable = (IRefillable)merchantServiceContext.getMerchantService(requestAcceptDto.getMerchantId());
+        RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestAcceptDto.getRequestId())
+                .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestAcceptDto.getRequestId())));
+
+        IRefillable iRefillable = (IRefillable)merchantServiceContext.getMerchantService(refillRequest.getMerchantId());
         iRefillable.acceptAdmin(requestAcceptDto.getRequestId());
         acceptRefillRequest(requestAcceptDto);
     }
