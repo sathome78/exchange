@@ -198,7 +198,7 @@ public class NgUserServiceImpl implements NgUserService {
         }
         Email email = new Email();
         email.setTo(emailAddress);
-        email.setSubject("New user registration");
+        email.setSubject("Welcome to Exrates");
         email.setMessage(message);
 
         Properties properties = new Properties();
