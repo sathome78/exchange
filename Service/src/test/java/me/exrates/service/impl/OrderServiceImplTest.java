@@ -141,12 +141,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Matchers.anySetOf;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
@@ -4457,8 +4452,6 @@ public class OrderServiceImplTest {
         verify(orderDao, atLeastOnce()).getOrdersForReport(any(AdminOrderFilterData.class));
     }
 
-    /*todo*/
-    @Ignore
     @Test
     public void getUsersOrdersWithStateForAdmin() {
         OrderWideListDto dto = new OrderWideListDto();
@@ -4487,7 +4480,7 @@ public class OrderServiceImplTest {
                 10,
                 15,
                 Locale.ENGLISH,
-                any(UserRole.class));
+                UserRole.USER);
 
         assertNotNull(myOrdersWithState);
         assertEquals(dto, myOrdersWithState.get(0));
@@ -5347,8 +5340,7 @@ public class OrderServiceImplTest {
         verify(callBackDao, times(1)).logCallBackData(any(CallBackLogDto.class));
     }
 
-    /*todo*/
-    @Ignore
+
     @Test
     public void getMyOrdersWithStateMap_foundOneRecordTest() {
         log.debug("getMyOrdersWithStateMap_foundOneRecordTest() - start");
@@ -5356,29 +5348,29 @@ public class OrderServiceImplTest {
         LocalDateTime now = LocalDateTime.now();
 
         doReturn(1).when(orderDao).getMyOrdersWithStateCount(
-                1,
-                new CurrencyPair("BTC/USD"),
-                StringUtils.EMPTY,
-                OrderStatus.CLOSED,
-                StringUtils.EMPTY,
-                false,
-                now.minusDays(1),
-                now,
+                eq(1),
+                eq(new CurrencyPair("BTC/USD")),
+                eq(StringUtils.EMPTY),
+                eq(OrderStatus.CLOSED),
+                eq(StringUtils.EMPTY),
+                eq(false),
+                eq(now.minusDays(1)),
+                eq(now),
                 any(UserRole.class));
 
         doReturn(Collections.singletonList(new OrderWideListDto())).when(orderDao).getMyOrdersWithState(
-                1,
-                new CurrencyPair("BTC/USD"),
-                StringUtils.EMPTY,
-                OrderStatus.CLOSED,
-                StringUtils.EMPTY,
-                15,
-                0,
-                false,
-                "DESC",
-                now.minusDays(1),
-                now,
-                Locale.ENGLISH,
+                eq(1),
+                eq(new CurrencyPair("BTC/USD")),
+                eq(StringUtils.EMPTY),
+                eq(OrderStatus.CLOSED),
+                eq(StringUtils.EMPTY),
+                eq(15),
+                eq(0),
+                eq(false),
+                eq("DESC"),
+                eq(now.minusDays(1)),
+                eq(now),
+                eq(Locale.ENGLISH),
                 any(UserRole.class));
 
         Pair<Integer, List<OrderWideListDto>> pair = orderService.getMyOrdersWithStateMap(
@@ -5412,22 +5404,21 @@ public class OrderServiceImplTest {
         log.debug("getMyOrdersWithStateMap_foundOneRecordTest() - end");
     }
 
-    /*todo*/
-    @Ignore
+
     @Test
     public void getMyOrdersWithStateMap_notFoundRecordsTest() {
         log.debug("getMyOrdersWithStateMap_notFoundRecordsTest() - start");
 
         LocalDateTime now = LocalDateTime.now();
         doReturn(0).when(orderDao).getMyOrdersWithStateCount(
-                1,
-                new CurrencyPair("BTC/USD"),
-                StringUtils.EMPTY,
-                OrderStatus.CLOSED,
-                StringUtils.EMPTY,
-                false,
-                now.minusDays(1),
-                now,
+                eq(1),
+                eq(new CurrencyPair("BTC/USD")),
+                eq(StringUtils.EMPTY),
+                eq(OrderStatus.CLOSED),
+                eq(StringUtils.EMPTY),
+                eq(false),
+                eq(now.minusDays(1)),
+                eq(now),
                 any());
 
         Pair<Integer, List<OrderWideListDto>> pair = orderService.getMyOrdersWithStateMap(
