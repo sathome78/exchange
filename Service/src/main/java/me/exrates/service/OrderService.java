@@ -225,17 +225,6 @@ public interface OrderService {
 
     Object deleteOrderForPartialAccept(int orderId, List<ExOrder> acceptEventsList);
 
-    /**
-     * Searches order by its params:
-     *
-     * @param currencyPair
-     * @param orderType
-     * @param orderDate
-     * @param orderRate
-     * @param orderVolume
-     * @return ID the found order, or -1 if order with the parameters has not be found
-     */
-    Integer searchOrderByAdmin(Integer currencyPair, String orderType, String orderDate, BigDecimal orderRate, BigDecimal orderVolume);
 
     /**
      * Returns object that contains data with statistics of orders for currencyPair.

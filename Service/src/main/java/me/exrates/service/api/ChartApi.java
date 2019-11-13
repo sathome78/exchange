@@ -75,9 +75,9 @@ public class ChartApi {
 
     private ClientHttpRequestFactory getClientHttpRequestFactory() {
         HttpComponentsClientHttpRequestFactory httpRequestFactory = new HttpComponentsClientHttpRequestFactory();
-        httpRequestFactory.setConnectTimeout(10000);
-        httpRequestFactory.setConnectionRequestTimeout(10000);
-        httpRequestFactory.setReadTimeout(10000);
+        httpRequestFactory.setConnectTimeout(30000);
+        httpRequestFactory.setConnectionRequestTimeout(30000);
+        httpRequestFactory.setReadTimeout(30000);
 
         return httpRequestFactory;
     }

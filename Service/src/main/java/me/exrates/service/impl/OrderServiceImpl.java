@@ -151,6 +151,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
+import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
 import java.io.ByteArrayOutputStream;
@@ -260,7 +261,7 @@ public class OrderServiceImpl implements OrderService {
     /*todo change delete time*/
     @PostConstruct
     private void init() {
-        scheduledExecutorService.scheduleWithFixedDelay(this::cleanOrders, 1, 10, TimeUnit.MINUTES);
+        scheduledExecutorService.scheduleWithFixedDelay(this::cleanOrders, 10, 10, TimeUnit.MINUTES);
     }
 
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
