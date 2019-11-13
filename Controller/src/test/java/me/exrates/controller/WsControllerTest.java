@@ -331,33 +331,6 @@ public class WsControllerTest {
 
     @Test
     @Ignore
-    public void subscribeTrades() throws Exception {
-        when(orderService.getAllAndMyTradesForInit(anyInt(), any(Principal.class))).thenReturn("TEST_TRADES");
-
-        StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
-        headers.setSubscriptionId("0");
-        headers.setDestination("/trades/1");
-        headers.setSessionId("0");
-        headers.setUser(new TestPrincipal("Andrew"));
-        headers.setSessionAttributes(new HashMap<>());
-        Message<byte[]> message = MessageBuilder.withPayload(new byte[0]).setHeaders(headers).build();
-
-        this.annotationMethodHandler.handleMessage(message);
-
-        assertEquals(1, this.clientOutboundChannel.getMessages().size());
-        Message<?> reply = this.clientOutboundChannel.getMessages().get(0);
-
-        StompHeaderAccessor replyHeaders = StompHeaderAccessor.wrap(reply);
-        assertEquals("0", replyHeaders.getSessionId());
-        assertEquals("0", replyHeaders.getSubscriptionId());
-        assertEquals("/trades/1", replyHeaders.getDestination());
-
-        String json = new String((byte[]) reply.getPayload(), Charset.forName("UTF-8"));
-        new JsonPathExpectationsHelper("$").assertValue(json, "TEST_TRADES");
-    }
-
-    @Test
-    @Ignore
     public void subscribeAllTrades_isOk() {
         OrderAcceptedHistoryDto mockOrderAcceptedHistoryDto = new OrderAcceptedHistoryDto();
         mockOrderAcceptedHistoryDto.setOrderId(100);

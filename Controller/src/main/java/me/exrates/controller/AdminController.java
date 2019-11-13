@@ -255,8 +255,6 @@ public class AdminController {
     @Autowired
     private UserOperationService userOperationService;
     @Autowired
-    private UserDetailsService userDetailsService;
-    @Autowired
     private LocaleResolver localeResolver;
     @Autowired
     private MerchantService merchantService;
@@ -588,16 +586,16 @@ public class AdminController {
                 break;
         }
         DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
-
+        UserRole userRole = userService.getUserRoleFromDB(id);
         final int notFilteredAmount = isStopOrder
                 ? stopOrderService.getUsersStopOrdersWithStateForAdminCount(id, currencyPair, orderStatus, operationType, 0, -1)
-                : orderService.getUsersOrdersWithStateForAdminCount(id, currencyPair, orderStatus, operationType, 0, -1);
+                : orderService.getUsersOrdersWithStateForAdminCount(id, currencyPair, orderStatus, operationType, 0, -1, userRole);
 
         List<OrderWideListDto> filteredOrders = Collections.emptyList();
         if (notFilteredAmount > 0) {
             filteredOrders = isStopOrder
                     ? stopOrderService.getUsersStopOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, dataTableParams.getStart(), dataTableParams.getLength(), locale)
-                    : orderService.getUsersOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, dataTableParams.getStart(), dataTableParams.getLength(), locale);
+                    : orderService.getUsersOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, dataTableParams.getStart(), dataTableParams.getLength(), locale, userRole);
         }
         DataTable<List<OrderWideListDto>> result = new DataTable<>();
         result.setRecordsFiltered(notFilteredAmount);
