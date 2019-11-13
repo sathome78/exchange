@@ -20,6 +20,7 @@ import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.Market;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderTableEnum;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
 
@@ -77,6 +78,8 @@ public interface CurrencyDao {
     List<String> getWarningForMerchant(Integer merchantId, UserCommentTopicEnum currencyWarningTopicEnum);
 
     CurrencyPair findCurrencyPairByOrderId(int orderId);
+
+    CurrencyPair findCurrencyPairByOrderId(int orderId, OrderTableEnum orderTableName);
 
     CurrencyPairLimitDto findCurrencyPairLimitForRoleByPairAndType(Integer currencyPairId, Integer roleId, Integer orderTypeId);
 
