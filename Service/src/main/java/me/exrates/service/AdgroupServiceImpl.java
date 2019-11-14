@@ -175,7 +175,7 @@ public class AdgroupServiceImpl implements AdgroupService {
                     withdrawMerchantOperationDto.getId());
             throw new MerchantException("Not approved");
         }
-        withdrawService.finalizePostWithdrawalRequest(Integer.parseInt(withdrawMerchantOperationDto.getId()));
+//        withdrawService.finalizePostWithdrawalRequest(Integer.parseInt(withdrawMerchantOperationDto.getId()));
         Map<String, String> result = new HashMap<>();
         result.put("hash", responseDto.getResponseData().getId());
         result.put("params", responseDto.getResponseData().getRefId());

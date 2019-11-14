@@ -32,7 +32,7 @@ public interface AdgroupService extends IRefillable, IWithdrawable {
 
     @Override
     default Boolean withdrawTransferringConfirmNeeded() {
-        return true;
+        return false;
     }
 
     @Override
