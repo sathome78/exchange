@@ -994,4 +994,9 @@ public class UserServiceImpl implements UserService {
     public List<User> findByInviteReferralLink(String link) {
         return userDao.findByInviteReferralLink(link);
     }
+
+    @Override
+    public List<User> findByInviteReferralLink(List<String> links) {
+        return userDao.findByInviteReferralLink(links);
+    }
 }

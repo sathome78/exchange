@@ -1609,4 +1609,10 @@ public class UserDaoImpl implements UserDao {
         final String sql = SELECT_USER + "WHERE USER.invite_referral_link = :link";
         return slaveTemplate.query(sql, Collections.singletonMap("link", link), getUserRowMapper());
     }
+
+    @Override
+    public List<User> findByInviteReferralLink(List<String> links) {
+        final String sql = SELECT_USER + "WHERE USER.invite_referral_link in (:links)";
+        return slaveTemplate.query(sql, Collections.singletonMap("links", links), getUserRowMapper());
+    }
 }

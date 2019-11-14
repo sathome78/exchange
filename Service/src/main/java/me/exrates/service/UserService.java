@@ -257,4 +257,6 @@ public interface UserService {
     void deleteUserPin(String email, NotificationMessageEventEnum login);
 
     List<User> findByInviteReferralLink(String link);
+
+    List<User> findByInviteReferralLink(List<String> link);
 }

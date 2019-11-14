@@ -37,6 +37,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -53,6 +54,10 @@ import java.util.stream.Collectors;
 @Log4j2(topic = "referral_log")
 public class ReferralServiceImpl implements ReferralService {
     private final static int CHUNK = 20;
+    private final static String USD = "USD";
+    private final static String BTC = "BTC";
+    private final static String USDT = "USDT";
+    private final static List<String> CURRENCIES = Arrays.asList(USD, BTC, USDT);
 
     private final CurrencyService currencyService;
     private final UserService userService;
@@ -68,6 +73,7 @@ public class ReferralServiceImpl implements ReferralService {
     private final BigDecimal thirdLevelCommissionPercent;
     private final String defaultNameStructure;
     private final String referralUrl;
+    private final Integer referralLinkMaxCount;
 
     @Autowired
     public ReferralServiceImpl(CurrencyService currencyService,
@@ -82,7 +88,8 @@ public class ReferralServiceImpl implements ReferralService {
                                @Value("${referral.second_level_commission}") BigDecimal secondLevelCommissionPercent,
                                @Value("${referral.third_level_commission}") BigDecimal thirdLevelCommissionPercent,
                                @Value("${referral.link.name.default}") String defaultNameStructure,
-                               @Value("${referral.url}") String referralUrl) {
+                               @Value("${referral.url}") String referralUrl,
+                               @Value("${referral.link.max.count}") Integer referralLinkMaxCount) {
         this.currencyService = currencyService;
         this.userService = userService;
         this.referralLinkDao = referralLinkDao;
@@ -96,8 +103,8 @@ public class ReferralServiceImpl implements ReferralService {
         this.thirdLevelCommissionPercent = thirdLevelCommissionPercent;
         this.defaultNameStructure = defaultNameStructure;
         this.referralUrl = referralUrl;
+        this.referralLinkMaxCount = referralLinkMaxCount;
     }
-
 
     @Scheduled(fixedDelay = 10000)
     public void processReferralRequests() {
@@ -118,7 +125,7 @@ public class ReferralServiceImpl implements ReferralService {
             if (StringUtils.isNoneEmpty(user.getInviteReferralLink()) && user.getUserStatus() != UserStatus.DELETED
                     && user.getRole() != UserRole.BOT_TRADER && user.getRole() != UserRole.VIP_USER) {
                 Map<ReferralLevel, User> levelUserMap = findAllReferralsV2(user.getInviteReferralLink());
-                processReferralPayment(request, levelUserMap);
+                processReferralPayment(request, levelUserMap, user);
             }
         } catch (Exception e) {
             referralRequestDao.updateStatusReferralRequest(request.getId(), ReferralProcessStatus.ERROR);
@@ -141,6 +148,7 @@ public class ReferralServiceImpl implements ReferralService {
             ReferralLink link = ReferralLink.builder()
                     .main(true)
                     .name(defaultNameStructure)
+                    .userId(user.getId())
                     .link(UUID.randomUUID().toString())
                     .createdAt(new Date())
                     .build();
@@ -162,54 +170,235 @@ public class ReferralServiceImpl implements ReferralService {
         }
 
         List<ReferralStructureDto> result = new ArrayList<>(userLinks.size());
-        List<String> userLinkStrings = userLinks.stream().map(ReferralLink::getLink).collect(Collectors.toList());
-        List<String> firstLevelLinks = referralLinkDao.findUsersLinks(userLinkStrings);
-
-        List<String> secondLinks;
-        if (!firstLevelLinks.isEmpty()) {
-            secondLinks = referralLinkDao.findUsersLinks(firstLevelLinks);
-        } else {
-            secondLinks = Collections.emptyList();
-        }
-
-        List<String> third;
-        if (!secondLinks.isEmpty()) {
-            third = referralLinkDao.findUsersLinks(secondLinks);
-        } else {
-            third = Collections.emptyList();
-        }
 
         for (ReferralLink link : userLinks) {
             int count = 0;
-            ReferralStructureDto structureDto = new ReferralStructureDto();
+            ReferralStructureDto structureDto = new ReferralStructureDto(link.getName(), link.getLink());
 
-            structureDto.setLink(link.getLink());
-            structureDto.setName(link.getName());
+            BigDecimal earnedOnBTC = new BigDecimal(0);
+            BigDecimal earnedOnUSD = new BigDecimal(0);
+            BigDecimal earnedOnUSDT = new BigDecimal(0);
 
-            BigDecimal earnedOnBTC = BigDecimal.ZERO;
-            BigDecimal earnedOnUSD = BigDecimal.ZERO;
-            BigDecimal earnedOnUSDT = BigDecimal.ZERO;
-
-            List<User> secondReferralUsers = userService.findByInviteReferralLink(link.getLink());
-            count += secondReferralUsers.size();
-
-            if (secondReferralUsers.isEmpty()) continue;
-
-            List<ReferralLink> secondLevelsLinks =
-                    referralLinkDao.findByListUserId(secondReferralUsers.stream().map(User::getId).collect(Collectors.toList()));
-
-            for (ReferralLink secondLevelLink : secondLevelsLinks) {
-
+            List<User> firstReferralUsers = userService.findByInviteReferralLink(link.getLink());
+            count += firstReferralUsers.size();
+            if (firstReferralUsers.isEmpty()) {
+                completeIteration(structureDto, count, earnedOnBTC, earnedOnUSD, earnedOnUSDT, result);
+                continue;
             }
+            List<Integer> usersFromFirstLevel = firstReferralUsers.stream().map(User::getId).collect(Collectors.toList());
+            Map<String, BigDecimal> currencyEarnedFirstLevel =
+                    referralTransactionDao.getEarnedByUsersFromAndUserToAndCurrencies(usersFromFirstLevel, user.getId(), CURRENCIES);
+            addEarnedMapToValues(earnedOnBTC, earnedOnUSD, earnedOnUSDT, currencyEarnedFirstLevel);
 
+            List<ReferralLink> firstLevelsLinks =
+                    referralLinkDao.findByListUserId(firstReferralUsers.stream().map(User::getId).collect(Collectors.toList()));
 
+            for (ReferralLink firstLevelReferralLink : firstLevelsLinks) {
+                List<User> secondReferralUsers = userService.findByInviteReferralLink(firstLevelReferralLink.getLink());
+                count += secondReferralUsers.size();
+                if (secondReferralUsers.isEmpty()) {
+                    completeIteration(structureDto, count, earnedOnBTC, earnedOnUSD, earnedOnUSDT, result);
+                    continue;
+                }
+
+                List<Integer> usersFromSecondLevel = secondReferralUsers.stream().map(User::getId).collect(Collectors.toList());
+                Map<String, BigDecimal> currencyEarnedSecond =
+                        referralTransactionDao.getEarnedByUsersFromAndUserToAndCurrencies(usersFromSecondLevel, user.getId(), CURRENCIES);
+                addEarnedMapToValues(earnedOnBTC, earnedOnUSD, earnedOnUSDT, currencyEarnedSecond);
+                List<ReferralLink> secondLevelLinks =
+                        referralLinkDao.findByListUserId(secondReferralUsers.stream().map(User::getId).collect(Collectors.toList()));
+
+                for (ReferralLink secondLevelLink : secondLevelLinks) {
+                    List<User> thirdReferralUsers = userService.findByInviteReferralLink(secondLevelLink.getLink());
+                    count += thirdReferralUsers.size();
+                    if (thirdReferralUsers.isEmpty()) {
+                        completeIteration(structureDto, count, earnedOnBTC, earnedOnUSD, earnedOnUSDT, result);
+                        continue;
+                    }
+
+                    List<Integer> usersFromThirdLevel = thirdReferralUsers.stream().map(User::getId).collect(Collectors.toList());
+                    Map<String, BigDecimal> currencyEarnedThird =
+                            referralTransactionDao.getEarnedByUsersFromAndUserToAndCurrencies(usersFromThirdLevel, user.getId(), CURRENCIES);
+                    addEarnedMapToValues(earnedOnBTC, earnedOnUSD, earnedOnUSDT, currencyEarnedThird);
+                    completeIteration(structureDto, count, earnedOnBTC, earnedOnUSD, earnedOnUSDT, result);
+                }
+            }
+            completeIteration(structureDto, count, earnedOnBTC, earnedOnUSD, earnedOnUSDT, result);
         }
-
-
-        return null;
+        return result;
     }
 
-    private void processReferralPayment(ReferralRequest request, Map<ReferralLevel, User> levelUserMap) {
+    @Override
+    public List<ReferralStructureDto> getChildReferralStructure(String email, int userId, int level, String link) {
+        if (level == 3) {
+            throw new RuntimeException("Cannot get detail from third levels");
+        }
+
+        User user = userService.findByEmail(email);
+
+        if (level == 0) {
+            List<ReferralStructureDto> result = new ArrayList<>();
+            List<User> users = userService.findByInviteReferralLink(link);
+            if (users.isEmpty()) {
+                return Collections.emptyList();
+            }
+            for (User firstLevelUser : users) {
+                int count = 0;
+                BigDecimal earnedOnBTC = new BigDecimal(0);
+                BigDecimal earnedOnUSD = new BigDecimal(0);
+                BigDecimal earnedOnUSDT = new BigDecimal(0);
+                ReferralStructureDto structureDto = new ReferralStructureDto(firstLevelUser.getEmail(), level + 1, firstLevelUser.getId());
+                List<ReferralLink> firstLevelReferralLinks = referralLinkDao.findByUserId(firstLevelUser.getId());
+                List<String> links = firstLevelReferralLinks.stream().map(ReferralLink::getLink).collect(Collectors.toList());
+                List<User> usersSecondLevels = userService.findByInviteReferralLink(links);
+                count += usersSecondLevels.size();
+                if (usersSecondLevels.isEmpty()) {//if first level user doesn't have second level referrals
+                    completeIteration(structureDto, count, earnedOnBTC, earnedOnUSD, earnedOnUSDT, result);
+                    continue;
+                }
+                List<Integer> secondLevelUsersId = usersSecondLevels.stream().map(User::getId).collect(Collectors.toList());
+                Map<String, BigDecimal> currencyEarnedFirstLevel =
+                        referralTransactionDao.getEarnedByUsersFromAndUserToAndCurrencies(secondLevelUsersId, user.getId(), CURRENCIES);
+
+                addEarnedMapToValues(earnedOnBTC, earnedOnUSD, earnedOnUSDT, currencyEarnedFirstLevel);
+
+                List<ReferralLink> secondLevelLinks =
+                        referralLinkDao.findByListUserId(secondLevelUsersId);
+
+                if (secondLevelLinks.isEmpty()) {//if its old users without referrals link
+                    completeIteration(structureDto, count, earnedOnBTC, earnedOnUSD, earnedOnUSDT, result);
+                    continue;
+                }
+
+                for (ReferralLink secondLevelLink : secondLevelLinks) {
+                    List<User> thirdReferralUsers = userService.findByInviteReferralLink(secondLevelLink.getLink());
+                    count += thirdReferralUsers.size();
+                    if (thirdReferralUsers.isEmpty()) {
+                        completeIteration(structureDto, count, earnedOnBTC, earnedOnUSD, earnedOnUSDT, result);
+                        continue;
+                    }
+                    List<Integer> usersFromThirdLevel = thirdReferralUsers.stream().map(User::getId).collect(Collectors.toList());
+                    Map<String, BigDecimal> currencyEarnedThird =
+                            referralTransactionDao.getEarnedByUsersFromAndUserToAndCurrencies(usersFromThirdLevel, user.getId(), CURRENCIES);
+                    addEarnedMapToValues(earnedOnBTC, earnedOnUSD, earnedOnUSDT, currencyEarnedThird);
+                    completeIteration(structureDto, count, earnedOnBTC, earnedOnUSD, earnedOnUSDT, result);
+                }
+
+                result.add(structureDto);
+            }
+            return result;
+        }
+
+        if (level == 1 || level == 2) {
+            List<ReferralStructureDto> result = new ArrayList<>();
+            List<ReferralLink> levelReferralLinks = referralLinkDao.findByUserId(userId);
+
+            for (ReferralLink referralLink : levelReferralLinks) {
+                List<User> usersChild = userService.findByInviteReferralLink(referralLink.getLink());
+                for (User userChild : usersChild) {
+                    ReferralStructureDto structureDto = new ReferralStructureDto(userChild.getEmail(), level + 1, userChild.getId());
+                    int count = 0;
+                    BigDecimal earnedOnBTC = new BigDecimal(0);
+                    BigDecimal earnedOnUSD = new BigDecimal(0);
+                    BigDecimal earnedOnUSDT = new BigDecimal(0);
+
+                    List<ReferralLink> firstLevelReferralLinks = referralLinkDao.findByUserId(userChild.getId());
+                    List<String> links = firstLevelReferralLinks.stream().map(ReferralLink::getLink).collect(Collectors.toList());
+                    List<User> usersSecondLevels = userService.findByInviteReferralLink(links);
+                    count += usersSecondLevels.size();
+                    if (usersSecondLevels.isEmpty()) {
+                        completeIteration(structureDto, level == 1 ? count : null, earnedOnBTC, earnedOnUSD, earnedOnUSDT, result);
+                        continue;
+                    }
+                    List<Integer> secondLevelUsersId = usersSecondLevels.stream().map(User::getId).collect(Collectors.toList());
+                    Map<String, BigDecimal> currencyEarnedFirstLevel =
+                            referralTransactionDao.getEarnedByUsersFromAndUserToAndCurrencies(secondLevelUsersId, user.getId(), CURRENCIES);
+
+                    addEarnedMapToValues(earnedOnBTC, earnedOnUSD, earnedOnUSDT, currencyEarnedFirstLevel);
+                    if (level == 2) {
+                        completeIteration(structureDto, null, earnedOnBTC, earnedOnUSD, earnedOnUSDT, result);
+                        continue;
+                    }
+                    //get earned money from next level
+                    List<ReferralLink> nextLevelLinks =
+                            referralLinkDao.findByListUserId(secondLevelUsersId);
+
+                    for (ReferralLink nextLevelLink : nextLevelLinks) {
+                        List<User> thirdReferralUsers = userService.findByInviteReferralLink(nextLevelLink.getLink());
+                        count += thirdReferralUsers.size();
+                        if (thirdReferralUsers.isEmpty()) {
+                            completeIteration(structureDto, count, earnedOnBTC, earnedOnUSD, earnedOnUSDT, result);
+                            continue;
+                        }
+                        List<Integer> usersFromThirdLevel = thirdReferralUsers.stream().map(User::getId).collect(Collectors.toList());
+                        Map<String, BigDecimal> currencyEarnedThird =
+                                referralTransactionDao.getEarnedByUsersFromAndUserToAndCurrencies(usersFromThirdLevel, user.getId(), CURRENCIES);
+                        addEarnedMapToValues(earnedOnBTC, earnedOnUSD, earnedOnUSDT, currencyEarnedThird);
+                        completeIteration(structureDto, count, earnedOnBTC, earnedOnUSD, earnedOnUSDT, result);
+                    }
+                }
+            }
+            return result;
+        }
+        throw new RuntimeException("Cannot get detail for level bigger 3");
+    }
+
+    @Override
+    public boolean updateReferralName(String email, String link, String name) {
+        User user = userService.findByEmail(email);
+        ReferralLink referralLink = referralLinkDao.findByUserIdAndLink(user.getId(), link)
+                .orElseThrow(() -> new RuntimeException("This link doesnt relate to this user"));
+
+        referralLink.setName(name);
+        return referralLinkDao.updateReferralLink(referralLink);
+    }
+
+    @Override
+    public ReferralStructureDto createReferralLink(String email, String name) {
+        User user = userService.findByEmail(email);
+        List<ReferralLink> links = referralLinkDao.findByUserId(user.getId());
+        if (links.size() > referralLinkMaxCount) {
+            throw new RuntimeException("You have 50 referral links already.");
+        }
+
+        ReferralLink link = ReferralLink.builder()
+                .main(false)
+                .name(name)
+                .userId(user.getId())
+                .link(UUID.randomUUID().toString())
+                .createdAt(new Date())
+                .build();
+        boolean create = referralLinkDao.createReferralLink(link);
+        if (!create) {
+            throw new RuntimeException("Error while creating new link");
+        }
+        return ReferralStructureDto.builder()
+                .name(link.getName())
+                .link(referralUrl + link.getLink())
+                .numberChild(0)
+                .earnedBTC(BigDecimal.ZERO)
+                .earnedUSD(BigDecimal.ZERO)
+                .earnedUSDT(BigDecimal.ZERO)
+                .build();
+    }
+
+    private void completeIteration(ReferralStructureDto structureDto, Integer count, BigDecimal earnedOnBTC,
+                                   BigDecimal earnedOnUSD, BigDecimal earnedOnUSDT, List<ReferralStructureDto> result) {
+        structureDto.setNumberChild(count);
+        structureDto.setEarnedBTC(earnedOnBTC);
+        structureDto.setEarnedUSD(earnedOnUSD);
+        structureDto.setEarnedUSDT(earnedOnUSDT);
+        result.add(structureDto);
+    }
+
+    private void addEarnedMapToValues(BigDecimal earnedOnBTC, BigDecimal earnedOnUSD, BigDecimal earnedOnUSDT,
+                                      Map<String, BigDecimal> earned) {
+        earnedOnBTC = earnedOnBTC.add(earned.getOrDefault(BTC, BigDecimal.ZERO));
+        earnedOnUSD = earnedOnBTC.add(earned.getOrDefault(USD, BigDecimal.ZERO));
+        earnedOnUSDT = earnedOnBTC.add(earned.getOrDefault(USDT, BigDecimal.ZERO));
+    }
+
+    private void processReferralPayment(ReferralRequest request, Map<ReferralLevel, User> levelUserMap, User userFrom) {
         Currency currency = currencyService.findById(request.getCurrencyId());
         CompanyWallet cWallet = companyWalletService.findByCurrency(currency);
         BigDecimal totalCommission = request.getAmount();
@@ -233,7 +422,8 @@ public class ReferralServiceImpl implements ReferralService {
                     .amount(amount)
                     .currencyId(currency.getId())
                     .currencyName(currency.getName())
-                    .link(user.getInviteReferralLink())
+                    .userIdFrom(userFrom.getId())
+                    .userIdTo(user.getId())
                     .build();
 
             if (referralTransactionDao.createReferralTransaction(referralTransaction)) {

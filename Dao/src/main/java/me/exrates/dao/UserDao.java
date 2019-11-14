@@ -266,4 +266,6 @@ public interface UserDao {
     boolean subscribeToMailingByEmail(String email, boolean subscribe);
 
     List<User> findByInviteReferralLink(String link);
+
+    List<User> findByInviteReferralLink(List<String> links);
 }

@@ -3,20 +3,40 @@ package me.exrates.model.dto.referral;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
 @Builder
 public class ReferralStructureDto {
-    private int numberChild;
+    private Integer numberChild;
     private String name;
     private String link;
     private BigDecimal earnedBTC;
     private BigDecimal earnedUSD;
     private BigDecimal earnedUSDT;
     private boolean main;
+    private Integer level;
+    private Integer userId;
+    private String userEmail;
+
+    public ReferralStructureDto(String name, String link) {
+        this.name = name;
+        this.link = link;
+        this.earnedBTC = new BigDecimal(0);
+        this.earnedUSD = new BigDecimal(0);
+        this.earnedUSDT = new BigDecimal(0);
+    }
+
+    public ReferralStructureDto(String email, int level, int userId) {
+        this.userEmail = email;
+        this.userId = userId;
+        this.level = level;
+        this.earnedBTC = new BigDecimal(0);
+        this.earnedUSD = new BigDecimal(0);
+        this.earnedUSDT = new BigDecimal(0);
+    }
+
+
 }

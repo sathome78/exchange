@@ -17,7 +17,7 @@ public class ReferralTransaction {
     private Integer id;
     private int currencyId;
     private String currencyName;
-    private int userId;
+    private int userIdFrom;
+    private int userIdTo;
     private BigDecimal amount;
-    private String link;
 }
