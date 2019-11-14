@@ -43,7 +43,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static me.exrates.service.util.RequestUtil.getSSlFactory;
 
-@PropertySource(value = {"classpath:/kyc.properties", "classpath:/angular.properties"})
+@PropertySource(value = {"classpath:/kyc.properties"})
 @Slf4j
 @Component
 public class KYCServiceImpl implements KYCService {
@@ -74,9 +74,6 @@ public class KYCServiceImpl implements KYCService {
     private final SendMailService sendMailService;
     private final KycHttpClient kycHttpClient;
     private final StompMessenger stompMessenger;
-
-    @Value("${server-host}")
-    private String host;
 
     @Autowired
     public KYCServiceImpl(@Value("${shufti-pro.verification-url}") String verificationUrl,
@@ -309,14 +306,14 @@ public class KYCServiceImpl implements KYCService {
         Email email = Email.builder()
                 .to(userEmail)
                 .subject(emailSubject)
-                .message(String.format(emailMessagePattern, eventStatus))
+                .message(String.format("<p style=\"MAX-WIDTH: 347px; FONT-FAMILY: Roboto; COLOR: #000000; MARGIN: auto auto 2.15em;font-weight: normal; font-size: 16px; line-height: 19px; text-align: center;\">%s <span style=\"font-weight: bold;\">%s</span></p>",
+                        emailMessagePattern, eventStatus))
                 .properties(properties)
                 .build();
 
         sendMailService.sendMail(email);
 
         UserNotificationType type;
-        String msg = String.format(emailMessagePattern, eventStatus);
         if (eventStatus.equalsIgnoreCase("SUCCESS")
                 || eventStatus.equalsIgnoreCase(EventStatus.ACCEPTED.name())) {
             type = UserNotificationType.SUCCESS;
@@ -324,7 +321,7 @@ public class KYCServiceImpl implements KYCService {
             type = UserNotificationType.ERROR;
         }
 
-        final UserNotificationMessage message = new UserNotificationMessage(WsSourceTypeEnum.KYC, type, msg);
+        final UserNotificationMessage message = new UserNotificationMessage(WsSourceTypeEnum.KYC, type, String.format("%s %s", emailMessagePattern, eventStatus));
 
         stompMessenger.sendPersonalMessageToUser(userEmail, message);
     }
