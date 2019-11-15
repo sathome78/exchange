@@ -10,4 +10,6 @@ public interface RabbitMqService {
     void sendOrderInfoToChartService(ExOrder order);
 
     void sendOrderInfoToExternalService(ExOrder order);
+
+    void generateNewTrade();
 }
