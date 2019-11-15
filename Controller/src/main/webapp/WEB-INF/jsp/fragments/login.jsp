@@ -7,8 +7,6 @@
 <head>
     <title>Create password</title>
 
-    <%@include file="../tools/google_head.jsp" %>
-
     <script src="<c:url value="/client/js/jquery_1.11.3.min.js"/>" type="text/javascript"></script>
 
     <!-- New design -->
@@ -21,7 +19,6 @@
 
 </head>
 <body>
-<%@include file="../tools/google_body.jsp" %>
 <input id="loginError" hidden value='${error}'/>
 <input type="hidden" class="s_csrf" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 

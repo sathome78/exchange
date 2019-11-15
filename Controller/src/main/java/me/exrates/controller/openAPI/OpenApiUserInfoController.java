@@ -132,14 +132,4 @@ public class OpenApiUserInfoController {
     public ResponseEntity<BaseResponse<List<TransactionDto>>> getOrderTransactions(@PathVariable(value = "order_id") Integer orderId) {
         return ResponseEntity.ok(BaseResponse.success(orderService.getOrderTransactions(orderId)));
     }
-
-//    @GetMapping(value = "/info/email/exists", produces = MediaType.APPLICATION_JSON_VALUE)
-//    public ResponseEntity<Map<String, Boolean>> checkEmailExistence(@RequestParam("email") String email) {
-//        try {
-//            userService.findByEmail(email);
-//            return ResponseEntity.ok(Collections.singletonMap("status", Boolean.TRUE));
-//        } catch (UserNotFoundException ex) {
-//            return ResponseEntity.ok(Collections.singletonMap("status", Boolean.FALSE));
-//        }
-//    }
 }

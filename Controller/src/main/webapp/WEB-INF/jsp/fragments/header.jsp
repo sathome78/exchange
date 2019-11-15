@@ -1,4 +1,3 @@
-<%@include file="../tools/google_body.jsp"%>
 <%@ page import="me.exrates.controller.AdminController"%>
 <%@ page import="org.springframework.web.servlet.support.RequestContext" %>
 
@@ -9,7 +8,6 @@
 
 <script type="text/javascript" src="/client/js/jquery.cookie.js"></script>
 <script src="<c:url value="/client/js/jquery.noty.packaged.min.js"/>"></script>
-<script src="<c:url value="/client/js/notifications/notifications.js"/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/login.js'/>"></script>
 <script src="https://www.google.com/recaptcha/api.js" type="text/javascript"></script>
@@ -24,7 +22,6 @@
                                 && (path != '/register')
                                 && (path != '/forgotPassword')
                                 && (path != '/login?error')}"/>
-<c:set var="showRegistration" value="${(path != '/register')}"/>
 
 <%@include file="banner.jsp"%>
 <header class="header">
@@ -33,27 +30,6 @@
         </div>
         <div class="cols-md-8">
             <ul class="nav header__nav">
-                <li>
-                    <a class="nav__link predictions" href="<c:url value='https://predictionlab.exrates.me/'/>" target="_blank">
-                        Predictions
-                    </a>
-                </li>
-                <li>
-                    <a class="nav__link ieo-text" href="<c:url value='/ieo_dashboard'/>">
-                        IEO
-                    </a>
-                </li>
-                <sec:authorize access="isAuthenticated()">
-                    <li id="menu-mywallets"><a href="#" class="nav__link"><loc:message code="usermenu.mywallets"/></a>
-                    </li>
-                    <li id="menu-myhistory"><a href="#" class="nav__link"><loc:message code="usermenu.myorders"/></a>
-                    </li>
-                    <li id="menu-orders"><a href="#" class="nav__link"><loc:message code="usermenu.orders"/></a></li>
-                </sec:authorize>
-                <li><a href="<c:url value="https://news.exrates.me" />" target="_blank" class="nav__link">
-                    <loc:message code="dashboard.news"/></a>
-                </li>
-
                 <sec:authorize access="isAuthenticated()">
                     <li id="adminka-entry">
                             <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
@@ -90,11 +66,6 @@
         <div class="cols-md-2 right_header_nav">
 
             <ul class="padding0">
-                <sec:authorize access="! isAuthenticated()">
-                    <c:if test="${showRegistration}">
-                        <li class="pull-left paddingtop10"> <a id="regT" data-fancybox href="#registration" class="focus-white nav__link"><loc:message code="dashboard.signUp"/></a></li>
-                    </c:if>
-                </sec:authorize>
                 <sec:authorize access="isAuthenticated()">
                     <li class="">
                         <form action="/logout" class="dropdown-menu__logout-form" method="post">
@@ -105,37 +76,6 @@
                         </form>
                     </li>
                 </sec:authorize>
-
-                <li role="presentation" class="dropdown paddingtop10 open-language">
-                    <%String lang = (new RequestContext(request)).getLocale().getLanguage();%>
-                    <c:set var="lang" value="<%=me.exrates.controller.DashboardController.convertLanguageNameToMenuFormat(lang)%>"/>
-                    <a id="language" class="dropdown-toggle focus-white nav__link" data-toggle="dropdown" href="#"
-                       role="button" aria-haspopup="true" aria-expanded="false">
-                        ${fn:toUpperCase(lang)} <span class="caret"></span>
-                    </a>
-                    <ul class="dropdown-menu choose-language">
-                        <li><a href="#" class="language">EN</a></li>
-                        <li><a href="#" class="language">RU</a></li>
-                        <li><a href="#" class="language">CH</a></li>
-                        <li><a href="#" class="language">ID</a></li>
-                        <li><a href="#" class="language">KO</a></li>
-                        <!--
-                        <li><a href="#" class="language">AR</a></li>
-                        -->
-                    </ul>
-
-                </li>
-                <sec:authorize access="isAuthenticated()">
-                    <li class="settings-menu-item">
-                        <a href="<c:url value="/settings"/>">
-                            <span class="glyphicon glyphicon-cog nav__link"></span>
-                        </a>
-                    </li>
-                    <%--<li>
-                        <%@include file="../fragments/notification-header.jsp" %>
-                    </li>--%>
-                </sec:authorize>
-
             </ul>
         </div>
     </div>
@@ -170,12 +110,6 @@
                     <input id="login_submit" class="btn__new btn__new--form" value="Authorise me" readonly disabled>
                 </div>
             </form>
-
-            <div class="popup__bottom-links-row">
-                <a id="go_to_register" class="popup__bottom-link">Go to registration form</a>
-                <a id="forgot_pwd" class="popup__bottom-link">Forgot password?</a>
-                <a id="forgot_pwd_hide" data-fancybox href="#pwd_restore" class="popup__bottom-link" style="display: none">Forgot password?</a>
-            </div>
         </div>
     </div>
 
@@ -266,61 +200,6 @@
             </div>
         </div>
     <%--PIN | END--%>
-
-    <%-- Regitration with referral link | START --%>
-    <a id="pwd_referral_link_for_registration_hide" data-fancybox href="#registration" class="popup__bottom-link" style="display: none"><loc:message code="usermenu.referral"/></a>
-    <input id="referral_link_for_registration" hidden value='${refferalLink}'/>
-    <%-- Regitration with referral link | END --%>
-
-    <%-- Regitration | START --%>
-    <div id="registration" class="popup">
-        <div class="popup__inner">
-            <div class="popup__caption">Registration</div>
-
-            <form id="create_me" class="form" method="post">
-                <input type="hidden"  class="csrfC" name="_csrf" value="${_csrf.token}"/>
-                <input id="userParentEmail" name="parentEmail" hidden value='${parentEmail}'>
-
-                <div class="field">
-                    <div id="email_label" class="field__label">Email</div>
-                    <input id="email" class="field__input" type="email" name="email" placeholder="Email" required>
-                    <div id="reg__email_exists" class='field__error' style="display:none">
-                        <loc:message code="register.emailExists"/>
-                    </div>
-                    <div id="ip_banned_incorrect_attempts_exceeded" class='field__error' style="display:none">
-                        <loc:message code="ip.ban.message.incorrectAttemptsExceeded"/>
-                    </div>
-                    <div id="reg__email_wrong" class='field__error' style="display:none">
-                        <loc:message code="register.emailWrong"/>
-                    </div>
-                    <div id="reg__email_regex" class='field__error' style="display:none">
-                        <loc:message code="register.emailValidation"/>
-                    </div>
-                    <div id="reg__email_reequired" class='field__error' style="display:none">
-                        <loc:message code="register.emailIsRequired"/>
-                    </div>
-
-                    <br>
-                    <div class="g-recaptcha" data-callback="capResultChecReg" data-expired-callback="capExpiredReg"
-                         data-sitekey="${captchaProperties.get("captcha.key")}"></div>
-                </div>
-
-                <div class="field field--btn__new">
-                    <input id="reg_submit" class="btn__new btn__new--form" type="submit" value="Create an account" disabled>
-                </div>
-
-                <div class="popup__bottom">
-                    <div class="popup__privacy">
-                        <input id="privacy__checked" class="privacy__checkbox" type="checkbox" />
-                        I agree to exrates
-                        <a href="/termsAndConditions" class="popup__bottom-link" target="_blank">Terms of Use</a>
-                    </div>
-                    <div class="popup__bottom-row">Already have an account? <a id="go_login" class="popup__bottom-link">Log in</a></div>
-                </div>
-            </form>
-        </div>
-    </div>
-    <%-- Regitration | END --%>
 
     <a id="pwd_unverifiedUser_hide" data-fancybox href="#pwd_unverifiedUser" class="popup__bottom-link" style="display: none"><loc:message code="register.unconfirmedUser"/></a>
 

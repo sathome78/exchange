@@ -48,11 +48,7 @@ Number.prototype.noExponents = function () {
     return str + z;
 };
 
-var notifications;
-
 $(function () {
-    notifications = new NotificationsClass();
-
     /*const YANDEX = 'Yandex.Money';
     const PERFECT = 'Perfect Money';
     const BLOCKCHAIN = 'Blockchain';
@@ -179,7 +175,6 @@ $(function () {
                     $('#outputPaymentProcess')
                         .prop('disabled', false);
                     successNoty();
-                    notifications.getNotifications();
                 }).fail(function (error, jqXHR, textStatus) {
                     $('#finPassModal .close').click();
                     responseControls();

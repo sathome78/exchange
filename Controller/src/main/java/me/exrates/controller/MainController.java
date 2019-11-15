@@ -313,7 +313,7 @@ public class MainController {
                 logger.info("login(), exceptionClass {}", exceptionClass);
                 if (exceptionClass.equals("DisabledException")) {
                     attr.addFlashAttribute("blockedUser", messageSource.getMessage("login.blocked", null, localeResolver.resolveLocale(request)));
-                    attr.addFlashAttribute("contactsUrl", "/contacts");
+                    attr.addFlashAttribute("contactsUrl");
                 } else if (exceptionClass.equals("BadCredentialsException")) {
                     attr.addFlashAttribute("loginErr", messageSource.getMessage("login.notFound", null, localeResolver.resolveLocale(request)));
                 } else if (exceptionClass.equals("NotVerifiedCaptchaError")) {
@@ -381,12 +381,6 @@ public class MainController {
         return new ModelAndView("referral", singletonMap("referralTxs", referralService.findAll(id)));
     }
 
-    @RequestMapping("/aboutUs")
-    public ModelAndView aboutUs() {
-        ModelAndView modelAndView = new ModelAndView("/globalPages/aboutUs", "captchaType", CAPTCHA_TYPE);
-        return modelAndView;
-    }
-
     /*
     error handlers for this controller
     * */
@@ -412,54 +406,10 @@ public class MainController {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
-    @RequestMapping(value = "/termsAndConditions", method = RequestMethod.GET)
-    public ModelAndView termsAndConditions() {
-        return new ModelAndView("/globalPages/termsAndConditions", "captchaType", CAPTCHA_TYPE);
-    }
-
-    @RequestMapping(value = "/privacyPolicy", method = RequestMethod.GET)
-    public ModelAndView privacyPolicy() {
-        return new ModelAndView("/globalPages/privacyPolicy", "captchaType", CAPTCHA_TYPE);
-    }
-
-    @RequestMapping(value = "/contacts", method = RequestMethod.GET)
-    public ModelAndView contacts(ModelMap model) {
-        ModelAndView modelAndView = new ModelAndView("globalPages/contacts", "captchaType", CAPTCHA_TYPE);
-        model.forEach((key, value) -> logger.debug(key + " :: " + value));
-        if (model.containsAttribute("messageForm")) {
-            modelAndView.addObject("messageForm", model.get("messageForm"));
-        } else {
-            modelAndView.addObject("messageForm", new FeedbackMessageForm());
-        }
-        return modelAndView;
-    }
-
-    @RequestMapping(value = "/partners", method = RequestMethod.GET)
-    public ModelAndView partners() {
-        return new ModelAndView("/globalPages/partners", "captchaType", CAPTCHA_TYPE);
-    }
-
     @RequestMapping(value = "/utcOffset")
     @ResponseBody
     public Integer getServerUtcOffsetMinutes() {
         return TimeZone.getDefault().getOffset(System.currentTimeMillis()) / (1000 * 60);
-    }
-
-
-    @RequestMapping(value = "/api_docs", method = RequestMethod.GET)
-    public ModelAndView apiDocs(HttpServletRequest request) {
-        ModelAndView modelAndView = new ModelAndView("/globalPages/apiDocs", "captchaType", CAPTCHA_TYPE);
-        String baseUrl = String.join("", "https://", request.getServerName(), "/openapi/v1");
-        modelAndView.addObject("baseUrl", baseUrl);
-        modelAndView.addObject("orderTypeValues", Arrays.asList(OrderType.values()));
-        modelAndView.addObject("periodValues", Arrays.stream(OrderHistoryPeriod.values())
-                .map(OrderHistoryPeriod::toUrlValue).collect(Collectors.toList()));
-        Map<OpenApiMethodGroup, List<OpenApiMethodDoc>> methodGroups = Arrays.stream(OpenApiMethodDoc.values())
-                .collect(Collectors.groupingBy(OpenApiMethodDoc::getMethodGroup));
-        modelAndView.addObject("publicMethodsInfo", methodGroups.get(OpenApiMethodGroup.PUBLIC));
-        modelAndView.addObject("userMethodsInfo", methodGroups.get(OpenApiMethodGroup.USER_INFO));
-        modelAndView.addObject("orderMethodsInfo", methodGroups.get(OpenApiMethodGroup.ORDERS));
-        return modelAndView;
     }
 
     @ResponseBody
