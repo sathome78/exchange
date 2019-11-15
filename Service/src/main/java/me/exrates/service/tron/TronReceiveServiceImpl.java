@@ -46,11 +46,6 @@ public class TronReceiveServiceImpl {
     private static final String CURRENCY_NAME = "TRX";
     private static final int TRX_DECIMALS = 6;
 
-    private static Map<String, Trc20TokenService> tokenTrc20Map = new HashMap<String, Trc20TokenService>(){{
-        put("USDT", new Trc20TokenServiceImpl("USDT(TRX)", "USDT(TRX)"));
-        put("WIN", new Trc20TokenServiceImpl("WIN", "WIN"));
-    }};
-
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     @Autowired
@@ -108,12 +103,10 @@ public class TronReceiveServiceImpl {
                             break;
                         }
                         case TriggerSmartContract: {
-                            if (tokenTrc20Map.containsKey(transaction.getAssetName())){
-                                Trc20TokenService trc20TokenService = tokenTrc20Map.get(transaction.getAssetName());
-                                transaction.setMerchantId(merchantService.findByName(trc20TokenService.getMerchantName()).getId());
-                                transaction.setCurrencyId(currencyService.findByName(trc20TokenService.getMerchantName()).getId());
-                                transaction.setAmount(parseAmount(transaction.getRawAmount(), TRX_DECIMALS));
-                            }
+                            TronTrc10Token token = tronTokenContext.getByCurrencyId(transaction.getCurrencyId());
+                            transaction.setMerchantId(merchantService.findByName(token.getMerchantName()).getId());
+                            transaction.setCurrencyId(currencyService.findByName(token.getCurrencyName()).getId());
+                            transaction.setAmount(parseAmount(transaction.getRawAmount(), TRX_DECIMALS));
                             break;
                         }
                         default: throw new RuntimeException("unsupported tx type");

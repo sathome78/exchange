@@ -26,7 +26,7 @@ public class RegisterFormValidation implements Validator {
     private Pattern pattern;
     private Matcher matcher;
 
-    private static final String EMAIL_PATTERN = "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
+    private static final String EMAIL_PATTERN = "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-\\+]+)*@"
             + "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
     String ID_PATTERN = "[0-9]+";
     String STRING_PATTERN = "[a-zA-Z]+";

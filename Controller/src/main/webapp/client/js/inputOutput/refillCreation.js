@@ -12,7 +12,6 @@ $(function refillCreation() {
     const $refillDetailedParamsDialog = $container.find('#dialog-refill-detailed-params-enter');
     const $loadingDialog = $container.find('#loading-process-modal');
     const $amountHolder = $container.find("#sum");
-    const notifications = new NotificationsClass();
     const inputOutput = new InputOutputClass();
     const urlForRefillCreate = "/refill/request/create";
     const modalTemplate = $container.find('.paymentInfo p');
@@ -234,7 +233,6 @@ $(function refillCreation() {
                     var qrElement = result['params']['qr'];
                     var qrTag = qrElement ? qrElement : '';
                     showRefillDialogAfterCreation(result['params']['message'], qrTag, result['requestId']);
-                    notifications.getNotifications();
                 } else {
                     if (!result['method']) {
                         window.location = result['redirectionUrl'];

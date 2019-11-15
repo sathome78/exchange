@@ -7,10 +7,14 @@ import me.exrates.model.SessionParams;
 import me.exrates.model.User;
 import me.exrates.model.constants.Constants;
 import me.exrates.model.constants.ErrorApiTitles;
+import me.exrates.model.dto.BalanceFilterDataDto;
 import me.exrates.model.dto.PageLayoutSettingsDto;
 import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.dto.UserLoginSessionShortDto;
 import me.exrates.model.dto.UserNotificationMessage;
+import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.enums.ColorScheme;
+import me.exrates.model.enums.CurrencyType;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.SessionLifeTypeEnum;
 import me.exrates.model.enums.UserNotificationType;
@@ -23,6 +27,7 @@ import me.exrates.model.ngModel.UserDocVerificationDto;
 import me.exrates.model.ngModel.UserInfoVerificationDto;
 import me.exrates.model.ngModel.enums.VerificationDocumentType;
 import me.exrates.model.ngModel.response.ResponseModel;
+import me.exrates.model.ngUtil.PagedResult;
 import me.exrates.ngService.RedisUserNotificationService;
 import me.exrates.ngService.UserVerificationService;
 import me.exrates.security.ipsecurity.IpBlockingService;
@@ -33,6 +38,7 @@ import me.exrates.service.NotificationService;
 import me.exrates.service.PageLayoutSettingsService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
+import me.exrates.service.session.UserLoginSessionsService;
 import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.util.RestApiUtilComponent;
 import org.apache.commons.lang3.StringUtils;
@@ -85,6 +91,7 @@ public class NgUserSettingsController {
     private static final String COLOR_SCHEME = "/color-schema";
     private static final String IS_COLOR_BLIND = "/isLowColorEnabled";
     private static final String STATE = "/STATE";
+    private static final String USER_SESSIONS_HISTORY = "/sessions";
 
     private final AuthTokenService authTokenService;
     private final UserService userService;
@@ -96,6 +103,7 @@ public class NgUserSettingsController {
     private final IpBlockingService ipBlockingService;
     private final StompMessenger stompMessenger;
     private final RestApiUtilComponent restApiUtilComponent;
+    private final UserLoginSessionsService userLoginSessionsService;
 
     @Value("${contacts.feedbackEmail}")
     String feedbackEmail;
@@ -110,7 +118,7 @@ public class NgUserSettingsController {
                                     UserVerificationService userVerificationService,
                                     IpBlockingService ipBlockingService,
                                     StompMessenger stompMessenger,
-                                    RestApiUtilComponent restApiUtilComponent) {
+                                    RestApiUtilComponent restApiUtilComponent, UserLoginSessionsService userLoginSessionsService) {
         this.authTokenService = authTokenService;
         this.userService = userService;
         this.notificationService = notificationService;
@@ -121,6 +129,7 @@ public class NgUserSettingsController {
         this.ipBlockingService = ipBlockingService;
         this.stompMessenger = stompMessenger;
         this.restApiUtilComponent = restApiUtilComponent;
+        this.userLoginSessionsService = userLoginSessionsService;
     }
 
     // /info/private/v2/settings/updateMainPassword
@@ -371,6 +380,21 @@ public class NgUserSettingsController {
     public ResponseEntity<?> deleteUserNotification(@PathVariable String messageId) {
         redisUserNotificationService.deleteUserNotification(messageId);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping(USER_SESSIONS_HISTORY)
+    public ResponseEntity<PagedResult<UserLoginSessionShortDto>> getSessions(
+            @RequestParam(required = false, defaultValue = "7") Integer limit,
+            @RequestParam(required = false, defaultValue = "0") Integer offset,
+            HttpServletRequest request) {
+        final String email = getPrincipalEmail();
+        try {
+            return ResponseEntity.ok(userLoginSessionsService.getSessionsHistory(email, limit, offset, request));
+        } catch (Exception ex) {
+            String message = "Failed to get user sessions";
+            logger.error(message, ex);
+            throw new NgResponseException(ErrorApiTitles.SETTINGS_ERROR_GET_USER_SESSIONS_HISTORY, message);
+        }
     }
 
     private UpdateUserDto getUpdateUserDto(User user) {

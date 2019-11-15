@@ -25,6 +25,8 @@ import me.exrates.security.service.NgUserService;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.UserService;
 import me.exrates.service.notifications.G2faService;
+import me.exrates.service.session.UserLoginSessionsService;
+import me.exrates.service.session.UserLoginSessionsServiceImpl;
 import me.exrates.service.util.IpUtils;
 import me.exrates.service.util.RestApiUtilComponent;
 import org.apache.commons.lang.StringUtils;
@@ -55,6 +57,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import static me.exrates.service.util.RestUtil.getUrlFromRequest;
@@ -81,6 +84,8 @@ public class NgUserController {
     private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
     private final RestApiUtilComponent restApiUtilComponent;
+    private final UserLoginSessionsService userLoginSessionsService;
+
     @Value("${dev.mode}")
     private boolean DEV_MODE;
 
@@ -93,7 +98,7 @@ public class NgUserController {
                             NgUserService ngUserService,
                             UserDetailsService userDetailsService,
                             PasswordEncoder passwordEncoder,
-                            RestApiUtilComponent restApiUtilComponent) {
+                            RestApiUtilComponent restApiUtilComponent, UserLoginSessionsService userLoginSessionsService) {
         this.ipBlockingService = ipBlockingService;
         this.authTokenService = authTokenService;
         this.userService = userService;
@@ -103,6 +108,7 @@ public class NgUserController {
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
         this.restApiUtilComponent = restApiUtilComponent;
+        this.userLoginSessionsService = userLoginSessionsService;
     }
 
 
@@ -157,6 +163,7 @@ public class NgUserController {
         AuthTokenDto authTokenDto = createToken(authenticationDto, request, user);
 //        ipBlockingService.successfulProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
         userService.logIP(user.getId(), ipAddress, UserEventEnum.LOGIN_SUCCESS, getUrlFromRequest(request));
+        CompletableFuture.runAsync(() -> userLoginSessionsService.insert(request, authTokenDto.getToken(), user.getEmail()));
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK); // 200
     }
 

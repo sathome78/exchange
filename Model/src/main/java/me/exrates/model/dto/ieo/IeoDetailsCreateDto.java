@@ -53,6 +53,7 @@ public class IeoDetailsCreateDto {
     private Boolean isTestIeo;
     private Integer countTestTransaction;
     private String logo;
+    private String licenseAgreement;
 
     public IEODetails toIEODetails(int makerId, int creatorId) {
         return IEODetails.builder()
@@ -75,6 +76,7 @@ public class IeoDetailsCreateDto {
                 .testIeo(isTestIeo)
                 .countTestTransaction(countTestTransaction)
                 .content(content)
+                .licenseAgreement(licenseAgreement)
                 .build();
     }
 

@@ -65,6 +65,7 @@
                                 <th><loc:message code="admin.currencyLimits.minLimit"/></th>
                                 <th><loc:message code="admin.currencyLimits.minLimitUsdRate"/></th>
                                 <th><loc:message code="admin.currencyLimits.maxLimit"/></th>
+                                <th><loc:message code="admin.currencyLimits.maxLimitUSD"/></th>
                                 <th><loc:message code="admin.currencyLimits.maxDailyRequest"/></th>
                                 <th><loc:message code="admin.currencyLimits.changeAutomaticallyByUSD"/></th>
                             </tr>
@@ -187,6 +188,15 @@
                     <div class="input-block-wrapper">
                         <div class="col-md-5 input-block-wrapper__label-wrapper">
                             <label class="input-block-wrapper__label"><loc:message
+                                    code="admin.currencyLimits.maxLimitUSD"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input id="maxAmountUSD" name="maxAmountUSD" class="input-block-wrapper__input" type="number">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message
                                     code="admin.currencyLimits.usdRate"/></label>
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
@@ -298,7 +308,6 @@
     </div>
 </div>
 
-<%@include file='../fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>
 </body>

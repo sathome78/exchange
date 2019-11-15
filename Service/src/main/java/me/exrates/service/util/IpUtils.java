@@ -1,6 +1,8 @@
 package me.exrates.service.util;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -44,5 +46,16 @@ public class IpUtils {
 
     public static String getIpForDbLog(HttpServletRequest request) {
         return getClientIpAddress(request, IP_LENGTH_FOR_DB_LOG).replaceFirst(",", "");
+    }
+
+    public static String getIpForUserHistory(HttpServletRequest request) {
+        String fullAddress = getClientIpAddress(request).replaceFirst(",", "");
+        String userAddress = fullAddress.split(",")[0];
+        return StringUtils.substring(userAddress, 0, IP_LENGTH_FOR_DB_LOG);
+    }
+
+    public static HttpServletRequest getCurrentRequest() {
+        return ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
+                        .getRequest();
     }
 }

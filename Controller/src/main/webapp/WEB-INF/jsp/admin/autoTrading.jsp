@@ -419,7 +419,6 @@
 
 <span hidden id="launch-settings-loc"><loc:message code="admin.autoTrading.settings.bot.launch"/> </span>
 <span hidden id="trading-settings-loc"><loc:message code="admin.autoTrading.settings.bot.trading"/></span>
-<%@include file='../fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>
 </body>

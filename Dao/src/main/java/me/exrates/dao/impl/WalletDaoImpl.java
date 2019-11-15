@@ -3,6 +3,7 @@ package me.exrates.dao.impl;
 import com.google.common.collect.Maps;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CurrencyDao;
+import me.exrates.dao.OrderDao;
 import me.exrates.dao.TransactionDao;
 import me.exrates.dao.UserDao;
 import me.exrates.dao.WalletDao;
@@ -33,6 +34,7 @@ import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.CurrencyProcessType;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderTableEnum;
 import me.exrates.model.enums.ReportGroupUserRole;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.UserRole;
@@ -82,6 +84,17 @@ public class WalletDaoImpl implements WalletDao {
     private TransactionDao transactionDao;
     @Autowired
     private UserDao userDao;
+    @Autowired
+    private CurrencyDao currencyDao;
+    @Autowired
+    @Qualifier(value = "masterTemplate")
+    private NamedParameterJdbcTemplate jdbcTemplate;
+    @Autowired
+    @Qualifier(value = "slaveTemplate")
+    private NamedParameterJdbcTemplate slaveJdbcTemplate;
+    @Autowired
+    private OrderDao orderDao;
+
     private final RowMapper<Wallet> walletRowMapper = (rs, i) -> {
 
         final Wallet userWallet = new Wallet();
@@ -110,12 +123,6 @@ public class WalletDaoImpl implements WalletDao {
     };
     @Autowired
     private CurrencyDao currencyDao;
-    @Autowired
-    @Qualifier(value = "masterTemplate")
-    private NamedParameterJdbcTemplate jdbcTemplate;
-    @Autowired
-    @Qualifier(value = "slaveTemplate")
-    private NamedParameterJdbcTemplate slaveJdbcTemplate;
 
     private RowMapper<WalletsForOrderCancelDto> getWalletsForOrderCancelDtoMapper(OperationType operationType) {
         return (rs, i) -> {
@@ -440,7 +447,7 @@ public class WalletDaoImpl implements WalletDao {
                 "               JOIN WALLET ON (WALLET.user_id = USER.id) " +
                 "               JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
                 "               JOIN CURRENCY_PAIR CP1 ON (CP1.currency1_id = WALLET.currency_id) " +
-                "               JOIN EXORDERS EO ON (EO.currency_pair_id = CP1.id) AND (EO.status_id = 3) AND (EO.user_id=USER.id) " +
+                "               JOIN ORDERS EO ON (EO.currency_pair_id = CP1.id) AND (EO.status_id = 3) AND (EO.user_id=USER.id) " +
                 "             WHERE USER.id = :id AND CURRENCY.hidden != 1 " +
 
 
@@ -455,7 +462,7 @@ public class WalletDaoImpl implements WalletDao {
                 "               JOIN WALLET ON (WALLET.user_id = USER.id) " +
                 "               JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
                 "               JOIN CURRENCY_PAIR CP2 ON (CP2.currency2_id = WALLET.currency_id) " +
-                "               JOIN EXORDERS EO ON (EO.currency_pair_id = CP2.id) AND (EO.status_id = 3) AND (EO.user_id=USER.id) " +
+                "               JOIN ORDERS EO ON (EO.currency_pair_id = CP2.id) AND (EO.status_id = 3) AND (EO.user_id=USER.id) " +
                 "             WHERE USER.id = :id AND CURRENCY.hidden != 1 " +
 
 
@@ -470,7 +477,7 @@ public class WalletDaoImpl implements WalletDao {
                 "               JOIN WALLET ON (WALLET.user_id = USER.id) " +
                 "               JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
                 "               JOIN CURRENCY_PAIR CP1 ON (CP1.currency1_id = WALLET.currency_id) " +
-                "               JOIN EXORDERS EO ON (EO.currency_pair_id = CP1.id) AND (EO.status_id = 3) " +
+                "               JOIN ORDERS EO ON (EO.currency_pair_id = CP1.id) AND (EO.status_id = 3) " +
                 "                                   AND (EO.user_acceptor_id=USER.id) AND EO.counter_order_id IS NULL " +
                 "             WHERE USER.id = :id AND CURRENCY.hidden != 1 " +
 
@@ -486,7 +493,7 @@ public class WalletDaoImpl implements WalletDao {
                 "               JOIN WALLET ON (WALLET.user_id = USER.id) " +
                 "               JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
                 "               JOIN CURRENCY_PAIR CP2 ON (CP2.currency2_id = WALLET.currency_id) " +
-                "               JOIN EXORDERS EO ON (EO.currency_pair_id = CP2.id) AND (EO.status_id = 3) " +
+                "               JOIN ORDERS EO ON (EO.currency_pair_id = CP2.id) AND (EO.status_id = 3) " +
                 "                                   AND (EO.user_acceptor_id=USER.id) AND EO.counter_order_id IS NULL " +
                 "             WHERE USER.id = :id AND CURRENCY.hidden != 1" +
 
@@ -1183,7 +1190,10 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public List<OrderDetailDto> getOrderRelatedDataAndBlock(int orderId) {
-        CurrencyPair currencyPair = currencyDao.findCurrencyPairByOrderId(orderId);
+
+        OrderTableEnum orderTableEnum = orderDao.getOrderTable(orderId);
+
+        CurrencyPair currencyPair = currencyDao.findCurrencyPairByOrderId(orderId, orderTableEnum);
         if (Objects.isNull(currencyPair)) {
             return Collections.emptyList();
         }
@@ -1200,7 +1210,7 @@ public class WalletDaoImpl implements WalletDao {
                         "    USER_WALLET.id as user_wallet_id,  " +
                         "    COMPANY_WALLET.id as company_wallet_id, " +
                         "    TRANSACTION.commission_amount AS company_commission " +
-                        "  FROM EXORDERS " +
+                        "  FROM " + orderTableEnum + " as EXORDERS " +
                         "    JOIN WALLET ORDER_CREATOR_RESERVED_WALLET ON  " +
                         "            (ORDER_CREATOR_RESERVED_WALLET.user_id=EXORDERS.user_id) AND  " +
                         "            ( " +

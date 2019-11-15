@@ -44,6 +44,9 @@ public class User implements Serializable {
     private String ga;
     private String inviteReferralLink;
 
+    // to skip trade restrictions check
+    private Boolean hasTradesPrivileges;
+
     public User() {
     }
 
@@ -205,6 +208,21 @@ public class User implements Serializable {
 
     public void setVerificationRequired(Boolean verificationRequired) {
         this.verificationRequired = verificationRequired;
+    }
+    public Boolean hasTradePrivileges() {
+        return hasTradesPrivileges;
+    }
+
+    public Boolean getHasTradesPrivileges() {
+        return hasTradesPrivileges;
+    }
+
+    public void setHasTradesPrivileges(Boolean hasTradesPrivileges) {
+        this.hasTradesPrivileges = hasTradesPrivileges;
+    }
+
+    public void setTradePrivileges(Boolean tradesAllowed) {
+        this.hasTradesPrivileges = tradesAllowed;
     }
 
     public String getInviteReferralLink() {

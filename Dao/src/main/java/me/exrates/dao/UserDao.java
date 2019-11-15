@@ -268,4 +268,6 @@ public interface UserDao {
     List<User> findByInviteReferralLink(String link);
 
     List<User> findByInviteReferralLink(List<String> links);
+
+    boolean setUserVerificationRequired(int userId, boolean isRequired);
 }

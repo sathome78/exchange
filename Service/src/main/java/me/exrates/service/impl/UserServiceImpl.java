@@ -34,6 +34,7 @@ import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.NotificationTypeEnum;
 import me.exrates.model.enums.PolicyEnum;
+import me.exrates.model.enums.RestrictedOperation;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserEventEnum;
@@ -42,6 +43,7 @@ import me.exrates.model.enums.UserStatus;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.ngExceptions.PincodeExpiredException;
+import me.exrates.ngService.GeoLocationService;
 import me.exrates.service.NotificationService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
@@ -69,6 +71,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -139,6 +142,8 @@ public class UserServiceImpl implements UserService {
     private NotificationsSettingsService settingsService;
     @Autowired
     private G2faService g2faService;
+    @Autowired
+    private GeoLocationService geoLocationService;
     @Autowired
     private ExchangeApi exchangeApi;
     @Autowired
@@ -988,6 +993,18 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUserPin(String email, NotificationMessageEventEnum login) {
         userPinDao.delete(email, login);
+    }
+
+    @Override
+    public void updateUserTradeRestrictions(HttpServletRequest request, UserDetails userDetails) {
+        boolean isRequired = geoLocationService.isCountryRestrictedByIp(request, RestrictedOperation.TRADE);
+        if (! isRequired) {
+            return;
+        }
+        final User user = userDao.findByEmail(userDetails.getUsername());
+        if (Objects.nonNull(user) && ! user.hasTradePrivileges()) {
+            userDao.setUserVerificationRequired(user.getId(), isRequired);
+        }
     }
 
     @Override

@@ -9,7 +9,7 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - /Users/stas/db_exrates_4:/var/lib/mysql
+      - $PWD/db_data:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: birzha

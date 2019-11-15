@@ -26,6 +26,7 @@ import me.exrates.dao.UserSettingsDao;
 import me.exrates.dao.UserTransferDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.vo.TransactionDescription;
+import me.exrates.ngService.GeoLocationService;
 import me.exrates.ngService.RedisUserNotificationService;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.CommissionService;
@@ -72,6 +73,7 @@ import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.BigDecimalConverter;
 import me.exrates.service.util.RestApiUtilComponent;
 import me.exrates.service.util.WithdrawUtils;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -186,6 +188,11 @@ public class ServiceTestConfig {
     @Bean
     public SettingsEmailRepository settingsEmailRepository() {
         return Mockito.mock(SettingsEmailRepository.class);
+    }
+
+    @Bean
+    public GeoLocationService geoLocationService() {
+        return Mockito.mock(GeoLocationService.class);
     }
 
     @Bean
