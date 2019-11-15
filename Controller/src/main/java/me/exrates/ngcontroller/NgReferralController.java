@@ -54,6 +54,20 @@ public class NgReferralController {
         return new ResponseEntity<>(referralService.createReferralLink(email, createReferral.getName()), HttpStatus.OK);
     }
 
+    @GetMapping(value = "/referral_income", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<?> getReferralIncome() {
+        String email = getPrincipalEmail();
+        return new ResponseEntity<>(referralService.getReferralIncome(email), HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/transfer", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<?> createTransfer(@RequestParam String currency) {
+        String email = getPrincipalEmail();
+        boolean result = referralService.createTransferRequest(email, currency);
+        return result ? ResponseEntity.status(HttpStatus.CREATED).build()
+                : ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    }
+
     private String getPrincipalEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }

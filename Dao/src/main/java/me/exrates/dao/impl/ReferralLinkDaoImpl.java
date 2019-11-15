@@ -1,6 +1,7 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.ReferralLinkDao;
+import me.exrates.model.dto.referral.ReferralIncomeDto;
 import me.exrates.model.dto.referral.UserReferralLink;
 import me.exrates.model.referral.ReferralLink;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,5 +117,69 @@ public class ReferralLinkDaoImpl implements ReferralLinkDao {
             put("link", referralLink.getLink());
         }};
         return masterJdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public List<ReferralIncomeDto> getReferralsIncomeDto(String email, List<String> currencies) {
+        final String sql = "SELECT u.id as user_id," +
+                "       u.email, w.referral_balance," +
+                "       c.id as currency_id," +
+                "       c.name as currency_name," +
+                "       c.description as currency_description," +
+                "       c.cup_income" +
+                " FROM wallet w" +
+                "         INNER JOIN user u on w.user_id = u.id" +
+                "         INNER JOIN currency c on w.currency_id = c.id" +
+                " WHERE u.email = :email AND c.name in (:currencies)";
+
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("email", email);
+            put("currencies", currencies);
+        }};
+
+        return slaveJdbcTemplate.query(sql, params, (rs, row) -> ReferralIncomeDto.builder()
+                .userId(rs.getInt("user_id"))
+                .email(rs.getString("email"))
+                .currencyId(rs.getInt("currency_id"))
+                .currencyName(rs.getString("currency_name"))
+                .currencyDescription(rs.getString("currency_description"))
+                .cupIncome(rs.getBigDecimal("cup_income"))
+                .referralBalance(rs.getBigDecimal("referral_balance"))
+                .build());
+    }
+
+    @Override
+    public Optional<ReferralIncomeDto> getReferralIncomeDto(String email, String currency) {
+        final String sql = "SELECT u.id as user_id," +
+                "       u.email, w.referral_balance," +
+                "       c.id as currency_id," +
+                "       c.name as currency_name," +
+                "       c.description as currency_description," +
+                "       c.cup_income," +
+                "       c.manual_confirm_above_sum " +
+                " FROM wallet w" +
+                "         INNER JOIN user u on w.user_id = u.id" +
+                "         INNER JOIN currency c on w.currency_id = c.id" +
+                " WHERE u.email = :email AND c.name = :currencies";
+
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("email", email);
+            put("currencies", currency);
+        }};
+
+        try {
+            return Optional.of(slaveJdbcTemplate.queryForObject(sql, params, (rs, row) -> ReferralIncomeDto.builder()
+                    .userId(rs.getInt("user_id"))
+                    .email(rs.getString("email"))
+                    .currencyId(rs.getInt("currency_id"))
+                    .currencyName(rs.getString("currency_name"))
+                    .currencyDescription(rs.getString("currency_description"))
+                    .cupIncome(rs.getBigDecimal("cup_income"))
+                    .referralBalance(rs.getBigDecimal("referral_balance"))
+                    .manualConfirmAboveSum(rs.getBigDecimal("manual_confirm_above_sum"))
+                    .build()));
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 }

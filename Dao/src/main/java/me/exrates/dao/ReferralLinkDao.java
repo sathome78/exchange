@@ -1,5 +1,6 @@
 package me.exrates.dao;
 
+import me.exrates.model.dto.referral.ReferralIncomeDto;
 import me.exrates.model.dto.referral.UserReferralLink;
 import me.exrates.model.referral.ReferralLink;
 
@@ -25,4 +26,8 @@ public interface ReferralLinkDao {
     boolean updateReferralLink(ReferralLink referralLink);
 
     boolean deleteReferralLink(ReferralLink referralLink);
+
+    List<ReferralIncomeDto> getReferralsIncomeDto(String email, List<String> currencies);
+
+    Optional<ReferralIncomeDto> getReferralIncomeDto(String email, String currency);
 }

@@ -1,6 +1,7 @@
 package me.exrates.model.referral;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import me.exrates.model.referral.enums.ReferralRequestStatus;
@@ -11,6 +12,7 @@ import java.util.Date;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class ReferralRequestTransfer {
     private int id;
     private int currencyId;

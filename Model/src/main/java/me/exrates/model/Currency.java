@@ -9,7 +9,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-@Getter @Setter
+import java.math.BigDecimal;
+
+@Getter
+@Setter
 @ToString
 @NoArgsConstructor
 @Builder
@@ -23,8 +26,18 @@ public class Currency {
     private String description;
     private boolean hidden;
 
+    private BigDecimal cupIncome;
+    private BigDecimal manualConfirmAboveSum;
+
     public Currency(int id) {
         this.id = id;
+    }
+
+    public Currency(int id, String name, String description, boolean hidden) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.hidden = hidden;
     }
 
     @Override

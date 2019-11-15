@@ -82,27 +82,13 @@ CREATE TABLE IF NOT EXISTS REFERRAL_TRANSACTION
     id            INT(11) PRIMARY KEY NOT NULL,
     currency_id   INT(11)             NOT NULL,
     currency_name VARCHAR(45)         NULL,
-    user_id       INT(11)             NOT NULL,
-    amount        double(40, 9)       NOT NULL,
-    link          VARCHAR(255)        NOT NULL,
+    user_from     INT(11)             NOT NULL,
+    user_to       INT(11)             NOT NULL,
+    amount        VARCHAR(255)        NOT NULL,
     created_at    TIMESTAMP           NOT NULL default NOW(),
     FOREIGN KEY (currency_id) REFERENCES CURRENCY (id),
-    FOREIGN KEY (user_id) REFERENCES USER (id),
-    FOREIGN KEY (link) REFERENCES REFERRAL_LINKS (link)
-);
-
-CREATE TABLE IF NOT EXISTS REFERRAL_REQUESTS
-(
-    id             INT(11) PRIMARY KEY NOT NULL,
-    currency_id    INT(11)             NOT NULL,
-    user_id        INT(11)             NOT NULL,
-    amount         double(40, 9)       NOT NULL,
-    order_id       INT(11)             NOT NULL,
-    process_status enum ('CREATED', 'PROCESSED', 'ERROR') DEFAULT 'CREATED',
-    created_at     TIMESTAMP           NOT NULL           default NOW(),
-    FOREIGN KEY (currency_id) REFERENCES CURRENCY (id),
-    FOREIGN KEY (user_id) REFERENCES USER (id),
-    FOREIGN KEY (order_id) REFERENCES birzha.EXORDERS (id)
+    FOREIGN KEY (user_from) REFERENCES USER (id),
+    FOREIGN KEY (user_to) REFERENCES USER (id)
 );
 
 CREATE TABLE IF NOT EXISTS REFERRAL_REQUEST_TRANSFER

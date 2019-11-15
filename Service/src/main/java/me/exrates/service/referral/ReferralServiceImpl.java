@@ -3,12 +3,14 @@ package me.exrates.service.referral;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.ReferralLinkDao;
 import me.exrates.dao.ReferralRequestDao;
+import me.exrates.dao.ReferralRequestTransferDao;
 import me.exrates.dao.ReferralTransactionDao;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
 import me.exrates.model.Transaction;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
+import me.exrates.model.dto.referral.ReferralIncomeDto;
 import me.exrates.model.dto.referral.ReferralStructureDto;
 import me.exrates.model.dto.referral.enums.ReferralLevel;
 import me.exrates.model.enums.ActionType;
@@ -18,8 +20,10 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.model.referral.ReferralLink;
 import me.exrates.model.referral.ReferralRequest;
+import me.exrates.model.referral.ReferralRequestTransfer;
 import me.exrates.model.referral.ReferralTransaction;
 import me.exrates.model.referral.enums.ReferralProcessStatus;
+import me.exrates.model.referral.enums.ReferralRequestStatus;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.CompanyWalletService;
 import me.exrates.service.CurrencyService;
@@ -58,6 +62,8 @@ public class ReferralServiceImpl implements ReferralService {
     private final static String BTC = "BTC";
     private final static String USDT = "USDT";
     private final static List<String> CURRENCIES = Arrays.asList(USD, BTC, USDT);
+    private final static List<String> CURRENCIES_EXTENDED_LIST = Arrays.asList(USD, BTC, USDT, "ETH", "EUR", "TUSD", "RUB",
+            "IDR", "AED", "TRY", "VND", "UAH", "CNY", "NGN", "TRX", "BTT");
 
     private final CurrencyService currencyService;
     private final UserService userService;
@@ -67,6 +73,7 @@ public class ReferralServiceImpl implements ReferralService {
     private final ReferralTransactionDao referralTransactionDao;
     private final ReferralRequestDao referralRequestDao;
     private final TransactionService transactionService;
+    private final ReferralRequestTransferDao referralRequestTransferDao;
 
     private final BigDecimal firstLevelCommissionPercent;
     private final BigDecimal secondLevelCommissionPercent;
@@ -84,6 +91,7 @@ public class ReferralServiceImpl implements ReferralService {
                                ReferralTransactionDao referralTransactionDao,
                                ReferralRequestDao referralRequestDao,
                                TransactionService transactionService,
+                               ReferralRequestTransferDao referralRequestTransferDao,
                                @Value("${referral.first_level_commission}") BigDecimal firstLevelCommissionPercent,
                                @Value("${referral.second_level_commission}") BigDecimal secondLevelCommissionPercent,
                                @Value("${referral.third_level_commission}") BigDecimal thirdLevelCommissionPercent,
@@ -98,6 +106,7 @@ public class ReferralServiceImpl implements ReferralService {
         this.referralTransactionDao = referralTransactionDao;
         this.referralRequestDao = referralRequestDao;
         this.transactionService = transactionService;
+        this.referralRequestTransferDao = referralRequestTransferDao;
         this.firstLevelCommissionPercent = firstLevelCommissionPercent;
         this.secondLevelCommissionPercent = secondLevelCommissionPercent;
         this.thirdLevelCommissionPercent = thirdLevelCommissionPercent;
@@ -380,6 +389,60 @@ public class ReferralServiceImpl implements ReferralService {
                 .earnedUSD(BigDecimal.ZERO)
                 .earnedUSDT(BigDecimal.ZERO)
                 .build();
+    }
+
+    @Override
+    public List<ReferralIncomeDto> getReferralIncome(String email) {
+        List<ReferralIncomeDto> referralsIncomeDto =
+                referralLinkDao.getReferralsIncomeDto(email, CURRENCIES_EXTENDED_LIST);
+
+        referralsIncomeDto.forEach(referralIncomeDto -> {
+            BigDecimal referralBalance = referralIncomeDto.getReferralBalance();
+            BigDecimal cupIncome = referralIncomeDto.getCupIncome();
+            if (referralBalance.compareTo(cupIncome) > 0) {
+                referralIncomeDto.setAvailable(true);
+            } else {
+                referralIncomeDto.setAvailable(false);
+                BigDecimal diff =
+                        BigDecimalProcessing.doAction(cupIncome, referralBalance, ActionType.SUBTRACT, RoundingMode.HALF_DOWN);
+                referralIncomeDto.setLeftForCup(diff);
+            }
+        });
+
+        return referralsIncomeDto;
+    }
+
+    @Override
+    public boolean createTransferRequest(String email, String currency) {
+        ReferralIncomeDto referralIncomeDto = referralLinkDao
+                .getReferralIncomeDto(email, currency)
+                .orElseThrow(() -> new RuntimeException("Not exist currency referral balance for currency " + currency));
+
+        BigDecimal referralBalance = referralIncomeDto.getReferralBalance();
+        BigDecimal cupIncome = referralIncomeDto.getCupIncome();
+
+        if (referralBalance.compareTo(cupIncome) <= 0) {
+            throw new RuntimeException("Not enough balance for transfer balance to active balance");
+        }
+
+        BigDecimal manualConfirmAboveSum = referralIncomeDto.getManualConfirmAboveSum();
+        ReferralRequestStatus status;
+
+        if (referralBalance.compareTo(manualConfirmAboveSum) > 0) {
+            status = ReferralRequestStatus.WAITING_MANUAL_POSTING;
+        } else {
+            status = ReferralRequestStatus.WAITING_AUTO_POSTING;
+        }
+
+        ReferralRequestTransfer requestTransfer = ReferralRequestTransfer.builder()
+                .amount(referralBalance)
+                .currencyId(referralIncomeDto.getCurrencyId())
+                .currencyName(referralIncomeDto.getCurrencyName())
+                .status(status)
+                .userId(referralIncomeDto.getUserId())
+                .build();
+
+        return referralRequestTransferDao.createReferralRequestTransfer(requestTransfer).getId() > 0;
     }
 
     private void completeIteration(ReferralStructureDto structureDto, Integer count, BigDecimal earnedOnBTC,

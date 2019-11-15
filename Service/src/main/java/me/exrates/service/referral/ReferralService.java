@@ -1,5 +1,6 @@
 package me.exrates.service.referral;
 
+import me.exrates.model.dto.referral.ReferralIncomeDto;
 import me.exrates.model.dto.referral.ReferralStructureDto;
 import me.exrates.model.referral.ReferralRequest;
 
@@ -16,4 +17,8 @@ public interface ReferralService {
     boolean updateReferralName(String email, String link, String name);
 
     ReferralStructureDto createReferralLink(String email, String name);
+
+    List<ReferralIncomeDto> getReferralIncome(String email);
+
+    boolean createTransferRequest(String email, String currency);
 }
