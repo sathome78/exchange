@@ -19,6 +19,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -98,7 +99,7 @@ public class AdGroupServiceImplTest {
     private AdGroupResponseDto<ResponsePayOutDto> getWithdrawBad() {
 
         HeaderResponseDto header = new HeaderResponseDto();
-        ResultResponseDto result = new ResultResponseDto();
+        ResultResponseDto result = new ResultResponseDto(false, "insufficiently balance");
 
         ResponsePayOutDto responseData = ResponsePayOutDto.builder()
                 .originalAmount(new BigDecimal(100))
@@ -115,7 +116,8 @@ public class AdGroupServiceImplTest {
     private AdGroupResponseDto<ResponsePayOutDto> getWithdrawOk() {
 
         HeaderResponseDto header = new HeaderResponseDto();
-        ResultResponseDto result = new ResultResponseDto();
+        ResultResponseDto result = new ResultResponseDto(true, "All is ok");
+
 
         ResponsePayOutDto responseData = ResponsePayOutDto.builder()
                 .originalAmount(new BigDecimal(100))
@@ -126,7 +128,7 @@ public class AdGroupServiceImplTest {
                 .extraId("821976011")
                 .build();
 
-        return new AdGroupResponseDto<>(header, result, responseData, null);
+        return new AdGroupResponseDto<>(header, result, responseData, Collections.emptyList());
     }
 
     private WithdrawMerchantOperationDto getWithdrawRequest() {
