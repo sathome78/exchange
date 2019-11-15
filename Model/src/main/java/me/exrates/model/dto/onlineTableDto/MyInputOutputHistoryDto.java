@@ -33,6 +33,7 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
   private String currencyName;
   private String amount;
   private String commissionAmount;
+  private String commissionCurrencyName;
   private String merchantName;
   private String operationType;
   private Integer transactionId;
