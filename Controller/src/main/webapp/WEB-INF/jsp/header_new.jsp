@@ -10,7 +10,6 @@
 <header>
     <c:set var="path" value="${fn:replace(pageContext.request.requestURI, '/WEB-INF/jsp', '')}"/>
     <c:set var="path" value="${fn:replace(path, '.jsp', '')}"/>
-    <%@include file="../jsp/tools/google_head.jsp"%>
     <%--don't show entrance menu item in header for pages that contain it's own capcha because conflict occurs--%>
     <sec:authorize access="isAuthenticated()" var="isAuth"/>
     <c:set var="showEntrance" value="${

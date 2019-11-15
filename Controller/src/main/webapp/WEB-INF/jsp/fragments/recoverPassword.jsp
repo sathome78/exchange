@@ -14,8 +14,6 @@
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
 
-    <%@include file="../tools/google_head.jsp" %>
-
     <script src="<c:url value="/client/js/jquery_1.11.3.min.js"/>" type="text/javascript"></script>
 
     <!-- New design -->
@@ -28,7 +26,6 @@
 
 </head>
 <body>
-<%@include file="../tools/google_body.jsp" %>
 <a id="forgot_pwd_hide" data-fancybox href="#recovery_confirmed" class="popup__bottom-link">Forgot password?</a>
 
 <input id="recoveryConfirm" hidden value='${recoveryConfirm}'/>
