@@ -21,7 +21,7 @@ public class ScheduledInternalWalletBalances {
         this.walletService = walletService;
     }
 
-    @Scheduled(cron = "${scheduled.update.internal-balances}")
+//    @Scheduled(cron = "${scheduled.update.internal-balances}")
     public void update() {
         try {
             walletService.updateInternalWalletBalances();

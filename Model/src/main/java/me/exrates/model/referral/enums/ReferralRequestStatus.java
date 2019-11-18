@@ -8,5 +8,5 @@ public enum ReferralRequestStatus {
     POSTED_AUTO,
     IN_POSTING,
     DECLINED_ANALYTICS_MANUAL,
-    DECLINED_ERROR
+    DECLINED_ERROR,
 }

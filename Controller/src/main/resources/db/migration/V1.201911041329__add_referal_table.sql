@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS REFERRAL_LINKS
+CREATE TABLE IF NOT EXISTS REFERRAL_LINK
 (
     user_id    INT(11)             NOT NULL,
     name       VARCHAR(255)        NOT NULL,
@@ -38,7 +38,7 @@ BEGIN
                   FROM `information_schema`.`KEY_COLUMN_USAGE`
                   WHERE `CONSTRAINT_NAME` IN ('fk_ref_id_on_referral_table')) THEN
         ALTER TABLE `USER`
-            ADD CONSTRAINT `fk_ref_id_on_referral_table` FOREIGN KEY (invite_referral_link) REFERENCES REFERRAL_LINKS (link);
+            ADD CONSTRAINT `fk_ref_id_on_referral_table` FOREIGN KEY (invite_referral_link) REFERENCES REFERRAL_LINK (link);
     END IF;
 
 END $$
@@ -89,6 +89,20 @@ CREATE TABLE IF NOT EXISTS REFERRAL_TRANSACTION
     FOREIGN KEY (currency_id) REFERENCES CURRENCY (id),
     FOREIGN KEY (user_from) REFERENCES USER (id),
     FOREIGN KEY (user_to) REFERENCES USER (id)
+);
+
+CREATE TABLE IF NOT EXISTS REFERRAL_REQUESTS
+(
+    id             INT(11) PRIMARY KEY NOT NULL,
+    currency_id    INT(11)             NOT NULL,
+    user_id        INT(11)             NOT NULL,
+    amount         double(40, 9)       NOT NULL,
+    order_id       INT(11)             NOT NULL,
+    process_status enum ('CREATED', 'PROCESSED', 'ERROR') DEFAULT 'CREATED',
+    created_at     TIMESTAMP           NOT NULL           default NOW(),
+    FOREIGN KEY (currency_id) REFERENCES CURRENCY (id),
+    FOREIGN KEY (user_id) REFERENCES USER (id),
+    FOREIGN KEY (order_id) REFERENCES birzha.EXORDERS (id)
 );
 
 CREATE TABLE IF NOT EXISTS REFERRAL_REQUEST_TRANSFER

@@ -21,12 +21,13 @@ public class ReferralStructureDto {
     private Integer userId;
     private String userEmail;
 
-    public ReferralStructureDto(String name, String link) {
+    public ReferralStructureDto(String name, String link, boolean main) {
         this.name = name;
         this.link = link;
         this.earnedBTC = new BigDecimal(0);
         this.earnedUSD = new BigDecimal(0);
         this.earnedUSDT = new BigDecimal(0);
+        this.main = main;
     }
 
     public ReferralStructureDto(String email, int level, int userId) {

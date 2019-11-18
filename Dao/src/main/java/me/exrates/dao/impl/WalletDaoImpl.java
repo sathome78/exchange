@@ -121,8 +121,6 @@ public class WalletDaoImpl implements WalletDao {
 
         return userWallet;
     };
-    @Autowired
-    private CurrencyDao currencyDao;
 
     private RowMapper<WalletsForOrderCancelDto> getWalletsForOrderCancelDtoMapper(OperationType operationType) {
         return (rs, i) -> {

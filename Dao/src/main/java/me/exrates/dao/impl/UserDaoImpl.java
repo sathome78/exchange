@@ -85,13 +85,8 @@ public class UserDaoImpl implements UserDao {
 
     private final String SELECT_USER =
             "SELECT USER.id, USER.finpassword, USER.nickname, USER.email, USER.password, USER.regdate, " +
-                    "USER.phone, USER.status, USER.kyc_status, USER_ROLE.name AS role_name, USER.country AS country, USER.pub_id, USER.verification_required, USER.GA, USER.invite_referral_link FROM USER " +
+                    "USER.phone, USER.status, USER.kyc_status, USER_ROLE.name AS role_name, USER.country AS country, USER.pub_id, USER.verification_required, USER.GA, USER.has_trade_privileges, USER.invite_referral_link FROM USER " +
                     "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id ";
-            "SELECT USER.id, u.email AS parent_email, USER.finpassword, USER.nickname, USER.email, USER.password, USER.regdate, " +
-                    "USER.phone, USER.status, USER.kyc_status, USER_ROLE.name AS role_name, USER.country AS country, USER.pub_id, USER.verification_required, " +
-                    "USER.has_trade_privileges, USER.GA FROM USER " +
-                    "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LEFT JOIN REFERRAL_USER_GRAPH " +
-                    "ON USER.id = REFERRAL_USER_GRAPH.child LEFT JOIN USER AS u ON REFERRAL_USER_GRAPH.parent = u.id ";
 
     private final String SELECT_COUNT = "SELECT COUNT(*) FROM USER " +
             "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id ";
@@ -136,9 +131,6 @@ public class UserDaoImpl implements UserDao {
             user.setPublicId(resultSet.getString("pub_id"));
             user.setVerificationRequired(resultSet.getBoolean("verification_required"));
             user.setTradePrivileges(resultSet.getBoolean("has_trade_privileges"));
-            try {
-                user.setParentEmail(resultSet.getString("parent_email")); // May not exist for some users
-            } catch (final SQLException e) {/*NOP*/}
             if (resultSet.getString("GA") != null) {
                 user.setGa(resultSet.getString("GA"));
             }

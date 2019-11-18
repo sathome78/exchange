@@ -12,7 +12,7 @@ public interface ReferralService {
 
     List<ReferralStructureDto> getReferralStructure(String email);
 
-    List<ReferralStructureDto> getChildReferralStructure(String email, int userId, int level, String link);
+    List<ReferralStructureDto> getChildReferralStructure(String email, Integer userId, int level, String link);
 
     boolean updateReferralName(String email, String link, String name);
 

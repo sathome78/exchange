@@ -105,8 +105,12 @@ public class ReferralLinkDaoImpl implements ReferralLinkDao {
 
     @Override
     public boolean updateReferralLink(ReferralLink referralLink) {
-        final String sql = "UPDATE REFERRAL_LINK SET name = :name";
-        return masterJdbcTemplate.update(sql, Collections.singletonMap("name", referralLink.getName())) > 0;
+        final String sql = "UPDATE REFERRAL_LINK SET name = :name WHERE link = :link";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("name", referralLink.getName());
+            put("link", referralLink.getLink());
+        }};
+        return masterJdbcTemplate.update(sql, params) > 0;
     }
 
     @Override

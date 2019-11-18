@@ -21,7 +21,7 @@ public class ScheduledExternalMainWalletBalances {
         this.walletService = walletService;
     }
 
-    @Scheduled(cron = "${scheduled.update.external-balances}")
+//    @Scheduled(cron = "${scheduled.update.external-balances}")
     public void update() {
         try {
             walletService.updateExternalMainWalletBalances();

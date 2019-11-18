@@ -78,7 +78,7 @@ public class ReferralRequestTransferDaoImpl implements ReferralRequestTransferDa
 
     @Override
     public List<ReferralRequestTransfer> findByStatus(List<ReferralRequestStatus> status) {
-        final String sql = "SELECT * FROM REFERRAL_REQUEST_TRANSFER WHERE status in(:status)";
+        final String sql = "SELECT * FROM REFERRAL_REQUEST_TRANSFER WHERE status in (:status) FOR UPDATE";
         return slaveJdbcTemplate.query(sql, Collections.singletonMap("status", status), referralRequestTransferRowMapper);
     }
 }

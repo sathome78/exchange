@@ -21,7 +21,7 @@ public class ScheduledMerchantCommissionsLimits {
         this.merchantService = merchantService;
     }
 
-    @Scheduled(cron = "${scheduled.update.withdraw-commissions-limits}")
+//    @Scheduled(cron = "${scheduled.update.withdraw-commissions-limits}")
     public void update() {
         try {
             merchantService.updateMerchantCommissionsLimits();
