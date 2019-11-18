@@ -38,8 +38,6 @@ public interface IeoDetailsRepository {
 
     boolean isPolicyConfirmed(int userId, int ieoId);
 
-    void setPolicyConfirmed(int userId, int ieoId);
-
     void insertPolicyConfirmation(int userId, int ieoId);
 
     String getIeoPolicy(int ieoId);

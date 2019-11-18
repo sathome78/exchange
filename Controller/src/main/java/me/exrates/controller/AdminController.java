@@ -17,6 +17,7 @@ import me.exrates.model.Comment;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairRestrictionsEnum;
 import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.MarketVolume;
 import me.exrates.model.Merchant;
@@ -253,8 +254,6 @@ public class AdminController {
     private UserService userService;
     @Autowired
     private UserOperationService userOperationService;
-    @Autowired
-    private UserDetailsService userDetailsService;
     @Autowired
     private LocaleResolver localeResolver;
     @Autowired
@@ -587,16 +586,16 @@ public class AdminController {
                 break;
         }
         DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
-
+        UserRole userRole = userService.getUserRoleFromDB(id);
         final int notFilteredAmount = isStopOrder
                 ? stopOrderService.getUsersStopOrdersWithStateForAdminCount(id, currencyPair, orderStatus, operationType, 0, -1)
-                : orderService.getUsersOrdersWithStateForAdminCount(id, currencyPair, orderStatus, operationType, 0, -1);
+                : orderService.getUsersOrdersWithStateForAdminCount(id, currencyPair, orderStatus, operationType, 0, -1, userRole);
 
         List<OrderWideListDto> filteredOrders = Collections.emptyList();
         if (notFilteredAmount > 0) {
             filteredOrders = isStopOrder
                     ? stopOrderService.getUsersStopOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, dataTableParams.getStart(), dataTableParams.getLength(), locale)
-                    : orderService.getUsersOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, dataTableParams.getStart(), dataTableParams.getLength(), locale);
+                    : orderService.getUsersOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, dataTableParams.getStart(), dataTableParams.getLength(), locale, userRole);
         }
         DataTable<List<OrderWideListDto>> result = new DataTable<>();
         result.setRecordsFiltered(notFilteredAmount);
@@ -716,6 +715,7 @@ public class AdminController {
             /*updateUserDto.setPassword(user.getPassword());*/
             updateUserDto.setPhone(user.getPhone());
             updateUserDto.setVerificationRequired(user.getVerificationRequired());
+            updateUserDto.setTradesPrivileges(user.hasTradePrivileges());
             /*todo: Temporary commented for security reasons*/
             if (currentUserRole == ADMINISTRATOR) {
                 //Add to easy change user role to USER or VIP_USER !!! Not other
@@ -911,11 +911,12 @@ public class AdminController {
                                             @RequestParam(defaultValue = "0") BigDecimal minAmountUSD,
                                             @RequestParam Integer maxDailyRequest,
                                             @RequestParam(defaultValue = "0") BigDecimal maxAmount,
+                                            @RequestParam(defaultValue = "0") BigDecimal maxAmountUSD,
                                             @RequestParam(required = false) Object allRolesEdit) {
         if (nonNull(allRolesEdit)) {
-            currencyService.updateCurrencyLimit(currencyId, operationType, minAmount, minAmountUSD, maxAmount, maxDailyRequest);
+            currencyService.updateCurrencyLimit(currencyId, operationType, minAmount, minAmountUSD, maxAmount, maxAmountUSD, maxDailyRequest);
         } else {
-            currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount, minAmountUSD, maxAmount, maxDailyRequest);
+            currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount, minAmountUSD, maxAmount, maxAmountUSD, maxDailyRequest);
         }
         return ResponseEntity.ok().build();
     }
@@ -1109,7 +1110,7 @@ public class AdminController {
 
     @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess", method = RequestMethod.GET)
     public String merchantAccess(Model model) {
-        model.addAttribute("pairsRestrictions", Arrays.stream(RestrictedOperation.values())
+        model.addAttribute("pairsRestrictions", Arrays.stream(CurrencyPairRestrictionsEnum.values())
                                                                    .map(Enum::name)
                                                                    .collect(Collectors.joining(",")));
         model.addAttribute("kyc_types", Arrays.stream(MerchantVerificationType.values())
@@ -1236,7 +1237,7 @@ public class AdminController {
     @ResponseBody
     @PostMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPair/restriction")
     public ResponseEntity<Void> addRestrictionCurrencyPairById(@RequestParam("currencyPairId") int currencyPairId,
-                                                               @RequestParam("restriction") RestrictedOperation restrictionsEnum) {
+                                                               @RequestParam("restriction") CurrencyPairRestrictionsEnum restrictionsEnum) {
         currencyService.addRestrictionForCurrencyPairById(currencyPairId, restrictionsEnum);
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -1244,7 +1245,7 @@ public class AdminController {
     @ResponseBody
     @DeleteMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPair/restriction")
     public ResponseEntity<Void> deleteRestrictionCurrencyPairById(@RequestParam("currencyPairId") int currencyPairId,
-                                                               @RequestParam("restriction") RestrictedOperation restrictionsEnum) {
+                                                               @RequestParam("restriction") CurrencyPairRestrictionsEnum restrictionsEnum) {
         currencyService.deleteRestrictionForCurrencyPairById(currencyPairId, restrictionsEnum);
         return new ResponseEntity<>(HttpStatus.OK);
     }

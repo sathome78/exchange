@@ -3,6 +3,7 @@ package me.exrates.dao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairRestrictionsEnum;
 import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.MarketVolume;
 import me.exrates.model.dto.CurrencyPairLimitDto;
@@ -19,6 +20,7 @@ import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.Market;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderTableEnum;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
 
@@ -51,9 +53,9 @@ public interface CurrencyDao {
 
     BigDecimal retrieveMaxDailyRequestForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId);
 
-    void updateCurrencyLimit(int currencyId, OperationType operationType, List<Integer> roleIds, BigDecimal minAmount, BigDecimal minAmountUSD, BigDecimal maxAmount, Integer maxDailyRequest);
+    void updateCurrencyLimit(int currencyId, OperationType operationType, List<Integer> roleIds, BigDecimal minAmount, BigDecimal minAmountUSD, BigDecimal maxAmount, BigDecimal maxAmountUSD, Integer maxDailyRequest);
 
-    void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, BigDecimal minAmountUSD, BigDecimal maxAmount, Integer maxDailyRequest);
+    void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, BigDecimal minAmountUSD, BigDecimal maxAmount, BigDecimal maxAmountUSD, Integer maxDailyRequest);
 
     List<CurrencyPair> getAllCurrencyPairs(CurrencyPairType type);
 
@@ -76,6 +78,8 @@ public interface CurrencyDao {
     List<String> getWarningForMerchant(Integer merchantId, UserCommentTopicEnum currencyWarningTopicEnum);
 
     CurrencyPair findCurrencyPairByOrderId(int orderId);
+
+    CurrencyPair findCurrencyPairByOrderId(int orderId, OrderTableEnum orderTableName);
 
     CurrencyPairLimitDto findCurrencyPairLimitForRoleByPairAndType(Integer currencyPairId, Integer roleId, Integer orderTypeId);
 
@@ -157,9 +161,9 @@ public interface CurrencyDao {
 
     CurrencyPairWithRestriction findCurrencyPairWithRestrictionRestrictions(Integer currencyPairId);
 
-    void insertCurrencyPairRestriction(Integer currencyPairId, RestrictedOperation restrictionsEnum);
+    void insertCurrencyPairRestriction(Integer currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum);
 
-    void deleteCurrencyPairRestriction(Integer currencyPairId, RestrictedOperation restrictionsEnum);
+    void deleteCurrencyPairRestriction(Integer currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum);
 
     List<CurrencyPairWithRestriction> findAllCurrencyPairWithRestrictions();
 }

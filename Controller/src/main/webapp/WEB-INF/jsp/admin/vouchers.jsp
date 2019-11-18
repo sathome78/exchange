@@ -236,7 +236,6 @@
 <%--<%@include file='fragments/modal/withdraw_info_modal.jsp' %>--%>
 <%@include file='order-modals.jsp' %>
 <%@include file="../fragments/modal/confirm_with_info_modal.jsp" %>
-<%@include file='../fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>
 </body>

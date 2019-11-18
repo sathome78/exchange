@@ -25,8 +25,10 @@ import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.service.exception.CallBackUrlAlreadyExistException;
 import me.exrates.service.exception.UnRegisteredUserDeleteException;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.http.HttpServletRequest;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -255,4 +257,6 @@ public interface UserService {
     boolean subscribeToMailingByEmail(String email, boolean subscribe);
 
     void deleteUserPin(String email, NotificationMessageEventEnum login);
+
+    void updateUserTradeRestrictions(HttpServletRequest request, UserDetails userDetails);
 }

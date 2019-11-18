@@ -7,13 +7,10 @@ $(function transferCreation() {
     const operationType = $container.find("#operationType").html();
     const $transferParamsDialog = $container.find('#dialog-transfer-creation');
     const $loadingDialog = $container.find('#loading-process-modal');
-    const $finPasswordDialog = $container.find('#finPassModal');
     const $amountHolder = $container.find("#sum");
     const $recipientHolder = $transferParamsDialog.find("#recipient");
-    const notifications = new NotificationsClass();
     const urlForTransferCreate = "/transfer/request/create";
     const modalTemplate = $container.find('.transferInfo p');
-    const numberFormat = '0,0.00[0000000]';
     const urlForPin = "/transfer/request/pin";
     const $pinDialogModal = $container.find('#pin_modal');
     const $pinDialogText = $pinDialogModal.find('#pin_text');
@@ -30,7 +27,6 @@ $(function transferCreation() {
     var recipient;
     var recipientUserIsNeeded;
     var amount;
-    var commissionPercent;
     var commissionAmount;
     var commissionMerchantPercent;
     var commissionMerchantAmount;
@@ -191,7 +187,6 @@ $(function transferCreation() {
 
     function transferSuccess(result) {
         showTransferDialogAfterCreation(result['message'], result['hash']);
-        notifications.getNotifications();
     }
 
     $pinInput.on('input', function (e) {

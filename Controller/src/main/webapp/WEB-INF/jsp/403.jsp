@@ -19,9 +19,6 @@
     <meta name="interkassa-verification" content="c4deb5425361141d96dd48d235b6fc4a"/>
 
     <%----------------------------------------%>
-    <%@include file="tools/google_head.jsp"%>
-    <%--<%@include file="tools/alexa.jsp" %>--%>
-    <%--<%@include file="tools/yandex.jsp" %>--%>
 
     <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
 
@@ -39,7 +36,6 @@
 </head>
 <body>
 <%@include file="fragments/header-simple.jsp" %>
-<%@include file="../jsp/tools/google_body.jsp"%>
 <main class="container">
     <div class="row">
         <div class="col-md-4 col-md-offset-4 content">

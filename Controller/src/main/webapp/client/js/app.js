@@ -17,21 +17,6 @@ window.onfocus = function () {
     windowIsActive = true;
 };
 
-function syncTableParams(tableId, limit, callback) {
-    var url = '/dashboard/tableParams/' + tableId + '?';
-    /*if parameter is empty, in response will be retrieved current value is set or default if non*/
-    url = url + (limit ? '&limitValue=' + limit : '');
-    $.ajax({
-        url: url,
-        type: 'GET',
-        success: function (data) {
-            if (callback) {
-                callback(data);
-            }
-        }
-    });
-}
-
 function blink($element) {
     $element.addClass('blink');
     setTimeout(function () {

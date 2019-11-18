@@ -11,12 +11,10 @@ $(function withdrawCreation() {
     const $withdrawParamsDialog = $container.find('#dialog-withdraw-creation');
     const $withdrawDetailedParamsDialog = $container.find('#dialog-withdraw-detailed-params-enter');
     const $loadingDialog = $container.find('#loading-process-modal');
-    const $finPasswordDialog = $container.find('#finPassModal');
     const $walletAddressDialog = $container.find('#walletAddressModal');
     const $amountHolder = $container.find("#sum");
     const $destinationHolder = $withdrawParamsDialog.find("#walletUid");
     const $destinationTagHolder = $withdrawParamsDialog.find("#address-tag");
-    const notifications = new NotificationsClass();
     const urlForWithdrawCreate = "/withdraw/request/create";
     const urlForPin = "/withdraw/request/pin";
     const modalTemplate = $container.find('.paymentInfo p');
@@ -274,7 +272,6 @@ $(function withdrawCreation() {
     function withdrawSuccess(result) {
         if (!result || !result['redirectionUrl']) {
             showWithdrawDialogAfterCreation(result['message']);
-            notifications.getNotifications();
         } else {
             window.location = result['redirectionUrl'];
         }

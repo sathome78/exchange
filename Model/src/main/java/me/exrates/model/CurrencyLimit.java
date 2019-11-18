@@ -22,5 +22,6 @@ public class CurrencyLimit {
     private Integer maxDailyRequest;
     private BigDecimal currencyUsdRate;
     private BigDecimal minSumUsdRate;
+    private BigDecimal maxSumUsd;
     private boolean recalculateToUsd;
 }

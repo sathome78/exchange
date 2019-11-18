@@ -222,7 +222,7 @@ public class CommissionServiceImpl implements CommissionService {
             }
             BigDecimal totalCommissionAmount = BigDecimalProcessing.doAction(merchantCommissionAmount, companyCommissionAmount, ADD);
             BigDecimal totalAmount = BigDecimalProcessing.doAction(amount, totalCommissionAmount, SUBTRACT);
-            if (totalAmount.compareTo(ZERO) <= 0) {
+            if (totalAmount.compareTo(ZERO) < 0) {
                 throw new InvalidAmountException(String.format("Commission %s exceeds amount %s",
                         BigDecimalProcessing.formatNonePoint(totalCommissionAmount, false),
                         BigDecimalProcessing.formatNonePoint(amount, false)));

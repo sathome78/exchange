@@ -9,9 +9,7 @@ public interface RestrictedCountryService {
 
     RestrictedCountry save(RestrictedCountry restrictedCountry);
 
-    Set<RestrictedCountry> findAllByOperation(RestrictedOperation operation);
-
-    Set<RestrictedCountry> findAllByOperation(RestrictedOperation operation, int operationId);
+    Set<RestrictedCountry> findAllByOperation(RestrictedOperation ... operations);
 
     boolean delete(RestrictedCountry restrictedCountry);
 

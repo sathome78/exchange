@@ -1611,4 +1611,15 @@ public class UserDaoImpl implements UserDao {
         }};
         return masterTemplate.update(sql, params) > 0;
     }
+
+    @Override
+    public boolean setUserVerificationRequired(int userId, boolean isRequired) {
+        final String sql = "UPDATE USER u SET u.verification_required = :isRequired WHERE u.id = :userId";
+
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("isRequired", isRequired);
+            put("userId", userId);
+        }};
+        return masterTemplate.update(sql, params) > 0;
+    }
 }

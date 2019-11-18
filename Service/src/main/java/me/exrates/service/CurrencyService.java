@@ -3,6 +3,7 @@ package me.exrates.service;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairRestrictionsEnum;
 import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.MarketVolume;
 import me.exrates.model.User;
@@ -47,9 +48,9 @@ public interface CurrencyService {
 
     List<Currency> findAllCurrencies();
 
-    void updateCurrencyLimit(int currencyId, OperationType operationType, String roleName, BigDecimal minAmount, BigDecimal minAmountUSD, BigDecimal maxAmount, Integer maxDailyRequest);
+    void updateCurrencyLimit(int currencyId, OperationType operationType, String roleName, BigDecimal minAmount, BigDecimal minAmountUSD, BigDecimal maxAmount, BigDecimal maxAmountUSD, Integer maxDailyRequest);
 
-    void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, BigDecimal minAmountUSD, BigDecimal maxAmount, Integer maxDailyRequest);
+    void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, BigDecimal minAmountUSD, BigDecimal maxAmount, BigDecimal maxAmountUSD, Integer maxDailyRequest);
 
     List<CurrencyLimit> retrieveCurrencyLimitsForRole(String roleName, OperationType operationType);
 
@@ -186,7 +187,7 @@ public interface CurrencyService {
 
     CurrencyPairWithRestriction findCurrencyPairByIdWithRestrictions(Integer currencyPairId);
 
-    void addRestrictionForCurrencyPairById(int currencyPairId, RestrictedOperation restrictionsEnum);
+    void addRestrictionForCurrencyPairById(int currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum);
 
-    void deleteRestrictionForCurrencyPairById(int currencyPairId, RestrictedOperation restrictionsEnum);
+    void deleteRestrictionForCurrencyPairById(int currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum);
 }

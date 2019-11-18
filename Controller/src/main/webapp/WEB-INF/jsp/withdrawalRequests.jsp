@@ -11,7 +11,6 @@
   <%--script not found--%>
   <!--<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script-->><![endif]-->
   <title><loc:message code="admin.withdrawRequests"/></title>
-  <%@include file="../jsp/tools/google_head.jsp"%>
   <meta name="keywords" content=""/>
   <meta name="description" content=""/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -37,7 +36,6 @@
 
 <body id="withdraw-requests-admin">
 <%@include file='fragments/header-simple.jsp' %>
-<%@include file="../jsp/tools/google_body.jsp"%>
 <main class="container">
     <div class="row">
         <%@include file='admin/left_side_menu.jsp' %>
@@ -325,7 +323,6 @@
 <%@include file='fragments/modal/withdraw_info_modal.jsp' %>
 <%@include file="fragments/modal/confirm_with_info_modal.jsp" %>
 <%@include file='fragments/modal/enter_note_before_decline_modal.jsp' %>
-<%@include file='fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>
 </body>

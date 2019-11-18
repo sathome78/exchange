@@ -3,6 +3,7 @@ package me.exrates.security.filter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.security.exception.TokenException;
 import me.exrates.security.service.AuthTokenService;
+import me.exrates.service.UserService;
 import me.exrates.service.exception.api.ApiError;
 import me.exrates.service.exception.api.ErrorCode;
 import me.exrates.service.session.UserLoginSessionsServiceImpl;
@@ -33,6 +34,8 @@ public class AuthenticationTokenProcessingFilter extends AbstractAuthenticationP
     private AuthTokenService authTokenService;
     @Autowired
     private UserLoginSessionsServiceImpl userLoginSessionsService;
+    @Autowired
+    private UserService userService;
 
     public AuthenticationTokenProcessingFilter(String defaultFilterProcessesUrl) {
         super(defaultFilterProcessesUrl);
@@ -71,6 +74,7 @@ public class AuthenticationTokenProcessingFilter extends AbstractAuthenticationP
         String token = request.getHeader(HEADER_SECURITY_TOKEN);
 
         UserDetails userDetails = authTokenService.getUserByToken(token);
+        CompletableFuture.runAsync(() -> userService.updateUserTradeRestrictions(request, userDetails));
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails.getUsername(), null, userDetails.getAuthorities());
         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         return authentication;

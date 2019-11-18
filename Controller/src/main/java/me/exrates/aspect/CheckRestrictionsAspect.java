@@ -10,13 +10,9 @@ import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.GeoLocation;
 import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.enums.RestrictedOperation;
-import me.exrates.model.enums.UserRole;
-import me.exrates.model.exceptions.OpenApiException;
 import me.exrates.model.ngExceptions.NgResponseException;
-import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.ngService.GeoLocationService;
 import me.exrates.ngService.RestrictedCountryService;
-import me.exrates.security.service.CheckUserAuthority;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.UserService;
 import me.exrates.service.util.IpUtils;
@@ -60,37 +56,26 @@ public class CheckRestrictionsAspect {
     @Before("@annotation(checkRestrictions)")
     public void checkIp(JoinPoint jp, CheckRestrictions checkRestrictions) {
 
-        MethodSignature methodSignature = (MethodSignature) jp.getSignature();
-        Method method = methodSignature.getMethod();
-
         if (new HashSet<>(Arrays.asList(checkRestrictions.restrictions())).contains(RestrictedOperation.TRADE)) {
             final Optional<InputCreateOrderDto> orderDto = getOrderCreatedDto(jp);
             final InputCreateOrderDto inputCreateOrderDto = orderDto
                     .orElseThrow(() -> new RuntimeException("Failed to obtain inputCreateOrderDto"));
-
             final int currencyPairId = inputCreateOrderDto.getCurrencyPairId();
             final CurrencyPairWithRestriction currencyPair = currencyService.findCurrencyPairByIdWithRestrictions(currencyPairId);
-
             if (!currencyPair.hasTradeRestriction()) {
                 return;
             }
-
             if (currencyPair.getTradeRestriction().stream().anyMatch(r -> r == CurrencyPairRestrictionsEnum.ESCAPE_USA)) {
-
                 final String userEmail = userService.getUserEmailFromSecurityContext();
                 final User user = userService.findByEmail(userEmail);
-
                 if (user.hasTradePrivileges()) {
                     return;
                 }
-
                 if (user.getVerificationRequired()) {
                     String message = "Current user needs to fix verification issues to trade with " + currencyPair.getName();
                     throw new NgResponseException(ErrorApiTitles.KYC_VERIFICATION_REQUIRED, message);
                 }
-
                 processRestrictedCountriesCheck(checkRestrictions);
-
             }
         }
     }
@@ -104,24 +89,12 @@ public class CheckRestrictionsAspect {
     }
 
     private void processRestrictedCountriesCheck(CheckRestrictions checkRestrictions) {
-        Set<RestrictedCountry> restrictedCountries = new HashSet<>();
-        Arrays.stream(checkRestrictions.restrictions())
-                .forEach(res -> restrictedCountries.addAll(restrictedCountryService.findAllByOperation(res)));
-
         HttpServletRequest request = IpUtils.getCurrentRequest();
         String ipAddress = IpUtils.getIpForDbLog(request);
-
-        final GeoLocation geoLocation = geoLocationService.findById(ipAddress);
-        String country = Objects.isNull(geoLocation)
-                ? ""
-                : geoLocation.getCountry();
-
-        if (StringUtils.isNoneEmpty(country)
-                && restrictedCountries.stream().anyMatch(c -> c.getCountryCode().equalsIgnoreCase(country)
-                || c.getCountryName().equalsIgnoreCase(country))) {
+        final String country = geoLocationService.findById(ipAddress).getCountry();
+        if (geoLocationService.isCountryRestrictedByIp(request, checkRestrictions.restrictions())) {
             String message = "Trading restrictions are set for country: " + country;
             throw new NgResponseException(ErrorApiTitles.RESTRICTIONS_COUNTRY_ISSUE, message);
-
         }
     }
 

@@ -52,11 +52,9 @@
                 async defer>
         </script>
     </c:if>
-    <%@include file="tools/google_head.jsp"%>
 </head>
 <body>
 <%@include file="fragments/header.jsp" %>
-<%@include file="../jsp/tools/google_body.jsp"%>
 <main class="container">
     <div class="row">
         <div class="col-sm-4">
@@ -131,6 +129,5 @@
         </div>
     </div>
 </main>
-<%@include file='fragments/footer.jsp' %>
 </body>
 </html>

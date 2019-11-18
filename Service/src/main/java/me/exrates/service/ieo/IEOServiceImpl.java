@@ -514,12 +514,10 @@ public class IEOServiceImpl implements IEOService {
     @Override
     public void setPolicyConfirmed(int userId, int ieoId) {
         try {
-            boolean isAgree = ieoDetailsRepository.isPolicyConfirmed(userId, ieoId);
-            if (!isAgree) {
-                ieoDetailsRepository.setPolicyConfirmed(userId, ieoId);
-            }
-        } catch (EmptyResultDataAccessException e) {
             ieoDetailsRepository.insertPolicyConfirmation(userId, ieoId);
+        } catch (DataAccessException e) {
+            log.error(e);
+            throw new RuntimeException(e);
         }
     }
 

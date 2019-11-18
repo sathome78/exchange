@@ -277,7 +277,7 @@
                                             </div>
 
                                             <div class="col-md-4 input-block-wrapper__input-wrapper">
-                                                <form:checkbox path="hasTradePrivileges"
+                                                <form:checkbox path="hasTradesPrivileges"
                                                 />
                                             </div>
                                         </div>
@@ -1075,7 +1075,6 @@
 <%@include file='../fragments/modal/dialogRefill_info_modal.jsp' %>
 <%@include file='stop-order-modals.jsp' %>
 
-<%@include file='../fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>
 

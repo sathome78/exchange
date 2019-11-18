@@ -68,7 +68,7 @@ public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
             " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
             " INNER JOIN USER ON REFERRAL_TRANSACTION.initiator_id = USER.id" +
             " LEFT JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
-            " LEFT JOIN EXORDERS ON TRANSACTION.order_id = EXORDERS.id ";
+            " LEFT JOIN ORDERS as EXORDERS ON TRANSACTION.order_id = EXORDERS.id ";
 
     @Autowired
     public ReferralTransactionDaoImpl(@Qualifier(value = "masterTemplate")final NamedParameterJdbcTemplate jdbcTemplate) {

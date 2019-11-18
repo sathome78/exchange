@@ -12,6 +12,7 @@ import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairRestrictionsEnum;
 import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.MarketVolume;
 import me.exrates.model.User;
@@ -24,7 +25,6 @@ import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
-import me.exrates.model.enums.RestrictedOperation;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.Market;
 import me.exrates.model.enums.MerchantProcessType;
@@ -58,6 +58,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -176,14 +177,14 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
-    public void updateCurrencyLimit(int currencyId, OperationType operationType, String roleName, BigDecimal minAmount, BigDecimal minAmountUSD, BigDecimal maxAmount, Integer maxDailyRequest) {
-        currencyDao.updateCurrencyLimit(currencyId, operationType, userRoleService.getRealUserRoleIdByBusinessRoleList(roleName), minAmount, minAmountUSD, maxAmount, maxDailyRequest);
+    public void updateCurrencyLimit(int currencyId, OperationType operationType, String roleName, BigDecimal minAmount, BigDecimal minAmountUSD, BigDecimal maxAmount, BigDecimal maxAmountUSD, Integer maxDailyRequest) {
+        currencyDao.updateCurrencyLimit(currencyId, operationType, userRoleService.getRealUserRoleIdByBusinessRoleList(roleName), minAmount, minAmountUSD, maxAmount, maxAmountUSD, maxDailyRequest);
     }
 
     @Override
-    public void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, BigDecimal minAmountUSD, BigDecimal maxAmount, Integer maxDailyRequest) {
+    public void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, BigDecimal minAmountUSD, BigDecimal maxAmount, BigDecimal maxAmountUSD, Integer maxDailyRequest) {
 
-        currencyDao.updateCurrencyLimit(currencyId, operationType, minAmount, minAmountUSD, maxAmount, maxDailyRequest);
+        currencyDao.updateCurrencyLimit(currencyId, operationType, minAmount, minAmountUSD, maxAmount, maxAmountUSD, maxDailyRequest);
     }
 
     @Override
@@ -516,6 +517,9 @@ public class CurrencyServiceImpl implements CurrencyService {
             BigDecimal minSumUsdRate = currencyLimit.getMinSumUsdRate();
             BigDecimal minSum = currencyLimit.getMinSum();
 
+            BigDecimal maxSumUsdRate = currencyLimit.getMaxSumUsd();
+            BigDecimal maxSum = currencyLimit.getMaxSum();
+
             RateDto rateDto = rates.get(currencyName);
             if (isNull(rateDto)) {
                 continue;
@@ -531,9 +535,19 @@ public class CurrencyServiceImpl implements CurrencyService {
             if (recalculateToUsd) {
                 minSum = converter.convert(minSumUsdRate.divide(usdRate, RoundingMode.HALF_UP));
                 currencyLimit.setMinSum(minSum);
+
+                if (!Objects.isNull(maxSum)) {
+                    maxSum = converter.convert(maxSumUsdRate.divide(usdRate, RoundingMode.HALF_UP));
+                    currencyLimit.setMaxSum(maxSum);
+                }
             } else {
                 minSumUsdRate = minSum.multiply(usdRate);
                 currencyLimit.setMinSumUsdRate(minSumUsdRate);
+
+                if (!Objects.isNull(maxSum)) {
+                    maxSumUsdRate = maxSum.multiply(usdRate);
+                    currencyLimit.setMaxSumUsd(maxSumUsdRate);
+                }
             }
         }
         currencyDao.updateWithdrawLimits(currencyLimits);
@@ -663,13 +677,13 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
-    public void addRestrictionForCurrencyPairById(int currencyPairId, RestrictedOperation restrictionsEnum) {
+    public void addRestrictionForCurrencyPairById(int currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum) {
         currencyDao.insertCurrencyPairRestriction(currencyPairId, restrictionsEnum);
         currencyRestrictionsCache.refresh(currencyPairId);
     }
 
     @Override
-    public void deleteRestrictionForCurrencyPairById(int currencyPairId, RestrictedOperation restrictionsEnum) {
+    public void deleteRestrictionForCurrencyPairById(int currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum) {
         currencyDao.deleteCurrencyPairRestriction(currencyPairId, restrictionsEnum);
         currencyRestrictionsCache.invalidate(currencyPairId);
     }
