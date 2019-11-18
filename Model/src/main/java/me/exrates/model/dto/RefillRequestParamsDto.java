@@ -28,6 +28,10 @@ public class RefillRequestParamsDto {
     private Boolean generateNewAddress;
     private String childMerchant;
     private String pin;
+    private String country;
+    private String currencyToPaySyndex;
+    private String paymentSystem;
+    private BigDecimal amountToPay;
 
     public RefillRequestParamsDto(RefillRequestManualDto refillDto) {
         this.operationType = refillDto.getOperationType();

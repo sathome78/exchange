@@ -29,9 +29,10 @@ $(function () {
                     {
                         "data": "comment",
                         "render": function (data, type, row){
-                            if (data.length > commentLengthNoShorter || data.split('\n').length > 2) {
-                                var shortData = data.substr(0, commentLengthNoShorter) + " ... ";
-                                if(data.split('\n').length > 2){
+                            var text = data.replace(/(<([^>]+)>)/ig,"");
+                            if (text.length > commentLengthNoShorter || text.split('\n').length > 2) {
+                                var shortData = text.substr(0, commentLengthNoShorter) + " ... ";
+                                if(text.split('\n').length > 2){
                                     shortData = shortData.substring(0, shortData.indexOf("\n", shortData.indexOf("\n",  shortData.indexOf("\n")+1))) + " ... ";
                                 }
                                 return '<textarea id="textOfComment'+row.id+'"style="width: 100%; height: 100%; resize:none; overflow: auto; text-align: justify;" readonly>'+ shortData +'</textarea>'
@@ -39,7 +40,7 @@ $(function () {
                                     +'<button id="buttonHideFullComment'+row.id+'"onclick="hideFullComment(this)" style="float: right;" hidden>Hide</button>';
                             }
                             else{
-                                return '<textarea id="textOfComment'+row.id+'"style="width: 100%; height: 100%; resize: none; overflow: hidden; text-align: justify;" readonly>'+ data +'</textarea>'
+                                return '<textarea id="textOfComment'+row.id+'"style="width: 100%; height: 100%; resize: none; overflow: hidden; text-align: justify;" readonly>'+ text +'</textarea>'
                             }
                             return "";
                         }

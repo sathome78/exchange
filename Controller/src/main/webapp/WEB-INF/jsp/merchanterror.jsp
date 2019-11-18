@@ -5,11 +5,9 @@
 <html>
 <head>
     <title>Title</title>
-    <%@include file="../jsp/tools/google_head.jsp"%>
 </head>
 <body>
 <%@include file='header.jsp'%><br>
-<%@include file="../jsp/tools/google_body.jsp"%>
 <h2><loc:message code="${error}"/></h2>
 <a href="/merchants/"><loc:message code="merchants.merchants"/></a>
 </body>

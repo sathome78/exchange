@@ -82,6 +82,7 @@ import me.exrates.service.exception.WithdrawRequestPostException;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
+import me.exrates.service.syndex.SyndexService;
 import me.exrates.service.vo.ProfileData;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -92,6 +93,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.mail.MailException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -129,8 +131,7 @@ import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REVOKE;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.START_BCH_EXAMINE;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.TAKE_TO_WORK;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
-import static me.exrates.model.enums.invoice.RefillStatusEnum.CREATED_BY_FACT;
-import static me.exrates.model.enums.invoice.RefillStatusEnum.EXPIRED;
+import static me.exrates.model.enums.invoice.RefillStatusEnum.*;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
 /**
@@ -177,12 +178,6 @@ public class RefillServiceImpl implements RefillService {
     private QuberaService quberaService;
 
     @Override
-    public Map<String, String> callRefillIRefillable(RefillRequestCreateDto request) {
-        IRefillable merchantService = (IRefillable) merchantServiceContext.getMerchantService(request.getServiceBeanName());
-        return merchantService.refill(request);
-    }
-
-    @Override
     @Transactional
     public Map<String, Object> createRefillRequest(RefillRequestCreateDto request) {
         ProfileData profileData = new ProfileData(1000);
@@ -207,6 +202,10 @@ public class RefillServiceImpl implements RefillService {
                 }
             });
             String merchantRequestSign = (String) result.get("sign");
+            if (result.containsKey("amount_to_refill")) {
+                BigDecimal amountToPay = new BigDecimal(result.get("amount_to_refill").toString());
+                refillRequestDao.setAmountById(request.getId(), amountToPay);
+            }
             request.setMerchantRequestSign(merchantRequestSign);
             if (merchantRequestSign != null) {
                 refillRequestDao.setMerchantRequestSignById(request.getId(), merchantRequestSign);
@@ -317,7 +316,7 @@ public class RefillServiceImpl implements RefillService {
                     }
                     break;
                 case shuftipro:
-                    merchantCurrency.setNeedKycRefill(!user.getKycStatus().equalsIgnoreCase("SUCCESS"));
+                    merchantCurrency.setNeedKycRefill(!user.getKycStatus().equalsIgnoreCase("ACCEPTED"));
                     break;
             }
         }
@@ -334,7 +333,7 @@ public class RefillServiceImpl implements RefillService {
         Integer userId = getUserIdByAddressAndMerchantIdAndCurrencyId(address, merchantId, currencyId)
                 .orElseThrow(() -> new CreatorForTheRefillRequestNotDefinedException(String.format("address: %s currency: %s merchant: %s amount: %s",
                         address, currencyId, merchantId, amount)));
-        Locale locale = new Locale(userService.getPreferedLang(userId));
+        Locale locale = getLocale(userId);
         Integer commissionId = commissionService.findCommissionByTypeAndRole(INPUT, userService.getUserRoleFromDB(userId)).getId();
         RefillStatusEnum beginStatus = (RefillStatusEnum) RefillStatusEnum.X_STATE.nextState(CREATE_BY_FACT);
         RefillRequestCreateDto request = new RefillRequestCreateDto();
@@ -537,7 +536,7 @@ public class RefillServiceImpl implements RefillService {
             onBchExamDto.setRequestId(requestId);
             RefillRequestFlatDto refillRequestFlatDto = putOnBchExam(onBchExamDto);
             /**/
-            Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
+            Locale locale = getLocale(refillRequestFlatDto.getUserId());
             String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
             String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
                     new Integer[]{requestId},
@@ -625,8 +624,7 @@ public class RefillServiceImpl implements RefillService {
 
         RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);
         /**/
-
-        Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
+        Locale locale = getLocale(refillRequestFlatDto.getUserId());
         String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
         String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
                 new Integer[]{requestId},
@@ -647,7 +645,7 @@ public class RefillServiceImpl implements RefillService {
 
         RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);
         /**/
-        Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
+        Locale locale = getLocale(refillRequestFlatDto.getUserId());
         String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
         String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
                 new Integer[]{requestId},
@@ -658,6 +656,13 @@ public class RefillServiceImpl implements RefillService {
             notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
         }
         return requestId;
+    }
+
+    @Override
+    @Transactional
+    public void autoAcceptRefillRequestAndSetActualAmount(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {
+        refillRequestDao.setAmountById(requestAcceptDto.getRequestId(), requestAcceptDto.getAmount());
+        autoAcceptRefillRequest(requestAcceptDto);
     }
 
     @Override
@@ -677,7 +682,7 @@ public class RefillServiceImpl implements RefillService {
             requestAcceptDto.setRequestId(requestId);
             RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);
             /**/
-            Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
+            Locale locale = getLocale(refillRequestFlatDto.getUserId());
             String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
             String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
                     new Integer[]{requestId},
@@ -717,6 +722,17 @@ public class RefillServiceImpl implements RefillService {
         }
     }
 
+    @Override
+    @Transactional
+    public void acceptAdminRefillRequest(RefillRequestAcceptDto requestAcceptDto) {
+        RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestAcceptDto.getRequestId())
+                .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestAcceptDto.getRequestId())));
+
+        IRefillable iRefillable = (IRefillable)merchantServiceContext.getMerchantService(refillRequest.getMerchantId());
+        iRefillable.acceptAdmin(requestAcceptDto.getRequestId());
+        acceptRefillRequest(requestAcceptDto);
+    }
+
 
     @Override
     @Transactional
@@ -725,7 +741,7 @@ public class RefillServiceImpl implements RefillService {
         RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);
         /**/
         if (refillRequestFlatDto.getStatus().isSuccessEndStatus()) {
-            Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
+            Locale locale = getLocale(refillRequestFlatDto.getUserId());
             String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
             String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
                     new Integer[]{requestId},
@@ -749,7 +765,7 @@ public class RefillServiceImpl implements RefillService {
             refillRequestDao.setStatusById(requestId, newStatus);
             /**/
             if (newStatus.isSuccessEndStatus()) {
-                Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
+                Locale locale = getLocale(refillRequestFlatDto.getUserId());
                 String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
                 String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
                         new Integer[]{requestId},
@@ -905,9 +921,14 @@ public class RefillServiceImpl implements RefillService {
     public void revokeRefillRequest(int requestId) {
         RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
                 .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
+
         RefillStatusEnum currentStatus = refillRequest.getStatus();
         InvoiceActionTypeEnum action = REVOKE;
         RefillStatusEnum newStatus = (RefillStatusEnum) currentStatus.nextState(action);
+
+        IRefillable iRefillable = (IRefillable)merchantServiceContext.getMerchantService(refillRequest.getMerchantId());
+        iRefillable.cancelMerchantRequest(requestId);
+
         refillRequestDao.setStatusById(requestId, newStatus);
     }
 
@@ -1065,11 +1086,18 @@ public class RefillServiceImpl implements RefillService {
                     .concat("): ");
             refillRequest.setRemark(comment, prefix);
             String remark = refillRequest.getRemark();
+
             if (!StringUtils.isEmpty(remark)) {
                 refillRequestDao.setRemarkById(requestId, remark);
             }
+
+            if (currentStatus == ON_PENDING) {
+                IRefillable iRefillable = (IRefillable)merchantServiceContext.getMerchantService(refillRequest.getMerchantId());
+                iRefillable.declineAdmin(requestId);
+            }
+
             if (currentStatus != CREATED_BY_FACT) {
-                Locale locale = new Locale(userService.getPreferedLang(refillRequest.getUserId()));
+                Locale locale = getLocale(refillRequest.getUserId());
                 String title = messageSource.getMessage("refill.declined.title", new Integer[]{requestId}, locale);
                 if (StringUtils.isEmpty(comment)) {
                     comment = messageSource.getMessage("merchants.refillNotification.".concat(newStatus.name()), new Integer[]{requestId}, locale);
@@ -1452,5 +1480,10 @@ public class RefillServiceImpl implements RefillService {
         Map<String, String> result = commissionService.computeCommissionAndMapAllToString(userId, amount, operationType, currencyId, merchantId, locale, destinationTag);
         result.put("addition", addition.toString());
         return result;
+    }
+
+    private Locale getLocale(int userId) {
+//        return new Locale(userService.getPreferedLang(userId));
+        return new Locale("en");
     }
 }

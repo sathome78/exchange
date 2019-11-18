@@ -264,4 +264,6 @@ public interface UserDao {
     boolean subscribeToMailingByPublicId(String publicId, boolean subscribe);
 
     boolean subscribeToMailingByEmail(String email, boolean subscribe);
+
+    boolean setUserVerificationRequired(int userId, boolean isRequired);
 }

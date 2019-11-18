@@ -635,6 +635,18 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     }
 
     @Override
+    public void setAmountById(Integer id, BigDecimal amount) {
+        final String sql = "UPDATE REFILL_REQUEST " +
+                "  SET amount = :amount, " +
+                "      status_modification_date = NOW() " +
+                "  WHERE id = :id";
+        Map<String, Object> params = new HashMap<>();
+        params.put("id", id);
+        params.put("amount", amount);
+        namedParameterJdbcTemplate.update(sql, params);
+    }
+
+    @Override
     public void setStatusAndConfirmationDataById(
             Integer id,
             InvoiceStatus newStatus,

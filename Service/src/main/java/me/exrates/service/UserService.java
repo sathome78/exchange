@@ -10,13 +10,11 @@ import me.exrates.model.dto.IpLogDto;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.UserIpDto;
-import me.exrates.model.dto.UserIpReportDto;
 import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.UsersInfoDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminIpLogsFilterData;
-import me.exrates.model.dto.ieo.IeoUserStatus;
 import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.TokenType;
@@ -27,12 +25,13 @@ import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.service.exception.CallBackUrlAlreadyExistException;
 import me.exrates.service.exception.UnRegisteredUserDeleteException;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.http.HttpServletRequest;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -70,9 +69,6 @@ public interface UserService {
     boolean userExistByEmail(String email);
 
     List<TemporalToken> getTokenByUserAndType(User user, TokenType tokenType);
-
-    @Transactional(rollbackFor = Exception.class)
-    boolean createUserRest(User user, Locale locale);
 
     int verifyUserEmail(String token);
 
@@ -164,14 +160,7 @@ public interface UserService {
 
     List<UserSessionInfoDto> getUserSessionInfo(Set<String> emails);
 
-    void saveTemporaryPasswordAndNotify(UpdateUserDto user, String temporaryPass, Locale locale);
-
-    boolean replaceUserPassAndDelete(String token, Long tempPassId);
-
     boolean removeTemporaryPassword(Long id);
-
-    @Transactional
-    boolean tempDeleteUser(String email);
 
     String getAvatarPath(Integer userId);
 
@@ -191,8 +180,6 @@ public interface UserService {
 
     void updateAdminAuthorities(List<AdminAuthorityOption> options, Integer userId, String currentUserEmail);
 
-    List<String> findNicknamesByPart(String part);
-
     UserRole getUserRoleFromSecurityContext();
 
     void setCurrencyPermissionsByUserId(List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList);
@@ -211,12 +198,6 @@ public interface UserService {
 
     boolean isLogin2faUsed(String email);
 
-    boolean checkIsNotifyUserAbout2fa(String email);
-
-    List<UserIpReportDto> getUserIpReportForRoles(List<Integer> roleIds);
-
-    Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime);
-
     String getUserEmailFromSecurityContext();
 
     TemporalToken getTemporalTokenByValue(String token);
@@ -224,10 +205,6 @@ public interface UserService {
     User getUserByTemporalToken(String token);
 
     boolean checkPassword(int userId, String password);
-
-    long countUserIps(String userEmail);
-
-    boolean isGlobal2FaActive();
 
     List<Integer> getUserFavouriteCurrencyPairs(String email);
 
@@ -237,15 +214,9 @@ public interface UserService {
 
     void updateGaTag(String gaCookie, String username);
 
-    String getReferenceId();
-
     int updateReferenceIdAndStatus(String referenceId, EventStatus status);
 
     String getEmailByReferenceId(String referenceId);
-
-    String getCallBackUrlById(int userId, Integer currencyPairId);
-
-    String getCallBackUrlByUserAcceptorId(int userAcceptorId, Integer currencyPairId);
 
     String findEmailById(int id);
 
@@ -259,11 +230,6 @@ public interface UserService {
 
     String getUserKycStatusByEmail(String email);
 
-    boolean updatePrivateDataAndKycReference(String email, String referenceUID, String country, String firstName,
-                                             String lastName, Date birthDate);
-
-    User findByKycReferenceId(String referenceId);
-
     boolean updateVerificationStatus(String email, String status);
 
     boolean updateKycStatus(String status);
@@ -271,8 +237,6 @@ public interface UserService {
     String getKycReferenceByEmail(String email);
 
     boolean addPolicyToUser(String email, String policy);
-
-    IeoUserStatus findIeoUserStatusByEmail(String email);
 
     boolean updateUserRole(int userId, UserRole userRole);
 
@@ -293,4 +257,6 @@ public interface UserService {
     boolean subscribeToMailingByEmail(String email, boolean subscribe);
 
     void deleteUserPin(String email, NotificationMessageEventEnum login);
+
+    void updateUserTradeRestrictions(HttpServletRequest request, UserDetails userDetails);
 }
