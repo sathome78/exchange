@@ -236,9 +236,11 @@ public class RefillServiceImpl implements RefillService {
                 request.setId(requestId);
             }
             profileData.setTime3();
-      /*if (merchantService.concatAdditionalToMainAddress()) {
-        ((Map<String, String>) result.get("params")).put("address", merchantService.getMainAddress().concat(request.getAddress()));
-      }*/
+
+            if (merchantService.concatAdditionalToMainAddress()) {
+                ((Map<String, String>) result.get("params")).put("address", merchantService.getMainAddress().concat(request.getAddress()));
+            }
+
         } finally {
             profileData.checkAndLog("slow create RefillRequest: " + request + " profile: " + profileData);
         }
