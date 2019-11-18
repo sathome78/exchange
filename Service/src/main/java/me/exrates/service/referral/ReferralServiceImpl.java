@@ -264,7 +264,7 @@ public class ReferralServiceImpl implements ReferralService {
                 int count = 0;
                 ReferralStructureDto structureDto = new ReferralStructureDto(firstLevelUser.getEmail(), level + 1, firstLevelUser.getId());
                 List<ReferralLink> firstLevelReferralLinks = referralLinkDao.findByUserId(firstLevelUser.getId());
-                if (firstLevelReferralLinks.isEmpty()) {//if first level user doesn't have second level referrals
+                if (firstLevelReferralLinks.isEmpty()) {
                     completeIteration(structureDto, count, result);
                     continue;
                 }
@@ -278,8 +278,6 @@ public class ReferralServiceImpl implements ReferralService {
                                 CURRENCIES);
                 addEarnedMapToValues(structureDto, currencyEarnedFirstLevel);
                 completeIteration(structureDto, count, result);
-
-                result.add(structureDto);
             }
             return result;
         }
