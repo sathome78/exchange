@@ -387,17 +387,13 @@ public class ReferralServiceImpl implements ReferralService {
         ReferralIncomeDto referralIncomeDto = referralLinkDao
                 .getReferralIncomeDto(email, currency)
                 .orElseThrow(() -> new RuntimeException("Not exist currency referral balance for currency " + currency));
-
         BigDecimal referralBalance = referralIncomeDto.getReferralBalance();
-        BigDecimal cupIncome = referralIncomeDto.getCupIncome();
-
-        if (referralBalance.compareTo(cupIncome) <= 0) {
+        if (referralBalance.compareTo(referralIncomeDto.getCupIncome()) <= 0) {
             throw new RuntimeException("Not enough balance for transfer balance to active balance");
         }
 
         BigDecimal manualConfirmAboveSum = referralIncomeDto.getManualConfirmAboveSum();
         ReferralRequestStatus status;
-
         if (referralBalance.compareTo(manualConfirmAboveSum) > 0) {
             status = ReferralRequestStatus.WAITING_MANUAL_POSTING;
         } else {
@@ -411,7 +407,6 @@ public class ReferralServiceImpl implements ReferralService {
                 .status(status)
                 .userId(referralIncomeDto.getUserId())
                 .build();
-
         boolean result = referralRequestTransferDao.createReferralRequestTransfer(requestTransfer).getId() > 0;
         if (result) {
             Wallet wallet = walletService.findByUserAndCurrency(referralIncomeDto.getUserId(), currency);
@@ -424,8 +419,7 @@ public class ReferralServiceImpl implements ReferralService {
         Wallet wallet =
                 walletService.findByUserAndCurrency(requestTransfer.getUserId(), requestTransfer.getCurrencyId());
         Currency currency = currencyService.findById(requestTransfer.getCurrencyId());
-        boolean result = walletService.transferReferralBalanceToActive(wallet.getId(), requestTransfer.getAmount());
-        if (result) {
+        if (walletService.transferReferralBalanceToActive(wallet.getId(), requestTransfer.getAmount())) {
             Transaction transaction = Transaction.builder()
                     .userWallet(wallet)
                     .currency(currency)
@@ -445,7 +439,6 @@ public class ReferralServiceImpl implements ReferralService {
                 referralRequestTransferDao.updateReferralRequestTransfer(requestTransfer);
             }
         }
-
     }
 
     private void completeIteration(ReferralStructureDto structureDto, Integer count, List<ReferralStructureDto> result) {
