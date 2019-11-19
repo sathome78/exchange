@@ -170,7 +170,7 @@ public class AdgroupServiceImpl implements AdgroupService {
         AdGroupResponseDto<ResponsePayOutDto> responseDto =
                 httpClient.createPayOut(urlRequest, getAuthorizationKey(), requestDto);
         log.info("Response from adgroup {}", responseDto);
-        if (!responseDto.getResult().getStatus() || !responseDto.getErrors().isEmpty()) {
+        if (!responseDto.getResult().getStatus() || responseDto.getErrors() != null) {
             log.error("withdraw() error, not approved withdraw request, need to reject {}",
                     withdrawMerchantOperationDto.getId());
             throw new MerchantException("Not approved");
