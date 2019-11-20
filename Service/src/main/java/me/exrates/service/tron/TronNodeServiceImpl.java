@@ -56,7 +56,7 @@ public class TronNodeServiceImpl implements TronNodeService {
     private final static String GET_ADDRESS = "/wallet/generateaddress";
     private final static String EASY_TRANSFER = "/wallet/easytransferbyprivate";
     private final static String EASY_TRANSFER_ASSET = "/wallet/easytransferassetbyprivate";
-    private final static String CREATE_TRANSACTION = "/wallet/createtransaction";
+    private final static String CREATE_TRANSACTION = "/wallet/triggersmartcontract";
     private final static String SIGN_TRANSACTION = "/wallet/gettransactionsign";
     private final static String BROADCAST_TRANSACTION = "/wallet/broadcasttransaction ";
     private final static String GET_BLOCK_TX = "/wallet/getblockbynum";

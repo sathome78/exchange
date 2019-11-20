@@ -2529,9 +2529,10 @@ public class OrderServiceImpl implements OrderService {
         headerRow.createCell(1).setCellValue("Date");
         headerRow.createCell(2).setCellValue("Currency");
         headerRow.createCell(3).setCellValue("Commission");
-        headerRow.createCell(4).setCellValue("Amount");
-        headerRow.createCell(5).setCellValue("Type");
-        headerRow.createCell(6).setCellValue("Address");
+        headerRow.createCell(4).setCellValue("Commission currency");
+        headerRow.createCell(5).setCellValue("Amount");
+        headerRow.createCell(6).setCellValue("Type");
+        headerRow.createCell(7).setCellValue("Address");
 
         int index = 1;
         for (MyInputOutputHistoryDto transaction : transactions) {
@@ -2543,7 +2544,10 @@ public class OrderServiceImpl implements OrderService {
             row.createCell(1, CellType.STRING).setCellValue(getValue(transaction.getDatetime()));
             row.createCell(2, CellType.STRING).setCellValue(getValue(transaction.getCurrencyName()));
             row.createCell(3, CellType.STRING).setCellValue(getValue(transaction.getCommissionAmount()));
-            row.createCell(4, CellType.STRING).setCellValue(getValue(transaction.getAmount()));
+
+            String commissionCurrencyName = Objects.isNull(transaction.getCommissionCurrencyName()) ? transaction.getCurrencyName() : transaction.getCommissionCurrencyName();
+            row.createCell(4, CellType.STRING).setCellValue(commissionCurrencyName);
+            row.createCell(5, CellType.STRING).setCellValue(getValue(transaction.getAmount()));
 
             String sourceType = nonNull(transaction.getSourceType())
                     ? transaction.getSourceType().name()
@@ -2551,8 +2555,8 @@ public class OrderServiceImpl implements OrderService {
             if (sourceType.equals(TransactionSourceType.FREE_COINS_TRANSFER.name())) {
                 sourceType = String.format("%s %s", transaction.getOperationType(), sourceType);
             }
-            row.createCell(5, CellType.STRING).setCellValue(sourceType);
-            row.createCell(6, CellType.STRING).setCellValue(getValue(transaction.getTransactionHash()));
+            row.createCell(6, CellType.STRING).setCellValue(sourceType);
+            row.createCell(7, CellType.STRING).setCellValue(getValue(transaction.getTransactionHash()));
         }
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();

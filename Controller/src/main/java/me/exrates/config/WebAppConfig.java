@@ -285,7 +285,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     @PostConstruct
     public void init() {
-//        ElasticApmAttacher.attach();
+        ElasticApmAttacher.attach();
         RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
         List<String> arguments = runtimeMxBean.getInputArguments();
         log.debug(String.join("; ", arguments));

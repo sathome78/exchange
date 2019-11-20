@@ -21,4 +21,5 @@ public class EditMerchantCommissionDto {
     private BigDecimal transferValue;
     private BigDecimal minFixedAmount;
     private BigDecimal minFixedAmountUSD;
+    private BigDecimal secondaryOutputCommission;
 }
