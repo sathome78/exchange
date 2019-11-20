@@ -19,6 +19,7 @@ import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestRevokeException;
 import me.exrates.service.exception.WithdrawRequestPostException;
+import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.http.EnfinsHttpClient;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
@@ -207,9 +208,8 @@ public class EnfinsMerchantServiceImpl implements EnfinsMerchantService {
             result.put("params", StringUtils.EMPTY);
             return result;
         } else {
-            withdrawService.rejectToReview(Integer.parseInt(withdrawMerchantOperationDto.getId()));
             log.error("NOT SUCCESS MERCHANT OPERATION: {}", response.getError().getMessage());
-            throw new WithdrawRequestPostException("NOT SUCCESS MERCHANT OPERATION, ERROR CODE " + response.getError().getCode());
+            throw new MerchantException("NOT SUCCESS MERCHANT OPERATION, ERROR CODE " + response.getError().getCode());
         }
     }
 

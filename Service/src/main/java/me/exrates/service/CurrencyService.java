@@ -190,4 +190,6 @@ public interface CurrencyService {
     void addRestrictionForCurrencyPairById(int currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum);
 
     void deleteRestrictionForCurrencyPairById(int currencyPairId, CurrencyPairRestrictionsEnum restrictionsEnum);
+
+    List<String> findSuitableForCommission();
 }

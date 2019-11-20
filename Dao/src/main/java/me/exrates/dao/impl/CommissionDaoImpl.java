@@ -6,6 +6,7 @@ import me.exrates.model.Commission;
 import me.exrates.model.dto.ComissionCountDto;
 import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.dto.EditMerchantCommissionDto;
+import me.exrates.model.enums.CommissionTypeParameterUpdateEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +23,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import static me.exrates.model.enums.OrderStatus.CLOSED;
 
 @Repository
 public class CommissionDaoImpl implements CommissionDao {
@@ -202,7 +201,8 @@ public class CommissionDaoImpl implements CommissionDao {
                 " merchant_output_commission = :output_value," +
                 " merchant_transfer_commission = :transfer_value," +
                 " merchant_fixed_commission = :fixed_commission," +
-                " merchant_fixed_commission_usd = :fixed_commission_usd " +
+                " merchant_fixed_commission_usd = :fixed_commission_usd," +
+                " merchant_secondary_commission_amount = :merchant_secondary_commission " +
                 "WHERE merchant_id = (SELECT id FROM MERCHANT WHERE name = :merchant_name) " +
                 "AND currency_id = (SELECT id FROM CURRENCY WHERE name = :currency_name)";
 
@@ -213,10 +213,30 @@ public class CommissionDaoImpl implements CommissionDao {
             put("output_value", editMerchantCommissionDto.getOutputValue());
             put("transfer_value", editMerchantCommissionDto.getTransferValue());
             put("fixed_commission", editMerchantCommissionDto.getMinFixedAmount());
+            put("merchant_secondary_commission", editMerchantCommissionDto.getSecondaryOutputCommission());
             put("fixed_commission_usd", editMerchantCommissionDto.getMinFixedAmountUSD());
         }};
 
         jdbcTemplate.update(sql, params);
+    }
+
+    @Override
+    public void updateMerchantCommissionType(String merchantName, String currencyName, CommissionTypeParameterUpdateEnum type, Object value) {
+
+        final String sql = "UPDATE MERCHANT_CURRENCY " +
+                "SET " + type.getDbColumnName() +" = :value " +
+                "WHERE merchant_id = (SELECT id FROM MERCHANT WHERE name = :merchant_name) " +
+                "AND currency_id = (SELECT id FROM CURRENCY WHERE name = :currency_name)";
+
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("merchant_name", merchantName);
+            put("currency_name", currencyName);
+            put("value", value);
+        }};
+
+        if (jdbcTemplate.update(sql, params) < 1) {
+            throw new RuntimeException("Error update");
+        };
     }
 
     @Override
