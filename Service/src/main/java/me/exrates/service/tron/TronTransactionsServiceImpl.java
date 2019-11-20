@@ -33,6 +33,7 @@ import java.util.stream.StreamSupport;
 @Conditional(MonolitConditional.class)
 public class TronTransactionsServiceImpl implements TronTransactionsService {
 
+
     private @Value("${tron.trc20ContractAddress}")String CONTRACT_ADDRESS;
     private @Value("${tron.functionSelector}")String FUNCTION_SELECTOR;
 
@@ -43,7 +44,6 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
         this.refillService = refillService;
         this.tronTokenContext = tronTokenContext;
     }
-
 
 
     private @Value("${tron.mainAccountHEXAddress}")String MAIN_ADDRESS_HEX;
