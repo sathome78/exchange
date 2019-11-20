@@ -29,8 +29,6 @@ public class AdminOrderFilterData extends TableFilterData {
     private Integer creatorRole;
     private String acceptor;
 
-
-
     @Override
     public void initFilterItems() {
         FilterDataItem[] items = new FilterDataItem[] {

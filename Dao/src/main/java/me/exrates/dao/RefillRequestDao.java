@@ -70,6 +70,8 @@ public interface RefillRequestDao {
 
     void setStatusById(Integer id, InvoiceStatus newStatus);
 
+    void setAmountById(Integer id, BigDecimal amount);
+
     void setStatusAndConfirmationDataById(Integer id, InvoiceStatus newStatus, InvoiceConfirmData invoiceConfirmData);
 
     void setMerchantRequestSignById(Integer id, String sign);

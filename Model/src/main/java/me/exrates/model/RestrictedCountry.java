@@ -14,7 +14,6 @@ public class RestrictedCountry {
 
     private int id;
     private RestrictedOperation operation;
-    private int operationId;
     private String countryName;
     private String countryCode;
 }

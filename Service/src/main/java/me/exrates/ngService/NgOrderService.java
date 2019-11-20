@@ -16,10 +16,6 @@ public interface NgOrderService {
 
     OrderCreateDto prepareOrder(InputCreateOrderDto inputOrder);
 
-    boolean processUpdateOrder(User user, InputCreateOrderDto inputOrder);
-
-    boolean processUpdateStopOrder(User user, InputCreateOrderDto inputOrder);
-
     WalletsAndCommissionsForOrderCreationDto getWalletAndCommision(String email, OperationType operationType,
                                                                    int activeCurrencyPair);
 

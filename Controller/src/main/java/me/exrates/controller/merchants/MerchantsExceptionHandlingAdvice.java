@@ -72,14 +72,4 @@ public class MerchantsExceptionHandlingAdvice {
         }
         return redirectView;
     }
-
-//    @ExceptionHandler(InvalidAmountException.class)
-//    public RedirectView handleInvalidPayeeWalletException(InvalidAmountException e, HttpServletRequest request,HttpServletResponse response) {
-//        final RedirectView redirectView = new RedirectView("/merchants/output");
-//        final FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
-//        if (flashMap != null) {
-//            flashMap.put("error","merchants.incorrectPaymentDetails");
-//        }
-//        return redirectView;
-//    }
 }

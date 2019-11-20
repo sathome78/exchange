@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import me.exrates.model.enums.MerchantCommissonTypeEnum;
 import me.exrates.model.enums.MerchantVerificationType;
 
 import java.math.BigDecimal;
@@ -40,4 +41,7 @@ public class MerchantCurrencyOptionsDto {
     private MerchantVerificationType kycType;
     private boolean needKycRefill;
     private boolean needKycWithdraw;
+    private MerchantCommissonTypeEnum withdrawCommissionType;
+    private String secondaryCommissionCurrency;
+    private BigDecimal secondaryCommissionAmount;
 }

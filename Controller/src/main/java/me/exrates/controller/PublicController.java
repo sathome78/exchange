@@ -48,7 +48,11 @@ public class PublicController {
             if (ip == null) {
                 ip = request.getRemoteHost();
             }
-            Map<String, CoinmarketApiJsonDto> result = getData(currencyPair);
+            Map<String, CoinmarketApiJsonDto> result = orderService.getDailyCoinmarketcapData(currencyPair)
+                    .stream()
+                    .collect(Collectors.toMap(
+                            dto -> dto.getCurrencyPairName().replace('/', '_'),
+                            CoinmarketApiJsonDto::new));
             long after = System.currentTimeMillis();
             LOGGER.debug(String.format("completed... from ip: %s ms: %s", ip, (after - before)));
             return result;
@@ -91,41 +95,7 @@ public class PublicController {
         return errors;
     }
 
-    @RequestMapping(value = "/api/public/if_username_exists", produces = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody
-    public List<String> checkIfNewUserUsernameUnique(@RequestParam("username") String username, HttpServletRequest request) {
-        long before = System.currentTimeMillis();
-        String clientIpAddress = IpUtils.getClientIpAddress(request);
-        ipBlockingService.checkIp(clientIpAddress, IpTypesOfChecking.OPEN_API);
-        try {
-            List<String> errors = new ArrayList<>();
-            if (!userService.ifNicknameIsUnique(username)) {
-                ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
-                errors.add("Username exists");
-            }
-            long after = System.currentTimeMillis();
-            LOGGER.debug(String.format("completed...: ms: %s", (after - before)));
-            if (errors.isEmpty()) ipBlockingService.successfulProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
-            return errors;
-        } catch (Exception e) {
-            long after = System.currentTimeMillis();
-            LOGGER.error(String.format("error... for username: %s ms: %s : %s", username, (after - before), e.getMessage()));
-            ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
-            throw e;
-        }
-    }
-
-    private Map<String, CoinmarketApiJsonDto> getData(String currencyPair) {
-        return orderService.getDailyCoinmarketcapData(currencyPair)
-                .stream()
-                .collect(Collectors.toMap(
-                        dto -> dto.getCurrencyPairName().replace('/', '_'),
-                        CoinmarketApiJsonDto::new));
-    }
-
     private long getTiming(long before) {
         return System.currentTimeMillis() - before;
     }
-
-
 }

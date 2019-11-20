@@ -4,6 +4,7 @@ import me.exrates.model.Commission;
 import me.exrates.model.dto.ComissionCountDto;
 import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.dto.EditMerchantCommissionDto;
+import me.exrates.model.enums.CommissionTypeParameterUpdateEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 
@@ -33,6 +34,8 @@ public interface CommissionDao {
     void updateCommission(Integer id, BigDecimal value);
 
     void updateCommission(OperationType operationType, List<Integer> roleIds, BigDecimal value);
+
+    void updateMerchantCommissionType(String merchantName, String currencyName, CommissionTypeParameterUpdateEnum type, Object commissionCurrency);
 
     BigDecimal getMinFixedCommission(Integer currencyId, Integer merchantId);
 

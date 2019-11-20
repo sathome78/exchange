@@ -1,11 +1,14 @@
 package me.exrates.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.serializer.SpringOptionalDeserializer;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -13,8 +16,10 @@ import java.util.Optional;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
+@Builder
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
 public class CreditsOperation {
 
   private User user;
@@ -27,6 +32,7 @@ public class CreditsOperation {
   private Wallet wallet;
   private Merchant merchant;
   private BigDecimal merchantCommissionAmount;
+  private Integer merchantCommissionCurrencyId;
   @JsonDeserialize(using = SpringOptionalDeserializer.class)
   private Optional<String> destination;
   @JsonDeserialize(using = SpringOptionalDeserializer.class)
@@ -36,6 +42,7 @@ public class CreditsOperation {
   private Boolean storeSameAddressForParentAndTokens;
   private User recipient;
   private Wallet recipientWallet;
+  private Wallet walletForMerchantCommission;
 
   private CreditsOperation(Builder builder) {
     this.user = builder.user;
@@ -48,6 +55,7 @@ public class CreditsOperation {
     this.currency = builder.currency;
     this.merchant = builder.merchant;
     this.merchantCommissionAmount = builder.merchantCommissionAmount;
+    this.merchantCommissionCurrencyId = builder.merchantCommissionCurrencyId;
     this.destination = builder.destination == null ?
         Optional.empty() : builder.destination;
     this.destinationTag = builder.destinationTag == null ?
@@ -55,6 +63,7 @@ public class CreditsOperation {
     this.transactionSourceType = builder.transactionSourceType;
     this.recipient = builder.recipient;
     this.recipientWallet = builder.recipientWallet;
+    this.walletForMerchantCommission = builder.walletForMerchantCommission;
   }
 
 
@@ -70,6 +79,7 @@ public class CreditsOperation {
     private Wallet wallet;
     private Merchant merchant;
     private BigDecimal merchantCommissionAmount;
+    private Integer merchantCommissionCurrencyId;
     private Optional<String> destination;
     private Optional<String> destinationTag;
     private TransactionSourceType transactionSourceType;
@@ -77,6 +87,7 @@ public class CreditsOperation {
     private Boolean storeSameAddressForParentAndTokens;
     private User recipient;
     private Wallet recipientWallet;
+    private Wallet walletForMerchantCommission;
 
     public Builder user(User user) {
       this.user = user;
@@ -150,6 +161,16 @@ public class CreditsOperation {
 
     public Builder merchantCommissionAmount(BigDecimal merchantCommissionAmount) {
       this.merchantCommissionAmount = merchantCommissionAmount;
+      return this;
+    }
+
+    public Builder merchantCommissionCurrencyId(Integer merchantCommissionCurrencyId) {
+      this.merchantCommissionCurrencyId = merchantCommissionCurrencyId;
+      return this;
+    }
+
+    public Builder walletForMerchantCommission(Wallet walletForMerchantCommission) {
+      this.walletForMerchantCommission = walletForMerchantCommission;
       return this;
     }
 

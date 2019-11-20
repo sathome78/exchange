@@ -71,7 +71,8 @@ import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.AlertType;
 import me.exrates.model.enums.BusinessUserRoleEnum;
-import me.exrates.model.enums.RestrictedOperation;
+import me.exrates.model.enums.CommissionTypeParameterUpdateEnum;
+import me.exrates.model.enums.MerchantCommissonTypeEnum;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.MerchantKycToggleField;
 import me.exrates.model.enums.MerchantProcessType;
@@ -127,7 +128,6 @@ import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.Subscribable;
 import me.exrates.service.omni.OmniService;
 import me.exrates.service.session.UserSessionService;
-import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.usdx.UsdxService;
 import me.exrates.service.usdx.model.UsdxTransaction;
@@ -150,7 +150,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindException;
@@ -255,8 +254,6 @@ public class AdminController {
     @Autowired
     private UserOperationService userOperationService;
     @Autowired
-    private UserDetailsService userDetailsService;
-    @Autowired
     private LocaleResolver localeResolver;
     @Autowired
     private MerchantService merchantService;
@@ -305,8 +302,6 @@ public class AdminController {
     private SessionRegistry sessionRegistry;
     @Autowired
     private BigDecimalConverter converter;
-    @Autowired
-    private StompMessenger stompMessenger;
 
     @PostConstruct
     private void init() {
@@ -588,16 +583,16 @@ public class AdminController {
                 break;
         }
         DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
-
+        UserRole userRole = userService.getUserRoleFromDB(id);
         final int notFilteredAmount = isStopOrder
                 ? stopOrderService.getUsersStopOrdersWithStateForAdminCount(id, currencyPair, orderStatus, operationType, 0, -1)
-                : orderService.getUsersOrdersWithStateForAdminCount(id, currencyPair, orderStatus, operationType, 0, -1);
+                : orderService.getUsersOrdersWithStateForAdminCount(id, currencyPair, orderStatus, operationType, 0, -1, userRole);
 
         List<OrderWideListDto> filteredOrders = Collections.emptyList();
         if (notFilteredAmount > 0) {
             filteredOrders = isStopOrder
                     ? stopOrderService.getUsersStopOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, dataTableParams.getStart(), dataTableParams.getLength(), locale)
-                    : orderService.getUsersOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, dataTableParams.getStart(), dataTableParams.getLength(), locale);
+                    : orderService.getUsersOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, dataTableParams.getStart(), dataTableParams.getLength(), locale, userRole);
         }
         DataTable<List<OrderWideListDto>> result = new DataTable<>();
         result.setRecordsFiltered(notFilteredAmount);
@@ -913,11 +908,12 @@ public class AdminController {
                                             @RequestParam(defaultValue = "0") BigDecimal minAmountUSD,
                                             @RequestParam Integer maxDailyRequest,
                                             @RequestParam(defaultValue = "0") BigDecimal maxAmount,
+                                            @RequestParam(defaultValue = "0") BigDecimal maxAmountUSD,
                                             @RequestParam(required = false) Object allRolesEdit) {
         if (nonNull(allRolesEdit)) {
-            currencyService.updateCurrencyLimit(currencyId, operationType, minAmount, minAmountUSD, maxAmount, maxDailyRequest);
+            currencyService.updateCurrencyLimit(currencyId, operationType, minAmount, minAmountUSD, maxAmount, maxAmountUSD, maxDailyRequest);
         } else {
-            currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount, minAmountUSD, maxAmount, maxDailyRequest);
+            currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount, minAmountUSD, maxAmount, maxAmountUSD, maxDailyRequest);
         }
         return ResponseEntity.ok().build();
     }
@@ -1022,6 +1018,10 @@ public class AdminController {
     public ModelAndView commissions() {
         ModelAndView modelAndView = new ModelAndView("admin/editCommissions");
         modelAndView.addObject("roleNames", BusinessUserRoleEnum.values());
+        modelAndView.addObject("merchant_commission_type", Arrays.stream(MerchantCommissonTypeEnum.values())
+                .map(Enum::name)
+                .collect(Collectors.joining(",")));
+        modelAndView.addObject("currencies_for_commission", String.join(",", currencyService.findSuitableForCommission()));
         return modelAndView;
     }
 
@@ -1099,6 +1099,17 @@ public class AdminController {
     @ResponseBody
     public ResponseEntity editMerchantCommission(EditMerchantCommissionDto editMerchantCommissionDto) {
         commissionService.updateMerchantCommission(editMerchantCommissionDto);
+        return ResponseEntity.ok().build();
+    }
+
+    @AdminLoggable
+    @RequestMapping(value = "/2a8fy7b07dxe44/commissions/editMerchantCommissionType", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity editMerchantCommissionType(@RequestParam String merchantName,
+                                                     @RequestParam String currencyName,
+                                                     @RequestParam String value,
+                                                     @RequestParam CommissionTypeParameterUpdateEnum parameterName) {
+        commissionService.updateMerchantCommissionType(merchantName, currencyName, parameterName, value);
         return ResponseEntity.ok().build();
     }
 

@@ -10,8 +10,7 @@ public interface RestrictedCountryDao {
 
     String TABLE_NAME = "RESTRICTED_COUNTRY";
     String COLUMN_ID = "id";
-    String COLUMN_RESTRICTED_OP =  "restricted_operation";
-    String COLUMN_OP_ID =  "operation id";
+    String COLUMN_RESTRICTED_OP_NAME =  "restricted_operation";
     String COLUMN_COUNTRY_NAME =  "country_name";
     String COLUMN_COUNTRY_CODE =  "country_code";
 
@@ -20,8 +19,6 @@ public interface RestrictedCountryDao {
     Optional<RestrictedCountry> findById(int restrictedCountryId);
 
     Set<RestrictedCountry> findAll(RestrictedOperation operation);
-
-    Set<RestrictedCountry> findAll(RestrictedOperation operation, int operationId);
 
     Set<RestrictedCountry> findAll();
 
