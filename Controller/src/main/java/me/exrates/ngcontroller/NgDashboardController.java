@@ -8,6 +8,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
 import me.exrates.model.constants.ErrorApiTitles;
+import me.exrates.model.dto.DashboardWidget;
 import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
@@ -69,6 +70,7 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -91,7 +93,6 @@ public class NgDashboardController {
     private final NgOrderService ngOrderService;
     private final ObjectMapper objectMapper;
     private final StopOrderService stopOrderService;
-    private final UserOperationService userOperationService;
 
 
     @Autowired
@@ -112,7 +113,6 @@ public class NgDashboardController {
         this.ngOrderService = ngOrderService;
         this.objectMapper = objectMapper;
         this.stopOrderService = stopOrderService;
-        this.userOperationService = userOperationService;
     }
 
     @PostMapping("/order")
@@ -190,6 +190,24 @@ public class NgDashboardController {
 //            return ResponseEntity.ok().build();
 //        }
 //        return ResponseEntity.badRequest().build();
+    }
+
+    @GetMapping("/widgets")
+    @ResponseBody
+    public Collection<DashboardWidget> getUserDashboardWidgets() {
+        final String emailFromSecurityContext = userService.getUserEmailFromSecurityContext();
+        final int userId = userService.getIdByEmail(emailFromSecurityContext);
+        return dashboardService.findAllByUserId(userId);
+    }
+
+    @PutMapping("/widgets")
+    public ResponseEntity<Void> updateUserDashboardWidgets(@RequestBody Collection<DashboardWidget> widgets) {
+        final String emailFromSecurityContext = userService.getUserEmailFromSecurityContext();
+        final int userId = userService.getIdByEmail(emailFromSecurityContext);
+        final boolean result = dashboardService.update(userId, widgets);
+        return result
+                ? ResponseEntity.status(HttpStatus.CREATED).build()
+                : ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @GetMapping("/balance/{currency}")
