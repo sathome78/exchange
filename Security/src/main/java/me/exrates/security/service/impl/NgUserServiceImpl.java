@@ -24,6 +24,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.util.IpUtils;
 import me.exrates.service.util.RestApiUtilComponent;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -106,6 +107,8 @@ public class NgUserServiceImpl implements NgUserService {
         user.setEmail(userEmailDto.getEmail());
         user.setIp(IpUtils.getClientIpAddress(request));
         user.setVerificationRequired(userEmailDto.getIsUsa());
+        if (StringUtils.isNoneEmpty(userEmailDto.getInviteCode()))
+            user.setInviteReferralLink(userEmailDto.getInviteCode());
 
         if (!(userDao.create(user) && userDao.insertIp(user.getEmail(), user.getIp()))) {
             return false;

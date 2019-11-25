@@ -31,6 +31,7 @@ import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import org.apache.commons.lang3.StringUtils;
+import org.jboss.aerogear.security.otp.api.Base32;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -50,7 +51,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 
@@ -170,7 +170,7 @@ public class ReferralServiceImpl implements ReferralService {
                     .main(true)
                     .name(defaultNameStructure)
                     .userId(user.getId())
-                    .link(UUID.randomUUID().toString())
+                    .link(Base32.random())
                     .createdAt(new Date())
                     .build();
             boolean create = referralLinkDao.createReferralLink(link);
@@ -343,7 +343,7 @@ public class ReferralServiceImpl implements ReferralService {
                 .main(false)
                 .name(name)
                 .userId(user.getId())
-                .link(UUID.randomUUID().toString())
+                .link(Base32.random())
                 .createdAt(new Date())
                 .build();
         boolean create = referralLinkDao.createReferralLink(link);

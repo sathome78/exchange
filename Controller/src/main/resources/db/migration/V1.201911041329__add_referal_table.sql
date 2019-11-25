@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS REFERRAL_LINK
 (
     user_id    INT(11)             NOT NULL,
     name       VARCHAR(255)        NOT NULL,
-    link       VARCHAR(255) UNIQUE NOT NULL,
+    link       VARCHAR(64) UNIQUE NOT NULL,
     created_at TIMESTAMP           NOT NULL default NOW(),
     main       tinyint(1)                   DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES USER (id),
@@ -19,7 +19,7 @@ BEGIN
                   WHERE table_name = 'USER'
                     AND column_name = 'invite_referral_link') THEN
         ALTER TABLE USER
-            ADD COLUMN invite_referral_link VARCHAR(255) NULL;
+            ADD COLUMN invite_referral_link VARCHAR(64) NULL;
     END IF;
 END ;;
 
@@ -79,13 +79,13 @@ DROP PROCEDURE IF EXISTS Alter_Table;
 
 CREATE TABLE IF NOT EXISTS REFERRAL_TRANSACTION
 (
-    id            INT(11) PRIMARY KEY NOT NULL,
-    currency_id   INT(11)             NOT NULL,
-    currency_name VARCHAR(45)         NULL,
-    user_from     INT(11)             NOT NULL,
-    user_to       INT(11)             NOT NULL,
-    amount        VARCHAR(255)        NOT NULL,
-    created_at    TIMESTAMP           NOT NULL default NOW(),
+    id            INT(11) PRIMARY KEY AUTO_INCREMENT NOT NULL,
+    currency_id   INT(11)                            NOT NULL,
+    currency_name VARCHAR(45)                        NULL,
+    user_from     INT(11)                            NOT NULL,
+    user_to       INT(11)                            NOT NULL,
+    amount        VARCHAR(255)                       NOT NULL,
+    created_at    TIMESTAMP                          NOT NULL default NOW(),
     FOREIGN KEY (currency_id) REFERENCES CURRENCY (id),
     FOREIGN KEY (user_from) REFERENCES USER (id),
     FOREIGN KEY (user_to) REFERENCES USER (id)
@@ -93,13 +93,13 @@ CREATE TABLE IF NOT EXISTS REFERRAL_TRANSACTION
 
 CREATE TABLE IF NOT EXISTS REFERRAL_REQUESTS
 (
-    id             INT(11) PRIMARY KEY NOT NULL,
-    currency_id    INT(11)             NOT NULL,
-    user_id        INT(11)             NOT NULL,
-    amount         double(40, 9)       NOT NULL,
-    order_id       INT(11)             NOT NULL,
-    process_status enum ('CREATED', 'PROCESSED', 'ERROR') DEFAULT 'CREATED',
-    created_at     TIMESTAMP           NOT NULL           default NOW(),
+    id             INT(11) PRIMARY KEY AUTO_INCREMENT NOT NULL,
+    currency_id    INT(11)                            NOT NULL,
+    user_id        INT(11)                            NOT NULL,
+    amount         double(40, 9)                      NOT NULL,
+    order_id       INT(11)                            NOT NULL,
+    process_status enum ('CREATED', 'PROCESSED', 'ERROR')      DEFAULT 'CREATED',
+    created_at     TIMESTAMP                          NOT NULL default NOW(),
     FOREIGN KEY (currency_id) REFERENCES CURRENCY (id),
     FOREIGN KEY (user_id) REFERENCES USER (id),
     FOREIGN KEY (order_id) REFERENCES birzha.EXORDERS (id)
@@ -107,16 +107,16 @@ CREATE TABLE IF NOT EXISTS REFERRAL_REQUESTS
 
 CREATE TABLE IF NOT EXISTS REFERRAL_REQUEST_TRANSFER
 (
-    id                       INT(11) PRIMARY KEY NOT NULL,
-    currency_id              INT(11)             NOT NULL,
-    currency_name            VARCHAR(45)         NOT NULL,
-    user_id                  INT(11)             NOT NULL,
-    amount                   double(40, 9)       NOT NULL,
+    id                       INT(11) PRIMARY KEY AUTO_INCREMENT NOT NULL,
+    currency_id              INT(11)                            NOT NULL,
+    currency_name            VARCHAR(45)                        NOT NULL,
+    user_id                  INT(11)                            NOT NULL,
+    amount                   double(40, 9)                      NOT NULL,
     status                   enum ('CREATED_USER', 'WAITING_MANUAL_POSTING', 'WAITING_AUTO_POSTING', 'POSTED_MANUAL', 'POSTED_AUTO', 'IN_POSTING', 'DECLINED_ANALYTICS_MANUAL', 'DECLINED_ERROR'),
-    transaction_id           INT(11)             NULL,
-    created_at               timestamp           NOT NULL default NOW(),
-    remark                   VARCHAR(2048)       NULL,
-    status_modification_date timestamp           NULL,
+    transaction_id           INT(11)                            NULL,
+    created_at               timestamp                          NOT NULL default NOW(),
+    remark                   VARCHAR(2048)                      NULL,
+    status_modification_date timestamp                          NULL,
     FOREIGN KEY (currency_id) REFERENCES CURRENCY (id),
     FOREIGN KEY (user_id) REFERENCES USER (id),
     FOREIGN KEY (transaction_id) REFERENCES TRANSACTION (id)
