@@ -26,6 +26,4 @@ public class TronReceivedTransactionDto {
         this.hash = hash;
         this.address = address;
     }
-
-
 }
