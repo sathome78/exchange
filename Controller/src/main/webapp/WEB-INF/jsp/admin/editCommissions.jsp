@@ -104,7 +104,7 @@
 
 
         </div>
-            <div hidden id="com_types">${merchant_commission_type}</div>
+            <div hidden id="com_types">${withdraw_merchant_commission_type}</div>
             <div hidden id="com_cur">${currencies_for_commission}</div>
 </main>
 <div id="editCommissionModal" class="modal fade">

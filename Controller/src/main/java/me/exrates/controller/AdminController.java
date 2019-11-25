@@ -1018,7 +1018,7 @@ public class AdminController {
     public ModelAndView commissions() {
         ModelAndView modelAndView = new ModelAndView("admin/editCommissions");
         modelAndView.addObject("roleNames", BusinessUserRoleEnum.values());
-        modelAndView.addObject("merchant_commission_type", Arrays.stream(MerchantCommissonTypeEnum.values())
+        modelAndView.addObject("withdraw_merchant_commission_type", Arrays.stream(MerchantCommissonTypeEnum.values())
                 .map(Enum::name)
                 .collect(Collectors.joining(",")));
         modelAndView.addObject("currencies_for_commission", String.join(",", currencyService.findSuitableForCommission()));
