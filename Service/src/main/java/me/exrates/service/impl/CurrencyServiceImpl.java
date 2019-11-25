@@ -49,6 +49,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Collections;
@@ -127,7 +128,7 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Qualifier(CURRENCY_PAIRS_LIST_BY_TYPE_CACHE)
     private Cache currencyPairsListByTypeCache;
 
-//    @PostConstruct
+    @PostConstruct
     public void fillCurrencyPairs() {
         allPairs = findAllCurrencyPair()
                 .stream().collect(Collectors.toMap(CurrencyPair::getId, Function.identity()));

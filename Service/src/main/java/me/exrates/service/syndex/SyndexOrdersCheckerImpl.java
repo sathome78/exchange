@@ -5,6 +5,7 @@ import me.exrates.model.dto.SyndexOrderDto;
 import me.exrates.model.enums.SyndexOrderStatusEnum;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -29,7 +30,7 @@ public class SyndexOrdersCheckerImpl implements SyndexOrderChecker {
     }
 
     /*todo change for prod*/
-//    @PostConstruct
+    @PostConstruct
     private void init() {
         executorService.scheduleWithFixedDelay(this::check, 5, 5, TimeUnit.MINUTES);
     }

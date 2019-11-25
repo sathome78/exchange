@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -45,7 +46,7 @@ public class NewsParserImpl implements NewsParser {
                 }
             });
 
-//    @PostConstruct()
+    @PostConstruct()
     public void init() {
         CACHE.put(ResourceEnum.AMB_CRYPTO.getId(), parseStandardRss(ResourceEnum.AMB_CRYPTO));
         CACHE.put(ResourceEnum.COIN_CODEX.getId(), parseStandardRss(ResourceEnum.COIN_CODEX));

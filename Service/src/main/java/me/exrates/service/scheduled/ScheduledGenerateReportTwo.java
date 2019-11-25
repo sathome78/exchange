@@ -21,7 +21,7 @@ public class ScheduledGenerateReportTwo {
         this.reportService = reportService;
     }
 
-//    @Scheduled(cron = "${scheduled.update.report}")
+    @Scheduled(cron = "${scheduled.update.report}")
     public void update() {
         try {
             reportService.generateInputOutputSummaryReportObject();

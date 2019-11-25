@@ -5,6 +5,7 @@ import me.exrates.service.ReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 @Log4j2
@@ -20,7 +21,7 @@ public class ScheduledGenerateReportFour {
         this.reportService = reportService;
     }
 
-//    @Scheduled(cron = "${scheduled.update.report}")
+    @Scheduled(cron = "${scheduled.update.report}")
     public void update() {
         try {
             reportService.generateWalletBalancesReportObject();

@@ -21,7 +21,7 @@ public class ScheduledWithdrawLimits {
         this.currencyService = currencyService;
     }
 
-//    @Scheduled(cron = "${scheduled.update.withdraw-limits}")
+    @Scheduled(cron = "${scheduled.update.withdraw-limits}")
     public void update() {
         try {
             currencyService.updateWithdrawLimits();
