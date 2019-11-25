@@ -21,4 +21,8 @@ public interface ReferralService {
     List<ReferralIncomeDto> getReferralIncome(String email);
 
     boolean createTransferRequest(String email, String currency);
+
+    void processReferralRequests();
+
+    void processReferralTransferRequests();
 }

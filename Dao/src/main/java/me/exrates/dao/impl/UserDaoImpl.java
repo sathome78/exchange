@@ -192,8 +192,17 @@ public class UserDaoImpl implements UserDao {
     }
 
     public boolean create(User user) {
-        String sqlUser = "insert into USER(pub_id, nickname, email, password, phone, status, roleid, verification_required, has_trade_privileges ) " +
-                "values(SUBSTRING(MD5(:email), 1, 20), :nickname, :email, :password, :phone, :status, :roleid, :need_verification, :has_trade_privileges)";
+        String sqlUser = "insert into USER(pub_id, nickname, email, password, phone, status, roleid, verification_required, has_trade_privileges";
+        if (StringUtils.isNoneEmpty(user.getInviteReferralLink())) {
+            sqlUser += ", invite_referral_link";
+        }
+        sqlUser += ") " +
+                "values(SUBSTRING(MD5(:email), 1, 20), :nickname, :email, :password, :phone, :status, :roleid, :need_verification, :has_trade_privileges";
+
+        if (StringUtils.isNoneEmpty(user.getInviteReferralLink())) {
+            sqlUser += ", :invite_referral_link";
+        }
+        sqlUser += ") ";
         String sqlWallet = "INSERT INTO WALLET (currency_id, user_id) select id, :user_id from CURRENCY;";
         String sqlNotificationOptions = "INSERT INTO NOTIFICATION_OPTIONS(notification_event_id, user_id, send_notification, send_email) " +
                 "select id, :user_id, default_send_notification, default_send_email FROM NOTIFICATION_EVENT; ";
@@ -214,6 +223,9 @@ public class UserDaoImpl implements UserDao {
         String phone = user.getPhone();
         if (user.getPhone() != null && user.getPhone().equals("")) {
             phone = null;
+        }
+        if (StringUtils.isNoneEmpty(user.getInviteReferralLink())) {
+            namedParameters.put("invite_referral_link", user.getInviteReferralLink());
         }
         namedParameters.put("phone", phone);
         namedParameters.put("status", String.valueOf(user.getUserStatus().getStatus()));
