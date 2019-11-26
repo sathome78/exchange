@@ -101,8 +101,7 @@ CREATE TABLE IF NOT EXISTS REFERRAL_REQUESTS
     process_status enum ('CREATED', 'PROCESSED', 'ERROR')      DEFAULT 'CREATED',
     created_at     TIMESTAMP                          NOT NULL default NOW(),
     FOREIGN KEY (currency_id) REFERENCES CURRENCY (id),
-    FOREIGN KEY (user_id) REFERENCES USER (id),
-    FOREIGN KEY (order_id) REFERENCES birzha.EXORDERS (id)
+    FOREIGN KEY (user_id) REFERENCES USER (id)
 );
 
 CREATE TABLE IF NOT EXISTS REFERRAL_REQUEST_TRANSFER
