@@ -19,6 +19,7 @@ import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.dto.openAPI.WalletBalanceDto;
+import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.ReportGroupUserRole;
@@ -198,5 +199,11 @@ public interface WalletService {
     BigDecimal getActiveBalanceAndBlockByWalletId(Integer walletId);
 
     BigDecimal getActiveBalanceByUserAndCurrency(String email, Integer currencyId);
+
+    boolean performReferralBalanceUpdate(int walletId, BigDecimal amount, ActionType type);
+
+    boolean transferReferralBalanceToActive(int walletId, BigDecimal amount);
+
+    boolean updateReferralBalance(int walletId, BigDecimal amount);
 
 }

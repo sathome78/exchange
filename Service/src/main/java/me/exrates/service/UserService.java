@@ -259,4 +259,8 @@ public interface UserService {
     void deleteUserPin(String email, NotificationMessageEventEnum login);
 
     void updateUserTradeRestrictions(HttpServletRequest request, UserDetails userDetails);
+
+    List<User> findByInviteReferralLink(String link);
+
+    List<User> findByInviteReferralLink(List<String> link);
 }

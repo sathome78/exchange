@@ -104,10 +104,10 @@ public class WalletDaoImpl implements WalletDao {
         userWallet.setUser(userDao.getUserById(rs.getInt("user_id")));
         userWallet.setActiveBalance(rs.getBigDecimal("active_balance"));
         userWallet.setReservedBalance(rs.getBigDecimal("reserved_balance"));
+        userWallet.setReferralBalance(rs.getBigDecimal("referral _balance"));
 
         return userWallet;
     };
-
     private final RowMapper<Wallet> ieoWalletRowMapper = (resultSet, i) -> {
 
         final Wallet userWallet = new Wallet();
@@ -227,6 +227,7 @@ public class WalletDaoImpl implements WalletDao {
                 "w.user_id, " +
                 "w.active_balance, " +
                 "w.reserved_balance, " +
+                "w.referral_balance, " +
                 "cur.name as name " +
                 "FROM WALLET w " +
                 "INNER JOIN CURRENCY cur On cur.id = w.currency_id and w.user_id = :userId " +
@@ -241,7 +242,7 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public List<Wallet> findAllByUser(int userId) {
-        final String sql = "SELECT WALLET.id,WALLET.currency_id,WALLET.user_id,WALLET.active_balance, WALLET.reserved_balance, CURRENCY.name as name FROM WALLET" +
+        final String sql = "SELECT WALLET.id,WALLET.currency_id,WALLET.user_id,WALLET.active_balance, WALLET.reserved_balance, WALLET.referral_balance, CURRENCY.name as name FROM WALLET" +
                 "  INNER JOIN CURRENCY On WALLET.currency_id = CURRENCY.id and WALLET.user_id = :userId ";
 
         final Map<String, Integer> params = new HashMap<String, Integer>() {
@@ -713,7 +714,7 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public Wallet findByUserAndCurrency(int userId, int currencyId) {
-        final String sql = "SELECT WALLET.id,WALLET.currency_id,WALLET.user_id,WALLET.active_balance, WALLET.reserved_balance, CURRENCY.name as name FROM WALLET INNER JOIN CURRENCY On" +
+        final String sql = "SELECT WALLET.id,WALLET.currency_id,WALLET.user_id,WALLET.active_balance, WALLET.reserved_balance, WALLET.referral_balance, CURRENCY.name as name FROM WALLET INNER JOIN CURRENCY On" +
                 "  WALLET.currency_id = CURRENCY.id WHERE user_id = :userId and currency_id = :currencyId";
         final Map<String, Integer> params = new HashMap<String, Integer>() {
             {
@@ -748,10 +749,20 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public Wallet findById(Integer walletId) {
-        final String sql = "SELECT WALLET.id,WALLET.currency_id,WALLET.user_id,WALLET.active_balance, WALLET.reserved_balance, CURRENCY.name as name " +
+        final String sql = "SELECT WALLET.id,WALLET.currency_id,WALLET.user_id,WALLET.active_balance, WALLET.reserved_balance, WALLET.referral_balance, CURRENCY.name as name " +
                 "FROM WALLET " +
                 "INNER JOIN CURRENCY ON WALLET.currency_id = CURRENCY.id " +
                 "WHERE WALLET.id = :id";
+        final Map<String, Integer> params = Collections.singletonMap("id", walletId);
+        return jdbcTemplate.queryForObject(sql, params, walletRowMapper);
+    }
+
+    @Override
+    public Wallet findByIdAndLock(Integer walletId) {
+        final String sql = "SELECT WALLET.id,WALLET.currency_id,WALLET.user_id,WALLET.active_balance, WALLET.reserved_balance, WALLET.referral_balance, CURRENCY.name as name " +
+                "FROM WALLET " +
+                "INNER JOIN CURRENCY ON WALLET.currency_id = CURRENCY.id " +
+                "WHERE WALLET.id = :id FOR UPDATE ";
         final Map<String, Integer> params = Collections.singletonMap("id", walletId);
         return jdbcTemplate.queryForObject(sql, params, walletRowMapper);
     }
@@ -781,13 +792,14 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public boolean update(Wallet wallet) {
-        final String sql = "UPDATE WALLET SET active_balance = :activeBalance, reserved_balance = :reservedBalance, ieo_reserve = :ieo_reserve WHERE id = :id";
+        final String sql = "UPDATE WALLET SET active_balance = :activeBalance, reserved_balance = :reservedBalance, ieo_reserve = :ieo_reserve, referral_balance = :referral_balance WHERE id = :id";
         final Map<String, Object> params = new HashMap<String, Object>() {
             {
                 put("id", wallet.getId());
                 put("activeBalance", wallet.getActiveBalance());
                 put("reservedBalance", wallet.getReservedBalance());
                 put("ieo_reserve", wallet.getIeoReserved());
+                put("referral_balance", wallet.getReferralBalance());
             }
         };
         return jdbcTemplate.update(sql, params) == 1;

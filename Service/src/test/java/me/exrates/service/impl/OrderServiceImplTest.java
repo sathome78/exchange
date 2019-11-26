@@ -79,7 +79,6 @@ import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.CompanyWalletService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
-import me.exrates.service.ReferralService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
@@ -161,7 +160,8 @@ import static org.mockito.Mockito.when;
 public class OrderServiceImplTest {
     private static final DateTimeFormatter FORMATTER_FOR_NAME = DateTimeFormatter.ofPattern("dd_MM_yyyy_HH_mm");
     private static final String USER_EMAIL = "test@test.com";
-
+    @Mock
+    TransactionDescription transactionDescription;
     @Mock
     private OrderDao orderDao;
     @Mock
@@ -179,13 +179,9 @@ public class OrderServiceImplTest {
     @Mock
     private WalletService walletService;
     @Mock
-    TransactionDescription transactionDescription;
-    @Mock
     private CommissionDao commissionDao;
     @Mock
     private CompanyWalletService companyWalletService;
-    @Mock
-    private ReferralService referralService;
     @Mock
     private ObjectMapper objectMapper;
     @Mock
@@ -1328,11 +1324,6 @@ public class OrderServiceImplTest {
                 any(CompanyWallet.class),
                 any(BigDecimal.class),
                 any(BigDecimal.class));
-        doNothing().when(referralService).processReferral(
-                any(ExOrder.class),
-                any(BigDecimal.class),
-                any(Currency.class),
-                anyInt());
         when(orderDao.updateOrder(any(ExOrder.class))).thenReturn(Boolean.TRUE);
         doNothing().when(eventPublisher).publishEvent(any(AcceptOrderEvent.class));
         when(userService.getUserById(anyInt())).thenReturn(user);
@@ -1373,11 +1364,6 @@ public class OrderServiceImplTest {
                 any(CompanyWallet.class),
                 any(BigDecimal.class),
                 any(BigDecimal.class));
-        verify(referralService, atLeastOnce()).processReferral(
-                any(ExOrder.class),
-                any(BigDecimal.class),
-                any(Currency.class),
-                anyInt());
         verify(orderDao, atLeastOnce()).updateOrder(any(ExOrder.class));
         verify(eventPublisher, atLeastOnce()).publishEvent(any(AcceptOrderEvent.class));
     }
@@ -1573,11 +1559,6 @@ public class OrderServiceImplTest {
                 any(CompanyWallet.class),
                 any(BigDecimal.class),
                 any(BigDecimal.class));
-        doNothing().when(referralService).processReferral(
-                any(ExOrder.class),
-                any(BigDecimal.class),
-                any(Currency.class),
-                anyInt());
         when(orderDao.updateOrder(any(ExOrder.class))).thenReturn(Boolean.TRUE);
         doNothing().when(eventPublisher).publishEvent(any(ApplicationEvent.class));
         when(messageSource.getMessage(anyString(), any(), any(Locale.class))).thenReturn("orders.partialAccept.success");
@@ -1629,11 +1610,6 @@ public class OrderServiceImplTest {
                 any(CompanyWallet.class),
                 any(BigDecimal.class),
                 any(BigDecimal.class));
-        verify(referralService, atLeastOnce()).processReferral(
-                any(ExOrder.class),
-                any(BigDecimal.class),
-                any(Currency.class),
-                anyInt());
         verify(orderDao, atLeastOnce()).updateOrder(any(ExOrder.class));
         verify(eventPublisher, atLeastOnce()).publishEvent(any(ApplicationEvent.class));
         verify(messageSource, atLeastOnce()).getMessage(anyString(), any(), any(Locale.class));
@@ -1927,11 +1903,6 @@ public class OrderServiceImplTest {
                 any(CompanyWallet.class),
                 any(BigDecimal.class),
                 any(BigDecimal.class));
-        doNothing().when(referralService).processReferral(
-                any(ExOrder.class),
-                any(BigDecimal.class),
-                any(Currency.class),
-                anyInt());
         when(orderDao.updateOrder(any(ExOrder.class))).thenReturn(Boolean.TRUE);
         doNothing().when(eventPublisher).publishEvent(any(ApplicationEvent.class));
 
@@ -1982,11 +1953,6 @@ public class OrderServiceImplTest {
                 any(CompanyWallet.class),
                 any(BigDecimal.class),
                 any(BigDecimal.class));
-        verify(referralService, atLeastOnce()).processReferral(
-                any(ExOrder.class),
-                any(BigDecimal.class),
-                any(Currency.class),
-                anyInt());
         verify(orderDao, atLeastOnce()).updateOrder(any(ExOrder.class));
         verify(eventPublisher, atLeastOnce()).publishEvent(any(ApplicationEvent.class));
 
@@ -2195,11 +2161,6 @@ public class OrderServiceImplTest {
                 any(CompanyWallet.class),
                 any(BigDecimal.class),
                 any(BigDecimal.class));
-        doNothing().when(referralService).processReferral(
-                any(ExOrder.class),
-                any(BigDecimal.class),
-                any(Currency.class),
-                anyInt());
         when(orderDao.updateOrder(any(ExOrder.class))).thenReturn(Boolean.TRUE);
         doNothing().when(eventPublisher).publishEvent(any(AcceptOrderEvent.class));
         when(userService.getUserById(anyInt())).thenReturn(user);
@@ -2239,11 +2200,6 @@ public class OrderServiceImplTest {
                 any(CompanyWallet.class),
                 any(BigDecimal.class),
                 any(BigDecimal.class));
-        verify(referralService, atLeastOnce()).processReferral(
-                any(ExOrder.class),
-                any(BigDecimal.class),
-                any(Currency.class),
-                anyInt());
         verify(orderDao, atLeastOnce()).updateOrder(any(ExOrder.class));
         verify(eventPublisher, atLeastOnce()).publishEvent(any(AcceptOrderEvent.class));
     }
@@ -2342,11 +2298,6 @@ public class OrderServiceImplTest {
                 any(CompanyWallet.class),
                 any(BigDecimal.class),
                 any(BigDecimal.class));
-        doNothing().when(referralService).processReferral(
-                any(ExOrder.class),
-                any(BigDecimal.class),
-                any(Currency.class),
-                anyInt());
         when(orderDao.updateOrder(any(ExOrder.class))).thenReturn(Boolean.TRUE);
         doNothing().when(eventPublisher).publishEvent(any(ApplicationEvent.class));
         when(messageSource.getMessage(anyString(), any(), any(Locale.class))).thenReturn("orders.partialAccept.success");
@@ -2396,11 +2347,6 @@ public class OrderServiceImplTest {
                 any(CompanyWallet.class),
                 any(BigDecimal.class),
                 any(BigDecimal.class));
-        verify(referralService, atLeastOnce()).processReferral(
-                any(ExOrder.class),
-                any(BigDecimal.class),
-                any(Currency.class),
-                anyInt());
         verify(orderDao, atLeastOnce()).updateOrder(any(ExOrder.class));
         verify(eventPublisher, atLeastOnce()).publishEvent(any(ApplicationEvent.class));
         verify(messageSource, atLeastOnce()).getMessage(anyString(), any(), any(Locale.class));
@@ -2497,11 +2443,6 @@ public class OrderServiceImplTest {
                 any(CompanyWallet.class),
                 any(BigDecimal.class),
                 any(BigDecimal.class));
-        doNothing().when(referralService).processReferral(
-                any(ExOrder.class),
-                any(BigDecimal.class),
-                any(Currency.class),
-                anyInt());
         when(orderDao.updateOrder(any(ExOrder.class))).thenReturn(Boolean.TRUE);
         doNothing().when(eventPublisher).publishEvent(any(AcceptOrderEvent.class));
         when(userService.getUserById(anyInt())).thenReturn(user);
@@ -2540,11 +2481,6 @@ public class OrderServiceImplTest {
                 any(CompanyWallet.class),
                 any(BigDecimal.class),
                 any(BigDecimal.class));
-        verify(referralService, atLeastOnce()).processReferral(
-                any(ExOrder.class),
-                any(BigDecimal.class),
-                any(Currency.class),
-                anyInt());
         verify(orderDao, atLeastOnce()).updateOrder(any(ExOrder.class));
         verify(eventPublisher, atLeastOnce()).publishEvent(any(AcceptOrderEvent.class));
     }
@@ -2609,11 +2545,6 @@ public class OrderServiceImplTest {
                 any(CompanyWallet.class),
                 any(BigDecimal.class),
                 any(BigDecimal.class));
-        doNothing().when(referralService).processReferral(
-                any(ExOrder.class),
-                any(BigDecimal.class),
-                any(Currency.class),
-                anyInt());
         when(orderDao.updateOrder(any(ExOrder.class))).thenReturn(Boolean.TRUE);
         doNothing().when(eventPublisher).publishEvent(any(ApplicationEvent.class));
 
@@ -2653,11 +2584,6 @@ public class OrderServiceImplTest {
                 any(CompanyWallet.class),
                 any(BigDecimal.class),
                 any(BigDecimal.class));
-        verify(referralService, atLeastOnce()).processReferral(
-                any(ExOrder.class),
-                any(BigDecimal.class),
-                any(Currency.class),
-                anyInt());
         verify(orderDao, atLeastOnce()).updateOrder(any(ExOrder.class));
         verify(eventPublisher, atLeastOnce()).publishEvent(any(ApplicationEvent.class));
 
@@ -2752,11 +2678,6 @@ public class OrderServiceImplTest {
                 any(CompanyWallet.class),
                 any(BigDecimal.class),
                 any(BigDecimal.class));
-        doNothing().when(referralService).processReferral(
-                any(ExOrder.class),
-                any(BigDecimal.class),
-                any(Currency.class),
-                anyInt());
         when(orderDao.updateOrder(any(ExOrder.class))).thenReturn(Boolean.TRUE);
         doNothing().when(eventPublisher).publishEvent(any(ApplicationEvent.class));
 
@@ -2810,11 +2731,6 @@ public class OrderServiceImplTest {
                 any(CompanyWallet.class),
                 any(BigDecimal.class),
                 any(BigDecimal.class));
-        verify(referralService, atLeastOnce()).processReferral(
-                any(ExOrder.class),
-                any(BigDecimal.class),
-                any(Currency.class),
-                anyInt());
         verify(orderDao, atLeastOnce()).updateOrder(any(ExOrder.class));
         verify(eventPublisher, atLeastOnce()).publishEvent(any(ApplicationEvent.class));
 
@@ -3028,11 +2944,6 @@ public class OrderServiceImplTest {
                 any(BigDecimal.class),
                 any(BigDecimal.class));
         when(currencyService.findCurrencyPairById(anyInt())).thenReturn(mockCurrencyPair);
-        doNothing().when(referralService).processReferral(
-                any(ExOrder.class),
-                any(BigDecimal.class),
-                any(Currency.class),
-                anyInt());
         when(orderDao.updateOrder(any(ExOrder.class))).thenReturn(Boolean.TRUE);
         doNothing().when(eventPublisher).publishEvent(ApplicationEvent.class);
 
@@ -3062,11 +2973,6 @@ public class OrderServiceImplTest {
                 any(BigDecimal.class),
                 any(BigDecimal.class));
         verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
-        verify(referralService, atLeastOnce()).processReferral(
-                any(ExOrder.class),
-                any(BigDecimal.class),
-                any(Currency.class),
-                anyInt());
         verify(orderDao, atLeastOnce()).updateOrder(any(ExOrder.class));
     }
 
@@ -3115,11 +3021,6 @@ public class OrderServiceImplTest {
                 any(BigDecimal.class),
                 any(BigDecimal.class));
         when(currencyService.findCurrencyPairById(anyInt())).thenReturn(mockCurrencyPair);
-        doNothing().when(referralService).processReferral(
-                any(ExOrder.class),
-                any(BigDecimal.class),
-                any(Currency.class),
-                anyInt());
         when(orderDao.updateOrder(any(ExOrder.class))).thenReturn(Boolean.TRUE);
 
         orderService.acceptOrderByAdmin(USER_EMAIL, 1, Locale.ENGLISH);
@@ -3147,11 +3048,6 @@ public class OrderServiceImplTest {
                 any(BigDecimal.class),
                 any(BigDecimal.class));
         verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
-        verify(referralService, atLeastOnce()).processReferral(
-                any(ExOrder.class),
-                any(BigDecimal.class),
-                any(Currency.class),
-                anyInt());
         verify(orderDao, atLeastOnce()).updateOrder(any(ExOrder.class));
     }
 
@@ -3200,11 +3096,6 @@ public class OrderServiceImplTest {
                 any(BigDecimal.class),
                 any(BigDecimal.class));
         when(currencyService.findCurrencyPairById(anyInt())).thenReturn(mockCurrencyPair);
-        doNothing().when(referralService).processReferral(
-                any(ExOrder.class),
-                any(BigDecimal.class),
-                any(Currency.class),
-                anyInt());
         when(orderDao.updateOrder(any(ExOrder.class))).thenReturn(Boolean.TRUE);
 
         orderService.acceptManyOrdersByAdmin(USER_EMAIL, Collections.singletonList(1), Locale.ENGLISH);
@@ -3233,11 +3124,6 @@ public class OrderServiceImplTest {
                 any(BigDecimal.class),
                 any(BigDecimal.class));
         verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
-        verify(referralService, atLeastOnce()).processReferral(
-                any(ExOrder.class),
-                any(BigDecimal.class),
-                any(Currency.class),
-                anyInt());
         verify(orderDao, atLeastOnce()).updateOrder(any(ExOrder.class));
     }
 

@@ -146,7 +146,7 @@
                         <li><a href="<c:url value='/2a8fy7b07dxe44/comission_count'/>"><loc:message code="admin.commissionsCount"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/merchantAccess'/>"><loc:message code="admin.merchantAccess"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/notificatorsSettings'/>"><loc:message code="admin.notificatorsMessagesSettings"/></a></li>
-                        <li><a href="<c:url value='/2a8fy7b07dxe44/referral'/>"><loc:message code="admin.referral"/></a></li>
+<%--                        <li><a href="<c:url value='/2a8fy7b07dxe44/referral'/>"><loc:message code="admin.referral"/></a></li>--%>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/externalWallets'/>"><loc:message code="admin.externalWallets.title"/></a></li>
                     </ul>
                 </div>
