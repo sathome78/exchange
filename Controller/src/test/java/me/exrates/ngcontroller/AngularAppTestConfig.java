@@ -30,7 +30,6 @@ import me.exrates.service.OpenApiTokenService;
 import me.exrates.service.OrderService;
 import me.exrates.service.PageLayoutSettingsService;
 import me.exrates.service.QuberaService;
-import me.exrates.service.ReferralService;
 import me.exrates.service.RefillService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.SessionParamsService;
@@ -254,10 +253,10 @@ public class AngularAppTestConfig {
         return Mockito.mock(AuthTokenService.class);
     }
 
-    @Bean
-    public ReferralService referralService() {
-        return Mockito.mock(ReferralService.class);
-    }
+//    @Bean
+//    public ReferralService referralService() {
+//        return Mockito.mock(ReferralService.class);
+//    }
 
     @Bean
     public TemporalTokenService temporalTokenService() {

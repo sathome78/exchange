@@ -23,7 +23,6 @@ import me.exrates.security.service.AuthTokenService;
 import me.exrates.security.service.CheckIp;
 import me.exrates.security.service.NgUserService;
 import me.exrates.security.service.SecureService;
-import me.exrates.service.ReferralService;
 import me.exrates.service.UserService;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.session.UserLoginSessionsService;
@@ -73,11 +72,12 @@ import static org.apache.commons.lang.StringUtils.isEmpty;
 public class NgUserController {
 
     private static final Logger logger = LogManager.getLogger(NgUserController.class);
-
+    private static final Cache<String, Integer> PINCODE_CHECK_TRIES = CacheBuilder.newBuilder()
+            .expireAfterWrite(5, TimeUnit.MINUTES)
+            .build();
     private final IpBlockingService ipBlockingService;
     private final AuthTokenService authTokenService;
     private final UserService userService;
-    private final ReferralService referralService;
     private final SecureService secureService;
     private final G2faService g2faService;
     private final NgUserService ngUserService;
@@ -89,15 +89,10 @@ public class NgUserController {
     @Value("${dev.mode}")
     private boolean DEV_MODE;
 
-    private static final Cache<String, Integer> PINCODE_CHECK_TRIES = CacheBuilder.newBuilder()
-            .expireAfterWrite(5, TimeUnit.MINUTES)
-            .build();
-
     @Autowired
     public NgUserController(IpBlockingService ipBlockingService,
                             AuthTokenService authTokenService,
                             UserService userService,
-                            ReferralService referralService,
                             SecureService secureService,
                             G2faService g2faService,
                             NgUserService ngUserService,
@@ -107,7 +102,6 @@ public class NgUserController {
         this.ipBlockingService = ipBlockingService;
         this.authTokenService = authTokenService;
         this.userService = userService;
-        this.referralService = referralService;
         this.secureService = secureService;
         this.g2faService = g2faService;
         this.ngUserService = ngUserService;
@@ -315,7 +309,6 @@ public class NgUserController {
         String avatarFullPath = avatarLogicalPath == null || avatarLogicalPath.isEmpty() ? null : getAvatarPathPrefix(request) + avatarLogicalPath;
         authTokenDto.setAvatarPath(avatarFullPath);
         authTokenDto.setFinPasswordSet(user.getFinpassword() != null);
-        authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
         return authTokenDto;
     }
 

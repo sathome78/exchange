@@ -42,9 +42,7 @@ import me.exrates.model.dto.NotificatorSubscription;
 import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.dto.OrderBasicInfoDto;
 import me.exrates.model.dto.OrderInfoDto;
-import me.exrates.model.dto.RefFilterData;
 import me.exrates.model.dto.RefillRequestBtcInfoDto;
-import me.exrates.model.dto.RefsListContainer;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.UserSessionDto;
@@ -101,7 +99,6 @@ import me.exrates.service.MerchantService;
 import me.exrates.service.NotificationService;
 import me.exrates.service.OrderService;
 import me.exrates.service.PhraseTemplateService;
-import me.exrates.service.ReferralService;
 import me.exrates.service.RefillService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.UserFilesService;
@@ -175,11 +172,9 @@ import org.springframework.web.util.WebUtils;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
@@ -200,7 +195,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static java.util.Objects.nonNull;
 import static me.exrates.model.enums.GroupUserRoleEnum.ADMINS;
@@ -215,7 +209,6 @@ import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.TRANSFER_VOUCHER;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -269,8 +262,6 @@ public class AdminController {
     private TransactionService transactionService;
     @Autowired
     private UserFilesService userFilesService;
-    @Autowired
-    private ReferralService referralService;
     @Autowired
     private NotificationService notificationService;
     @Autowired
@@ -334,17 +325,6 @@ public class AdminController {
         return "admin/administrators";
     }
 
-    @AdminLoggable
-    @RequestMapping(value = "/2a8fy7b07dxe44/referral", method = GET)
-    public ModelAndView referral() {
-        ModelAndView model = new ModelAndView();
-        model.addObject("referralLevels", referralService.findAllReferralLevels());
-        model.addObject("commonRefRoot", userService.getCommonReferralRoot());
-        model.addObject("admins", userSecureService.getUsersByRoles(singletonList(ADMINISTRATOR)));
-        model.setViewName("admin/referral");
-        return model;
-    }
-
 
     @RequestMapping(value = "/2a8fy7b07dxe44/removeOrder", method = GET)
     public ModelAndView orderDeletion() {
@@ -376,23 +356,6 @@ public class AdminController {
     public ResponseEntity<Void> editCommonReferralRoot(final @RequestParam("id") int id) {
         userService.updateCommonReferralRoot(id);
         return new ResponseEntity<>(OK);
-    }
-
-    @AdminLoggable
-    @RequestMapping(value = "/2a8fy7b07dxe44/editLevel", method = POST)
-    @ResponseBody
-    public ResponseEntity<Map<String, String>> editReferralLevel(final @RequestParam("level") int level, final @RequestParam("oldLevelId") int oldLevelId, final @RequestParam("percent") BigDecimal percent, final Locale locale) {
-        final int result;
-        try {
-            result = referralService.updateReferralLevel(level, oldLevelId, percent);
-            return new ResponseEntity<>(singletonMap("id", String.valueOf(result)), OK);
-        } catch (final IllegalStateException e) {
-            LOG.error(e);
-            return new ResponseEntity<>(singletonMap("error", messageSource.getMessage("admin.refPercentExceedMaximum", null, locale)), BAD_REQUEST);
-        } catch (final Exception e) {
-            LOG.error(e);
-            return new ResponseEntity<>(singletonMap("error", messageSource.getMessage("admin.failureRefLevelEdit", null, locale)), BAD_REQUEST);
-        }
     }
 
     @AdminLoggable
@@ -1511,43 +1474,6 @@ public class AdminController {
                               @RequestParam(required = false) String blockhash) {
         BitcoinService walletService = getBitcoinServiceByMerchantName(merchantName);
         walletService.scanForUnprocessedTransactions(blockhash);
-    }
-
-
-    @RequestMapping(value = "/2a8fy7b07dxe44/findReferral")
-    @ResponseBody
-    public RefsListContainer findUserReferral(@RequestParam("action") String action,
-                                              @RequestParam(value = "userId", required = false) Integer userId,
-                                              @RequestParam("profitUser") int profitUser,
-                                              @RequestParam(value = "onPage", defaultValue = "20") int onPage,
-                                              @RequestParam(value = "page", defaultValue = "1") int page,
-                                              RefFilterData refFilterData) {
-        LOG.error("filter data " + refFilterData);
-        return referralService.getRefsContainerForReq(action, userId, profitUser, onPage, page, refFilterData);
-    }
-
-    @RequestMapping(value = "/2a8fy7b07dxe44/downloadRef")
-    public void downloadUserRefferalStructure(@RequestParam("profitUser") int profitUser,
-                                              RefFilterData refFilterData,
-                                              HttpServletResponse response) throws IOException {
-        response.setContentType("text/csv");
-        String reportName =
-                "referrals-"
-                        .concat(userService.getEmailById(profitUser))
-                        .concat(".csv");
-        response.setHeader("Content-disposition", "attachment;filename=" + reportName);
-        List<String> refsList = referralService.getRefsListForDownload(profitUser, refFilterData);
-        OutputStreamWriter writer = new OutputStreamWriter(response.getOutputStream());
-        try {
-            for (String transaction : refsList) {
-                writer.write(transaction);
-            }
-        } catch (IOException e) {
-            LOG.error("error download transactions " + e);
-        } finally {
-            writer.flush();
-            writer.close();
-        }
     }
 
     @AdminLoggable

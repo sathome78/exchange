@@ -15,9 +15,6 @@ import me.exrates.dao.NotificationUserSettingsDao;
 import me.exrates.dao.NotificatorPriceDao;
 import me.exrates.dao.NotificatorsDao;
 import me.exrates.dao.OrderDao;
-import me.exrates.dao.ReferralLevelDao;
-import me.exrates.dao.ReferralTransactionDao;
-import me.exrates.dao.ReferralUserGraphDao;
 import me.exrates.dao.SettingsEmailRepository;
 import me.exrates.dao.StopOrderDao;
 import me.exrates.dao.TelegramSubscriptionDao;
@@ -38,7 +35,6 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.NotificationService;
 import me.exrates.service.OrderService;
-import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.UserRoleService;
@@ -250,26 +246,6 @@ public class ServiceTestConfig {
     }
 
     @Bean
-    public ReferralLevelDao referralLevelDao() {
-        return Mockito.mock(ReferralLevelDao.class);
-    }
-
-    @Bean
-    public ReferralUserGraphDao referralUserGraphDao() {
-        return Mockito.mock(ReferralUserGraphDao.class);
-    }
-
-    @Bean
-    public ReferralTransactionDao referralTransactionDao() {
-        return Mockito.mock(ReferralTransactionDao.class);
-    }
-
-    @Bean
-    public ReferralService referralService() {
-        return new ReferralServiceImpl();
-    }
-
-    @Bean
     public NotificationsSettingsService settingsService() {
         return new NotificationsSettingsServiceImpl();
     }
@@ -278,7 +254,6 @@ public class ServiceTestConfig {
     public G2faService g2faService() {
         return new Google2faNotificatorServiceImpl();
     }
-
 
     @Bean
     public ExchangeApi exchangeApi() {
