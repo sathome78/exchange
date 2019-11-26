@@ -281,7 +281,7 @@ public class EthTokenServiceImpl implements EthTokenService {
         List<RefillRequestAddressDto> listRefillRequestAddressDto = refillService.findAllAddressesNeededToTransfer(merchant.getId(), currency.getId());
         for (RefillRequestAddressDto refillRequestAddressDto : listRefillRequestAddressDto) {
             try {
-                log.debug("Start method transferFundsToMainAccount... {} for {}", refillRequestAddressDto, merchantName);
+                log.debug("Start method transferFundsToMainAccount... {}", refillRequestAddressDto);
                 Credentials credentials = Credentials.create(new ECKeyPair(new BigInteger(refillRequestAddressDto.getPrivKey()),
                         new BigInteger(refillRequestAddressDto.getPubKey())));
                 BigInteger GAS_PRICE = ethereumCommonService.getWeb3j().ethGasPrice().send().getGasPrice();
