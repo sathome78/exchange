@@ -186,7 +186,7 @@ public class BtcGenerator {
 
 
     public static void main(String[] args) throws IOException {
-        generate("EST", "EastiCoin", 1, true, true, "172.10.10.86", 9332, 25959);
+        generate("ERK", "Eureka Coin", 1, true, true, "172.31.3.31", 8889, 26359);
     }
 
 
