@@ -61,6 +61,7 @@ import me.exrates.service.notifications.NotificatorService;
 import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.NotificatorsServiceImpl;
 import me.exrates.service.notifications.Subscribable;
+import me.exrates.service.referral.ReferralService;
 import me.exrates.service.session.UserSessionService;
 import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.stomp.StompMessengerImpl;
@@ -233,6 +234,11 @@ public class ServiceTestConfig {
     @Bean
     public NotificationService notificationService() {
         return new NotificationServiceImpl();
+    }
+
+    @Bean
+    public ReferralService referralService() {
+        return Mockito.mock(ReferralService.class);
     }
 
     @Bean

@@ -2597,6 +2597,7 @@ CREATE TABLE `WALLET` (
   `user_id` int(40) NOT NULL,
   `active_balance` double(40,9) DEFAULT '0.000000000',
   `reserved_balance` double(40,9) DEFAULT '0.000000000',
+  referral_balance double(40, 9) default 0.000000000 null,
   `ieo_reserve` double(40,9) DEFAULT '0.000000000',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_purse_UNIQUE` (`id`),

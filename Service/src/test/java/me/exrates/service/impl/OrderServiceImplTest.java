@@ -71,6 +71,7 @@ import me.exrates.model.enums.TransactionStatus;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
+import me.exrates.model.referral.ReferralRequest;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.OrderRoleInfoForDelete;
@@ -96,6 +97,7 @@ import me.exrates.service.exception.process.OrderAcceptionException;
 import me.exrates.service.exception.process.OrderCancellingException;
 import me.exrates.service.exception.process.OrderCreationException;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
+import me.exrates.service.referral.ReferralService;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.util.BiTuple;
 import org.apache.commons.lang3.StringUtils;
@@ -142,8 +144,10 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyCollectionOf;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyListOf;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anySetOf;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
@@ -160,6 +164,7 @@ import static org.mockito.Mockito.when;
 public class OrderServiceImplTest {
     private static final DateTimeFormatter FORMATTER_FOR_NAME = DateTimeFormatter.ofPattern("dd_MM_yyyy_HH_mm");
     private static final String USER_EMAIL = "test@test.com";
+    private static CurrencyPair currencyPair;
     @Mock
     TransactionDescription transactionDescription;
     @Mock
@@ -192,6 +197,8 @@ public class OrderServiceImplTest {
     private ServiceCacheableProxy serviceCacheableProxy;
     @Mock
     private TransactionService transactionService;
+    @Mock
+    private ReferralService referralService;
 
     @InjectMocks
     private OrderService orderService = new OrderServiceImpl();
@@ -203,6 +210,11 @@ public class OrderServiceImplTest {
         currencyPairLimitDto.setMaxAmount(BigDecimal.valueOf(1000000000));
         when(currencyService.findLimitForRoleByCurrencyPairAndType(anyInt(),
                 any(OperationType.class))).thenReturn(currencyPairLimitDto);
+        doNothing().when(referralService).saveReferralRequest(anyObject());
+        currencyPair = new CurrencyPair();
+        currencyPair.setName("BTC/USD");
+        currencyPair.setCurrency1(new Currency(1, "BTC", "", false));
+        currencyPair.setCurrency2(new Currency(2, "USD", "", false));
     }
 
     @Test
@@ -1282,10 +1294,6 @@ public class OrderServiceImplTest {
         String descriptionForCreator = "TEST_DESCRIPTION_FOR_CREATION";
         String descriptionForAcceptor = "TEST_DESCRIPTION_FOR_ACCEPTION";
 
-        CurrencyPair cp = new CurrencyPair();
-        cp.setName("BTC/USD");
-        cp.setCurrency1(new Currency());
-
         Commission commission = new Commission();
         commission.setValue(BigDecimal.TEN);
 
@@ -1311,7 +1319,7 @@ public class OrderServiceImplTest {
                 .thenReturn(descriptionForCreator);
         when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class)))
                 .thenReturn(descriptionForAcceptor);
-        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(cp);
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(currencyPair);
         when(commissionDao.getCommission(any(OperationType.class), any(UserRole.class))).thenReturn(commission);
         when(walletService.walletInnerTransfer(
                 anyInt(),
@@ -1507,10 +1515,6 @@ public class OrderServiceImplTest {
         userRoleSettings.setUserRole(UserRole.BOT_TRADER);
         userRoleSettings.setBotAcceptionAllowedOnly(Boolean.FALSE);
 
-        CurrencyPair cp = new CurrencyPair();
-        cp.setName("BTC/USD");
-        cp.setCurrency1(new Currency());
-
         Commission commission = new Commission();
         commission.setValue(BigDecimal.TEN);
 
@@ -1553,7 +1557,7 @@ public class OrderServiceImplTest {
                 anyInt(),
                 anyString())).thenReturn(WalletTransferStatus.SUCCESS);
         when(walletService.walletBalanceChange(any(WalletOperationData.class))).thenReturn(WalletTransferStatus.SUCCESS);
-        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(cp);
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(currencyPair);
         when(commissionDao.getCommission(any(OperationType.class), any(UserRole.class))).thenReturn(commission);
         doNothing().when(companyWalletService).deposit(
                 any(CompanyWallet.class),
@@ -1851,10 +1855,6 @@ public class OrderServiceImplTest {
         userRoleSettings.setUserRole(UserRole.BOT_TRADER);
         userRoleSettings.setBotAcceptionAllowedOnly(Boolean.FALSE);
 
-        CurrencyPair cp = new CurrencyPair();
-        cp.setName("BTC/USD");
-        cp.setCurrency1(new Currency());
-
         Commission commission = new Commission();
         commission.setValue(BigDecimal.TEN);
 
@@ -1897,7 +1897,7 @@ public class OrderServiceImplTest {
                 anyInt(),
                 anyString())).thenReturn(WalletTransferStatus.SUCCESS);
         when(walletService.walletBalanceChange(any(WalletOperationData.class))).thenReturn(WalletTransferStatus.SUCCESS);
-        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(cp);
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(currencyPair);
         when(commissionDao.getCommission(any(OperationType.class), any(UserRole.class))).thenReturn(commission);
         doNothing().when(companyWalletService).deposit(
                 any(CompanyWallet.class),
@@ -2116,11 +2116,6 @@ public class OrderServiceImplTest {
 
         String descriptionForCreator = "TEST_DESCRIPTION_FOR_CREATION";
         String descriptionForAcceptor = "TEST_DESCRIPTION_FOR_ACCEPTION";
-
-        CurrencyPair cp = new CurrencyPair();
-        cp.setName("BTC/USD");
-        cp.setCurrency1(new Currency());
-
         Commission commission = new Commission();
         commission.setValue(BigDecimal.TEN);
 
@@ -2147,7 +2142,7 @@ public class OrderServiceImplTest {
                 .thenReturn(descriptionForCreator);
         when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class)))
                 .thenReturn(descriptionForAcceptor);
-        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(cp);
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(currencyPair);
         when(commissionDao.getCommission(any(OperationType.class), any(UserRole.class))).thenReturn(commission);
         when(walletService.walletInnerTransfer(
                 anyInt(),
@@ -2246,10 +2241,6 @@ public class OrderServiceImplTest {
         userRoleSettings.setUserRole(UserRole.BOT_TRADER);
         userRoleSettings.setBotAcceptionAllowedOnly(Boolean.FALSE);
 
-        CurrencyPair cp = new CurrencyPair();
-        cp.setName("BTC/USD");
-        cp.setCurrency1(new Currency());
-
         Commission commission = new Commission();
         commission.setValue(BigDecimal.TEN);
 
@@ -2292,7 +2283,7 @@ public class OrderServiceImplTest {
                 anyInt(),
                 anyString())).thenReturn(WalletTransferStatus.SUCCESS);
         when(walletService.walletBalanceChange(any(WalletOperationData.class))).thenReturn(WalletTransferStatus.SUCCESS);
-        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(cp);
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(currencyPair);
         when(commissionDao.getCommission(any(OperationType.class), any(UserRole.class))).thenReturn(commission);
         doNothing().when(companyWalletService).deposit(
                 any(CompanyWallet.class),
@@ -2401,10 +2392,6 @@ public class OrderServiceImplTest {
         String descriptionForCreator = "TEST_DESCRIPTION_FOR_CREATION";
         String descriptionForAcceptor = "TEST_DESCRIPTION_FOR_ACCEPTION";
 
-        CurrencyPair cp = new CurrencyPair();
-        cp.setName("BTC/USD");
-        cp.setCurrency1(new Currency());
-
         Commission commission = new Commission();
         commission.setValue(BigDecimal.TEN);
 
@@ -2430,7 +2417,7 @@ public class OrderServiceImplTest {
                 .thenReturn(descriptionForCreator);
         when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class)))
                 .thenReturn(descriptionForAcceptor);
-        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(cp);
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(currencyPair);
         when(commissionDao.getCommission(any(OperationType.class), any(UserRole.class))).thenReturn(commission);
         when(walletService.walletInnerTransfer(
                 anyInt(),
@@ -2505,10 +2492,6 @@ public class OrderServiceImplTest {
         userRoleSettings.setUserRole(UserRole.BOT_TRADER);
         userRoleSettings.setBotAcceptionAllowedOnly(Boolean.FALSE);
 
-        CurrencyPair cp = new CurrencyPair();
-        cp.setName("BTC/USD");
-        cp.setCurrency1(new Currency());
-
         Commission commission = new Commission();
         commission.setValue(BigDecimal.TEN);
 
@@ -2539,7 +2522,7 @@ public class OrderServiceImplTest {
                 anyInt(),
                 anyString())).thenReturn(WalletTransferStatus.SUCCESS);
         when(walletService.walletBalanceChange(any(WalletOperationData.class))).thenReturn(WalletTransferStatus.SUCCESS);
-        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(cp);
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(currencyPair);
         when(commissionDao.getCommission(any(OperationType.class), any(UserRole.class))).thenReturn(commission);
         doNothing().when(companyWalletService).deposit(
                 any(CompanyWallet.class),
@@ -2625,10 +2608,6 @@ public class OrderServiceImplTest {
         userRoleSettings.setUserRole(UserRole.BOT_TRADER);
         userRoleSettings.setBotAcceptionAllowedOnly(Boolean.FALSE);
 
-        CurrencyPair cp = new CurrencyPair();
-        cp.setName("BTC/USD");
-        cp.setCurrency1(new Currency());
-
         Commission commission = new Commission();
         commission.setValue(BigDecimal.TEN);
 
@@ -2672,7 +2651,7 @@ public class OrderServiceImplTest {
                 anyInt(),
                 anyString())).thenReturn(WalletTransferStatus.SUCCESS);
         when(walletService.walletBalanceChange(any(WalletOperationData.class))).thenReturn(WalletTransferStatus.SUCCESS);
-        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(cp);
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(currencyPair);
         when(commissionDao.getCommission(any(OperationType.class), any(UserRole.class))).thenReturn(commission);
         doNothing().when(companyWalletService).deposit(
                 any(CompanyWallet.class),
@@ -2764,7 +2743,7 @@ public class OrderServiceImplTest {
         final WalletsForOrderAcceptionDto walletsForOrderAcceptionDto = new WalletsForOrderAcceptionDto();
         walletsForOrderAcceptionDto.setOrderStatusId(2);
         when(walletService.getWalletsForOrderByOrderIdAndBlock(anyInt(), anyInt())).thenReturn(walletsForOrderAcceptionDto);
-        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(new CurrencyPair("BTC/USD"));
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(currencyPair);
         final Commission commission = new Commission();
         commission.setValue(BigDecimal.valueOf(0.001));
         when(commissionDao.getCommission(any(OperationType.class), any(UserRole.class))).thenReturn(commission);
@@ -2929,7 +2908,7 @@ public class OrderServiceImplTest {
         when(walletService.getWalletsForOrderByOrderIdAndBlock(anyInt(), anyInt()))
                 .thenReturn(walletsForOrderAcceptionDto);
         when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class))).thenReturn("DESCRIPTION");
-        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(mockCurrencyPair);
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(currencyPair);
         when(userService.getUserRoleFromDB(anyInt())).thenReturn(UserRole.ACCOUNTANT);
         when(commissionDao.getCommission(any(OperationType.class), any(UserRole.class))).thenReturn(commission);
         when(walletService.walletInnerTransfer(
@@ -4245,9 +4224,9 @@ public class OrderServiceImplTest {
         assertNotNull(ordersListWrapper);
         assertEquals(2, ordersListWrapper.size());
         assertEquals("SELL", ordersListWrapper.get(0).getType());
-        assertEquals(100, ordersListWrapper.get(0).getCurrencyPairId());
+        assertEquals(0, ordersListWrapper.get(0).getCurrencyPairId());
         assertEquals("BUY", ordersListWrapper.get(1).getType());
-        assertEquals(100, ordersListWrapper.get(1).getCurrencyPairId());
+        assertEquals(0, ordersListWrapper.get(1).getCurrencyPairId());
 
         verify(currencyService, atLeastOnce()).getCurrencyPairByName(anyString());
         verify(orderDao, atLeastOnce()).getOrdersSellForCurrencyPair(any(CurrencyPair.class), any());
@@ -5936,8 +5915,6 @@ public class OrderServiceImplTest {
     }
 
     private CurrencyPair getMockCurrencyPair(CurrencyPairType pairType) {
-        CurrencyPair currencyPair = new CurrencyPair();
-        currencyPair.setId(100);
         currencyPair.setPairType(pairType);
         return currencyPair;
     }
