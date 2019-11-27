@@ -104,7 +104,7 @@ public class WalletDaoImpl implements WalletDao {
         userWallet.setUser(userDao.getUserById(rs.getInt("user_id")));
         userWallet.setActiveBalance(rs.getBigDecimal("active_balance"));
         userWallet.setReservedBalance(rs.getBigDecimal("reserved_balance"));
-        userWallet.setReferralBalance(rs.getBigDecimal("referral _balance"));
+        userWallet.setReferralBalance(rs.getBigDecimal("referral_balance"));
 
         return userWallet;
     };
@@ -250,10 +250,8 @@ public class WalletDaoImpl implements WalletDao {
                 put("userId", userId);
             }
         };
-        ArrayList<Wallet> result = (ArrayList<Wallet>) slaveJdbcTemplate.query(sql, params,
-                walletRowMapper);
 
-        return result;
+        return slaveJdbcTemplate.query(sql, params, walletRowMapper);
     }
 
     @Override

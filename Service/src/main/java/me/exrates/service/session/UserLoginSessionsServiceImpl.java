@@ -79,6 +79,9 @@ public class UserLoginSessionsServiceImpl implements UserLoginSessionsService {
 
     private UserLoginSessionDto toDto(HttpServletRequest request, String token) {
         String ip = IpUtils.getIpForUserHistory(request);
+        ip = ip.startsWith("/")
+                ? ip.substring(1).trim()
+                : ip.trim();
         Client values = parseUserAgentHeader(request.getHeader(USER_AGENT_HEADER));
         GeoLocation geoLocation = geoLocationService.findById(ip);
 

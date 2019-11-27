@@ -17,9 +17,9 @@ public class GeoLocation {
 
 
     public static GeoLocation empty() {
-        String undefined = "UNDEFINED";
+        String undefined = " ";
         return GeoLocation.builder()
-                .country(undefined)
+                .country("Other")
                 .region(undefined)
                 .city(undefined)
                 .build();
