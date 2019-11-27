@@ -2,22 +2,22 @@ package me.exrates.model.dto;
 
 public class TronFreezeBalance {
 
-    private String owner_address;
+    private String ownerAddress;
 
-    private Integer frozen_balance;
+    private Integer frozenBalance;
 
-    private Integer frozen_duration;
+    private Integer frozenDuration;
 
     private String resource;
 
-    private String receiver_address;
+    private String receiverAddress;
 
-    public TronFreezeBalance(String owner_address, Integer frozen_balance, Integer frozen_duration, String resource,
-                                String receiver_address) {
-        this.owner_address = owner_address;
-        this.frozen_balance = frozen_balance;
-        this.frozen_duration = frozen_duration;
+    public TronFreezeBalance(String ownerAddress, Integer frozenBalance, Integer frozenDuration, String resource,
+                             String receiverAddress) {
+        this.ownerAddress = ownerAddress;
+        this.frozenBalance = frozenBalance;
+        this.frozenDuration = frozenDuration;
         this.resource = resource;
-        this.receiver_address = receiver_address;
+        this.receiverAddress = receiverAddress;
     }
 }

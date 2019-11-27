@@ -108,7 +108,7 @@ public class TronNodeServiceImpl implements TronNodeService {
     @Override
     public JSONObject freezeBalance(TronFreezeBalance tronFreezeBalance) {
         String url = FULL_NODE_URL.concat(FREEZE_BALANCE);
-        RequestEntity<String> requestEntity = new RequestEntity<>(HttpMethod.POST, new URI(url));
+        RequestEntity<TronFreezeBalance> requestEntity = new RequestEntity<>(tronFreezeBalance, HttpMethod.POST, new URI(url));
         return new JSONObject(performRequest(requestEntity));
     }
 

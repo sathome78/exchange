@@ -212,12 +212,13 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
         }
     }
 
+
     private void freezeBalanceForTransaction(String ownerAccount){
         log.debug("freeze TRX for smart contract for account ", ownerAccount);
         Integer amount = 100000;
         String resource = "ENERGY";
-        Integer frozenDuration = 3;
-        TronFreezeBalance tronFreezeBalance = new TronFreezeBalance(ownerAccount, amount, frozenDuration, resource, ownerAccount);
+        Integer freezeDuration = 3;
+        TronFreezeBalance tronFreezeBalance = new TronFreezeBalance(ownerAccount, amount, freezeDuration, resource, ownerAccount);
         JSONObject freezeBalance = tronNodeService.freezeBalance(tronFreezeBalance);
         log.info("Send request for freeze trx for trigerSmartContract");
         boolean result = freezeBalance.getJSONObject("result").getBoolean("result");
