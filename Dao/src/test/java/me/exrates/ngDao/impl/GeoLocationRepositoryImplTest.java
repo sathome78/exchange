@@ -20,7 +20,7 @@ import static org.junit.Assert.assertTrue;
 @ContextConfiguration(classes = GeoLocationRepositoryImplTest.InnerConfig.class)
 public class GeoLocationRepositoryImplTest {
 
-    private final String UNDEFINED = "UNDEFINED";
+    private final String UNDEFINED = " ";
 
     @Autowired
     private GeoLocationRepository geoLocationRepository;
@@ -31,7 +31,7 @@ public class GeoLocationRepositoryImplTest {
         assertTrue(result.isPresent());
 
         final GeoLocation geoLocation = result.get();
-        assertEquals("United States", geoLocation.getCountry());
+        assertEquals("US", geoLocation.getCountry());
         assertEquals("Ohio", geoLocation.getRegion());
         assertEquals("Columbus", geoLocation.getCity());
     }
@@ -42,9 +42,9 @@ public class GeoLocationRepositoryImplTest {
         assertTrue(result.isPresent());
 
         final GeoLocation geoLocation = result.get();
-        assertEquals("Vietnam", geoLocation.getCountry());
-        assertNull(geoLocation.getRegion());
-        assertNull(geoLocation.getCity());
+        assertEquals("VN", geoLocation.getCountry());
+        assertEquals(UNDEFINED, geoLocation.getRegion());
+        assertEquals(UNDEFINED, geoLocation.getCity());
     }
 
     @Test
@@ -53,9 +53,9 @@ public class GeoLocationRepositoryImplTest {
         assertTrue(result.isPresent());
 
         final GeoLocation geoLocation = result.get();
-        assertEquals(UNDEFINED, geoLocation.getCountry());
-        assertEquals(UNDEFINED, geoLocation.getRegion());
-        assertEquals(UNDEFINED, geoLocation.getCity());
+        assertEquals("Other", geoLocation.getCountry());
+        assertEquals(" ", geoLocation.getRegion());
+        assertEquals(" ", geoLocation.getCity());
     }
 
     @Configuration

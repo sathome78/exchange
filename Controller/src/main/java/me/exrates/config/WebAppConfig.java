@@ -285,7 +285,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     @PostConstruct
     public void init() {
-//        ElasticApmAttacher.attach();
+        ElasticApmAttacher.attach();
         RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
         List<String> arguments = runtimeMxBean.getInputArguments();
         log.debug(String.join("; ", arguments));
@@ -1224,7 +1224,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Conditional(MonolitConditional.class)
     public EthTokenService mocoService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x06A8F2BCc622ac55d596ea02CE5bb5f318F485e9");
+        tokensList.add("0x06a8f2bcc622ac55d596ea02ce5bb5f318f485e9");
         return new EthTokenServiceImpl(
                 tokensList,
                 "MoCo",

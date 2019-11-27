@@ -184,6 +184,7 @@ public abstract class AngularApiCommonTest {
         return new CommissionDataDto(
                 BigDecimal.valueOf(50),
                 BigDecimal.valueOf(60),
+                null,
                 BigDecimal.valueOf(70),
                 "TEST_MERCHant_COMMISSION_UNIT",
                 BigDecimal.valueOf(80),

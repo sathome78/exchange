@@ -45,6 +45,7 @@ import me.exrates.service.freecoins.FreecoinsSettingsService;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.G2faService;
+import me.exrates.service.referral.ReferralService;
 import me.exrates.service.session.UserLoginSessionsService;
 import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.stopOrder.StopOrderService;
@@ -326,6 +327,11 @@ public class AngularAppTestConfig {
     @Bean
     public PageLayoutSettingsService pageLayoutSettingsService() {
         return Mockito.mock(PageLayoutSettingsService.class);
+    }
+
+    @Bean
+    public ReferralService referralService() {
+        return Mockito.mock(ReferralService.class);
     }
 
     @Bean

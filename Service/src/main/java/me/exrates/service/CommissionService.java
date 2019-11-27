@@ -5,6 +5,7 @@ import me.exrates.model.dto.ComissionCountDto;
 import me.exrates.model.dto.CommissionDataDto;
 import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.dto.EditMerchantCommissionDto;
+import me.exrates.model.enums.CommissionTypeParameterUpdateEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,4 +48,6 @@ public interface CommissionService {
     BigDecimal calculateMerchantCommissionForRefillAmount(BigDecimal amount, int merchantId, int currencyId);
 
     List<ComissionCountDto> getComissionsCount(LocalDateTime from, LocalDateTime to);
+
+    void updateMerchantCommissionType(String merchantName, String currencyName, CommissionTypeParameterUpdateEnum type, String commissionCurrency);
 }

@@ -56,9 +56,9 @@ public class EosReceiveService {
 
     @PostConstruct
     private void init() {
-        if (("prd").equalsIgnoreCase(System.getProperty("profileId"))) {
+        if (("prod").equalsIgnoreCase(System.getProperty("profileId"))) {
             BasicConfigurator.configure();
-            client = EosApiFactory.create("http://127.0.0.1:8900",
+            client = EosApiFactory.create("http://127.0.0.1:8888",
                     "https://api.eosnewyork.io",
                     "https://api.eosnewyork.io");
             scheduler.scheduleWithFixedDelay(() -> {
@@ -108,7 +108,7 @@ public class EosReceiveService {
 
     private void processTransaction(EosDataDto dataDto, String hash) {
         Map<String, String> map = new HashMap<>();
-        map.put("address", dataDto.getMemo());
+        map.put("address", dataDto.getFromAccount());
         map.put("hash", hash);
         map.put("amount", dataDto.getAmount().toPlainString());
 
