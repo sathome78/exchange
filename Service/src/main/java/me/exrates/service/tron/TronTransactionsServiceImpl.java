@@ -33,10 +33,6 @@ import java.util.stream.StreamSupport;
 @Conditional(MonolitConditional.class)
 public class TronTransactionsServiceImpl implements TronTransactionsService {
 
-
-    private @Value("${tron.trc20ContractAddress}")String CONTRACT_ADDRESS;
-    private @Value("${tron.functionSelector}")String FUNCTION_SELECTOR;
-
     @Autowired
     public TronTransactionsServiceImpl(TronNodeService tronNodeService, TronService tronService, RefillService refillService, TronTokenContext tronTokenContext) {
         this.tronNodeService = tronNodeService;
@@ -46,7 +42,10 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
     }
 
 
+
     private @Value("${tron.mainAccountHEXAddress}")String MAIN_ADDRESS_HEX;
+    private @Value("${tron.trc20ContractAddress}")String CONTRACT_ADDRESS_HEX;
+    private @Value("${tron.functionSelector}")String FUNCTION_SELECTOR;
     private final TronNodeService tronNodeService;
     private final TronService tronService;
     private final RefillService refillService;
@@ -193,21 +192,38 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
     private void transferFoundsTRC20(String privatKey, String addressTo, String ownerAdress, long amount) {
         log.debug("create transaction to transfer founds {} to main account {}","TRX_TRC20", addressTo);
         Preconditions.checkArgument(amount > 0, "invalid amount " + amount);
-        String feeLimit = "100000";
-        String secondTronVMParameter = "0000000000000000000000000000000000000000000000000000000000000001";
-        String parameter = "0000000000000000000000" + addressTo + secondTronVMParameter;
-        TronTransferDtoTRC20 tronTransferDto = new TronTransferDtoTRC20(CONTRACT_ADDRESS,FUNCTION_SELECTOR,
-                parameter,feeLimit, amount, ownerAdress);
+        String parametr = "0000000000000000000000"+MAIN_ADDRESS_HEX;
+        String vmParametr = "0000000000000000000000000000000000000000000000000000000000000002";
+        String fullParametr = parametr + vmParametr;
+        String fee = "1000000";
+        TronTransferDtoTRC20 tronTransferDto = new TronTransferDtoTRC20(CONTRACT_ADDRESS_HEX,FUNCTION_SELECTOR, fullParametr, fee,
+                amount, ownerAdress);
+        freezeBalanceForTransaction(ownerAdress);
         JSONObject object = tronNodeService.transferFundsTRC20(tronTransferDto);
         log.info("Send request for transaction for USDT()TRX");
         JSONObject transaction = object.getJSONObject("transaction").put("privateKey", privatKey);
-        log.info("Send request for signing transaction for USDT()TRX");
+        log.info("Send request for signin transaction for USDT()TRX");
         JSONObject signTransaction = tronNodeService.signTransferFundsTRC20(transaction);
         log.info("Send request for broadcast transaction for USDT()TRX");
         JSONObject completedObject = tronNodeService.broadcastTransferFundsTRC20(signTransaction);
         boolean result = completedObject.getJSONObject("result").getBoolean("result");
         if (!result) {
-            throw new RuntimeException("error broadcasting transaction");
+            throw new RuntimeException("error transfer to main account");
+        }
+    }
+
+
+    private void freezeBalanceForTransaction(String ownerAccount){
+        log.debug("freeze TRX for smart contract for account ", ownerAccount);
+        Integer amount = 100000;
+        String resource = "ENERGY";
+        Integer freezeDuration = 3;
+        TronFreezeBalance tronFreezeBalance = new TronFreezeBalance(ownerAccount, amount, freezeDuration, resource, ownerAccount);
+        JSONObject freezeBalance = tronNodeService.freezeBalance(tronFreezeBalance);
+        log.info("Send request for freeze trx for trigerSmartContract");
+        boolean result = freezeBalance.getJSONObject("result").getBoolean("result");
+        if (!result) {
+            throw new RuntimeException("error freezing trx");
         }
     }
 }
