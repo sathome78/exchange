@@ -2,15 +2,10 @@ package me.exrates.service.tron;
 
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.dao.RefillRequestDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
-import me.exrates.model.dto.RefillRequestAcceptDto;
-import me.exrates.model.dto.RefillRequestAddressDto;
-import me.exrates.model.dto.RefillRequestCreateDto;
-import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
-import me.exrates.model.dto.TronNewAddressDto;
-import me.exrates.model.dto.TronReceivedTransactionDto;
-import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.GtagService;
@@ -19,8 +14,10 @@ import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.util.WithdrawUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -36,8 +33,10 @@ import java.util.stream.Collectors;
 @Log4j2(topic = "tron")
 @Service
 @Conditional(MonolitConditional.class)
+@PropertySource("classpath:/merchants/tron.properties")
 public class TronServiceImpl implements TronService {
 
+    private @Value("${tron.mainAccountAddress}")String MAIN_ACCOUNT_ADDRESS;
     private final static String CURRENCY_NAME = "TRX";
     private final static String MERCHANT_NAME = "TRX";
     private int merchantId;
@@ -51,6 +50,9 @@ public class TronServiceImpl implements TronService {
     private final MerchantService merchantService;
     private final MessageSource messageSource;
     private final GtagService gtagService;
+    private final RefillRequestDao refillRequestDao;
+    private final TronTransactionsService tronTransactionsService;
+
 
     @Autowired
     public TronServiceImpl(TronNodeService tronNodeService,
@@ -58,13 +60,17 @@ public class TronServiceImpl implements TronService {
                            CurrencyService currencyService,
                            MerchantService merchantService,
                            MessageSource messageSource,
-                           GtagService gtagService) {
+                           GtagService gtagService,
+                           TronTransactionsService tronTransactionsService,
+                           RefillRequestDao refillRequestDao) {
         this.tronNodeService = tronNodeService;
         this.refillService = refillService;
         this.currencyService = currencyService;
         this.merchantService = merchantService;
         this.messageSource = messageSource;
         this.gtagService = gtagService;
+        this.tronTransactionsService = tronTransactionsService;
+        this.refillRequestDao = refillRequestDao;
     }
 
     @Autowired
@@ -89,6 +95,10 @@ public class TronServiceImpl implements TronService {
         String message = messageSource.getMessage("merchants.refill.btc",
                 new Object[]{dto.getAddress()}, request.getLocale());
         addressesHEX.add(dto.getHexAddress());
+        String privKey = refillRequestDao.getPrivKeyByAddress(MAIN_ACCOUNT_ADDRESS);
+        Long amount = Long.valueOf(100000);
+        TronTransferDto tronTransferDto = new TronTransferDto(privKey ,dto.getAddress(), amount);
+        tronNodeService.transferFunds(tronTransferDto);
         return new HashMap<String, String>() {{
             put("address", dto.getAddress());
             put("privKey", dto.getPrivateKey());
