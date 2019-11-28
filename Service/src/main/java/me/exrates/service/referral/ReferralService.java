@@ -1,5 +1,6 @@
 package me.exrates.service.referral;
 
+import me.exrates.model.dto.ReportDto;
 import me.exrates.model.dto.referral.ReferralIncomeDto;
 import me.exrates.model.dto.referral.ReferralStructureDto;
 import me.exrates.model.referral.ReferralRequest;
@@ -25,4 +26,6 @@ public interface ReferralService {
     void processReferralRequests();
 
     void processReferralTransferRequests();
+
+    ReportDto downloadExcel(String email) throws Exception;
 }
