@@ -369,7 +369,12 @@ public class CryptocurrencyConfig {
 
 	@Bean(name = "estServiceImpl")
 	public BitcoinService estServiceImpl() {
-		return new BitcoinServiceImpl("merchants/est_wallet.properties","EST","EST", 1, 20, false, true);
+		return new BitcoinServiceImpl("merchants/est_wallet.properties","EST","EST", 50, 20, false, true);
+	}
+
+	@Bean(name = "erkServiceImpl")
+	public BitcoinService erkServiceImpl() {
+		return new BitcoinServiceImpl("merchants/erk_wallet.properties","ERK","ERK", 30, 20, false, true);
 	}
 
 	// LISK-like cryptos

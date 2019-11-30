@@ -30,6 +30,7 @@ import me.exrates.model.dto.openAPI.UserTradeHistoryDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.enums.OrderTableEnum;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
@@ -60,25 +61,15 @@ public interface OrderDao {
 
     boolean updateOrder(ExOrder exOrder);
 
-    boolean updateOrder(int orderId, ExOrder order);
-
     List<OrderListDto> getOrdersBuyForCurrencyPair(CurrencyPair currencyPair, UserRole filterRole);
 
     void postAcceptedOrderToDB(ExOrder exOrder);
 
     List<OrderListDto> getOrdersSellForCurrencyPair(CurrencyPair currencyPair, UserRole filterRole);
 
-    List<Map<String, Object>> getDataForAreaChart(CurrencyPair currencyPair, BackDealInterval backDealInterval);
-
     ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval);
 
-    List<ExOrderStatisticsShortByPairsDto> getOrderStatisticByPairs();
-
-    List<ExOrderStatisticsShortByPairsDto> getOrderStatisticForSomePairs(List<Integer> pairsIds);
-
     OrderInfoDto getOrderInfo(int orderId, Locale locale);
-
-    int searchOrderByAdmin(Integer currencyPair, Integer orderType, String orderDate, BigDecimal orderRate, BigDecimal orderVolume);
 
     List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(String email, BackDealInterval backDealInterval, Integer limit, CurrencyPair currencyPair);
 
@@ -88,21 +79,15 @@ public interface OrderDao {
 
     List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, OrderStatus status,
                                                 OperationType operationType, String scope, Integer offset,
-                                                Integer limit, Locale locale);
+                                                Integer limit, Locale locale, UserRole userRole);
 
-    int getUnfilteredOrdersCount(int id, CurrencyPair currencyPair, List<OrderStatus> statuses, OperationType operationType,
-                                 String scope, int offset, int limit);
-
-    List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, List<OrderStatus> statuses,
-                                                OperationType operationType, String scope, Integer offset,
-                                                Integer limit, Locale locale);
+    int getUnfilteredOrdersCount(int id, CurrencyPair currencyPair, OrderStatus statuses, OperationType operationType,
+                                 String scope, int offset, int limit, UserRole userRole);
 
     List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, String currencyName,
                                                 OrderStatus orderStatus, String scope, Integer limit, Integer offset,
                                                 Boolean hideCanceled, String sortByCreated,
-                                                LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo, Locale locale);
-
-    OrderCreateDto getMyOrderById(int orderId);
+                                                LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo, Locale locale, UserRole userRole);
 
     WalletsAndCommissionsForOrderCreationDto getWalletAndCommission(String email, Currency currency,
                                                                     OperationType operationType, UserRole userRole);
@@ -114,8 +99,6 @@ public interface OrderDao {
     List<OrderReportInfoDto> getOrdersForReport(AdminOrderFilterData adminOrderFilterData);
 
     List<ExOrder> selectTopOrders(Integer currencyPairId, BigDecimal exrate, OperationType orderType, boolean sameRoleOnly, Integer userAcceptorRoleId, OrderBaseType orderBaseType);
-
-    List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(Integer requesterUserId, String startDate, String endDate, List<Integer> roles);
 
     OrderRoleInfoForDelete getOrderRoleInfo(int orderId);
 
@@ -129,9 +112,9 @@ public interface OrderDao {
 
     List<UserOrdersDto> getUserOpenOrders(Integer userId, Integer currencyPairId);
 
-    List<UserOrdersDto> getUserOrdersByStatus(Integer userId, Integer currencyPairId, OrderStatus status, int limit, int offset);
+    List<UserOrdersDto> getUserOrdersByStatus(Integer userId, Integer currencyPairId, OrderStatus status, int limit, int offset, UserRole role);
 
-    List<UserTradeHistoryDto> getUserTradeHistoryByCurrencyPair(Integer userId, Integer currencyPairId, LocalDateTime fromDate, LocalDateTime toDate, Integer limit);
+    List<UserTradeHistoryDto> getUserTradeHistoryByCurrencyPair(Integer userId, Integer currencyPairId, LocalDateTime fromDate, LocalDateTime toDate, Integer limit, UserRole userRole);
 
     List<ExOrder> getAllOpenedOrdersByUserId(Integer userId);
 
@@ -149,7 +132,7 @@ public interface OrderDao {
 
     Integer getMyOrdersWithStateCount(Integer userId, CurrencyPair currencyPair, String currencyName, OrderStatus orderStatus,
                                       String scope, Boolean hideCanceled, LocalDateTime dateTimeFrom,
-                                      LocalDateTime dateTimeTo);
+                                      LocalDateTime dateTimeTo, UserRole userRole);
 
     Optional<BigDecimal> getLastOrderPriceByCurrencyPair(int currencyPairId);
 
@@ -162,4 +145,8 @@ public interface OrderDao {
     List<ExOrderStatisticsShortByPairsDto> getAllDataForCache(Integer currencyPairId);
 
     List<ExOrder> findAllMarketOrderCandidates(Integer currencyId, OperationType operationType);
+
+    Integer deleteClosedExorders();
+
+    OrderTableEnum getOrderTable(int id);
 }

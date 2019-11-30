@@ -51,9 +51,6 @@ public class BotServiceImpl implements BotService {
     private SendMailService sendMailService;
 
     @Autowired
-    private ReferralService referralService;
-
-    @Autowired
     private MessageSource messageSource;
 
     @Autowired
@@ -154,7 +151,7 @@ public class BotServiceImpl implements BotService {
 
         userService.createUserByAdmin(user);
         Integer userId = userService.getIdByEmail(email);
-        referralService.bindChildAndParent(userId, userService.getCommonReferralRoot().getId());
+//        referralService.bindChildAndParent(userId, userService.getCommonReferralRoot().getId());
         botDao.createBot(userId);
     }
 

@@ -1220,6 +1220,17 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "ADB", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "mocoServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService mocoService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x06a8f2bcc622ac55d596ea02ce5bb5f318f485e9");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "MoCo",
+                "MoCo", true, ExConvert.Unit.ETHER);
+    }
+
     @Bean(name = "cedexServiceImpl")
     @Conditional(MonolitConditional.class)
     public EthTokenService cedexService() {

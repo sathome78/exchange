@@ -3,6 +3,7 @@ package me.exrates.service.tron;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.condition.MonolitConditional;
+import me.exrates.model.dto.TronFreezeBalance;
 import me.exrates.model.dto.TronNewAddressDto;
 import me.exrates.model.dto.TronTransferDto;
 import me.exrates.model.dto.TronTransferDtoTRC20;
@@ -56,13 +57,14 @@ public class TronNodeServiceImpl implements TronNodeService {
     private final static String GET_ADDRESS = "/wallet/generateaddress";
     private final static String EASY_TRANSFER = "/wallet/easytransferbyprivate";
     private final static String EASY_TRANSFER_ASSET = "/wallet/easytransferassetbyprivate";
-    private final static String CREATE_TRANSACTION = "/wallet/createtransaction";
+    private final static String CREATE_TRANSACTION = "/wallet/triggersmartcontract";
     private final static String SIGN_TRANSACTION = "/wallet/gettransactionsign";
     private final static String BROADCAST_TRANSACTION = "/wallet/broadcasttransaction ";
     private final static String GET_BLOCK_TX = "/wallet/getblockbynum";
     private final static String GET_TX = "/transaction-info?hash=";
     private final static String GET_LAST_BLOCK = "/wallet/getnowblock";
     private final static String GET_ACCOUNT_INFO = "/wallet/getaccount";
+    private final static String FREEZE_BALANCE = "/wallet/freezebalance";
 
     @Autowired
     public TronNodeServiceImpl(RestTemplate restTemplate) {
@@ -99,6 +101,14 @@ public class TronNodeServiceImpl implements TronNodeService {
     public JSONObject signTransferFundsTRC20(JSONObject jsonObject) {
         String url = FULL_NODE_FOR_SEND_URL.concat(SIGN_TRANSACTION);
         RequestEntity<JSONObject> requestEntity = new RequestEntity<>(jsonObject, HttpMethod.POST, new URI(url));
+        return new JSONObject(performRequest(requestEntity));
+    }
+
+    @SneakyThrows
+    @Override
+    public JSONObject freezeBalance(TronFreezeBalance tronFreezeBalance) {
+        String url = FULL_NODE_URL.concat(FREEZE_BALANCE);
+        RequestEntity<TronFreezeBalance> requestEntity = new RequestEntity<>(tronFreezeBalance, HttpMethod.POST, new URI(url));
         return new JSONObject(performRequest(requestEntity));
     }
 

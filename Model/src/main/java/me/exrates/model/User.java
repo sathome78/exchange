@@ -31,7 +31,6 @@ public class User implements Serializable {
     private String confirmFinPassword;
     private boolean readRules;
     private UserRole role = UserRole.USER;
-    private String parentEmail;
     private List<UserFile> userFiles = Collections.emptyList();
     private String kycStatus;
     private String country;
@@ -43,6 +42,10 @@ public class User implements Serializable {
     private String publicId;
     private Boolean verificationRequired;
     private String ga;
+    private String inviteReferralLink;
+
+    // to skip trade restrictions check
+    private Boolean hasTradesPrivileges;
 
     public User() {
     }
@@ -159,14 +162,6 @@ public class User implements Serializable {
         this.confirmFinPassword = confirmFinPassword;
     }
 
-    public String getParentEmail() {
-        return parentEmail;
-    }
-
-    public void setParentEmail(final String parentEmail) {
-        this.parentEmail = parentEmail;
-    }
-
     public String getKycStatus() {
         return kycStatus;
     }
@@ -214,6 +209,29 @@ public class User implements Serializable {
     public void setVerificationRequired(Boolean verificationRequired) {
         this.verificationRequired = verificationRequired;
     }
+    public Boolean hasTradePrivileges() {
+        return hasTradesPrivileges;
+    }
+
+    public Boolean getHasTradesPrivileges() {
+        return hasTradesPrivileges;
+    }
+
+    public void setHasTradesPrivileges(Boolean hasTradesPrivileges) {
+        this.hasTradesPrivileges = hasTradesPrivileges;
+    }
+
+    public void setTradePrivileges(Boolean tradesAllowed) {
+        this.hasTradesPrivileges = tradesAllowed;
+    }
+
+    public String getInviteReferralLink() {
+        return inviteReferralLink;
+    }
+
+    public void setInviteReferralLink(String inviteReferralLink) {
+        this.inviteReferralLink = inviteReferralLink;
+    }
 
     public String getGa() {
         return ga;
@@ -235,7 +253,6 @@ public class User implements Serializable {
                 ", ipaddress='" + ipaddress + '\'' +
                 ", readRules=" + readRules +
                 ", role=" + role +
-                ", parentEmail='" + parentEmail + '\'' +
                 ", userFiles=" + userFiles +
                 '}';
     }

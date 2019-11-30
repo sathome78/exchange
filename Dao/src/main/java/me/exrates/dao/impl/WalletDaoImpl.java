@@ -3,6 +3,7 @@ package me.exrates.dao.impl;
 import com.google.common.collect.Maps;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CurrencyDao;
+import me.exrates.dao.OrderDao;
 import me.exrates.dao.TransactionDao;
 import me.exrates.dao.UserDao;
 import me.exrates.dao.WalletDao;
@@ -33,6 +34,7 @@ import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.CurrencyProcessType;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderTableEnum;
 import me.exrates.model.enums.ReportGroupUserRole;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.UserRole;
@@ -90,6 +92,8 @@ public class WalletDaoImpl implements WalletDao {
     @Autowired
     @Qualifier(value = "slaveTemplate")
     private NamedParameterJdbcTemplate slaveJdbcTemplate;
+    @Autowired
+    private OrderDao orderDao;
 
     private final RowMapper<Wallet> walletRowMapper = (rs, i) -> {
 
@@ -100,10 +104,10 @@ public class WalletDaoImpl implements WalletDao {
         userWallet.setUser(userDao.getUserById(rs.getInt("user_id")));
         userWallet.setActiveBalance(rs.getBigDecimal("active_balance"));
         userWallet.setReservedBalance(rs.getBigDecimal("reserved_balance"));
+        userWallet.setReferralBalance(rs.getBigDecimal("referral_balance"));
 
         return userWallet;
     };
-
     private final RowMapper<Wallet> ieoWalletRowMapper = (resultSet, i) -> {
 
         final Wallet userWallet = new Wallet();
@@ -223,6 +227,7 @@ public class WalletDaoImpl implements WalletDao {
                 "w.user_id, " +
                 "w.active_balance, " +
                 "w.reserved_balance, " +
+                "w.referral_balance, " +
                 "cur.name as name " +
                 "FROM WALLET w " +
                 "INNER JOIN CURRENCY cur On cur.id = w.currency_id and w.user_id = :userId " +
@@ -237,7 +242,7 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public List<Wallet> findAllByUser(int userId) {
-        final String sql = "SELECT WALLET.id,WALLET.currency_id,WALLET.user_id,WALLET.active_balance, WALLET.reserved_balance, CURRENCY.name as name FROM WALLET" +
+        final String sql = "SELECT WALLET.id,WALLET.currency_id,WALLET.user_id,WALLET.active_balance, WALLET.reserved_balance, WALLET.referral_balance, CURRENCY.name as name FROM WALLET" +
                 "  INNER JOIN CURRENCY On WALLET.currency_id = CURRENCY.id and WALLET.user_id = :userId ";
 
         final Map<String, Integer> params = new HashMap<String, Integer>() {
@@ -245,10 +250,8 @@ public class WalletDaoImpl implements WalletDao {
                 put("userId", userId);
             }
         };
-        ArrayList<Wallet> result = (ArrayList<Wallet>) slaveJdbcTemplate.query(sql, params,
-                walletRowMapper);
 
-        return result;
+        return slaveJdbcTemplate.query(sql, params, walletRowMapper);
     }
 
     @Override
@@ -440,7 +443,7 @@ public class WalletDaoImpl implements WalletDao {
                 "               JOIN WALLET ON (WALLET.user_id = USER.id) " +
                 "               JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
                 "               JOIN CURRENCY_PAIR CP1 ON (CP1.currency1_id = WALLET.currency_id) " +
-                "               JOIN EXORDERS EO ON (EO.currency_pair_id = CP1.id) AND (EO.status_id = 3) AND (EO.user_id=USER.id) " +
+                "               JOIN ORDERS EO ON (EO.currency_pair_id = CP1.id) AND (EO.status_id = 3) AND (EO.user_id=USER.id) " +
                 "             WHERE USER.id = :id AND CURRENCY.hidden != 1 " +
 
 
@@ -455,7 +458,7 @@ public class WalletDaoImpl implements WalletDao {
                 "               JOIN WALLET ON (WALLET.user_id = USER.id) " +
                 "               JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
                 "               JOIN CURRENCY_PAIR CP2 ON (CP2.currency2_id = WALLET.currency_id) " +
-                "               JOIN EXORDERS EO ON (EO.currency_pair_id = CP2.id) AND (EO.status_id = 3) AND (EO.user_id=USER.id) " +
+                "               JOIN ORDERS EO ON (EO.currency_pair_id = CP2.id) AND (EO.status_id = 3) AND (EO.user_id=USER.id) " +
                 "             WHERE USER.id = :id AND CURRENCY.hidden != 1 " +
 
 
@@ -470,7 +473,7 @@ public class WalletDaoImpl implements WalletDao {
                 "               JOIN WALLET ON (WALLET.user_id = USER.id) " +
                 "               JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
                 "               JOIN CURRENCY_PAIR CP1 ON (CP1.currency1_id = WALLET.currency_id) " +
-                "               JOIN EXORDERS EO ON (EO.currency_pair_id = CP1.id) AND (EO.status_id = 3) " +
+                "               JOIN ORDERS EO ON (EO.currency_pair_id = CP1.id) AND (EO.status_id = 3) " +
                 "                                   AND (EO.user_acceptor_id=USER.id) AND EO.counter_order_id IS NULL " +
                 "             WHERE USER.id = :id AND CURRENCY.hidden != 1 " +
 
@@ -486,7 +489,7 @@ public class WalletDaoImpl implements WalletDao {
                 "               JOIN WALLET ON (WALLET.user_id = USER.id) " +
                 "               JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
                 "               JOIN CURRENCY_PAIR CP2 ON (CP2.currency2_id = WALLET.currency_id) " +
-                "               JOIN EXORDERS EO ON (EO.currency_pair_id = CP2.id) AND (EO.status_id = 3) " +
+                "               JOIN ORDERS EO ON (EO.currency_pair_id = CP2.id) AND (EO.status_id = 3) " +
                 "                                   AND (EO.user_acceptor_id=USER.id) AND EO.counter_order_id IS NULL " +
                 "             WHERE USER.id = :id AND CURRENCY.hidden != 1" +
 
@@ -709,7 +712,7 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public Wallet findByUserAndCurrency(int userId, int currencyId) {
-        final String sql = "SELECT WALLET.id,WALLET.currency_id,WALLET.user_id,WALLET.active_balance, WALLET.reserved_balance, CURRENCY.name as name FROM WALLET INNER JOIN CURRENCY On" +
+        final String sql = "SELECT WALLET.id,WALLET.currency_id,WALLET.user_id,WALLET.active_balance, WALLET.reserved_balance, WALLET.referral_balance, CURRENCY.name as name FROM WALLET INNER JOIN CURRENCY On" +
                 "  WALLET.currency_id = CURRENCY.id WHERE user_id = :userId and currency_id = :currencyId";
         final Map<String, Integer> params = new HashMap<String, Integer>() {
             {
@@ -744,10 +747,20 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public Wallet findById(Integer walletId) {
-        final String sql = "SELECT WALLET.id,WALLET.currency_id,WALLET.user_id,WALLET.active_balance, WALLET.reserved_balance, CURRENCY.name as name " +
+        final String sql = "SELECT WALLET.id,WALLET.currency_id,WALLET.user_id,WALLET.active_balance, WALLET.reserved_balance, WALLET.referral_balance, CURRENCY.name as name " +
                 "FROM WALLET " +
                 "INNER JOIN CURRENCY ON WALLET.currency_id = CURRENCY.id " +
                 "WHERE WALLET.id = :id";
+        final Map<String, Integer> params = Collections.singletonMap("id", walletId);
+        return jdbcTemplate.queryForObject(sql, params, walletRowMapper);
+    }
+
+    @Override
+    public Wallet findByIdAndLock(Integer walletId) {
+        final String sql = "SELECT WALLET.id,WALLET.currency_id,WALLET.user_id,WALLET.active_balance, WALLET.reserved_balance, WALLET.referral_balance, CURRENCY.name as name " +
+                "FROM WALLET " +
+                "INNER JOIN CURRENCY ON WALLET.currency_id = CURRENCY.id " +
+                "WHERE WALLET.id = :id FOR UPDATE ";
         final Map<String, Integer> params = Collections.singletonMap("id", walletId);
         return jdbcTemplate.queryForObject(sql, params, walletRowMapper);
     }
@@ -777,13 +790,14 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public boolean update(Wallet wallet) {
-        final String sql = "UPDATE WALLET SET active_balance = :activeBalance, reserved_balance = :reservedBalance, ieo_reserve = :ieo_reserve WHERE id = :id";
+        final String sql = "UPDATE WALLET SET active_balance = :activeBalance, reserved_balance = :reservedBalance, ieo_reserve = :ieo_reserve, referral_balance = :referral_balance WHERE id = :id";
         final Map<String, Object> params = new HashMap<String, Object>() {
             {
                 put("id", wallet.getId());
                 put("activeBalance", wallet.getActiveBalance());
                 put("reservedBalance", wallet.getReservedBalance());
                 put("ieo_reserve", wallet.getIeoReserved());
+                put("referral_balance", wallet.getReferralBalance());
             }
         };
         return jdbcTemplate.update(sql, params) == 1;
@@ -1172,7 +1186,10 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public List<OrderDetailDto> getOrderRelatedDataAndBlock(int orderId) {
-        CurrencyPair currencyPair = currencyDao.findCurrencyPairByOrderId(orderId);
+
+        OrderTableEnum orderTableEnum = orderDao.getOrderTable(orderId);
+
+        CurrencyPair currencyPair = currencyDao.findCurrencyPairByOrderId(orderId, orderTableEnum);
         if (Objects.isNull(currencyPair)) {
             return Collections.emptyList();
         }
@@ -1189,7 +1206,7 @@ public class WalletDaoImpl implements WalletDao {
                         "    USER_WALLET.id as user_wallet_id,  " +
                         "    COMPANY_WALLET.id as company_wallet_id, " +
                         "    TRANSACTION.commission_amount AS company_commission " +
-                        "  FROM EXORDERS " +
+                        "  FROM " + orderTableEnum + " as EXORDERS " +
                         "    JOIN WALLET ORDER_CREATOR_RESERVED_WALLET ON  " +
                         "            (ORDER_CREATOR_RESERVED_WALLET.user_id=EXORDERS.user_id) AND  " +
                         "            ( " +

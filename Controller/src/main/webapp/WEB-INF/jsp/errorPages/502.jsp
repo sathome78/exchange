@@ -9,8 +9,6 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <%@include file="../tools/google_head.jsp"%>
-
     <link href='/client/css/roboto-font-400_700_300.css' rel='stylesheet' type='text/css'>
 
     <script src="/client/js/jquery_1.11.3.min.js" type="text/javascript"></script>
@@ -23,7 +21,6 @@
     <link rel="stylesheet" href="/client/assets/css/libs.min.css">
 </head>
 <body>
-<%@include file="../tools/google_body.jsp"%>
 <style>
     body,
     html {

@@ -1,27 +1,17 @@
 package me.exrates.controller;
 
-import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.FileLoadingException;
 import me.exrates.controller.exception.NewsCreationException;
 import me.exrates.controller.exception.NoFileForLoadingException;
 import me.exrates.controller.validator.RegisterFormValidation;
-import me.exrates.model.CurrencyPair;
 import me.exrates.model.News;
-import me.exrates.model.SessionParams;
 import me.exrates.model.User;
-import me.exrates.model.UserFile;
-import me.exrates.model.dto.ChangePasswordDto;
-import me.exrates.model.dto.Generic2faResponseDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.PinDto;
-import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.CurrencyPairType;
-import me.exrates.model.enums.NotificationMessageEventEnum;
-import me.exrates.model.enums.SessionLifeTypeEnum;
 import me.exrates.model.exceptions.InvalidCredentialsException;
-import me.exrates.model.exceptions.SessionParamTimeExceedException;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.PinCodeCheckNeedException;
@@ -29,7 +19,6 @@ import me.exrates.security.service.SecureService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.NewsService;
 import me.exrates.service.NotificationService;
-import me.exrates.service.ReferralService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.SurveyService;
 import me.exrates.service.UserFilesService;
@@ -48,53 +37,36 @@ import me.exrates.service.userOperation.UserOperationService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.RequestContextUtils;
-import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import javax.validation.Valid;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.Principal;
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import static java.util.stream.Collectors.toList;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 /**
  * The Controller contains methods, which mapped to entry points (main pages):
@@ -138,8 +110,6 @@ public class EntryController {
     private NotificationsSettingsService settingsService;
     @Autowired
     private NotificatorsService notificatorService;
-    @Autowired
-    private ReferralService referralService;
     @Autowired
     private CurrencyService currencyService;
     @Autowired
@@ -217,10 +187,6 @@ public class EntryController {
             model.addObject("userEmail", principal.getName());
             model.addObject("userStatus", userStatus);
             model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
-            model.addObject("referalPercents", referralService.findAllReferralLevels()
-                    .stream()
-                    .filter(p -> p.getPercent().compareTo(BigDecimal.ZERO) > 0)
-                    .collect(toList()));
         }
         if (principal == null) {
             request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
@@ -233,186 +199,7 @@ public class EntryController {
                     .limit(1)
                     .forEach(p -> model.addObject("preferedCurrencyPairName", currencyPair));
         }
-
         return model;
-    }
-
-    @RequestMapping(value = {"/ieo_dashboard"})
-    public ModelAndView icoDashboard(
-            @RequestParam(required = false) String errorNoty,
-            @RequestParam(required = false) String successNoty,
-            @RequestParam(required = false) String startupPage,
-            @RequestParam(required = false) String startupSubPage,
-            @RequestParam(required = false) String currencyPair,
-            HttpServletRequest request, Principal principal) {
-        ModelAndView model = new ModelAndView();
-        List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs(CurrencyPairType.ICO);
-        if (currencyPairs.isEmpty()) {
-            model.setViewName("redirect:/dashboard");
-            return model;
-        }
-        if (StringUtils.isEmpty(successNoty)) {
-            successNoty = (String) request.getSession().getAttribute("successNoty");
-            request.getSession().removeAttribute("successNoty");
-        }
-        if (StringUtils.isEmpty(successNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
-            successNoty = (String) RequestContextUtils.getInputFlashMap(request).get("successNoty");
-        }
-        model.addObject("successNoty", successNoty);
-
-        if (StringUtils.isEmpty(errorNoty)) {
-            errorNoty = (String) request.getSession().getAttribute("errorNoty");
-            request.getSession().removeAttribute("errorNoty");
-        }
-        if (StringUtils.isEmpty(errorNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
-            errorNoty = (String) RequestContextUtils.getInputFlashMap(request).get("errorNoty");
-        }
-
-        model.addObject("errorNoty", errorNoty);
-        model.addObject("captchaType", CAPTCHA_TYPE);
-        model.addObject("startupPage", startupPage == null ? "trading" : startupPage);
-        model.addObject("startupSubPage", startupSubPage == null ? "" : startupSubPage);
-        model.addObject("sessionId", request.getSession().getId());
-        model.addObject("notify2fa", principal != null && !userService.isLogin2faUsed(principal.getName()));
-        model.setViewName("globalPages/ieo_dashboard");
-        OrderCreateDto orderCreateDto = new OrderCreateDto();
-        model.addObject(orderCreateDto);
-        if (principal != null) {
-            User user = userService.findByEmail(principal.getName());
-            int userStatus = user.getUserStatus().getStatus();
-            model.addObject("userEmail", principal.getName());
-            model.addObject("userStatus", userStatus);
-            model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
-            model.addObject("referalPercents", referralService.findAllReferralLevels()
-                    .stream()
-                    .filter(p -> p.getPercent().compareTo(BigDecimal.ZERO) > 0)
-                    .collect(toList()));
-        }
-        if (principal == null) {
-            request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
-        }
-        if (currencyPair != null) {
-            currencyService.findPermitedCurrencyPairs(CurrencyPairType.ICO)
-                    .stream()
-                    .filter(p -> p.getPairType() == CurrencyPairType.ICO)
-                    .filter(p -> p.getName().equals(currencyPair))
-                    .limit(1)
-                    .forEach(p -> model.addObject("preferedCurrencyPairName", currencyPair));
-        }
-        return model;
-    }
-
-
-    @RequestMapping("/settings")
-    public ModelAndView settings(Principal principal, @RequestParam(required = false) Integer tabIdx, @RequestParam(required = false) String msg,
-                                 HttpServletRequest request) {
-        final User user = userService.getUserById(userService.getIdByEmail(principal.getName()));
-        final ModelAndView mav = new ModelAndView("globalPages/settings");
-        final List<UserFile> userFile = userService.findUserDoc(user.getId());
-        final Map<String, ?> map = RequestContextUtils.getInputFlashMap(request);
-     /*   List<NotificationOption> notificationOptions = notificationService.getNotificationOptionsByUser(user.getId());
-        notificationOptions.forEach(option -> option.localize(messageSource, localeResolver.resolveLocale(request)));
-        NotificationOptionsForm notificationOptionsForm = new NotificationOptionsForm();
-        notificationOptionsForm.setOptions(notificationOptions);*/
-        if (request.getParameter("2fa") != null) {
-            mav.addObject("activeTabId", "2fa-options-wrapper");
-        }
-        mav.addObject("user", user);
-        mav.addObject("tabIdx", tabIdx);
-        mav.addObject("sectionid", map != null && map.containsKey("sectionid") ? map.get("sectionid") : null);
-        //mav.addObject("errorNoty", map != null ? map.get("msg") : msg);
-        mav.addObject("userFiles", userFile);
-        /* mav.addObject("notificationOptionsForm", notificationOptionsForm);*/
-        mav.addObject("sessionSettings", sessionService.getByEmailOrDefault(user.getEmail()));
-        mav.addObject("sessionLifeTimeTypes", sessionService.getAllByActive(true));
-        mav.addObject("sessionMinTime", sessionService.getMinSessionTime());
-        mav.addObject("sessionMaxTime", sessionService.getMaxSessionTime());
-       /* mav.addObject("tBotName", TBOT_NAME);
-        mav.addObject("tBotUrl", TBOT_URL);*/
-        return mav;
-    }
-
-    /*todo move this method from admin controller*/
-    @RequestMapping(value = "/settings/uploadFile", method = POST)
-    public RedirectView uploadUserDocs(final @RequestParam("file") MultipartFile[] multipartFiles,
-                                       RedirectAttributes redirectAttributes,
-                                       final Principal principal,
-                                       final Locale locale) {
-        final RedirectView redirectView = new RedirectView("/settings");
-        final User user = userService.getUserById(userService.getIdByEmail(principal.getName()));
-        final List<MultipartFile> uploaded = userFilesService.reduceInvalidFiles(multipartFiles);
-        redirectAttributes.addFlashAttribute("user", user);
-        if (uploaded.isEmpty()) {
-            redirectAttributes.addFlashAttribute("userFiles", userService.findUserDoc(user.getId()));
-            redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("admin.errorUploadFiles", null, locale));
-            return redirectView;
-        }
-        try {
-            userFilesService.createUserFiles(user.getId(), uploaded);
-        } catch (final IOException e) {
-            log.error(e);
-            redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("admin.internalError", null, locale));
-            return redirectView;
-        }
-        redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("admin.successUploadFiles", null, locale));
-        redirectAttributes.addFlashAttribute("userFiles", userService.findUserDoc(user.getId()));
-        redirectAttributes.addFlashAttribute("activeTabId", "files-upload-wrapper");
-        return redirectView;
-    }
-
-    @ResponseBody
-    @RequestMapping(value = "/settings/changePassword/submit", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public String submitsettingsPassword(@Valid @ModelAttribute ChangePasswordDto changePasswordDto, BindingResult result,
-                                         Principal principal, HttpServletRequest request, HttpServletResponse response) {
-        registerFormValidation.validateChangePassword(changePasswordDto, result, localeResolver.resolveLocale(request));
-        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
-        User userPrincipal = userService.findByEmail(principal.getName());
-        Object message;
-        if (result.hasErrors()) {
-            response.setStatus(500);
-            message = result.getAllErrors()
-                    .stream()
-                    .map(DefaultMessageSourceResolvable::getDefaultMessage)
-                    .collect(toList());
-        } else {
-            if (bCryptPasswordEncoder.matches(changePasswordDto.getPassword(), userPrincipal.getPassword())) {
-                UpdateUserDto updateUserDto = new UpdateUserDto(userPrincipal.getId());
-                updateUserDto.setPassword(changePasswordDto.getConfirmPassword());
-                updateUserDto.setEmail(principal.getName());
-                updateUserDto.setPublicId(userPrincipal.getPublicId());
-                userService.update(updateUserDto, localeResolver.resolveLocale(request));
-                message = messageSource.getMessage("user.settings.changePassword.successful", null, localeResolver.resolveLocale(request));
-                userSessionService.invalidateUserSessionExceptSpecific(principal.getName(), RequestContextHolder.currentRequestAttributes().getSessionId());
-            } else {
-                response.setStatus(500);
-                message = messageSource.getMessage("user.settings.changePassword.fail", null, localeResolver.resolveLocale(request));
-            }
-        }
-        return new JSONObject() {{
-            put("message", message);
-        }}.toString();
-    }
-
-    /*todo move this method from admin controller*/
-    @RequestMapping(value = "settings/changeNickname/submit", method = POST)
-    public ModelAndView submitsettingsNickname(@Valid @ModelAttribute User user, @RequestParam("nickname") String newNickName, BindingResult result,
-                                               HttpServletRequest request, RedirectAttributes redirectAttributes, Principal principal) {
-        registerFormValidation.validateNickname(user, result, localeResolver.resolveLocale(request));
-
-        if (result.hasErrors()) {
-            redirectAttributes.addFlashAttribute("errorNoty", "Error. Nickname NOT changed.");
-            redirectAttributes.addFlashAttribute("sectionid", "nickname-changing");
-        } else {
-            boolean userNicknameUpdated = userService.setNickname(newNickName, principal.getName());
-            if (userNicknameUpdated) {
-                redirectAttributes.addFlashAttribute("successNoty", "You have successfully updated nickname");
-            } else {
-                redirectAttributes.addFlashAttribute("errorNoty", "Error. Nickname NOT changed.");
-            }
-        }
-        redirectAttributes.addFlashAttribute("activeTabId", "nickname-changing-wrapper");
-
-        return new ModelAndView(new RedirectView("/settings"));
     }
 
     @RequestMapping(value = "/newIpConfirm")
@@ -431,137 +218,6 @@ public class EntryController {
         }
         return model;
     }
-
-
-    /* @RequestMapping("/settings/notificationOptions/submit")
-     public RedirectView submitNotificationOptions(@ModelAttribute NotificationOptionsForm notificationOptionsForm, RedirectAttributes redirectAttributes,
-                                                   HttpServletRequest request, Principal principal) {
-         notificationOptionsForm.getOptions().forEach(LOGGER::debug);
-         RedirectView redirectView = new RedirectView("/settings");
-         int userId = userService.getIdByEmail(principal.getName());
-         List<NotificationOption> notificationOptions = notificationOptionsForm.getOptions().
-                 stream().
-                 map(option ->
-                         {
-                             option.setUserId(userId);
-                             return option;
-                         }
-                 ).
-                 collect(toList());
-         //TODO uncomment after turning notifications on
-         *//*if (notificationOptions.stream().anyMatch(option -> !option.isSendEmail() && !option.isSendNotification())) {
-            redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("notifications.invalid", null,
-                    localeResolver.resolveLocale(request)));
-            return redirectView;
-
-        }*//*
-
-        notificationService.updateUserNotifications(notificationOptions);
-        redirectAttributes.addFlashAttribute("activeTabId", "notification-options-wrapper");
-        return redirectView;
-    }
-*/
-    @RequestMapping("/settings/sessionOptions/submit")
-    public RedirectView submitNotificationOptions(@ModelAttribute SessionParams sessionParams, RedirectAttributes redirectAttributes,
-                                                  HttpServletRequest request, Principal principal) {
-        RedirectView redirectView = new RedirectView("/settings");
-        if (!sessionService.isSessionLifeTypeIdValid(sessionParams.getSessionLifeTypeId())) {
-            sessionParams.setSessionLifeTypeId(SessionLifeTypeEnum.INACTIVE_COUNT_LIFETIME.getTypeId());
-        }
-        if (sessionService.isSessionTimeValid(sessionParams.getSessionTimeMinutes())) {
-            try {
-                sessionService.saveOrUpdate(sessionParams, principal.getName());
-                sessionService.setSessionLifeParams(request);
-                redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("session.settings.success", null,
-                        localeResolver.resolveLocale(request)));
-            } catch (Exception e) {
-                log.error("error", e);
-                redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("session.settings.invalid", null,
-                        localeResolver.resolveLocale(request)));
-            }
-        } else {
-            redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("session.settings.time.invalid", null,
-                    localeResolver.resolveLocale(request)));
-        }
-        redirectAttributes.addFlashAttribute("activeTabId", "session-options-wrapper");
-        return redirectView;
-    }
-
-    @RequestMapping(value = "/settings/2FaOptions/google2fa", method = RequestMethod.POST)
-    @ResponseBody
-    public Generic2faResponseDto getGoogle2FaState(Principal principal) throws UnsupportedEncodingException {
-        User user = userService.findByEmail(principal.getName());
-        boolean isConnected = g2faService.isGoogleAuthenticatorEnable(user.getId());
-        Generic2faResponseDto dto = null;
-        if (!isConnected) {
-            final String secretCode = g2faService.getGoogleAuthenticatorCode(user.getId());
-            final String qrURL = g2faService.generateQRUrl(principal.getName(), secretCode);
-
-            dto = new Generic2faResponseDto(qrURL, secretCode);
-        }
-        return dto;
-    }
-
-
-    @ResponseBody
-    @RequestMapping(value = "/settings/2FaOptions/google2fa_connect_check_creds", method = POST, produces = "application/json;charset=UTF-8")
-    public void connectGoogleAuthenticator(String password, String code, HttpServletRequest request, HttpServletResponse response, Principal principal) {
-        User user = userService.findByEmail(principal.getName());
-        Preconditions.checkState(!g2faService.isGoogleAuthenticatorEnable(user.getId()));
-        if (!(g2faService.checkGoogle2faVerifyCode(code, user.getId()) && userService.checkPassword(user.getId(), password))) {
-            throw new InvalidCredentialsException(messageSource.getMessage("ga.2fa.invalid_credentials", null, localeResolver.resolveLocale(request)));
-        }
-        try {
-            secureService.checkEventAdditionalPin(request, principal.getName(), NotificationMessageEventEnum.CHANGE_2FA_SETTING, "");
-        } catch (PinCodeCheckNeedException e) {
-            WebUtils.setSessionAttribute(request, NotificationMessageEventEnum.CHANGE_2FA_SETTING.name(), LocalDateTime.now());
-            throw e;
-        }
-    }
-
-
-    @ResponseBody
-    @RequestMapping(value = "/settings/2FaOptions/google2fa_connect", method = POST, produces = "application/json;charset=UTF-8")
-    public String CheckPinAndSet(String pin, HttpServletRequest request, Principal principal) {
-        HttpSession session = request.getSession();
-        Preconditions.checkState(!g2faService.isGoogleAuthenticatorEnable(userService.getIdByEmail(principal.getName())));
-        LocalDateTime sessionParamTime = (LocalDateTime) Preconditions.checkNotNull(session.getAttribute(NotificationMessageEventEnum.CHANGE_2FA_SETTING.name()));
-        if (sessionParamTime.plusMinutes(5).isBefore(LocalDateTime.now())) {
-            session.removeAttribute(NotificationMessageEventEnum.CHANGE_2FA_SETTING.name());
-            throw new SessionParamTimeExceedException(messageSource.getMessage("message.enter.creds.again", null, localeResolver.resolveLocale(request)));
-        }
-        Preconditions.checkArgument(pin.length() > 2 && pin.length() < 10);
-        if (userService.checkPin(principal.getName(), pin, NotificationMessageEventEnum.CHANGE_2FA_SETTING)) {
-            session.removeAttribute(NotificationMessageEventEnum.CHANGE_2FA_SETTING.name());
-        } else {
-            PinDto res = secureService.resendEventPin(request, principal.getName(), NotificationMessageEventEnum.CHANGE_2FA_SETTING, "");
-            session.setAttribute(NotificationMessageEventEnum.CHANGE_2FA_SETTING.name(), LocalDateTime.now());
-            throw new IncorrectPinException(res);
-        }
-        g2faService.setEnable2faGoogleAuth(userService.getIdByEmail(principal.getName()), true);
-        return new JSONObject() {{
-            put("message", messageSource.getMessage("message.settings_successfully_saved", null, localeResolver.resolveLocale(request)));
-        }}.toString();
-    }
-
-    @ResponseBody
-    @RequestMapping(value = "/settings/2FaOptions/google2fa_disconnect", method = POST, produces = "application/json;charset=UTF-8")
-    public String disconnectGoogleAuthenticator(String password, String code, HttpServletResponse response, Principal principal, HttpServletRequest request) {
-        User user = userService.findByEmail(principal.getName());
-        Preconditions.checkState(g2faService.isGoogleAuthenticatorEnable(user.getId()));
-        Object mutex = WebUtils.getSessionMutex(request.getSession());
-        synchronized (mutex) {
-            if (!(g2faService.checkGoogle2faVerifyCode(code, user.getId()) && userService.checkPassword(user.getId(), password))) {
-                throw new InvalidCredentialsException(messageSource.getMessage("ga.2fa.invalid_credentials", null, localeResolver.resolveLocale(request)));
-            }
-            g2faService.setEnable2faGoogleAuth(user.getId(), false);
-            g2faService.updateGoogleAuthenticatorSecretCodeForUser(user.getId());
-        }
-        return new JSONObject() {{
-            put("message", messageSource.getMessage("message.settings_successfully_disconnected", null, localeResolver.resolveLocale(request)));
-        }}.toString();
-    }
-
 
     /*skip resources: img, css, js*/
     @RequestMapping("/news/**/{newsVariant}/newstopic")
@@ -604,145 +260,6 @@ public class EntryController {
             return null;
         }
     }
-
-    /*@ResponseBody
-    @RequestMapping(value = "/settings/2FaOptions/submit", method = POST)
-    public void submitNotificationOptionsPin(HttpServletRequest request, Principal principal) {
-        Map<Integer, Integer> paramsMap = new HashMap<>();
-        Arrays.stream(NotificationMessageEventEnum.values()).filter(NotificationMessageEventEnum::isChangable).forEach(p->{
-            paramsMap.put(p.getCode(), Integer.parseInt(request.getParameter(String.valueOf(p.getCode()))));
-
-        });
-        request.getSession().setAttribute("2fa_newParams", paramsMap);
-        secureService.checkEventAdditionalPin(request, principal.getName(), NotificationMessageEventEnum.CHANGE_2FA_SETTING, "");
-    }*/
-
-    /*@ResponseBody
-    @RequestMapping("/settings/2FaOptions/change")
-    public String submitNotificationOptions(String pin, HttpServletRequest request, Principal principal) {
-        Map<Integer, Integer> params = (Map<Integer, Integer>) request.getSession().getAttribute("2fa_newParams");
-        request.getSession().removeAttribute("2fa_newParams");
-        Preconditions.checkArgument(pin.length() > 2 && pin.length() < 15);
-        if (userService.checkPin(principal.getName(), pin, NotificationMessageEventEnum.CHANGE_2FA_SETTING)) {
-            try {
-                int userId = userService.getIdByEmail(principal.getName());
-                Map<Integer, NotificationsUserSetting> settingsMap = settingsService.getSettingsMap(userId);
-                settingsMap.forEach((k, v) -> {
-                    if (NotificationMessageEventEnum.convert(k).isChangable()) {
-                        Integer notificatorId = params.get(k);
-                        if (v == null) {
-                            NotificationsUserSetting setting = NotificationsUserSetting.builder()
-                                    .userId(userId)
-                                    .notificatorId(notificatorId)
-                                    .notificationMessageEventEnum(NotificationMessageEventEnum.convert(k))
-                                    .build();
-                            settingsService.createOrUpdate(setting);
-                        } else if (v.getNotificatorId() == null || !v.getNotificatorId().equals(notificatorId)) {
-                            v.setNotificatorId(notificatorId);
-                            settingsService.createOrUpdate(v);
-                        }
-                    }
-                });
-                return messageSource.getMessage("message.settings_successfully_saved", null,
-                        localeResolver.resolveLocale(request));
-            } catch (Exception e) {
-                log.error(e);
-                *//*throw new RuntimeException(messageSource.getMessage("message.error_saving_settings", null,
-                        localeResolver.resolveLocale(request)));*//*
-                throw e;
-            }
-        } else {
-            PinDto res = secureService.resendEventPin(request, principal.getName(), NotificationMessageEventEnum.CHANGE_2FA_SETTING, "");
-            throw new IncorrectPinException(res);
-        }
-    }*/
-
-    /*@ResponseBody
-    @RequestMapping("/settings/2FaOptions/getNotyPrice")
-    public NotificatorTotalPriceDto getNotyPrice(@RequestParam int id, Principal principal) {
-        Preconditions.checkArgument(id == NotificationTypeEnum.TELEGRAM.getCode());
-        Subscribable subscribable = Preconditions.checkNotNull(notificatorService.getByNotificatorId(id));
-        Object subscription = subscribable.getSubscription(userService.getIdByEmail(principal.getName()));
-        UserRole role = userService.getUserRoleFromDB(principal.getName());
-        NotificatorTotalPriceDto dto = notificatorService.getPrices(id, role.getRole());
-        if (subscription != null && subscription instanceof TelegramSubscription) {
-            if (!((TelegramSubscription) subscription).getSubscriptionState().isBeginState()) {
-                throw new IllegalStateException();
-            }
-            dto.setCode(((TelegramSubscription) subscription).getCode());
-        }
-        return dto;
-    }*/
-
-    /*@ResponseBody
-    @RequestMapping("/settings/2FaOptions/preconnect_sms")
-    public String preconnectSms(@RequestParam String number, Principal principal, HttpServletRequest request) {
-        number = number.replaceAll("\\+", "").replaceAll("\\-", "").replaceAll("\\.", "").replaceAll(" ", "");
-        if (!NumberUtils.isDigits(number)) {
-            throw new UnoperableNumberException();
-        }
-        Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.SMS.getCode());
-        int userId = userService.getIdByEmail(principal.getName());
-        SmsSubscriptionDto subscriptionDto = SmsSubscriptionDto.builder()
-                .userId(userId)
-                .newContact(number)
-                .build();
-        return subscribable.prepareSubscription(subscriptionDto).toString();
-    }
-
-    @ResponseBody
-    @RequestMapping("/settings/2FaOptions/confirm_connect_sms")
-    public String connectSms(Principal principal) {
-        Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.SMS.getCode());
-        subscribable.createSubscription(principal.getName());
-        return "ok";
-    }
-
-    @ResponseBody
-    @RequestMapping("/settings/2FaOptions/verify_connect_sms")
-    public String verifyConnectSms(@RequestParam String code, Principal principal) {
-        Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.SMS.getCode());
-        int userId = userService.getIdByEmail(principal.getName());
-        SmsSubscriptionDto subscriptionDto = SmsSubscriptionDto.builder()
-                .code(code)
-                .userId(userId)
-                .build();
-        return subscribable.subscribe(subscriptionDto).toString();
-    }*/
-
-   /* @ResponseBody
-    @RequestMapping("/settings/2FaOptions/connect_telegram")
-    public String getNotyPrice(Principal principal) {
-        Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.TELEGRAM.getCode());
-        return subscribable.createSubscription(principal.getName()).toString();
-    }*/
-
-    /*@ResponseBody
-    @RequestMapping("/settings/2FaOptions/reconnect_telegram")
-    public String reconnectTelegram(Principal principal) {
-        Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.TELEGRAM.getCode());
-        return subscribable.reconnect(principal.getName()).toString();
-    }*/
-
-
-
-    /*@ResponseBody
-    @RequestMapping("/settings/2FaOptions/contact_info")
-    public String getInfo(@RequestParam int id, Principal principal) {
-        Subscribable subscribable = notificatorService.getByNotificatorId(id);
-        Preconditions.checkNotNull(subscribable);
-        NotificatorSubscription subscription = subscribable.getSubscription(userService.getIdByEmail(principal.getName()));
-        Preconditions.checkState(subscription.isConnected());
-        String contact = Preconditions.checkNotNull(subscription.getContactStr());
-        int roleId = userService.getUserRoleFromSecurityContext().getRole();
-        BigDecimal feePercent = notificatorService.getMessagePrice(id, roleId);
-        BigDecimal price = doAction(doAction(subscription.getPrice(), feePercent, ActionType.MULTIPLY_PERCENT), subscription.getPrice(), ActionType.ADD);
-        return new JSONObject() {{
-            put("contact", contact);
-            put("price", price);
-        }}.toString();
-    }*/
-
 
     @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
     @ExceptionHandler(NoFileForLoadingException.class)

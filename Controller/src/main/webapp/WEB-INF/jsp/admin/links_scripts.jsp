@@ -5,9 +5,6 @@
   Time: 13:37
   To change this template use File | Settings | File Templates.
 --%>
-<%@include file="../tools/google_head.jsp"%>
-<%--<%@include file="../tools/alexa.jsp" %>--%>
-<%-- <%@include file="../tools/yandex.jsp" %> --%>
 
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>

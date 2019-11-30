@@ -23,9 +23,10 @@ import me.exrates.security.service.AuthTokenService;
 import me.exrates.security.service.CheckIp;
 import me.exrates.security.service.NgUserService;
 import me.exrates.security.service.SecureService;
-import me.exrates.service.ReferralService;
 import me.exrates.service.UserService;
 import me.exrates.service.notifications.G2faService;
+import me.exrates.service.session.UserLoginSessionsService;
+import me.exrates.service.session.UserLoginSessionsServiceImpl;
 import me.exrates.service.util.IpUtils;
 import me.exrates.service.util.RestApiUtilComponent;
 import org.apache.commons.lang.StringUtils;
@@ -56,6 +57,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import static me.exrates.service.util.RestUtil.getUrlFromRequest;
@@ -70,46 +72,43 @@ import static org.apache.commons.lang.StringUtils.isEmpty;
 public class NgUserController {
 
     private static final Logger logger = LogManager.getLogger(NgUserController.class);
-
+    private static final Cache<String, Integer> PINCODE_CHECK_TRIES = CacheBuilder.newBuilder()
+            .expireAfterWrite(5, TimeUnit.MINUTES)
+            .build();
     private final IpBlockingService ipBlockingService;
     private final AuthTokenService authTokenService;
     private final UserService userService;
-    private final ReferralService referralService;
     private final SecureService secureService;
     private final G2faService g2faService;
     private final NgUserService ngUserService;
     private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
     private final RestApiUtilComponent restApiUtilComponent;
+    private final UserLoginSessionsService userLoginSessionsService;
 
     @Value("${dev.mode}")
     private boolean DEV_MODE;
-
-    private static final Cache<String, Integer> PINCODE_CHECK_TRIES = CacheBuilder.newBuilder()
-            .expireAfterWrite(5, TimeUnit.MINUTES)
-            .build();
 
     @Autowired
     public NgUserController(IpBlockingService ipBlockingService,
                             AuthTokenService authTokenService,
                             UserService userService,
-                            ReferralService referralService,
                             SecureService secureService,
                             G2faService g2faService,
                             NgUserService ngUserService,
                             UserDetailsService userDetailsService,
                             PasswordEncoder passwordEncoder,
-                            RestApiUtilComponent restApiUtilComponent) {
+                            RestApiUtilComponent restApiUtilComponent, UserLoginSessionsService userLoginSessionsService) {
         this.ipBlockingService = ipBlockingService;
         this.authTokenService = authTokenService;
         this.userService = userService;
-        this.referralService = referralService;
         this.secureService = secureService;
         this.g2faService = g2faService;
         this.ngUserService = ngUserService;
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
         this.restApiUtilComponent = restApiUtilComponent;
+        this.userLoginSessionsService = userLoginSessionsService;
     }
 
 
@@ -164,6 +163,7 @@ public class NgUserController {
         AuthTokenDto authTokenDto = createToken(authenticationDto, request, user);
 //        ipBlockingService.successfulProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
         userService.logIP(user.getId(), ipAddress, UserEventEnum.LOGIN_SUCCESS, getUrlFromRequest(request));
+        CompletableFuture.runAsync(() -> userLoginSessionsService.insert(request, authTokenDto.getToken(), user.getEmail()));
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK); // 200
     }
 
@@ -309,7 +309,6 @@ public class NgUserController {
         String avatarFullPath = avatarLogicalPath == null || avatarLogicalPath.isEmpty() ? null : getAvatarPathPrefix(request) + avatarLogicalPath;
         authTokenDto.setAvatarPath(avatarFullPath);
         authTokenDto.setFinPasswordSet(user.getFinpassword() != null);
-        authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
         return authTokenDto;
     }
 

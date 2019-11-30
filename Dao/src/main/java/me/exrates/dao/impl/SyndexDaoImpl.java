@@ -17,6 +17,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Nullable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -44,7 +45,7 @@ public class SyndexDaoImpl implements SyndexDao {
         MapSqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("user_id", orderDto.getUserId())
                 .addValue("refill_request_id", orderDto.getId())
-                .addValue("amount", orderDto.getAmount())
+                .addValue("amount", orderDto.getAmountToPay())
                 .addValue("commission", orderDto.getCommission())
                 .addValue("country_id", orderDto.getCountryId())
                 .addValue("currency", orderDto.getCurrency())
@@ -104,15 +105,27 @@ public class SyndexDaoImpl implements SyndexDao {
         }
     }
 
+
     @Override
-    public void updateSyndexId(int refillRequestId, long syndexId) {
+    public void updateSyndexOrder(int refillRequestId,
+                                  long syndexId,
+                                  String details,
+                                  LocalDateTime endPaymentTime,
+                                  int newStatus,
+                                  BigDecimal amountToRefill) {
+
         final String sql = "UPDATE SYNDEX_ORDER " +
-                "SET syndex_id = :syndex_id " +
+                "SET syndex_id = :syndex_id, payment_details = :details, payment_time_end = :end_time, " +
+                    " amount_to_refill = :amount_to_refill, status_id =: status_id  " +
                 "WHERE refill_request_id = :refill_request_id";
 
         MapSqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("refill_request_id", refillRequestId)
-                .addValue("syndex_id", syndexId);
+                .addValue("syndex_id", syndexId)
+                .addValue("details", details)
+                .addValue("end_time", endPaymentTime == null ? null : endPaymentTime.minusMinutes(1))
+                .addValue("amount_to_refill", amountToRefill)
+                .addValue("status_id", newStatus);
 
         if (namedParameterJdbcTemplate.update(sql, parameters) < 1) {
             throw new SyndexDataUpdateException();
@@ -187,21 +200,6 @@ public class SyndexDaoImpl implements SyndexDao {
     }
 
     @Override
-    public SyndexOrderDto getBySyndexId(long id) {
-        final String sql = "SELECT * FROM SYNDEX_ORDER" +
-                " WHERE syndex_id = :syndex_id ";
-
-        MapSqlParameterSource parameters = new MapSqlParameterSource()
-                .addValue("syndex_id", id);
-
-        try {
-            return namedParameterJdbcTemplate.queryForObject(sql, parameters, rowMapper);
-        } catch (DataAccessException e) {
-            throw new SyndexDataAccessException();
-        }
-    }
-
-    @Override
     public SyndexOrderDto getBySyndexIdForUpdate(long id) {
         final String sql = "SELECT * FROM SYNDEX_ORDER" +
                 " WHERE syndex_id = :syndex_id " +
@@ -217,10 +215,26 @@ public class SyndexDaoImpl implements SyndexDao {
         }
     }
 
+    @Override
+    public void updateAmountToRefill(int id, BigDecimal amountToRefill) {
+        final String sql = "UPDATE SYNDEX_ORDER " +
+                "SET amount_to_refill = :amount_to_refill " +
+                "WHERE refill_request_id = :id ";
+
+        MapSqlParameterSource parameters = new MapSqlParameterSource()
+                .addValue("id", id)
+                .addValue("amount_to_refill", amountToRefill);
+
+        if (namedParameterJdbcTemplate.update(sql, parameters) < 1) {
+            throw new SyndexDataUpdateException();
+        }
+    }
+
     private RowMapper<SyndexOrderDto> rowMapper = (rs, rowNum) ->
             SyndexOrderDto.builder()
             .id(rs.getInt("refill_request_id"))
-            .amount(rs.getBigDecimal("amount"))
+            .amountToPay(rs.getBigDecimal("amount"))
+            .amountToRefill(rs.getBigDecimal("amount_to_refill"))
             .commission(rs.getBigDecimal("commission"))
             .status(SyndexOrderStatusEnum.convert(rs.getInt("status_id")))
             .syndexId(rs.getLong("syndex_id"))

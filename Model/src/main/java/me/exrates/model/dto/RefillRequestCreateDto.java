@@ -64,6 +64,7 @@ public class RefillRequestCreateDto {
         this.syndexOrderParams.country = paramsDto.getCountry();
         this.syndexOrderParams.currency = paramsDto.getCurrencyToPaySyndex();
         this.syndexOrderParams.paymentSystem = paramsDto.getPaymentSystem();
+        this.syndexOrderParams.amountToPay = paramsDto.getAmountToPay();
         this.remark = paramsDto.getRemark();
         this.address = paramsDto.getAddress();
         this.privKey = null;
@@ -114,6 +115,7 @@ public class RefillRequestCreateDto {
 
     @Getter
     public class SyndexOrderParams {
+        private BigDecimal amountToPay;
         private String country;
         private String currency;
         private String paymentSystem;

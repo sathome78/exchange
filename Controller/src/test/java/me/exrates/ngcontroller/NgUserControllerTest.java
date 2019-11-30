@@ -13,7 +13,6 @@ import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.security.service.NgUserService;
 import me.exrates.security.service.SecureService;
-import me.exrates.service.ReferralService;
 import me.exrates.service.UserService;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.util.RestApiUtilComponent;
@@ -61,8 +60,6 @@ public class NgUserControllerTest extends AngularApiCommonTest {
     private AuthTokenService authTokenService;
     @Mock
     private UserService userService;
-    @Mock
-    private ReferralService referralService;
     @Mock
     private SecureService secureService;
     @Mock
@@ -212,7 +209,6 @@ public class NgUserControllerTest extends AngularApiCommonTest {
                 .thenReturn(java.util.Optional.of(tokenDto));
         when(userService.getPreferedLang(anyInt())).thenReturn("USA");
         when(userService.getAvatarPath(anyInt())).thenReturn("TEST_AVATAR_LOGICAL_PATH");
-        when(referralService.generateReferral(anyString())).thenReturn("TEST_REFERRAL_REFERENCE");
         when(restApiUtilComponent.decodePassword(anyString())).thenReturn("password");
 
         mockMvc.perform(post(BASE_URL + "/authenticate")
@@ -223,7 +219,6 @@ public class NgUserControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$.nickname", is("TEST_NICKNAME")))
                 .andExpect(jsonPath("$.avatarPath", is("http://localhost:80/restTEST_AVATAR_LOGICAL_PATH")))
                 .andExpect(jsonPath("$.finPasswordSet", is(Boolean.FALSE)))
-                .andExpect(jsonPath("$.referralReference", is("TEST_REFERRAL_REFERENCE")))
                 .andExpect(jsonPath("$.id", is(1)))
                 .andExpect(jsonPath("$.language", is("usa")));
 
@@ -236,7 +231,6 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         verify(authTokenService, times(1)).retrieveTokenNg(any(UserAuthenticationDto.class));
         verify(userService, times(1)).getPreferedLang(anyInt());
         verify(userService, times(1)).getAvatarPath(anyInt());
-        verify(referralService, times(1)).generateReferral(anyString());
         verify(restApiUtilComponent, times(1)).decodePassword(anyString());
     }
 
@@ -450,7 +444,6 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         tokenDto.setToken("TEST_TOKEN");
         tokenDto.setNickname("TEST_NICKNAME");
         tokenDto.setFinPasswordSet(Boolean.TRUE);
-        tokenDto.setReferralReference("TEST_REFERRAL_REFERENCE");
         tokenDto.setUserId(100);
         tokenDto.setLocale(Locale.ENGLISH);
 
@@ -463,7 +456,6 @@ public class NgUserControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$.token", is("TEST_TOKEN")))
                 .andExpect(jsonPath("$.nickname", is("TEST_NICKNAME")))
                 .andExpect(jsonPath("$.finPasswordSet", is(Boolean.TRUE)))
-                .andExpect(jsonPath("$.referralReference", is("TEST_REFERRAL_REFERENCE")))
                 .andExpect(jsonPath("$.id", is(100)))
                 .andExpect(jsonPath("$.language", is("en")));
 
@@ -588,7 +580,6 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         user.setId(1);
         user.setNickname("TEST_NICKNAME");
         user.setEmail("TEST_EMAIL");
-        user.setParentEmail("+380508008000");
         user.setUserStatus(active);
         user.setPassword("TEST_PASSWORD");
         return user;

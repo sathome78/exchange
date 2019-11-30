@@ -14,6 +14,7 @@ import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.MerchantImageShortenedDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
+import me.exrates.model.enums.MerchantCommissonTypeEnum;
 import me.exrates.model.enums.MerchantKycToggleField;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.MerchantVerificationType;
@@ -161,9 +162,12 @@ public class MerchantDaoImpl implements MerchantDao {
                 " MERCHANT.kyc_refill as kyc_refill, MERCHANT.kyc_withdraw as kyc_withdraw, MERCHANT.type_verification AS typeVerification, " +
                 " MERCHANT_CURRENCY.min_sum, " +
                 " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, " +
-                " MERCHANT_CURRENCY.merchant_fixed_commission " +
-                " FROM MERCHANT JOIN MERCHANT_CURRENCY " +
-                " ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id " +
+                " MERCHANT_CURRENCY.merchant_fixed_commission, MERCHANT_CURRENCY.withdraw_merchant_commission_type, " +
+                " MERCHANT_CURRENCY.merchant_secondary_commission_currency, MERCHANT_CURRENCY.merchant_secondary_commission_amount, " +
+                " CU.name as merchant_secondary_commission_currency_name " +
+                " FROM MERCHANT " +
+                " JOIN MERCHANT_CURRENCY ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id " +
+                " LEFT JOIN CURRENCY CU ON CU.id = MERCHANT_CURRENCY.merchant_secondary_commission_currency " +
                 " WHERE MERCHANT_CURRENCY.merchant_id = :merchant_id AND MERCHANT_CURRENCY.currency_id = :currency_id ";
         Map<String, Integer> params = new HashMap<>();
         params.put("merchant_id", merchantId);
@@ -184,6 +188,11 @@ public class MerchantDaoImpl implements MerchantDao {
                 merchantCurrency.setNeedKycRefill(resultSet.getBoolean("kyc_refill"));
                 merchantCurrency.setNeedKycWithdraw(resultSet.getBoolean("kyc_withdraw"));
                 merchantCurrency.setVerificationType(MerchantVerificationType.valueOf(resultSet.getString("typeVerification")));
+                merchantCurrency.setWithdrawCommissionType(MerchantCommissonTypeEnum.valueOf(resultSet.getString("withdraw_merchant_commission_type")));
+                merchantCurrency.setSecondaryCommissionCurrency(resultSet.getString("merchant_secondary_commission_currency_name"));
+                merchantCurrency.setSecondaryCommissionCurrencyId(resultSet.getInt("merchant_secondary_commission_currency"));
+                merchantCurrency.setSecondaryCommissionCurrency(resultSet.getString("merchant_secondary_commission_currency_name"));
+                merchantCurrency.setSecondaryCommissionAmount(resultSet.getBigDecimal("merchant_secondary_commission_amount"));
                 final String sqlInner = "SELECT * FROM MERCHANT_IMAGE where merchant_id = :merchant_id" +
                         " AND currency_id = :currency_id;";
                 Map<String, Integer> innerParams = new HashMap<String, Integer>();
@@ -214,9 +223,13 @@ public class MerchantDaoImpl implements MerchantDao {
                 " MERCHANT.kyc_refill as kyc_refill, MERCHANT.kyc_withdraw as kyc_withdraw, " +
                 " MERCHANT_CURRENCY.min_sum, " +
                 " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, " +
-                " MERCHANT_CURRENCY.merchant_fixed_commission " +
-                " FROM MERCHANT JOIN MERCHANT_CURRENCY " +
-                " ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id WHERE MERCHANT_CURRENCY.currency_id in (:currenciesId)" +
+                " MERCHANT_CURRENCY.merchant_fixed_commission, MERCHANT_CURRENCY.withdraw_merchant_commission_type, " +
+                " MERCHANT_CURRENCY.merchant_secondary_commission_currency, " +
+                " CU.name as merchant_secondary_commission_currency_name, MERCHANT_CURRENCY.merchant_secondary_commission_amount " +
+                " FROM MERCHANT " +
+                " JOIN MERCHANT_CURRENCY ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id " +
+                " LEFT JOIN CURRENCY CU ON CU.id = MERCHANT_CURRENCY.merchant_secondary_commission_currency " +
+                "WHERE MERCHANT_CURRENCY.currency_id in (:currenciesId)" +
                 blockClause + " ORDER BY MERCHANT.merchant_order";
 
         try {
@@ -242,6 +255,10 @@ public class MerchantDaoImpl implements MerchantDao {
                 merchantCurrency.setNeedKycRefill(resultSet.getBoolean("kyc_refill"));
                 merchantCurrency.setVerificationType(MerchantVerificationType.valueOf(resultSet.getString("typeVerification")));
                 merchantCurrency.setAvailableForRefill(resultSet.getInt("refill_block") == 0);
+                merchantCurrency.setWithdrawCommissionType(MerchantCommissonTypeEnum.valueOf(resultSet.getString("withdraw_merchant_commission_type")));
+                merchantCurrency.setSecondaryCommissionCurrency(resultSet.getString("merchant_secondary_commission_currency_name"));
+                merchantCurrency.setSecondaryCommissionCurrencyId(resultSet.getInt("merchant_secondary_commission_currency"));
+                merchantCurrency.setSecondaryCommissionAmount(resultSet.getBigDecimal("merchant_secondary_commission_amount"));
                 return merchantCurrency;
             });
         } catch (EmptyResultDataAccessException e) {
@@ -256,7 +273,8 @@ public class MerchantDaoImpl implements MerchantDao {
 
         final String sql = "SELECT MERCHANT.id as merchant_id, MERCHANT.name, MERCHANT.service_bean_name, MERCHANT.process_type, " +
                 "                 MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, MERCHANT_CURRENCY.merchant_transfer_commission,  " +
-                "                 MERCHANT_CURRENCY.withdraw_block, MERCHANT_CURRENCY.refill_block, MERCHANT_CURRENCY.transfer_block, LIMIT_WITHDRAW.min_sum AS min_withdraw_sum, " +
+                "                 MERCHANT_CURRENCY.withdraw_block, MERCHANT_CURRENCY.refill_block, MERCHANT_CURRENCY.transfer_block, " +
+                "                 MERCHANT_CURRENCY.min_sum AS merchant_min_sum, LIMIT_WITHDRAW.min_sum AS min_withdraw_sum, " +
                 "                 LIMIT_REFILL.min_sum AS min_refill_sum, LIMIT_TRANSFER.min_sum AS min_transfer_sum, MERCHANT_CURRENCY.merchant_fixed_commission " +
                 "                FROM MERCHANT " +
                 "                JOIN MERCHANT_CURRENCY ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id " +
@@ -279,6 +297,7 @@ public class MerchantDaoImpl implements MerchantDao {
                 merchantCurrencyApiDto.setMerchantId(resultSet.getInt("merchant_id"));
                 merchantCurrencyApiDto.setCurrencyId(resultSet.getInt("currency_id"));
                 merchantCurrencyApiDto.setName(resultSet.getString("name"));
+                merchantCurrencyApiDto.setMerchantMinSum(resultSet.getBigDecimal("merchant_min_sum"));
                 merchantCurrencyApiDto.setMinInputSum(resultSet.getBigDecimal("min_refill_sum"));
                 merchantCurrencyApiDto.setMinOutputSum(resultSet.getBigDecimal("min_withdraw_sum"));
                 merchantCurrencyApiDto.setMinTransferSum(resultSet.getBigDecimal("min_transfer_sum"));
@@ -289,7 +308,7 @@ public class MerchantDaoImpl implements MerchantDao {
                 merchantCurrencyApiDto.setIsRefillBlocked(resultSet.getBoolean("refill_block"));
                 merchantCurrencyApiDto.setIsTransferBlocked(resultSet.getBoolean("transfer_block"));
                 merchantCurrencyApiDto.setMinFixedCommission(resultSet.getBigDecimal("merchant_fixed_commission"));
-                final String sqlInner = "SELECT id, image_path FROM birzha.MERCHANT_IMAGE where merchant_id = :merchant_id" +
+                final String sqlInner = "SELECT id, image_path FROM MERCHANT_IMAGE where merchant_id = :merchant_id" +
                         " AND currency_id = :currency_id;";
                 Map<String, Integer> params = new HashMap<String, Integer>();
                 params.put("merchant_id", resultSet.getInt("merchant_id"));
@@ -353,10 +372,14 @@ public class MerchantDaoImpl implements MerchantDao {
                 " MERCHANT_CURRENCY.withdraw_auto_delay_seconds," +
                 " MERCHANT_CURRENCY.withdraw_auto_threshold_amount," +
                 " MERCHANT_CURRENCY.subtract_merchant_commission_for_withdraw, " +
-                " MERCHANT_CURRENCY.recalculate_to_usd " +
+                " MERCHANT_CURRENCY.recalculate_to_usd, " +
+                " MERCHANT_CURRENCY.withdraw_merchant_commission_type, " +
+                " COMCUR.name as secondary_commission_currency, " +
+                " MERCHANT_CURRENCY.merchant_secondary_commission_amount " +
                 "FROM MERCHANT " +
                 "JOIN MERCHANT_CURRENCY ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id " +
                 "JOIN CURRENCY ON MERCHANT_CURRENCY.currency_id = CURRENCY.id AND CURRENCY.hidden != 1 " +
+                "LEFT JOIN CURRENCY COMCUR ON MERCHANT_CURRENCY.merchant_secondary_commission_currency = COMCUR.id " +
                 (processTypes.isEmpty() ? "" : "WHERE MERCHANT.process_type IN (:process_types) ") +
                 "ORDER BY merchant_id, currency_id";
 
@@ -385,6 +408,9 @@ public class MerchantDaoImpl implements MerchantDao {
                 .needKycRefill(rs.getBoolean("kyc_refill"))
                 .needKycWithdraw(rs.getBoolean("kyc_withdraw"))
                 .kycType(MerchantVerificationType.valueOf(rs.getString("verification_type")))
+                .secondaryCommissionAmount(rs.getBigDecimal("merchant_secondary_commission_amount"))
+                .secondaryCommissionCurrency(rs.getString("secondary_commission_currency"))
+                .withdrawCommissionType(MerchantCommissonTypeEnum.valueOf(rs.getString("withdraw_merchant_commission_type")))
                 .build());
     }
 

@@ -77,6 +77,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         withdrawRequestFlatDto.setAdminHolderId(rs.getInt("admin_holder_id"));
         withdrawRequestFlatDto.setTransactionHash(rs.getString("transaction_hash"));
         withdrawRequestFlatDto.setAdditionalParams(rs.getString("additional_params"));
+        withdrawRequestFlatDto.setMerchantCommissionCurrencyId(rs.getInt("merchant_commission_currency"));
         return withdrawRequestFlatDto;
     };
 
@@ -110,9 +111,9 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     public int create(WithdrawRequestCreateDto withdrawRequest) {
         final String sql = "INSERT INTO WITHDRAW_REQUEST " +
                 "(wallet, recipient_bank_name, recipient_bank_code, user_full_name, remark, amount, commission, merchant_commission, status_id," +
-                " date_creation, status_modification_date, currency_id, merchant_id, merchant_image_id, user_id, commission_id, destination_tag) " +
+                " date_creation, status_modification_date, currency_id, merchant_id, merchant_image_id, user_id, commission_id, destination_tag, merchant_commission_currency) " +
                 "VALUES (:wallet, :payer_bank_name, :payer_bank_code, :user_full_name, :remark, :amount, :commission, :merchant_commission, :status_id," +
-                " NOW(), NOW(), :currency_id, :merchant_id, :merchant_image_id, :user_id, :commission_id, :destination_tag)";
+                " NOW(), NOW(), :currency_id, :merchant_id, :merchant_image_id, :user_id, :commission_id, :destination_tag, :merchant_commission_currency)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("wallet", withdrawRequest.getDestinationWallet())
@@ -129,7 +130,8 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
                 .addValue("merchant_id", withdrawRequest.getMerchantId())
                 .addValue("merchant_image_id", withdrawRequest.getMerchantImageId())
                 .addValue("user_id", withdrawRequest.getUserId())
-                .addValue("commission_id", withdrawRequest.getCommissionId());
+                .addValue("commission_id", withdrawRequest.getCommissionId())
+                .addValue("merchant_commission_currency", withdrawRequest.getMerchantCommissionCurrencyId());
         jdbcTemplate.update(sql, params, keyHolder);
         return (int) keyHolder.getKey().longValue();
     }

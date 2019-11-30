@@ -16,6 +16,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.enums.RestrictedOperation;
 import me.exrates.model.exceptions.RabbitMqException;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngExceptions.NgOrderValidationException;
@@ -24,6 +25,7 @@ import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.model.ngUtil.PagedResult;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.ngService.NgOrderService;
+import me.exrates.aspect.CheckRestrictions;
 import me.exrates.security.service.CheckUserAuthority;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
@@ -46,7 +48,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -116,6 +117,7 @@ public class NgDashboardController {
 
     @PostMapping("/order")
     @CheckUserAuthority(authority = UserOperationAuthority.TRADING)
+    @CheckRestrictions(restrictions = {RestrictedOperation.TRADE})
     public ResponseEntity createOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
         OrderBaseType baseType = OrderBaseType.valueOf(inputOrder.getBaseType());
         String result;

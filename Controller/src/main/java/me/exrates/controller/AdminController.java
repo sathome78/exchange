@@ -17,6 +17,7 @@ import me.exrates.model.Comment;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.CurrencyPairRestrictionsEnum;
 import me.exrates.model.CurrencyPairWithRestriction;
 import me.exrates.model.MarketVolume;
 import me.exrates.model.Merchant;
@@ -27,7 +28,7 @@ import me.exrates.model.dto.AdminOrderInfoDto;
 import me.exrates.model.dto.AlertDto;
 import me.exrates.model.dto.BotTradingSettingsShortDto;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
-import me.exrates.model.dto.CandleDto;
+import me.exrates.model.chart.CandleDto;
 import me.exrates.model.dto.ComissionCountDto;
 import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.dto.CurrencyPairLimitDto;
@@ -41,9 +42,7 @@ import me.exrates.model.dto.NotificatorSubscription;
 import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.dto.OrderBasicInfoDto;
 import me.exrates.model.dto.OrderInfoDto;
-import me.exrates.model.dto.RefFilterData;
 import me.exrates.model.dto.RefillRequestBtcInfoDto;
-import me.exrates.model.dto.RefsListContainer;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.UserSessionDto;
@@ -70,7 +69,8 @@ import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.AlertType;
 import me.exrates.model.enums.BusinessUserRoleEnum;
-import me.exrates.model.enums.CurrencyPairRestrictionsEnum;
+import me.exrates.model.enums.CommissionTypeParameterUpdateEnum;
+import me.exrates.model.enums.MerchantCommissonTypeEnum;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.MerchantKycToggleField;
 import me.exrates.model.enums.MerchantProcessType;
@@ -99,7 +99,6 @@ import me.exrates.service.MerchantService;
 import me.exrates.service.NotificationService;
 import me.exrates.service.OrderService;
 import me.exrates.service.PhraseTemplateService;
-import me.exrates.service.ReferralService;
 import me.exrates.service.RefillService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.UserFilesService;
@@ -126,7 +125,6 @@ import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.Subscribable;
 import me.exrates.service.omni.OmniService;
 import me.exrates.service.session.UserSessionService;
-import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.usdx.UsdxService;
 import me.exrates.service.usdx.model.UsdxTransaction;
@@ -149,7 +147,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindException;
@@ -175,11 +172,9 @@ import org.springframework.web.util.WebUtils;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
@@ -200,7 +195,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static java.util.Objects.nonNull;
 import static me.exrates.model.enums.GroupUserRoleEnum.ADMINS;
@@ -215,7 +209,6 @@ import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.TRANSFER_VOUCHER;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -254,8 +247,6 @@ public class AdminController {
     @Autowired
     private UserOperationService userOperationService;
     @Autowired
-    private UserDetailsService userDetailsService;
-    @Autowired
     private LocaleResolver localeResolver;
     @Autowired
     private MerchantService merchantService;
@@ -271,8 +262,6 @@ public class AdminController {
     private TransactionService transactionService;
     @Autowired
     private UserFilesService userFilesService;
-    @Autowired
-    private ReferralService referralService;
     @Autowired
     private NotificationService notificationService;
     @Autowired
@@ -304,8 +293,6 @@ public class AdminController {
     private SessionRegistry sessionRegistry;
     @Autowired
     private BigDecimalConverter converter;
-    @Autowired
-    private StompMessenger stompMessenger;
 
     @PostConstruct
     private void init() {
@@ -336,17 +323,6 @@ public class AdminController {
     @RequestMapping(value = "/2a8fy7b07dxe44/administrators", method = GET)
     public String administrators() {
         return "admin/administrators";
-    }
-
-    @AdminLoggable
-    @RequestMapping(value = "/2a8fy7b07dxe44/referral", method = GET)
-    public ModelAndView referral() {
-        ModelAndView model = new ModelAndView();
-        model.addObject("referralLevels", referralService.findAllReferralLevels());
-        model.addObject("commonRefRoot", userService.getCommonReferralRoot());
-        model.addObject("admins", userSecureService.getUsersByRoles(singletonList(ADMINISTRATOR)));
-        model.setViewName("admin/referral");
-        return model;
     }
 
 
@@ -380,23 +356,6 @@ public class AdminController {
     public ResponseEntity<Void> editCommonReferralRoot(final @RequestParam("id") int id) {
         userService.updateCommonReferralRoot(id);
         return new ResponseEntity<>(OK);
-    }
-
-    @AdminLoggable
-    @RequestMapping(value = "/2a8fy7b07dxe44/editLevel", method = POST)
-    @ResponseBody
-    public ResponseEntity<Map<String, String>> editReferralLevel(final @RequestParam("level") int level, final @RequestParam("oldLevelId") int oldLevelId, final @RequestParam("percent") BigDecimal percent, final Locale locale) {
-        final int result;
-        try {
-            result = referralService.updateReferralLevel(level, oldLevelId, percent);
-            return new ResponseEntity<>(singletonMap("id", String.valueOf(result)), OK);
-        } catch (final IllegalStateException e) {
-            LOG.error(e);
-            return new ResponseEntity<>(singletonMap("error", messageSource.getMessage("admin.refPercentExceedMaximum", null, locale)), BAD_REQUEST);
-        } catch (final Exception e) {
-            LOG.error(e);
-            return new ResponseEntity<>(singletonMap("error", messageSource.getMessage("admin.failureRefLevelEdit", null, locale)), BAD_REQUEST);
-        }
     }
 
     @AdminLoggable
@@ -587,16 +546,16 @@ public class AdminController {
                 break;
         }
         DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
-
+        UserRole userRole = userService.getUserRoleFromDB(id);
         final int notFilteredAmount = isStopOrder
                 ? stopOrderService.getUsersStopOrdersWithStateForAdminCount(id, currencyPair, orderStatus, operationType, 0, -1)
-                : orderService.getUsersOrdersWithStateForAdminCount(id, currencyPair, orderStatus, operationType, 0, -1);
+                : orderService.getUsersOrdersWithStateForAdminCount(id, currencyPair, orderStatus, operationType, 0, -1, userRole);
 
         List<OrderWideListDto> filteredOrders = Collections.emptyList();
         if (notFilteredAmount > 0) {
             filteredOrders = isStopOrder
                     ? stopOrderService.getUsersStopOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, dataTableParams.getStart(), dataTableParams.getLength(), locale)
-                    : orderService.getUsersOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, dataTableParams.getStart(), dataTableParams.getLength(), locale);
+                    : orderService.getUsersOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, dataTableParams.getStart(), dataTableParams.getLength(), locale, userRole);
         }
         DataTable<List<OrderWideListDto>> result = new DataTable<>();
         result.setRecordsFiltered(notFilteredAmount);
@@ -716,6 +675,7 @@ public class AdminController {
             /*updateUserDto.setPassword(user.getPassword());*/
             updateUserDto.setPhone(user.getPhone());
             updateUserDto.setVerificationRequired(user.getVerificationRequired());
+            updateUserDto.setTradesPrivileges(user.hasTradePrivileges());
             /*todo: Temporary commented for security reasons*/
             if (currentUserRole == ADMINISTRATOR) {
                 //Add to easy change user role to USER or VIP_USER !!! Not other
@@ -911,11 +871,12 @@ public class AdminController {
                                             @RequestParam(defaultValue = "0") BigDecimal minAmountUSD,
                                             @RequestParam Integer maxDailyRequest,
                                             @RequestParam(defaultValue = "0") BigDecimal maxAmount,
+                                            @RequestParam(defaultValue = "0") BigDecimal maxAmountUSD,
                                             @RequestParam(required = false) Object allRolesEdit) {
         if (nonNull(allRolesEdit)) {
-            currencyService.updateCurrencyLimit(currencyId, operationType, minAmount, minAmountUSD, maxAmount, maxDailyRequest);
+            currencyService.updateCurrencyLimit(currencyId, operationType, minAmount, minAmountUSD, maxAmount, maxAmountUSD, maxDailyRequest);
         } else {
-            currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount, minAmountUSD, maxAmount, maxDailyRequest);
+            currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount, minAmountUSD, maxAmount, maxAmountUSD, maxDailyRequest);
         }
         return ResponseEntity.ok().build();
     }
@@ -1020,6 +981,10 @@ public class AdminController {
     public ModelAndView commissions() {
         ModelAndView modelAndView = new ModelAndView("admin/editCommissions");
         modelAndView.addObject("roleNames", BusinessUserRoleEnum.values());
+        modelAndView.addObject("withdraw_merchant_commission_type", Arrays.stream(MerchantCommissonTypeEnum.values())
+                .map(Enum::name)
+                .collect(Collectors.joining(",")));
+        modelAndView.addObject("currencies_for_commission", String.join(",", currencyService.findSuitableForCommission()));
         return modelAndView;
     }
 
@@ -1100,6 +1065,17 @@ public class AdminController {
         return ResponseEntity.ok().build();
     }
 
+    @AdminLoggable
+    @RequestMapping(value = "/2a8fy7b07dxe44/commissions/editMerchantCommissionType", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity editMerchantCommissionType(@RequestParam String merchantName,
+                                                     @RequestParam String currencyName,
+                                                     @RequestParam String value,
+                                                     @RequestParam CommissionTypeParameterUpdateEnum parameterName) {
+        commissionService.updateMerchantCommissionType(merchantName, currencyName, parameterName, value);
+        return ResponseEntity.ok().build();
+    }
+
     @RequestMapping(value = "/2a8fy7b07dxe44/commissions/editMerchantCommission/toggleSubtractWithdraw", method = RequestMethod.POST)
     @ResponseBody
     public void toggleSubtractMerchantCommissionForWithdraw(@RequestParam String merchantName, @RequestParam String currencyName,
@@ -1110,8 +1086,8 @@ public class AdminController {
     @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess", method = RequestMethod.GET)
     public String merchantAccess(Model model) {
         model.addAttribute("pairsRestrictions", Arrays.stream(CurrencyPairRestrictionsEnum.values())
-                .map(Enum::name)
-                .collect(Collectors.joining(",")));
+                                                                   .map(Enum::name)
+                                                                   .collect(Collectors.joining(",")));
         model.addAttribute("kyc_types", Arrays.stream(MerchantVerificationType.values())
                 .map(Enum::name)
                 .collect(Collectors.joining(",")));
@@ -1244,7 +1220,7 @@ public class AdminController {
     @ResponseBody
     @DeleteMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPair/restriction")
     public ResponseEntity<Void> deleteRestrictionCurrencyPairById(@RequestParam("currencyPairId") int currencyPairId,
-                                                                  @RequestParam("restriction") CurrencyPairRestrictionsEnum restrictionsEnum) {
+                                                               @RequestParam("restriction") CurrencyPairRestrictionsEnum restrictionsEnum) {
         currencyService.deleteRestrictionForCurrencyPairById(currencyPairId, restrictionsEnum);
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -1498,43 +1474,6 @@ public class AdminController {
                               @RequestParam(required = false) String blockhash) {
         BitcoinService walletService = getBitcoinServiceByMerchantName(merchantName);
         walletService.scanForUnprocessedTransactions(blockhash);
-    }
-
-
-    @RequestMapping(value = "/2a8fy7b07dxe44/findReferral")
-    @ResponseBody
-    public RefsListContainer findUserReferral(@RequestParam("action") String action,
-                                              @RequestParam(value = "userId", required = false) Integer userId,
-                                              @RequestParam("profitUser") int profitUser,
-                                              @RequestParam(value = "onPage", defaultValue = "20") int onPage,
-                                              @RequestParam(value = "page", defaultValue = "1") int page,
-                                              RefFilterData refFilterData) {
-        LOG.error("filter data " + refFilterData);
-        return referralService.getRefsContainerForReq(action, userId, profitUser, onPage, page, refFilterData);
-    }
-
-    @RequestMapping(value = "/2a8fy7b07dxe44/downloadRef")
-    public void downloadUserRefferalStructure(@RequestParam("profitUser") int profitUser,
-                                              RefFilterData refFilterData,
-                                              HttpServletResponse response) throws IOException {
-        response.setContentType("text/csv");
-        String reportName =
-                "referrals-"
-                        .concat(userService.getEmailById(profitUser))
-                        .concat(".csv");
-        response.setHeader("Content-disposition", "attachment;filename=" + reportName);
-        List<String> refsList = referralService.getRefsListForDownload(profitUser, refFilterData);
-        OutputStreamWriter writer = new OutputStreamWriter(response.getOutputStream());
-        try {
-            for (String transaction : refsList) {
-                writer.write(transaction);
-            }
-        } catch (IOException e) {
-            LOG.error("error download transactions " + e);
-        } finally {
-            writer.flush();
-            writer.close();
-        }
     }
 
     @AdminLoggable

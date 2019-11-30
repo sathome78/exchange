@@ -5,8 +5,14 @@ var currentLocale;
 var commissionsDataTable;
 var merchantsCommissionsDataTable;
 var transfersDataTable;
+var commissionTypes;
+var commissionCurrencies;
 
 $(document).ready(function () {
+
+
+    commissionTypes = $('#com_types').text().split(',');
+    commissionCurrencies = $('#com_cur').text().split(',');
     var $commissionTable = $('#commissions-table');
     var $merchantCommissionTable = $('#merchant-commissions-table');
     var $transferCommissionTable = $('#transfer-commissions-table');
@@ -42,7 +48,7 @@ $(document).ready(function () {
 
     $($merchantCommissionTable).on('click', 'tr', function (event) {
         var target = $(event.target);
-        if(!target.is('input#chkbox')) {
+        if(!target.is('input#chkbox') && !target.is('select')) {
             var rowData = merchantsCommissionsDataTable.row(this).data();
             var merchantName = rowData.merchantName;
             var currencyName = rowData.currencyName;
@@ -51,12 +57,14 @@ $(document).ready(function () {
             var minFixedOutputCommission = parseFloat(rowData.minFixedCommission);
             var minFixedOutputCommissionUsdRate = parseFloat(rowData.minFixedCommissionUsdRate);
             var usdRate = parseFloat(rowData.currencyUsdRate);
+            var outputCommissionSecondaryValue = parseFloat(rowData.secondaryCommissionAmount);
             $('#merchantName').val(merchantName);
             $('#currencyName').val(currencyName);
             $($merchantCommissionForm).find('input[name="merchantName"]').val(merchantName);
             $($merchantCommissionForm).find('input[name="currencyName"]').val(currencyName);
             $($merchantCommissionForm).find('input[name="inputValue"]').val(inputCommissionValue);
             $($merchantCommissionForm).find('input[name="outputValue"]').val(outputCommissionValue);
+            $($merchantCommissionForm).find('input[name="secondaryOutputCommission"]').val(outputCommissionSecondaryValue);
             $($merchantCommissionForm).find('input[name="minFixedAmount"]').val(minFixedOutputCommission);
             $($merchantCommissionForm).find('input[name="minFixedAmountUSD"]').val(minFixedOutputCommissionUsdRate);
             $($merchantCommissionForm).find('input[name="usdRate"]').val(usdRate);
@@ -111,6 +119,28 @@ $(document).ready(function () {
         var currencyName = rowData.currencyName;
         var subtractFromWithdraw = !rowData.isMerchantCommissionSubtractedForWithdraw;
         toggleSubtractMerchantCommissionForWithdraw(merchantName, currencyName, subtractFromWithdraw)
+    });
+
+    $($merchantCommissionTable).on('change', '.com_currency', function (e) {
+        var event = e || window.event;
+        event.stopPropagation();
+        var selected = $(this).children("option:selected").val();
+        var row = $(this).parents('tr');
+        var rowData = merchantsCommissionsDataTable.row(row).data();
+        var merchantName = rowData.merchantName;
+        var currencyName = rowData.currencyName;
+        sendUpdateCommissionType(merchantName, currencyName, selected, 'CURRENCY_NAME')
+    });
+
+    $($merchantCommissionTable).on('change', '.com_type', function (e) {
+        var event = e || window.event;
+        event.stopPropagation();
+        var selected = $(this).children("option:selected").val();
+        var row = $(this).parents('tr');
+        var rowData = merchantsCommissionsDataTable.row(row).data();
+        var merchantName = rowData.merchantName;
+        var currencyName = rowData.currencyName;
+        sendUpdateCommissionType(merchantName, currencyName, selected, 'COMMISSION_TYPE')
     });
 
 
@@ -178,6 +208,44 @@ function updateMerchantCommissionsDataTable() {
                 },
                 {
                     "data": "outputCommission",
+                    "render": function (data, type) {
+                        if (type === 'display') {
+                            return numbro(data).format('0.00[000000]');
+                        }
+                        return data;
+                    }
+                },
+                {
+                    "data": "withdrawCommissionType",
+                    "render": function (data) {
+                        var wrapper = $('<div></div>');
+                        var sel = $('<select>').attr('class', 'com_type').appendTo(wrapper);
+                        $(commissionTypes).each(function () {
+                            sel.append(
+                                $("<option>").attr('value', this).attr('SELECTED', this == data).text(this)
+                            );
+                        });
+                        return wrapper.html();
+                    }
+                },
+                {
+                    "data": "secondaryCommissionCurrency",
+                    "render": function (data) {
+                        var wrapper = $('<div></div>');
+                        var sel = $('<select>').attr('class', 'com_currency').appendTo(wrapper);
+                        sel.append(
+                            $("<option>").attr('value', '').attr('SELECTED', this == null).text('none')
+                        );
+                        $(commissionCurrencies).each(function () {
+                            sel.append(
+                                $("<option>").attr('value', this).attr('SELECTED', this == data).text(this)
+                            );
+                        });
+                        return wrapper.html();
+                    }
+                },
+                {
+                    "data": "secondaryCommissionAmount",
                     "render": function (data, type) {
                         if (type === 'display') {
                             return numbro(data).format('0.00[000000]');
@@ -406,6 +474,27 @@ function toggleSubtractMerchantCommissionForWithdraw(merchantName, currencyName,
             'X-CSRF-Token': $("input[name='_csrf']").val()
         },
         url: '/2a8fy7b07dxe44/commissions/editMerchantCommission/toggleSubtractWithdraw',
+        type: 'POST',
+        data: formData,
+        contentType: false,
+        processData: false,
+        success: function () {
+            updateMerchantCommissionsDataTable();
+        }
+    });
+}
+
+function sendUpdateCommissionType(merchantName, currencyName, newValue, parameterName) {
+    var formData = new FormData();
+    formData.append("merchantName", merchantName);
+    formData.append("currencyName", currencyName);
+    formData.append("value", newValue);
+    formData.append("parameterName", parameterName);
+    $.ajax({
+        headers: {
+            'X-CSRF-Token': $("input[name='_csrf']").val()
+        },
+        url: '/2a8fy7b07dxe44/commissions/editMerchantCommissionType',
         type: 'POST',
         data: formData,
         contentType: false,

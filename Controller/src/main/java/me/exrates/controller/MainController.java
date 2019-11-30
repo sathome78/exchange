@@ -1,14 +1,16 @@
 package me.exrates.controller;
 
 import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.controller.exception.NotCreateUserException;
 import me.exrates.controller.exception.PasswordCreationException;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.User;
-import me.exrates.model.UserEmailDto;
 import me.exrates.model.dto.QRCodeDto;
 import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.OrderHistoryPeriod;
+import me.exrates.model.enums.OrderType;
+import me.exrates.model.enums.TokenType;
+import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.UserStatus;
 import me.exrates.model.form.FeedbackMessageForm;
 import me.exrates.model.vo.openApiDoc.OpenApiMethodDoc;
 import me.exrates.model.vo.openApiDoc.OpenApiMethodGroup;
@@ -16,15 +18,12 @@ import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.PinCodeCheckNeedException;
 import me.exrates.security.exception.UnconfirmedUserException;
-import me.exrates.security.filter.NotVerifiedCaptchaError;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.QRCodeService;
-import me.exrates.service.ReferralService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.AbsentFinPasswordException;
 import me.exrates.service.exception.NotConfirmedFinPasswordException;
 import me.exrates.service.exception.WrongFinPasswordException;
-import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,22 +54,14 @@ import org.springframework.web.util.WebUtils;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
-import java.net.URLEncoder;
 import java.security.Principal;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
-
-import static java.util.Collections.singletonMap;
-import static me.exrates.service.util.RestUtil.getUrlFromRequest;
 
 @Controller
 @PropertySource(value = {"classpath:about_us.properties", "classpath:/captcha.properties"})
@@ -98,8 +89,8 @@ public class MainController {
     private MessageSource messageSource;
     @Autowired
     private LocaleResolver localeResolver;
-    @Autowired
-    private ReferralService referralService;
+//    @Autowired
+//    private ReferralService referralService;
     @Autowired
     private VerifyReCaptchaSec verifyReCaptchaSec;
     @Autowired
@@ -123,115 +114,115 @@ public class MainController {
         return "/errorPages/502";
     }
 
-    /**
-     * Register user on referral link (redirect to dashboard, call pop-up with registration)
-     *
-     * @param refReference
-     * @param attr
-     * @return ModalAndView (dashboard), referral link (if this exists), user object with parent email
-     */
-    @RequestMapping("/register")
-    public ModelAndView registerUser(@RequestParam(value = "ref", required = false) String refReference, RedirectAttributes attr) {
+//    /**
+//     * Register user on referral link (redirect to dashboard, call pop-up with registration)
+//     *
+//     * @param refReference
+//     * @param attr
+//     * @return ModalAndView (dashboard), referral link (if this exists), user object with parent email
+//     */
+//    @RequestMapping("/register")
+//    public ModelAndView registerUser(@RequestParam(value = "ref", required = false) String refReference, RedirectAttributes attr) {
+//
+//        User refferalRoot = userService.getCommonReferralRoot();
+//        String parentEmail = "";
+//
+//        if (!Objects.isNull(refReference)) {
+//            final Optional<Integer> parentId = referralService.reduceReferralRef(refReference);
+//            if (parentId.isPresent()) {
+//                parentEmail = userService.getUserById(parentId.get()).getEmail();
+//            }
+//        } else if (refferalRoot != null) {
+//            parentEmail = refferalRoot.getEmail();
+//        }
+//
+//        logger.info("*** Used referral link with reference (" + refReference + ") && Parent email: " + parentEmail);
+//
+//        attr.addFlashAttribute("refferalLink", refReference);
+//        attr.addFlashAttribute("parentEmail", parentEmail);
+//
+//        return new ModelAndView(new RedirectView("/dashboard"));
+//    }
+//
+//    @RequestMapping("/generateReferral")
+//    public
+//    @ResponseBody
+//    Map<String, String> generateReferral(final Principal principal) {
+//        if (principal == null) return null;
+//        return singletonMap("referral", referralService.generateReferral(principal.getName()));
+//    }
 
-        User refferalRoot = userService.getCommonReferralRoot();
-        String parentEmail = "";
 
-        if (!Objects.isNull(refReference)) {
-            final Optional<Integer> parentId = referralService.reduceReferralRef(refReference);
-            if (parentId.isPresent()) {
-                parentEmail = userService.getUserById(parentId.get()).getEmail();
-            }
-        } else if (refferalRoot != null) {
-            parentEmail = refferalRoot.getEmail();
-        }
-
-        logger.info("*** Used referral link with reference (" + refReference + ") && Parent email: " + parentEmail);
-
-        attr.addFlashAttribute("refferalLink", refReference);
-        attr.addFlashAttribute("parentEmail", parentEmail);
-
-        return new ModelAndView(new RedirectView("/dashboard"));
-    }
-
-    @RequestMapping("/generateReferral")
-    public
-    @ResponseBody
-    Map<String, String> generateReferral(final Principal principal) {
-        if (principal == null) return null;
-        return singletonMap("referral", referralService.generateReferral(principal.getName()));
-    }
-
-
-    @RequestMapping(value = "/createUser", method = RequestMethod.POST)
-    public ResponseEntity createNewUser(@ModelAttribute("user") UserEmailDto userEmailDto,
-                                        @RequestParam(required = false) String source,
-                                        BindingResult result,
-                                        HttpServletRequest request) {
-
-        User user = new User();
-        user.setEmail(userEmailDto.getEmail());
-        user.setParentEmail(userEmailDto.getParentEmail());
-        user.setVerificationRequired(false);
-        String recapchaResponse = request.getParameter("g-recaptcha-response");
-
-        if (verifyReCaptchaSec.verify(recapchaResponse)) {
-            registerFormValidation.validate(null, user.getEmail(), null, result, localeResolver.resolveLocale(request));
-            user.setPhone("");
-            if (result.hasErrors()) {
-                return ResponseEntity.badRequest().body(result);
-            } else {
-                boolean flag = false;
-                try {
-                    String ip = IpUtils.getIpForDbLog(request);
-                    if (ip == null) {
-                        ip = request.getRemoteHost();
-                    }
-                    user.setIp(ip);
-                    if (userService.create(user, localeResolver.resolveLocale(request), source)) {
-                        flag = true;
-                        logger.info("User registered with parameters = " + user.toString());
-                    } else {
-                        throw new NotCreateUserException("Error while user creation");
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    logger.error("User can't be registered with parameters = " + user.toString() + "  " + e.getMessage());
-                }
-                if (flag) {
-                    final int child = userService.getIdByEmail(user.getEmail());
-                    try {
-                        final int parent = userService.getIdByEmail(user.getParentEmail());
-                        if (child > 0 && parent > 0) {
-                            referralService.bindChildAndParent(child, parent);
-                            logger.info("*** Referal graph | Child: " + user.getEmail() + " && Parent: " + user.getParentEmail());
-                        }
-                    } catch (Exception e) {
-                        logger.error("error get refferal for " + child);
-                    }
-                    String successNoty = null;
-                    try {
-                        successNoty = URLEncoder.encode(messageSource.getMessage("register.sendletter", null,
-                                localeResolver.resolveLocale(request)), "utf-8");
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
-                    }
-
-                    Map<String, Object> body = new HashMap<>();
-                    body.put("result", successNoty);
-                    body.put("user", user);
-                    userService.logIP(child, user.getIp(), UserEventEnum.REGISTER, getUrlFromRequest(request));
-                    return ResponseEntity.ok(body);
-
-                } else {
-                    throw new NotCreateUserException("DBError");
-                }
-            }
-        } else {
-            //TODO
-            String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
-            throw new NotVerifiedCaptchaError(correctCapchaRequired);
-        }
-    }
+//    @RequestMapping(value = "/createUser", method = RequestMethod.POST)
+//    public ResponseEntity createNewUser(@ModelAttribute("user") UserEmailDto userEmailDto,
+//                                        @RequestParam(required = false) String source,
+//                                        BindingResult result,
+//                                        HttpServletRequest request) {
+//
+//        User user = new User();
+//        user.setEmail(userEmailDto.getEmail());
+//        user.setParentEmail(userEmailDto.getParentEmail());
+//        user.setVerificationRequired(false);
+//        String recapchaResponse = request.getParameter("g-recaptcha-response");
+//
+//        if (verifyReCaptchaSec.verify(recapchaResponse)) {
+//            registerFormValidation.validate(null, user.getEmail(), null, result, localeResolver.resolveLocale(request));
+//            user.setPhone("");
+//            if (result.hasErrors()) {
+//                return ResponseEntity.badRequest().body(result);
+//            } else {
+//                boolean flag = false;
+//                try {
+//                    String ip = IpUtils.getIpForDbLog(request);
+//                    if (ip == null) {
+//                        ip = request.getRemoteHost();
+//                    }
+//                    user.setIp(ip);
+//                    if (userService.create(user, localeResolver.resolveLocale(request), source)) {
+//                        flag = true;
+//                        logger.info("User registered with parameters = " + user.toString());
+//                    } else {
+//                        throw new NotCreateUserException("Error while user creation");
+//                    }
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                    logger.error("User can't be registered with parameters = " + user.toString() + "  " + e.getMessage());
+//                }
+//                if (flag) {
+//                    final int child = userService.getIdByEmail(user.getEmail());
+//                    try {
+//                        final int parent = userService.getIdByEmail(user.getParentEmail());
+//                        if (child > 0 && parent > 0) {
+//                            referralService.bindChildAndParent(child, parent);
+//                            logger.info("*** Referal graph | Child: " + user.getEmail() + " && Parent: " + user.getParentEmail());
+//                        }
+//                    } catch (Exception e) {
+//                        logger.error("error get refferal for " + child);
+//                    }
+//                    String successNoty = null;
+//                    try {
+//                        successNoty = URLEncoder.encode(messageSource.getMessage("register.sendletter", null,
+//                                localeResolver.resolveLocale(request)), "utf-8");
+//                    } catch (UnsupportedEncodingException e) {
+//                        e.printStackTrace();
+//                    }
+//
+//                    Map<String, Object> body = new HashMap<>();
+//                    body.put("result", successNoty);
+//                    body.put("user", user);
+//                    userService.logIP(child, user.getIp(), UserEventEnum.REGISTER, getUrlFromRequest(request));
+//                    return ResponseEntity.ok(body);
+//
+//                } else {
+//                    throw new NotCreateUserException("DBError");
+//                }
+//            }
+//        } else {
+//            //TODO
+//            String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
+//            throw new NotVerifiedCaptchaError(correctCapchaRequired);
+//        }
+//    }
 
     @RequestMapping(value = "/createPassword", method = RequestMethod.GET)
     public ModelAndView createPassword(@RequestParam(required = false) String view, HttpServletRequest request) {
@@ -313,7 +304,7 @@ public class MainController {
                 logger.info("login(), exceptionClass {}", exceptionClass);
                 if (exceptionClass.equals("DisabledException")) {
                     attr.addFlashAttribute("blockedUser", messageSource.getMessage("login.blocked", null, localeResolver.resolveLocale(request)));
-                    attr.addFlashAttribute("contactsUrl", "/contacts");
+                    attr.addFlashAttribute("contactsUrl");
                 } else if (exceptionClass.equals("BadCredentialsException")) {
                     attr.addFlashAttribute("loginErr", messageSource.getMessage("login.notFound", null, localeResolver.resolveLocale(request)));
                 } else if (exceptionClass.equals("NotVerifiedCaptchaError")) {
@@ -375,17 +366,11 @@ public class MainController {
     }
 
 
-    @RequestMapping(value = "/referral")
-    public ModelAndView referral(final Principal principal) {
-        final int id = userService.getIdByEmail(principal.getName());
-        return new ModelAndView("referral", singletonMap("referralTxs", referralService.findAll(id)));
-    }
-
-    @RequestMapping("/aboutUs")
-    public ModelAndView aboutUs() {
-        ModelAndView modelAndView = new ModelAndView("/globalPages/aboutUs", "captchaType", CAPTCHA_TYPE);
-        return modelAndView;
-    }
+//    @RequestMapping(value = "/referral")
+//    public ModelAndView referral(final Principal principal) {
+//        final int id = userService.getIdByEmail(principal.getName());
+//        return new ModelAndView("referral", singletonMap("referralTxs", referralService.findAll(id)));
+//    }
 
     /*
     error handlers for this controller
@@ -412,54 +397,10 @@ public class MainController {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
-    @RequestMapping(value = "/termsAndConditions", method = RequestMethod.GET)
-    public ModelAndView termsAndConditions() {
-        return new ModelAndView("/globalPages/termsAndConditions", "captchaType", CAPTCHA_TYPE);
-    }
-
-    @RequestMapping(value = "/privacyPolicy", method = RequestMethod.GET)
-    public ModelAndView privacyPolicy() {
-        return new ModelAndView("/globalPages/privacyPolicy", "captchaType", CAPTCHA_TYPE);
-    }
-
-    @RequestMapping(value = "/contacts", method = RequestMethod.GET)
-    public ModelAndView contacts(ModelMap model) {
-        ModelAndView modelAndView = new ModelAndView("globalPages/contacts", "captchaType", CAPTCHA_TYPE);
-        model.forEach((key, value) -> logger.debug(key + " :: " + value));
-        if (model.containsAttribute("messageForm")) {
-            modelAndView.addObject("messageForm", model.get("messageForm"));
-        } else {
-            modelAndView.addObject("messageForm", new FeedbackMessageForm());
-        }
-        return modelAndView;
-    }
-
-    @RequestMapping(value = "/partners", method = RequestMethod.GET)
-    public ModelAndView partners() {
-        return new ModelAndView("/globalPages/partners", "captchaType", CAPTCHA_TYPE);
-    }
-
     @RequestMapping(value = "/utcOffset")
     @ResponseBody
     public Integer getServerUtcOffsetMinutes() {
         return TimeZone.getDefault().getOffset(System.currentTimeMillis()) / (1000 * 60);
-    }
-
-
-    @RequestMapping(value = "/api_docs", method = RequestMethod.GET)
-    public ModelAndView apiDocs(HttpServletRequest request) {
-        ModelAndView modelAndView = new ModelAndView("/globalPages/apiDocs", "captchaType", CAPTCHA_TYPE);
-        String baseUrl = String.join("", "https://", request.getServerName(), "/openapi/v1");
-        modelAndView.addObject("baseUrl", baseUrl);
-        modelAndView.addObject("orderTypeValues", Arrays.asList(OrderType.values()));
-        modelAndView.addObject("periodValues", Arrays.stream(OrderHistoryPeriod.values())
-                .map(OrderHistoryPeriod::toUrlValue).collect(Collectors.toList()));
-        Map<OpenApiMethodGroup, List<OpenApiMethodDoc>> methodGroups = Arrays.stream(OpenApiMethodDoc.values())
-                .collect(Collectors.groupingBy(OpenApiMethodDoc::getMethodGroup));
-        modelAndView.addObject("publicMethodsInfo", methodGroups.get(OpenApiMethodGroup.PUBLIC));
-        modelAndView.addObject("userMethodsInfo", methodGroups.get(OpenApiMethodGroup.USER_INFO));
-        modelAndView.addObject("orderMethodsInfo", methodGroups.get(OpenApiMethodGroup.ORDERS));
-        return modelAndView;
     }
 
     @ResponseBody
