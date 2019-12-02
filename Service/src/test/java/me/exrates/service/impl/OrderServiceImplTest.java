@@ -210,7 +210,7 @@ public class OrderServiceImplTest {
         currencyPairLimitDto.setMaxAmount(BigDecimal.valueOf(1000000000));
         when(currencyService.findLimitForRoleByCurrencyPairAndType(anyInt(),
                 any(OperationType.class))).thenReturn(currencyPairLimitDto);
-        doNothing().when(referralService).saveReferralRequest(anyObject());
+//        doNothing().when(referralService).saveReferralRequest(anyObject());
         currencyPair = new CurrencyPair();
         currencyPair.setName("BTC/USD");
         currencyPair.setCurrency1(new Currency(1, "BTC", "", false));
