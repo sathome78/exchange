@@ -84,15 +84,12 @@ public class UserDaoImpl implements UserDao {
     private static final Logger LOGGER = LogManager.getLogger(UserDaoImpl.class);
 
     private final String SELECT_USER =
-            "SELECT USER.id, u.email AS parent_email, USER.finpassword, USER.nickname, USER.email, USER.password, USER.regdate, " +
-                    "USER.phone, USER.status, USER.kyc_status, USER_ROLE.name AS role_name, USER.country AS country, USER.pub_id, USER.verification_required, " +
-                    "USER.has_trade_privileges, USER.GA FROM USER " +
-                    "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LEFT JOIN REFERRAL_USER_GRAPH " +
-                    "ON USER.id = REFERRAL_USER_GRAPH.child LEFT JOIN USER AS u ON REFERRAL_USER_GRAPH.parent = u.id ";
+            "SELECT USER.id, USER.finpassword, USER.nickname, USER.email, USER.password, USER.regdate, " +
+                    "USER.phone, USER.status, USER.kyc_status, USER_ROLE.name AS role_name, USER.country AS country, USER.pub_id, USER.verification_required, USER.GA, USER.has_trade_privileges, USER.invite_referral_link FROM USER " +
+                    "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id ";
 
     private final String SELECT_COUNT = "SELECT COUNT(*) FROM USER " +
-            "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LEFT JOIN REFERRAL_USER_GRAPH " +
-            "ON USER.id = REFERRAL_USER_GRAPH.child LEFT JOIN USER AS u ON REFERRAL_USER_GRAPH.parent = u.id ";
+            "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id ";
 
     @Autowired
     @Qualifier(value = "masterTemplate")
@@ -134,11 +131,11 @@ public class UserDaoImpl implements UserDao {
             user.setPublicId(resultSet.getString("pub_id"));
             user.setVerificationRequired(resultSet.getBoolean("verification_required"));
             user.setTradePrivileges(resultSet.getBoolean("has_trade_privileges"));
-            try {
-                user.setParentEmail(resultSet.getString("parent_email")); // May not exist for some users
-            } catch (final SQLException e) {/*NOP*/}
             if (resultSet.getString("GA") != null) {
                 user.setGa(resultSet.getString("GA"));
+            }
+            if (resultSet.getString("invite_referral_link") != null) {
+                user.setInviteReferralLink(resultSet.getString("invite_referral_link"));
             }
             return user;
         };
@@ -195,8 +192,17 @@ public class UserDaoImpl implements UserDao {
     }
 
     public boolean create(User user) {
-        String sqlUser = "insert into USER(pub_id, nickname, email, password, phone, status, roleid, verification_required, has_trade_privileges ) " +
-                "values(SUBSTRING(MD5(:email), 1, 20), :nickname, :email, :password, :phone, :status, :roleid, :need_verification, :has_trade_privileges)";
+        String sqlUser = "insert into USER(pub_id, nickname, email, password, phone, status, roleid, verification_required, has_trade_privileges";
+        if (StringUtils.isNoneEmpty(user.getInviteReferralLink())) {
+            sqlUser += ", invite_referral_link";
+        }
+        sqlUser += ") " +
+                "values(SUBSTRING(MD5(:email), 1, 20), :nickname, :email, :password, :phone, :status, :roleid, :need_verification, :has_trade_privileges";
+
+        if (StringUtils.isNoneEmpty(user.getInviteReferralLink())) {
+            sqlUser += ", :invite_referral_link";
+        }
+        sqlUser += ") ";
         String sqlWallet = "INSERT INTO WALLET (currency_id, user_id) select id, :user_id from CURRENCY;";
         String sqlNotificationOptions = "INSERT INTO NOTIFICATION_OPTIONS(notification_event_id, user_id, send_notification, send_email) " +
                 "select id, :user_id, default_send_notification, default_send_email FROM NOTIFICATION_EVENT; ";
@@ -217,6 +223,9 @@ public class UserDaoImpl implements UserDao {
         String phone = user.getPhone();
         if (user.getPhone() != null && user.getPhone().equals("")) {
             phone = null;
+        }
+        if (StringUtils.isNoneEmpty(user.getInviteReferralLink())) {
+            namedParameters.put("invite_referral_link", user.getInviteReferralLink());
         }
         namedParameters.put("phone", phone);
         namedParameters.put("status", String.valueOf(user.getUserStatus().getStatus()));
@@ -1621,5 +1630,17 @@ public class UserDaoImpl implements UserDao {
             put("userId", userId);
         }};
         return masterTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public List<User> findByInviteReferralLink(String link) {
+        final String sql = SELECT_USER + "WHERE USER.invite_referral_link = :link";
+        return slaveTemplate.query(sql, Collections.singletonMap("link", link), getUserRowMapper());
+    }
+
+    @Override
+    public List<User> findByInviteReferralLink(List<String> links) {
+        final String sql = SELECT_USER + "WHERE USER.invite_referral_link in (:links)";
+        return slaveTemplate.query(sql, Collections.singletonMap("links", links), getUserRowMapper());
     }
 }

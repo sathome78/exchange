@@ -19,7 +19,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -128,7 +127,7 @@ public class AdGroupServiceImplTest {
                 .extraId("821976011")
                 .build();
 
-        return new AdGroupResponseDto<>(header, result, responseData, Collections.emptyList());
+        return new AdGroupResponseDto<>(header, result, responseData, null);
     }
 
     private WithdrawMerchantOperationDto getWithdrawRequest() {

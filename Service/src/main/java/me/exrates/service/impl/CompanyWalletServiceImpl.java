@@ -115,14 +115,14 @@ public class CompanyWalletServiceImpl implements CompanyWalletService {
     @Transactional(readOnly = true)
     public List<CompanyWallet> getCompanyWalletsSummaryForPermittedCurrencyList(Integer requesterUserId) {
         Set<String> permittedCurrencies = currencyService.getCurrencyPermittedNameList(requesterUserId);
-        return  getCompanyWallets().stream()
-            .filter(e->permittedCurrencies.contains(e.getCurrency().getName()))
-            .collect(Collectors.toList());
+        return getCompanyWallets().stream()
+                .filter(e -> permittedCurrencies.contains(e.getCurrency().getName()))
+                .collect(Collectors.toList());
     }
 
     @Override
     @Transactional
-    public boolean substractCommissionBalanceById(Integer id, BigDecimal amount){
+    public boolean substractCommissionBalanceById(Integer id, BigDecimal amount) {
         return companyWalletDao.substarctCommissionBalanceById(id, amount);
     }
 }

@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Objects;
 import java.util.Optional;
 
 @Log4j2
@@ -57,10 +58,16 @@ public class GeoLocationRepositoryImpl implements GeoLocationRepository {
     }
 
     private GeoLocation getGeoLocation(CityResponse response) {
+        String region = Objects.nonNull(response.getLeastSpecificSubdivision().getName())
+                ? response.getLeastSpecificSubdivision().getName()
+                : " ";
+        final String city = Objects.nonNull(response.getCity().getName())
+                ? response.getCity().getName()
+                : " ";
         return GeoLocation.builder()
-                .country(response.getCountry().getName())
-                .region(response.getLeastSpecificSubdivision().getName())
-                .city(response.getCity().getName())
+                .country(response.getCountry().getIsoCode())
+                .region(region)
+                .city(city)
                 .build();
     }
 }

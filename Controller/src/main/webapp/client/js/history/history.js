@@ -17,10 +17,7 @@ function MyHistoryClass(currentCurrencyPair, cpData) {
     var $myordersContainer = $('#myorders');
     var inputOutput;
     var $inputOutputContainer = $('#myinputoutput');
-    var myReferral;
-    var $myreferralContainer = $('#myreferral');
-    var myReferralStrucure;
-    var $myreferralStrucuteContainer = $('#myRefStructure');
+
     /**/
     function showMyHistoryPage($myHistoryActivePage) {
         if ($myhistoryContainer.hasClass('hidden')) {
@@ -47,23 +44,6 @@ function MyHistoryClass(currentCurrencyPair, cpData) {
         myOrders.updateAndShowAll();
     };
 
-    this.getAndShowMyReferralPage = function () {
-        if ($myhistoryContainer.hasClass('hidden')) {
-            return;
-        }
-        myReferral.syncCurrencyPairSelector();
-        myReferral.updateAndShowAll();
-    };
-
-    this.getAndShowMyReferralStrucurePage = function () {
-        if ($myhistoryContainer.hasClass('hidden')) {
-            return;
-        }
-        myReferralStrucure.syncCurrencyPairSelector();
-        myReferralStrucure.updateAndShowAll();
-    };
-
-
     this.getAndShowInputOutputPage = function () {
         if ($myhistoryContainer.hasClass('hidden')) {
             return;
@@ -83,23 +63,13 @@ function MyHistoryClass(currentCurrencyPair, cpData) {
                 that.getAndShowMyOrdersPage();
                 break;
             }
-            case $myreferralContainer : {
-                that.getAndShowMyReferralPage();
-                break;
-            }
-            case $myreferralStrucuteContainer : {
-                that.getAndShowMyReferralStrucurePage();
-                break;
-            }
         }
     };
 
     /*=====================================================*/
     (function init (currentCurrencyPair, cpData) {
         myOrders = new MyOrdersClass(currentCurrencyPair, cpData);
-        myReferral = new MyReferralClass();
         inputOutput = new InputOutputClass(currentCurrencyPair, cpData);
-        myReferralStrucure = new RefStructureClass();
         /**/
         $('#myhistory-button-orders').addClass('active');
         /**/
@@ -122,17 +92,8 @@ function MyHistoryClass(currentCurrencyPair, cpData) {
         $('#myhistory-button-referral').on('click', function () {
             $('.myhistory__button').removeClass('active');
             $(this).addClass('active');
-            $myHistoryActivePage = $myreferralContainer;
             showMyHistoryPage($myHistoryActivePage);
             that.getAndShowMyReferralPage();
-            /*that.updateAndShowAll();*/
-        });
-        $('#myhistory-button-referral_structure').on('click', function () {
-            $('.myhistory__button').removeClass('active');
-            $(this).addClass('active');
-            $myHistoryActivePage = $myreferralStrucuteContainer;
-            showMyHistoryPage($myHistoryActivePage);
-            that.getAndShowMyReferralStrucurePage();
             /*that.updateAndShowAll();*/
         });
         $myHistoryActivePage = $myordersContainer;

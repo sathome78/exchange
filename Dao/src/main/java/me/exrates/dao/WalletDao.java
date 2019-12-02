@@ -77,6 +77,8 @@ public interface WalletDao {
 
     Wallet findById(Integer walletId);
 
+    Wallet findByIdAndLock(Integer walletId);
+
     Wallet createWallet(User user, int currencyId);
 
     Wallet createWallet(int userId, int currencyId);

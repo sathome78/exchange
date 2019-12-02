@@ -30,7 +30,6 @@ import me.exrates.service.OpenApiTokenService;
 import me.exrates.service.OrderService;
 import me.exrates.service.PageLayoutSettingsService;
 import me.exrates.service.QuberaService;
-import me.exrates.service.ReferralService;
 import me.exrates.service.RefillService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.SessionParamsService;
@@ -46,6 +45,7 @@ import me.exrates.service.freecoins.FreecoinsSettingsService;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.G2faService;
+import me.exrates.service.referral.ReferralService;
 import me.exrates.service.session.UserLoginSessionsService;
 import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.stopOrder.StopOrderService;
@@ -254,10 +254,10 @@ public class AngularAppTestConfig {
         return Mockito.mock(AuthTokenService.class);
     }
 
-    @Bean
-    public ReferralService referralService() {
-        return Mockito.mock(ReferralService.class);
-    }
+//    @Bean
+//    public ReferralService referralService() {
+//        return Mockito.mock(ReferralService.class);
+//    }
 
     @Bean
     public TemporalTokenService temporalTokenService() {
@@ -327,6 +327,11 @@ public class AngularAppTestConfig {
     @Bean
     public PageLayoutSettingsService pageLayoutSettingsService() {
         return Mockito.mock(PageLayoutSettingsService.class);
+    }
+
+    @Bean
+    public ReferralService referralService() {
+        return Mockito.mock(ReferralService.class);
     }
 
     @Bean

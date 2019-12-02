@@ -1,24 +1,14 @@
 package me.exrates.dao;
 
-import me.exrates.model.ReferralTransaction;
-import me.exrates.model.dto.onlineTableDto.MyReferralDetailedDto;
-import me.exrates.model.enums.ReferralTransactionStatusEnum;
+import me.exrates.model.referral.ReferralTransaction;
 
+import java.math.BigDecimal;
 import java.util.List;
-import java.util.Locale;
+import java.util.Map;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 public interface ReferralTransactionDao {
 
-    List<ReferralTransaction> findAll(int userId);
+    boolean createReferralTransaction(ReferralTransaction referralTransaction);
 
-    List<ReferralTransaction> findAll(int userId, int offset, int limit);
-
-    ReferralTransaction create(ReferralTransaction referralTransaction);
-
-    List<MyReferralDetailedDto> findAllMyRefferal(String email, Integer offset, Integer limit, Locale locale);
-
-    void setRefTransactionStatus(ReferralTransactionStatusEnum status, int refTransactionId);
+    Map<String, BigDecimal> getEarnedByUsersFromAndUserToAndCurrencies(List<Integer> userFrom, int userTo, List<String> currencies);
 }
