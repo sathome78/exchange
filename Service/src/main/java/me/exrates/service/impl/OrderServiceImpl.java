@@ -259,10 +259,9 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private ChartApi chartApi;
 
-    /*todo change delete time*/
     @PostConstruct
     private void init() {
-        scheduledExecutorService.scheduleWithFixedDelay(this::cleanOrders, 10, 10, TimeUnit.MINUTES);
+//        scheduledExecutorService.scheduleWithFixedDelay(this::cleanOrders, 10, 10, TimeUnit.MINUTES);
     }
 
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
