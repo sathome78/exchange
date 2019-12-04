@@ -259,10 +259,9 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private ChartApi chartApi;
 
-    /*todo change delete time*/
     @PostConstruct
     private void init() {
-        scheduledExecutorService.scheduleWithFixedDelay(this::cleanOrders, 10, 10, TimeUnit.MINUTES);
+//        scheduledExecutorService.scheduleWithFixedDelay(this::cleanOrders, 10, 10, TimeUnit.MINUTES);
     }
 
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
@@ -1418,12 +1417,12 @@ public class OrderServiceImpl implements OrderService {
             final Currency currency = currencyService.findCurrencyPairById(exOrder.getCurrencyPairId())
                     .getCurrency2();
 
-            ReferralRequest referralRequestUser =
-                    ReferralRequest.of(exOrder.getUserId(), currency.getId(), exOrder.getCommissionFixedAmount(), exOrder.getId());
-            ReferralRequest referralRequestAcceptor
-                    = ReferralRequest.of(exOrder.getUserAcceptorId(), currency.getId(), amountComissionForAcceptor, exOrder.getId());
+//            ReferralRequest referralRequestUser =
+//                    ReferralRequest.of(exOrder.getUserId(), currency.getId(), exOrder.getCommissionFixedAmount(), exOrder.getId());
+//            ReferralRequest referralRequestAcceptor
+//                    = ReferralRequest.of(exOrder.getUserAcceptorId(), currency.getId(), amountComissionForAcceptor, exOrder.getId());
 
-            referralService.saveReferralRequest(Arrays.asList(referralRequestUser, referralRequestAcceptor));
+//            referralService.saveReferralRequest(Arrays.asList(referralRequestUser, referralRequestAcceptor));
 
             if (!updateOrder(exOrder)) {
                 throw new OrderAcceptionException(messageSource.getMessage("orders.acceptsaveerror", null, locale));

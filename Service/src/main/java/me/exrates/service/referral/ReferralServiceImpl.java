@@ -10,6 +10,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.Transaction;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
+import me.exrates.model.dto.ReportDto;
 import me.exrates.model.dto.referral.ReferralIncomeDto;
 import me.exrates.model.dto.referral.ReferralStructureDto;
 import me.exrates.model.dto.referral.enums.ReferralLevel;
@@ -31,6 +32,10 @@ import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.jboss.aerogear.security.otp.api.Base32;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,9 +44,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -65,6 +73,7 @@ public class ReferralServiceImpl implements ReferralService {
     private final static List<String> CURRENCIES = Arrays.asList(USD, BTC, USDT);
     private final static List<String> CURRENCIES_EXTENDED_LIST = Arrays.asList(USD, BTC, USDT, "ETH", "EUR", "TUSD", "RUB",
             "IDR", "AED", "TRY", "VND", "UAH", "CNY", "NGN", "TRX", "BTT");
+    private static final DateTimeFormatter FORMATTER_FOR_NAME = DateTimeFormatter.ofPattern("dd_MM_yyyy_HH_mm");
 
     private final CurrencyService currencyService;
     private final UserService userService;
@@ -121,6 +130,7 @@ public class ReferralServiceImpl implements ReferralService {
         boolean filled = false;
         Collection<ReferralRequest> requests =
                 referralRequestDao.getReferralRequestsByStatus(CHUNK, ReferralProcessStatus.CREATED);
+        log.info("Starting check referral requests size {}", requests.size());
         while (!filled) {
             for (ReferralRequest request : requests) {
                 processReferralAndCommission(request);
@@ -134,10 +144,43 @@ public class ReferralServiceImpl implements ReferralService {
         ReferralRequestStatus status = ReferralRequestStatus.WAITING_AUTO_POSTING;
         List<ReferralRequestTransfer> waitingRequests =
                 referralRequestTransferDao.findByStatus(Collections.singletonList(status));
-
+        log.info("Starting check referral transfer requests size {}", waitingRequests.size());
         for (ReferralRequestTransfer requestTransfer : waitingRequests) {
             processTransferRequest(requestTransfer);
         }
+    }
+
+    @Override
+    public ReportDto downloadExcel(String email) throws Exception {
+        List<ReferralIncomeDto> referralIncome = getReferralIncome(email);
+        XSSFWorkbook workbook = new XSSFWorkbook();
+
+        XSSFSheet sheet = workbook.createSheet("Referral Income");
+
+        Row headerRow = sheet.createRow(0);
+        headerRow.createCell(0).setCellValue("Currency");
+        headerRow.createCell(1).setCellValue("Your income");
+        headerRow.createCell(2).setCellValue("Cup income");
+
+        int index = 1;
+        for (ReferralIncomeDto referralIncomeDto : referralIncome) {
+            Row row = sheet.createRow(index++);
+            row.createCell(0, CellType.STRING).setCellValue(referralIncomeDto.getCurrencyName());
+            row.createCell(1, CellType.STRING).setCellValue(referralIncomeDto.getReferralBalance().toPlainString());
+            row.createCell(2, CellType.STRING).setCellValue(referralIncomeDto.getCupIncome().toPlainString());
+        }
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        try {
+            workbook.write(bos);
+            bos.close();
+        } catch (IOException ex) {
+            throw new Exception("Problem with convert workbook to byte array", ex);
+        }
+        return ReportDto.builder()
+                .fileName(String.format("Referral_structure_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)))
+                .content(bos.toByteArray())
+                .build();
     }
 
     private void processReferralAndCommission(ReferralRequest request) {

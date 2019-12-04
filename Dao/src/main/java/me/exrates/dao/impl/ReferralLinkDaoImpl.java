@@ -131,9 +131,9 @@ public class ReferralLinkDaoImpl implements ReferralLinkDao {
                 "       c.name as currency_name," +
                 "       c.description as currency_description," +
                 "       c.cup_income" +
-                " FROM wallet w" +
-                "         INNER JOIN user u on w.user_id = u.id" +
-                "         INNER JOIN currency c on w.currency_id = c.id" +
+                " FROM WALLET w" +
+                "         INNER JOIN USER u on w.user_id = u.id" +
+                "         INNER JOIN CURRENCY c on w.currency_id = c.id" +
                 " WHERE u.email = :email AND c.name in (:currencies)";
 
         Map<String, Object> params = new HashMap<String, Object>() {{
@@ -161,9 +161,9 @@ public class ReferralLinkDaoImpl implements ReferralLinkDao {
                 "       c.description as currency_description," +
                 "       c.cup_income," +
                 "       c.manual_confirm_above_sum " +
-                " FROM wallet w" +
-                "         INNER JOIN user u on w.user_id = u.id" +
-                "         INNER JOIN currency c on w.currency_id = c.id" +
+                " FROM WALLET w" +
+                "         INNER JOIN USER u on w.user_id = u.id" +
+                "         INNER JOIN CURRENCY c on w.currency_id = c.id" +
                 " WHERE u.email = :email AND c.name = :currencies";
 
         Map<String, Object> params = new HashMap<String, Object>() {{

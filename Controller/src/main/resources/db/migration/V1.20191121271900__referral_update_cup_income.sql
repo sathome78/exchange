@@ -1,0 +1,15 @@
+UPDATE CURRENCY set cup_income = 0.000001, manual_confirm_above_sum = 0.5 WHERE name = 'BTC';
+UPDATE CURRENCY set cup_income = 20, manual_confirm_above_sum = 1000 WHERE name = 'USD';
+UPDATE CURRENCY set cup_income = 20, manual_confirm_above_sum = 1000 WHERE name = 'USDT';
+UPDATE CURRENCY set cup_income = 0.001, manual_confirm_above_sum = 1 WHERE name = 'ETH';
+UPDATE CURRENCY set cup_income = 20, manual_confirm_above_sum = 1000 WHERE name = 'EUR';
+UPDATE CURRENCY set cup_income = 20, manual_confirm_above_sum = 1000 WHERE name = 'TUSD';
+UPDATE CURRENCY set cup_income = 200, manual_confirm_above_sum = 10000 WHERE name = 'RUB';
+UPDATE CURRENCY set cup_income = 20000, manual_confirm_above_sum = 100000 WHERE name = 'IDR';
+UPDATE CURRENCY set cup_income = 20000, manual_confirm_above_sum = 100000 WHERE name = 'TRY';
+UPDATE CURRENCY set cup_income = 20000, manual_confirm_above_sum = 100000 WHERE name = 'VND';
+UPDATE CURRENCY set cup_income = 100, manual_confirm_above_sum = 10000 WHERE name = 'UAH';
+UPDATE CURRENCY set cup_income = 20000, manual_confirm_above_sum = 100000 WHERE name = 'CNY';
+UPDATE CURRENCY set cup_income = 20000, manual_confirm_above_sum = 100000 WHERE name = 'NGN';
+UPDATE CURRENCY set cup_income = 20000, manual_confirm_above_sum = 100000 WHERE name = 'TRX';
+UPDATE CURRENCY set cup_income = 20000, manual_confirm_above_sum = 100000 WHERE name = 'BTT';

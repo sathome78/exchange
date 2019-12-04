@@ -58,7 +58,7 @@ public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
 
     @Override
     public Map<String, BigDecimal> getEarnedByUsersFromAndUserToAndCurrencies(List<Integer> usersFrom, int userTo, List<String> currencies) {
-        final String sql = "SELECT sum(referral_transaction.amount) AS sum, referral_transaction.currency_name FROM referral_transaction " +
+        final String sql = "SELECT sum(referral_transaction.amount) AS sum, referral_transaction.currency_name FROM REFERRAL_TRANSACTION " +
                 "WHERE user_to = :user_to AND user_from in (:users_from) AND currency_name in (:currencies) " +
                 "GROUP BY referral_transaction.currency_name";
 
