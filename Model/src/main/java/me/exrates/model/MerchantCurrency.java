@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import me.exrates.model.enums.MerchantCommissonTypeEnum;
 import me.exrates.model.enums.MerchantVerificationType;
 import me.exrates.model.util.BigDecimalToStringSerializer;
 
@@ -50,10 +49,6 @@ public class MerchantCurrency {
     private Boolean needKycWithdraw;
     private Boolean needVerification;
     private MerchantVerificationType verificationType;
-    private MerchantCommissonTypeEnum withdrawCommissionType;
-    private String secondaryCommissionCurrency;
-    private Integer secondaryCommissionCurrencyId;
-    private BigDecimal secondaryCommissionAmount;
 
     private String paymentLink;
 }

@@ -75,7 +75,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -98,7 +97,6 @@ import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.START_BCH_EXA
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.TAKE_TO_WORK;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
-import static me.exrates.model.vo.WalletOperationData.BalanceType.RESERVED;
 
 /**
  * created by ValkSam
@@ -202,7 +200,6 @@ public class WithdrawServiceImpl implements WithdrawService {
         merchantServiceContext.getMerchantService(withdrawRequestCreateDto.getMerchantId())
                 .checkWithdrawAddressName(withdrawRequestCreateDto.getDestinationWallet());
         WithdrawStatusEnum currentStatus = WithdrawStatusEnum.convert(withdrawRequestCreateDto.getStatusId());
-
         InvoiceActionTypeEnum action = currentStatus.getStartAction(
                 withdrawRequestCreateDto.getAutoEnabled(),
                 withdrawRequestCreateDto.getAmount(),
@@ -210,26 +207,10 @@ public class WithdrawServiceImpl implements WithdrawService {
         InvoiceStatus newStatus = currentStatus.nextState(action);
         withdrawRequestCreateDto.setStatusId(newStatus.getCode());
         int createdWithdrawRequestId = 0;
-
         if (walletService.ifEnoughMoney(
                 withdrawRequestCreateDto.getUserWalletId(),
-                withdrawRequestCreateDto.getAmount()) &&
-                ifEnoughCommissionMoney(withdrawRequestCreateDto.getMerchantCommissionWalletId(), withdrawRequestCreateDto.getMerchantCommissionAmount())) {
-
+                withdrawRequestCreateDto.getAmount())) {
             if ((createdWithdrawRequestId = withdrawRequestDao.create(withdrawRequestCreateDto)) > 0) {
-
-                if (!Objects.isNull(withdrawRequestCreateDto.getMerchantCommissionWalletId())) {
-                    WalletTransferStatus result = walletService.walletInnerTransfer(
-                            withdrawRequestCreateDto.getMerchantCommissionWalletId(),
-                            withdrawRequestCreateDto.getMerchantCommissionAmount().negate(),
-                            TransactionSourceType.WITHDRAW,
-                            createdWithdrawRequestId,
-                            transactionDescription.getForWithdrawCommission(currentStatus, action));
-                    if (result != SUCCESS) {
-                        throw new WithdrawRequestCreationException(result.toString());
-                    }
-                }
-
                 String description = transactionDescription.get(currentStatus, action);
                 WalletTransferStatus result = walletService.walletInnerTransfer(
                         withdrawRequestCreateDto.getUserWalletId(),
@@ -237,7 +218,6 @@ public class WithdrawServiceImpl implements WithdrawService {
                         TransactionSourceType.WITHDRAW,
                         createdWithdrawRequestId,
                         description);
-
                 if (result != SUCCESS) {
                     throw new WithdrawRequestCreationException(result.toString());
                 }
@@ -246,11 +226,6 @@ public class WithdrawServiceImpl implements WithdrawService {
             throw new NotEnoughUserWalletMoneyException(withdrawRequestCreateDto.toString());
         }
         return createdWithdrawRequestId;
-    }
-
-    private boolean ifEnoughCommissionMoney(Integer userWalletId, BigDecimal amount) {
-        if (Objects.isNull(userWalletId)) return true;
-        return walletService.ifEnoughMoney(userWalletId, amount);
     }
 
     @Override
@@ -359,13 +334,16 @@ public class WithdrawServiceImpl implements WithdrawService {
         WithdrawStatusEnum newStatus = (WithdrawStatusEnum) currentStatus.nextState(action);
         withdrawRequestDao.setStatusById(requestId, newStatus);
         /**/
+        Integer userWalletId = walletService.getWalletId(withdrawRequest.getUserId(), withdrawRequest.getCurrencyId());
         String description = transactionDescription.get(currentStatus, action);
-        String descriptionForCommission = transactionDescription.getForWithdrawCommission(currentStatus, action);
-
-        try {
-            returnMerchantCommissionOnRejectRequest(withdrawRequest, description, descriptionForCommission);
-        } catch (Exception e) {
-            throw new WithdrawRequestRevokeException(e.getMessage());
+        WalletTransferStatus result = walletService.walletInnerTransfer(
+                userWalletId,
+                withdrawRequest.getAmount(),
+                TransactionSourceType.WITHDRAW,
+                withdrawRequest.getId(),
+                description);
+        if (result != SUCCESS) {
+            throw new WithdrawRequestRevokeException(result.toString());
         }
     }
 
@@ -407,11 +385,17 @@ public class WithdrawServiceImpl implements WithdrawService {
             withdrawRequestDao.setHolderById(requestId, requesterAdminId);
             profileData.setTime1();
             /**/
+            Integer userWalletId = walletService.getWalletId(withdrawRequest.getUserId(), withdrawRequest.getCurrencyId());
             String description = transactionDescription.get(currentStatus, action);
-            String descriptionForCommission = transactionDescription.getForWithdrawCommission(currentStatus, action);
-
-            returnMerchantCommissionOnRejectRequest(withdrawRequest, description, descriptionForCommission);
-
+            WalletTransferStatus result = walletService.walletInnerTransfer(
+                    userWalletId,
+                    withdrawRequest.getAmount(),
+                    TransactionSourceType.WITHDRAW,
+                    withdrawRequest.getId(),
+                    description);
+            if (result != SUCCESS) {
+                throw new WithdrawRequestRevokeException(result.toString());
+            }
             profileData.setTime2();
             /**/
             Locale locale = new Locale(userService.getPreferedLang(withdrawRequest.getUserId()));
@@ -449,48 +433,22 @@ public class WithdrawServiceImpl implements WithdrawService {
         if (LocalDateTime.now().isAfter(rejectTimeLimit)) {
             InvoiceStatus newStatus = withdrawRequest.getStatus().nextState(REJECT_ERROR);
             withdrawRequestDao.setStatusById(requestId, newStatus);
+            Integer userWalletId = walletService.getWalletId(withdrawRequest.getUserId(), withdrawRequest.getCurrencyId());
             String description = transactionDescription.get(withdrawRequest.getStatus(), REJECT_ERROR);
-            String descriptionForCommission = transactionDescription.getForWithdrawCommission(withdrawRequest.getStatus(), REJECT_ERROR);
-
-            try {
-                returnMerchantCommissionOnRejectRequest(withdrawRequest, description, descriptionForCommission);
-            } catch (RuntimeException e) {
-                throw new WithdrawRequestPostException(e.getMessage());
+            WalletTransferStatus result = walletService.walletInnerTransfer(
+                    userWalletId,
+                    withdrawRequest.getAmount(),
+                    TransactionSourceType.WITHDRAW,
+                    withdrawRequest.getId(),
+                    description);
+            if (result != SUCCESS) {
+                throw new WithdrawRequestPostException(result.name());
             }
-
             Locale locale = new Locale(userService.getPreferedLang(withdrawRequest.getUserId()));
             String title = messageSource.getMessage("withdraw.rejectError.title", null, locale);
             String reason = messageSource.getMessage(reasonCode, null, locale);
             String message = messageSource.getMessage("withdraw.rejectError.body", new Object[]{withdrawRequest.getId(), reason}, locale);
             notificationService.notifyUser(withdrawRequest.getUserId(), NotificationEvent.IN_OUT, title, message);
-        }
-    }
-
-    private void returnMerchantCommissionOnRejectRequest(WithdrawRequestFlatDto withdrawRequest, String description, String descriptionForcommission) {
-
-        if (!Objects.isNull(withdrawRequest.getMerchantCommissionCurrencyId()) && !withdrawRequest.getMerchantCommissionCurrencyId().equals(0)) {
-            int commissionWalletId = walletService.getWalletId(withdrawRequest.getUserId(), withdrawRequest.getMerchantCommissionCurrencyId());
-
-            WalletTransferStatus result = walletService.walletInnerTransfer(
-                    commissionWalletId,
-                    withdrawRequest.getMerchantCommissionAmount(),
-                    TransactionSourceType.WITHDRAW,
-                    withdrawRequest.getId(),
-                    descriptionForcommission);
-            if (result != SUCCESS) {
-                throw new WithdrawRequestRevokeException(result.toString());
-            }
-        }
-
-        int userWalletId = walletService.getWalletId(withdrawRequest.getUserId(), withdrawRequest.getCurrencyId());
-        WalletTransferStatus result = walletService.walletInnerTransfer(
-                userWalletId,
-                withdrawRequest.getAmount(),
-                TransactionSourceType.WITHDRAW,
-                withdrawRequest.getId(),
-                description);
-        if (result != SUCCESS) {
-            throw new WithdrawRequestRevokeException(result.toString());
         }
     }
 
@@ -660,28 +618,6 @@ public class WithdrawServiceImpl implements WithdrawService {
                 log.debug("inner transfer {}", result);
                 throw new WithdrawRequestPostException(result.name());
             }
-
-            if (!Objects.isNull(withdrawRequest.getMerchantCommissionCurrencyId()) && !withdrawRequest.getMerchantCommissionCurrencyId().equals(0)) {
-
-                Integer commissionWalletId = walletService.getWalletId(withdrawRequest.getUserId(), withdrawRequest.getMerchantCommissionCurrencyId());
-
-                WalletOperationData walletOperationData = new WalletOperationData();
-                walletOperationData.setOperationType(OUTPUT);
-                walletOperationData.setWalletId(commissionWalletId);
-                walletOperationData.setAmount(withdrawRequest.getMerchantCommissionAmount());
-                walletOperationData.setBalanceType(RESERVED);
-                walletOperationData.setCommission(null);
-                walletOperationData.setCommissionAmount(BigDecimal.ZERO);
-                walletOperationData.setSourceType(TransactionSourceType.WITHDRAW);
-                walletOperationData.setSourceId(withdrawRequest.getId());
-                walletOperationData.setDescription(transactionDescription.getForWithdrawCommission(currentStatus, action));
-                WalletTransferStatus walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
-                if (walletTransferStatus != SUCCESS) {
-                    log.debug("operation data {}", result);
-                    throw new WithdrawRequestPostException(walletTransferStatus.name());
-                }
-            }
-
             profileData.setTime2();
             WalletOperationData walletOperationData = new WalletOperationData();
             walletOperationData.setOperationType(OUTPUT);

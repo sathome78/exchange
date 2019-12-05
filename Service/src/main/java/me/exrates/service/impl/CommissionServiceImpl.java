@@ -4,14 +4,11 @@ import lombok.RequiredArgsConstructor;
 import me.exrates.dao.CommissionDao;
 import me.exrates.model.Commission;
 import me.exrates.model.Merchant;
-import me.exrates.model.MerchantCurrency;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.ComissionCountDto;
 import me.exrates.model.dto.CommissionDataDto;
 import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.dto.EditMerchantCommissionDto;
-import me.exrates.model.enums.CommissionTypeParameterUpdateEnum;
-import me.exrates.model.enums.MerchantCommissonTypeEnum;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
@@ -25,7 +22,6 @@ import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Conditional;
@@ -38,7 +34,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.function.Function;
 
 import static java.math.BigDecimal.*;
 import static java.math.BigDecimal.ZERO;
@@ -188,15 +183,11 @@ public class CommissionServiceImpl implements CommissionService {
         BigDecimal companyCommissionRate = companyCommission.getValue();
         String companyCommissionUnit = "%";
         Merchant merchant = merchantService.findById(merchantId);
-        MerchantCurrency merchantCurrency = merchantService.findByMerchantAndCurrency(merchantId, currencyId)
-                .orElseThrow(() -> new RuntimeException("Not found"));
-        Integer secondaryMerchantCommissionCurrencyId = null;
         if (!(merchant.getProcessType() == MerchantProcessType.CRYPTO) || amount.compareTo(BigDecimal.ZERO) != 0) {
             BigDecimal merchantCommissionRate = getCommissionMerchant(merchantId, currencyId, type);
             BigDecimal merchantMinFixedCommission = getMinFixedCommission(currencyId, merchantId);
-            BigDecimal merchantCommissionAmount = ZERO;
+            BigDecimal merchantCommissionAmount;
             BigDecimal companyCommissionAmount;
-            BigDecimal secondaryMerchantCommissionAmount = ZERO;
             String merchantCommissionUnit = "%";
             if (type == INPUT) {
                 int currencyScale = merchantService.getMerchantCurrencyScaleByMerchantIdAndCurrencyId(merchantId, currencyId).getScaleForRefill();
@@ -208,19 +199,14 @@ public class CommissionServiceImpl implements CommissionService {
                 int currencyScale = merchantService.getMerchantCurrencyScaleByMerchantIdAndCurrencyId(merchantId, currencyId).getScaleForWithdraw();
                 amount = amount.setScale(currencyScale, ROUND_DOWN);
                 companyCommissionAmount = BigDecimalProcessing.doAction(amount, companyCommissionRate, MULTIPLY_PERCENT).setScale(currencyScale, ROUND_UP);
-                if (merchantCurrency.getWithdrawCommissionType() == MerchantCommissonTypeEnum.SECONDARY_CURRENCY) {
-                    secondaryMerchantCommissionAmount = merchantCurrency.getSecondaryCommissionAmount();
-                    secondaryMerchantCommissionCurrencyId = merchantCurrency.getSecondaryCommissionCurrencyId();
+                if (wMerchant.specificWithdrawMerchantCommissionCountNeeded()) {
+                    merchantCommissionAmount = wMerchant.countSpecCommission(amount, destinationTag, merchantId);
+                    specMerchantComissionCount = true;
                 } else {
-                    if (wMerchant.specificWithdrawMerchantCommissionCountNeeded()) {
-                        merchantCommissionAmount = wMerchant.countSpecCommission(amount, destinationTag, merchantId);
-                        specMerchantComissionCount = true;
-                    } else {
-                        merchantCommissionAmount = BigDecimalProcessing.doAction(amount.subtract(companyCommissionAmount), merchantCommissionRate, MULTIPLY_PERCENT).setScale(currencyScale, ROUND_UP);
-                    }
-                    if (merchantCommissionAmount.compareTo(merchantMinFixedCommission) < 0) {
-                        merchantCommissionAmount = merchantMinFixedCommission;
-                    }
+                    merchantCommissionAmount = BigDecimalProcessing.doAction(amount.subtract(companyCommissionAmount), merchantCommissionRate, MULTIPLY_PERCENT).setScale(currencyScale, ROUND_UP);
+                }
+                if (merchantCommissionAmount.compareTo(merchantMinFixedCommission) < 0) {
+                    merchantCommissionAmount = merchantMinFixedCommission;
                 }
             } else if (type == USER_TRANSFER) {
                 int currencyScale = merchantService.getMerchantCurrencyScaleByMerchantIdAndCurrencyId(merchantId, currencyId).getScaleForTransfer();
@@ -244,10 +230,9 @@ public class CommissionServiceImpl implements CommissionService {
             return new CommissionDataDto(
                     amount,
                     merchantCommissionRate,
-                    secondaryMerchantCommissionCurrencyId,
                     merchantMinFixedCommission,
                     merchantCommissionUnit,
-                    merchantCurrency.getWithdrawCommissionType() == MerchantCommissonTypeEnum.SECONDARY_CURRENCY ? secondaryMerchantCommissionAmount : merchantCommissionAmount,
+                    merchantCommissionAmount,
                     companyCommission,
                     companyCommissionRate,
                     companyCommissionUnit,
@@ -261,7 +246,6 @@ public class CommissionServiceImpl implements CommissionService {
             return new CommissionDataDto(
                     ZERO,
                     ZERO,
-                    null,
                     ZERO,
                     "",
                     ZERO,
@@ -296,20 +280,4 @@ public class CommissionServiceImpl implements CommissionService {
         return commissionDao.countComissinsByPeriod(from, to);
     }
 
-    @Override
-    public void updateMerchantCommissionType(String merchantName, String currencyName, CommissionTypeParameterUpdateEnum type, String value) {
-        final Object finalValue = type.getFinalValue(value, checkCurrencyFunction);
-        commissionDao.updateMerchantCommissionType(merchantName, currencyName, type, finalValue);
-    }
-
-    private Function<String, Object> checkCurrencyFunction = new Function<String, Object>() {
-
-        @Override
-        public Object apply(String s) {
-            if (StringUtils.isEmpty(s)) {
-                return s;
-            }
-            return currencyService.findByName(s).getId();
-        }
-    };
 }

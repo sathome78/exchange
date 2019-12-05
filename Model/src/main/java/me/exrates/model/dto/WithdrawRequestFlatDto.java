@@ -27,7 +27,6 @@ public class WithdrawRequestFlatDto {
     private BigDecimal amount;
     private BigDecimal commissionAmount;
     private BigDecimal merchantCommissionAmount;
-    private Integer merchantCommissionCurrencyId;
     private Integer commissionId;
     private WithdrawStatusEnum status;
     private LocalDateTime dateCreation;

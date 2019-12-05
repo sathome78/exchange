@@ -32,7 +32,7 @@ public class SyndexOrdersCheckerImpl implements SyndexOrderChecker {
     /*todo change for prod*/
     @PostConstruct
     private void init() {
-        executorService.scheduleWithFixedDelay(this::check, 5, 5, TimeUnit.MINUTES);
+//        executorService.scheduleWithFixedDelay(this::check, 5, 5, TimeUnit.MINUTES);
     }
 
     @Override

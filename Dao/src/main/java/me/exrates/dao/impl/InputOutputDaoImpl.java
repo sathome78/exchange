@@ -73,11 +73,10 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "    IF (WITHDRAW_REQUEST.user_full_name IS NOT NULL, WITHDRAW_REQUEST.user_full_name, RRP.user_full_name) AS user_full_name," +
                 "    IF (WITHDRAW_REQUEST.remark IS NOT NULL, WITHDRAW_REQUEST.remark, REFILL_REQUEST.remark) AS remark," +
                 "    IF (WITHDRAW_REQUEST.admin_holder_id IS NOT NULL, WITHDRAW_REQUEST.admin_holder_id, REFILL_REQUEST.admin_holder_id) AS admin_holder_id, " +
-                "    IF (WITHDRAW_REQUEST.transaction_hash IS NOT NULL, WITHDRAW_REQUEST.transaction_hash, REFILL_REQUEST.merchant_transaction_id) AS transaction_hash, " +
-                "    CURRENCY.name AS commission_currency " +
+                "    IF (WITHDRAW_REQUEST.transaction_hash IS NOT NULL, WITHDRAW_REQUEST.transaction_hash, REFILL_REQUEST.merchant_transaction_id) AS transaction_hash" +
                 "  FROM TRANSACTION " +
                 "    left join CURRENCY on TRANSACTION.currency_id=CURRENCY.id" +
-                "    left join WITHDRAW_REQUEST on TRANSACTION.source_type = 'ddd' AND WITHDRAW_REQUEST.id = TRANSACTION.source_id" +
+                "    left join WITHDRAW_REQUEST on TRANSACTION.source_type = 'WITHDRAW' AND WITHDRAW_REQUEST.id = TRANSACTION.source_id" +
                 "    left join REFILL_REQUEST on TRANSACTION.source_type = 'REFILL' AND REFILL_REQUEST.id = TRANSACTION.source_id" +
                 "    left join REFILL_REQUEST_ADDRESS RRA ON (RRA.id = REFILL_REQUEST.refill_request_address_id)  " +
                 "    left join REFILL_REQUEST_PARAM RRP ON (RRP.id = REFILL_REQUEST.refill_request_param_id) " +
@@ -87,9 +86,9 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "    left join WALLET on WALLET.id = TRANSACTION.user_wallet_id" +
                 "    left join USER on WALLET.user_id=USER.id" +
                 "  WHERE " +
-                "    TRANSACTION.operation_type_id IN (:operation_type_id_list) AND " +
+                "    TRANSACTION.operation_type_id IN (:operation_type_id_list) and " +
                 "    USER.email=:email " +
-                "    AND TRANSACTION.source_type NOT IN ('WITHDRAW', 'USER_TRANSFER')  " +
+                "    AND TRANSACTION.source_type <>  'USER_TRANSFER'  " +
 
                 "  UNION " +
                 "  (SELECT " +
@@ -107,8 +106,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     RRP.user_full_name, " +
                 "     RR.remark, " +
                 "     RR.admin_holder_id, " +
-                "     RR.merchant_transaction_id, " +
-                "     CUR.name AS commission_currency " +
+                "     RR.merchant_transaction_id" +
                 "   FROM REFILL_REQUEST RR " +
                 "     JOIN CURRENCY CUR ON CUR.id=RR.currency_id " +
                 "     JOIN USER USER ON USER.id=RR.user_id " +
@@ -120,7 +118,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     NOT EXISTS(SELECT * FROM TRANSACTION TX WHERE TX.source_type='REFILL' AND TX.source_id=RR.id AND TX.operation_type_id=1) " +
                 "  )  " +
 
-                "  UNION ALL " +
+                "  UNION " +
                 "  (SELECT " +
                 "     WR.date_creation, " +
                 "     CUR.name, WR.amount, WR.commission + WR.merchant_commission, " +
@@ -136,14 +134,13 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     WR.user_full_name, " +
                 "     WR.remark, " +
                 "     WR.admin_holder_id, " +
-                "     WR.transaction_hash, " +
-                "     IFNULL(CUR_C.name, CUR.name) AS commission_currency " +
+                "     WR.transaction_hash" +
                 "   FROM WITHDRAW_REQUEST WR " +
                 "     JOIN CURRENCY CUR ON CUR.id=WR.currency_id " +
                 "     JOIN USER USER ON USER.id=WR.user_id " +
                 "     JOIN MERCHANT M ON M.id=WR.merchant_id " +
-                "     LEFT JOIN CURRENCY CUR_C ON CUR_C.id = WR.merchant_commission_currency " +
-                "   WHERE USER.email=:email " +
+                "   WHERE USER.email=:email AND " +
+                "     NOT EXISTS(SELECT * FROM TRANSACTION TX WHERE TX.source_type='WITHDRAW' AND TX.source_id=WR.id AND TX.operation_type_id=2) " +
                 "  )  " +
 
                 "  UNION ALL " +
@@ -162,8 +159,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     NULL, " +
                 "     NULL, " +
                 "     NULL, " +
-                "     NULL," +
-                "     CUR.name AS commission_currency " +
+                "     NULL" +
                 "   FROM TRANSFER_REQUEST TR " +
                 "     JOIN CURRENCY CUR ON CUR.id=TR.currency_id " +
                 "     JOIN USER USER ON USER.id=TR.user_id " +
@@ -186,8 +182,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     NULL, " +
                 "     NULL, " +
                 "     NULL, " +
-                "     NULL, " +
-                "     CUR.name AS commission_currency " +
+                "     NULL" +
                 "   FROM TRANSFER_REQUEST TR " +
                 "     JOIN CURRENCY CUR ON CUR.id=TR.currency_id " +
                 "     JOIN USER USER ON USER.id=TR.user_id " +
@@ -211,8 +206,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     NULL, " +
                 "     NULL, " +
                 "     NULL, " +
-                "     NULL, " +
-                "     CUR.name AS commission_currency  " +
+                "     NULL" +
                 "   FROM TRANSACTION TR " +
                 "     JOIN CURRENCY CUR ON CUR.id=TR.currency_id " +
                 "     JOIN WALLET W ON W.id = TR.user_wallet_id AND W.currency_id = CUR.id " +
@@ -478,8 +472,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "    IF (WITHDRAW_REQUEST.user_full_name IS NOT NULL, WITHDRAW_REQUEST.user_full_name, RRP.user_full_name) AS user_full_name, " +
                 "    IF (WITHDRAW_REQUEST.remark IS NOT NULL, WITHDRAW_REQUEST.remark, REFILL_REQUEST.remark) AS remark, " +
                 "    IF (WITHDRAW_REQUEST.admin_holder_id IS NOT NULL, WITHDRAW_REQUEST.admin_holder_id, REFILL_REQUEST.admin_holder_id) AS admin_holder_id, " +
-                "    IF (WITHDRAW_REQUEST.transaction_hash IS NOT NULL, WITHDRAW_REQUEST.transaction_hash, REFILL_REQUEST.merchant_transaction_id) AS transaction_hash, " +
-                "    CURRENCY.name AS commission_currency " +
+                "    IF (WITHDRAW_REQUEST.transaction_hash IS NOT NULL, WITHDRAW_REQUEST.transaction_hash, REFILL_REQUEST.merchant_transaction_id) AS transaction_hash " +
                 "  FROM TRANSACTION " +
                 "    left join CURRENCY on TRANSACTION.currency_id=CURRENCY.id " +
                 "    left join WITHDRAW_REQUEST on TRANSACTION.source_type = 'WITHDRAW' AND WITHDRAW_REQUEST.id = TRANSACTION.source_id " +
@@ -496,7 +489,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 currencyCondition +
                 dateClauseTransaction +
                 "    USER.email = :email " +
-                "    AND TRANSACTION.source_type IN ('REFILL', 'IEO', 'FREE_COINS_TRANSFER') " +
+                "    AND TRANSACTION.source_type IN ('REFILL', 'WITHDRAW', 'IEO', 'FREE_COINS_TRANSFER') " +
                 "    AND TRANSACTION.status_id IN (1, 2)" +
 
                 "  UNION " +
@@ -515,8 +508,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     RRP.user_full_name, " +
                 "     RR.remark, " +
                 "     RR.admin_holder_id, " +
-                "     RR.merchant_transaction_id," +
-                "     CUR.name AS commission_currency " +
+                "     RR.merchant_transaction_id " +
                 "   FROM REFILL_REQUEST RR " +
                 "     JOIN CURRENCY CUR ON CUR.id=RR.currency_id " +
                 "     JOIN USER USER ON USER.id=RR.user_id " +
@@ -531,7 +523,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 curId +
                 dateClauseRefillRequest +
                 "  )  " +
-                "  UNION ALL " +
+                "  UNION " +
                 "  (SELECT " +
                 "     WR.date_creation, " +
                 "     CUR.name, WR.amount, WR.commission + WR.merchant_commission, " +
@@ -547,15 +539,15 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     WR.user_full_name, " +
                 "     WR.remark, " +
                 "     WR.admin_holder_id, " +
-                "     WR.transaction_hash, " +
-                "     IFNULL(CUR_C.name, CUR.name) AS commission_currency " +
+                "     WR.transaction_hash " +
                 "   FROM WITHDRAW_REQUEST WR " +
-                "     LEFT JOIN CURRENCY CUR_C ON CUR_C.id = WR.merchant_commission_currency " +
                 "     JOIN CURRENCY CUR ON CUR.id=WR.currency_id " +
                 "     JOIN USER USER ON USER.id=WR.user_id " +
                 "     JOIN MERCHANT M ON M.id=WR.merchant_id " +
                 "   WHERE USER.email=:email " +
                 " AND WR.status_id IN (7, 8, 9, 10, 12) " +
+                " AND NOT EXISTS(SELECT * FROM TRANSACTION TX WHERE TX.source_type='WITHDRAW' " +
+                " AND TX.source_id = WR.id AND TX.operation_type_id = 2) " +
                 curId +
                 dateClauseWithdrawRequest +
                 "  )  " +
@@ -575,8 +567,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     NULL, " +
                 "     NULL, " +
                 "     NULL, " +
-                "     NULL," +
-                "     CUR.name AS commission_currency " +
+                "     NULL " +
                 "   FROM TRANSFER_REQUEST TR " +
                 "     JOIN CURRENCY CUR ON CUR.id=TR.currency_id " +
                 "     JOIN USER USER ON USER.id=TR.user_id " +
@@ -602,8 +593,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     NULL, " +
                 "     NULL, " +
                 "     NULL, " +
-                "     NULL, " +
-                "     CUR.name AS commission_currency " +
+                "     NULL " +
                 "   FROM TRANSFER_REQUEST TR " +
                 "     JOIN CURRENCY CUR ON CUR.id=TR.currency_id " +
                 "     JOIN USER USER ON USER.id=TR.user_id " +
@@ -630,8 +620,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     NULL, " +
                 "     NULL, " +
                 "     NULL, " +
-                "     NULL, " +
-                "     CUR.name AS commission_currency " +
+                "     NULL " +
                 "   FROM TRANSACTION TR " +
                 "     JOIN CURRENCY CUR ON CUR.id=TR.currency_id " +
                 "     JOIN WALLET W ON W.id = TR.user_wallet_id AND W.currency_id = CUR.id " +
@@ -695,7 +684,6 @@ public class InputOutputDaoImpl implements InputOutputDao {
             myInputOutputHistoryDto.setRemark(rs.getString("remark"));
             myInputOutputHistoryDto.setAdminHolderId(rs.getInt("admin_holder_id"));
             myInputOutputHistoryDto.setTransactionHash(rs.getString("transaction_hash"));
-            myInputOutputHistoryDto.setCommissionCurrencyName(rs.getString("commission_currency"));
             return myInputOutputHistoryDto;
         };
     }

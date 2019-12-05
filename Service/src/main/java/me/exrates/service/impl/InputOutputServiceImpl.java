@@ -13,7 +13,6 @@ import me.exrates.model.dto.CommissionDataDto;
 import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.InOutReportDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
-import me.exrates.model.enums.MerchantCommissonTypeEnum;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
@@ -52,7 +51,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -223,15 +221,12 @@ public class InputOutputServiceImpl implements InputOutputService {
         }
         User user = userService.findByEmail(userEmail);
         Wallet wallet = walletService.findByUserAndCurrency(user, currency);
-
         CommissionDataDto commissionData = commissionService.normalizeAmountAndCalculateCommission(
                 user.getId(),
                 amount,
                 operationType,
                 currency.getId(),
                 merchant.getId(), payment.getDestinationTag());
-        Wallet walletForMerchantCommission = getWalletforMerchantCommission(user.getId(), commissionData.getMerchantCommissionCurrencyId());
-
         TransactionSourceType transactionSourceType = operationType.getTransactionSourceType();
         User recipient = null;
         try {
@@ -253,10 +248,8 @@ public class InputOutputServiceImpl implements InputOutputService {
                 .user(user)
                 .currency(currency)
                 .wallet(wallet)
-                .walletForMerchantCommission(walletForMerchantCommission)
                 .merchant(merchant)
                 .merchantCommissionAmount(commissionData.getMerchantCommissionAmount())
-                .merchantCommissionCurrencyId(commissionData.getMerchantCommissionCurrencyId())
                 .destination(destination)
                 .destinationTag(destinationTag)
                 .transactionSourceType(transactionSourceType)
@@ -264,13 +257,6 @@ public class InputOutputServiceImpl implements InputOutputService {
                 .recipientWallet(recipientWallet)
                 .build();
         return Optional.of(creditsOperation);
-    }
-
-    private Wallet getWalletforMerchantCommission(Integer userId, Integer currencyId) {
-        if (Objects.isNull(currencyId)) {
-            return null;
-        }
-        return walletService.findByUserAndCurrency(userId, currencyId);
     }
 
     @Override

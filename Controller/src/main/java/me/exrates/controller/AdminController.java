@@ -69,8 +69,7 @@ import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.AlertType;
 import me.exrates.model.enums.BusinessUserRoleEnum;
-import me.exrates.model.enums.CommissionTypeParameterUpdateEnum;
-import me.exrates.model.enums.MerchantCommissonTypeEnum;
+import me.exrates.model.enums.RestrictedOperation;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.MerchantKycToggleField;
 import me.exrates.model.enums.MerchantProcessType;
@@ -125,6 +124,7 @@ import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.Subscribable;
 import me.exrates.service.omni.OmniService;
 import me.exrates.service.session.UserSessionService;
+import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.usdx.UsdxService;
 import me.exrates.service.usdx.model.UsdxTransaction;
@@ -147,6 +147,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindException;
@@ -293,6 +294,8 @@ public class AdminController {
     private SessionRegistry sessionRegistry;
     @Autowired
     private BigDecimalConverter converter;
+    @Autowired
+    private StompMessenger stompMessenger;
 
     @PostConstruct
     private void init() {
@@ -981,10 +984,6 @@ public class AdminController {
     public ModelAndView commissions() {
         ModelAndView modelAndView = new ModelAndView("admin/editCommissions");
         modelAndView.addObject("roleNames", BusinessUserRoleEnum.values());
-        modelAndView.addObject("withdraw_merchant_commission_type", Arrays.stream(MerchantCommissonTypeEnum.values())
-                .map(Enum::name)
-                .collect(Collectors.joining(",")));
-        modelAndView.addObject("currencies_for_commission", String.join(",", currencyService.findSuitableForCommission()));
         return modelAndView;
     }
 
@@ -1062,17 +1061,6 @@ public class AdminController {
     @ResponseBody
     public ResponseEntity editMerchantCommission(EditMerchantCommissionDto editMerchantCommissionDto) {
         commissionService.updateMerchantCommission(editMerchantCommissionDto);
-        return ResponseEntity.ok().build();
-    }
-
-    @AdminLoggable
-    @RequestMapping(value = "/2a8fy7b07dxe44/commissions/editMerchantCommissionType", method = RequestMethod.POST)
-    @ResponseBody
-    public ResponseEntity editMerchantCommissionType(@RequestParam String merchantName,
-                                                     @RequestParam String currencyName,
-                                                     @RequestParam String value,
-                                                     @RequestParam CommissionTypeParameterUpdateEnum parameterName) {
-        commissionService.updateMerchantCommissionType(merchantName, currencyName, parameterName, value);
         return ResponseEntity.ok().build();
     }
 
