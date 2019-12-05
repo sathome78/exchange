@@ -1488,8 +1488,9 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
 
     @Override
     public List<RefillRequestAddressDto> findAllAddressesByMerchantWithChilds(int merchantId) {
-        String sql = "SELECT RRA.* FROM MERCHANT M " +
-                "JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.merchant_id = M.id)" +
+        String sql = "SELECT DISTINCT RRA.* FROM MERCHANT M " +
+                "JOIN MERCHANT M2 ON M2.service_bean_name = M.service_bean_name " +
+                "JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.merchant_id = M2.id)" +
                 "where M.id = :merchant_id OR M.tokens_parrent_id = :merchant_id ";
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("merchant_id", merchantId);

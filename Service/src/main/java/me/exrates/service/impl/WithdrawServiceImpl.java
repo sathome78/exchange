@@ -468,7 +468,7 @@ public class WithdrawServiceImpl implements WithdrawService {
 
     private void returnMerchantCommissionOnRejectRequest(WithdrawRequestFlatDto withdrawRequest, String description, String descriptionForcommission) {
 
-        if (!Objects.isNull(withdrawRequest.getMerchantCommissionCurrencyId())) {
+        if (!Objects.isNull(withdrawRequest.getMerchantCommissionCurrencyId()) && !withdrawRequest.getMerchantCommissionCurrencyId().equals(0)) {
             int commissionWalletId = walletService.getWalletId(withdrawRequest.getUserId(), withdrawRequest.getMerchantCommissionCurrencyId());
 
             WalletTransferStatus result = walletService.walletInnerTransfer(
@@ -661,7 +661,8 @@ public class WithdrawServiceImpl implements WithdrawService {
                 throw new WithdrawRequestPostException(result.name());
             }
 
-            if (!Objects.isNull(withdrawRequest.getMerchantCommissionCurrencyId())) {
+            if (!Objects.isNull(withdrawRequest.getMerchantCommissionCurrencyId()) && !withdrawRequest.getMerchantCommissionCurrencyId().equals(0)) {
+
                 Integer commissionWalletId = walletService.getWalletId(withdrawRequest.getUserId(), withdrawRequest.getMerchantCommissionCurrencyId());
 
                 WalletOperationData walletOperationData = new WalletOperationData();
