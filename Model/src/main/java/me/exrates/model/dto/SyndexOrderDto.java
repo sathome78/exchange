@@ -21,7 +21,8 @@ public class SyndexOrderDto {
     private Long syndexId;
     @JsonIgnore
     private int userId;
-    private BigDecimal amount;
+    private BigDecimal amountToRefill;
+    private BigDecimal amountToPay;
     private SyndexOrderStatusEnum status;
     private BigDecimal commission;
     private String paymentSystemId;
@@ -40,7 +41,7 @@ public class SyndexOrderDto {
     public SyndexOrderDto(RefillRequestCreateDto dto) {
         this.id = dto.getId();
         this.userId = dto.getUserId();
-        this.amount = dto.getAmount();
+        this.amountToPay = dto.getSyndexOrderParams().getAmountToPay();
         this.commission = dto.getCommission();
         this.paymentSystemId = dto.getSyndexOrderParams().getPaymentSystem();
         this.currency = dto.getSyndexOrderParams().getCurrency();

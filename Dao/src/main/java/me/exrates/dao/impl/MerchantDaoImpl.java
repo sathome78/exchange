@@ -291,7 +291,7 @@ public class MerchantDaoImpl implements MerchantDao {
                 merchantCurrencyApiDto.setIsRefillBlocked(resultSet.getBoolean("refill_block"));
                 merchantCurrencyApiDto.setIsTransferBlocked(resultSet.getBoolean("transfer_block"));
                 merchantCurrencyApiDto.setMinFixedCommission(resultSet.getBigDecimal("merchant_fixed_commission"));
-                final String sqlInner = "SELECT id, image_path FROM birzha.MERCHANT_IMAGE where merchant_id = :merchant_id" +
+                final String sqlInner = "SELECT id, image_path FROM MERCHANT_IMAGE where merchant_id = :merchant_id" +
                         " AND currency_id = :currency_id;";
                 Map<String, Integer> params = new HashMap<String, Integer>();
                 params.put("merchant_id", resultSet.getInt("merchant_id"));

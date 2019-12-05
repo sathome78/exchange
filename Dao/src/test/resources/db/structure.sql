@@ -759,7 +759,7 @@ CREATE TABLE `EXORDERS` (
   KEY `exorders___fk_source_id` (`order_source_id`),
   KEY `exorders__status_date_accept` (`status_id`,`date_acception`),
   KEY `composite_index_exorder_1` (`status_id`,`operation_type_id`,`currency_pair_id`,`user_id`,`user_acceptor_id`),
-  CONSTRAINT `exorders___fk_source_id` FOREIGN KEY (`order_source_id`) REFERENCES `EXORDERS` (`id`),
+  CONSTRAINT `exorders___fk_source_id` FOREIGN KEY (`order_source_id`) REFERENCES `EXORDERS` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_COMMISSION` FOREIGN KEY (`commission_id`) REFERENCES `COMMISSION` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `fk_CURRENCY_PAIR` FOREIGN KEY (`currency_pair_id`) REFERENCES `CURRENCY_PAIR` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `fk_OPERATION_TYPE` FOREIGN KEY (`operation_type_id`) REFERENCES `OPERATION_TYPE` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
@@ -767,6 +767,26 @@ CREATE TABLE `EXORDERS` (
   CONSTRAINT `fk_USER_ACCEPTOR` FOREIGN KEY (`user_acceptor_id`) REFERENCES `USER` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `fk_USER_CREATOR` FOREIGN KEY (`user_id`) REFERENCES `USER` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB AUTO_INCREMENT=46692024 DEFAULT CHARSET=utf8;
+
+
+DROP TABLE IF EXISTS ORDERS;
+CREATE TABLE ORDERS LIKE EXORDERS;
+
+
+DROP TABLE IF EXISTS BOT_ORDERS;
+CREATE TABLE BOT_ORDERS LIKE EXORDERS;
+ALTER TABLE BOT_ORDERS AUTO_INCREMENT = 1500000000;
+
+create table RATES
+(
+    currency_pair_id int(5) not null primary key,
+    previous_rate double(18,9) null,
+    last_rate double(18,9) null,
+    modified timestamp default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP
+);
+
+
+
 
 --
 -- Table structure for table `GTAG_REFILL_REQUESTS`
@@ -2577,6 +2597,7 @@ CREATE TABLE `WALLET` (
   `user_id` int(40) NOT NULL,
   `active_balance` double(40,9) DEFAULT '0.000000000',
   `reserved_balance` double(40,9) DEFAULT '0.000000000',
+  referral_balance double(40, 9) default 0.000000000 null,
   `ieo_reserve` double(40,9) DEFAULT '0.000000000',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_purse_UNIQUE` (`id`),

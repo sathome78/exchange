@@ -37,7 +37,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/order/adminDeleteStopOrder.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/userCurrencyOperationPermissions.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/downloadTransactions.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/referrals.js'/>"></script>
+<%--    <script type="text/javascript" src="<c:url value='/client/js/referrals.js'/>"></script>--%>
     <script type="text/javascript" src="<c:url value='/client/js/jquery.tmpl.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/2faSettings.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/jquery.twbsPagination.min.js'/>"></script>
@@ -91,12 +91,12 @@
                             <loc:message code="admin.comments"/>
                         </button>
                     </sec:authorize>
-                    <%--Comments--%>
-                    <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
-                        <button class="adminForm-toggler blue-box">
-                            <loc:message code="admin.referral"/>
-                        </button>
-                    </sec:authorize>
+<%--                    &lt;%&ndash;Comments&ndash;%&gt;--%>
+<%--                    <sec:authorize access="<%=AdminController.adminAnyAuthority%>">--%>
+<%--                        <button class="adminForm-toggler blue-box">--%>
+<%--                            <loc:message code="admin.referral"/>--%>
+<%--                        </button>--%>
+<%--                    </sec:authorize>--%>
 
                     <%--Access for operation | START--%>
                     <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
@@ -253,11 +253,11 @@
                                                         code="register.sponsor"/></label>
                                             </div>
 
-                                            <div class="col-md-9 input-block-wrapper__input-wrapper">
-                                                <form:input path="parentEmail" readonly="true"
-                                                            class="input-block-wrapper__input admin-form-input"
-                                                            id="parentEmail"/>
-                                            </div>
+<%--                                            <div class="col-md-9 input-block-wrapper__input-wrapper">--%>
+<%--                                                <form:input path="parentEmail" readonly="true"--%>
+<%--                                                            class="input-block-wrapper__input admin-form-input"--%>
+<%--                                                            id="parentEmail"/>--%>
+<%--                                            </div>--%>
                                         </div>
 
                                         <div class="input-block-wrapper">
@@ -804,9 +804,9 @@
                     </div>
                 </div>
                 <%--User referrals--%>
-                <div id="panel7" class="tab-pane">
-                    <%@include file='../fragments/referralStructure.jsp' %>
-                </div>
+<%--                <div id="panel7" class="tab-pane">--%>
+<%--                    <%@include file='../fragments/referralStructure.jsp' %>--%>
+<%--                </div>--%>
                 <%--Access management--%>
 
                 <%--Access for operation | START--%>
@@ -1075,7 +1075,6 @@
 <%@include file='../fragments/modal/dialogRefill_info_modal.jsp' %>
 <%@include file='stop-order-modals.jsp' %>
 
-<%@include file='../fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>
 

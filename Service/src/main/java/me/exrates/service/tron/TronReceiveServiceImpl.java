@@ -160,13 +160,14 @@ public class TronReceiveServiceImpl {
     }
 
     private TronReceivedTransactionDto fromJson(JSONObject transaction) {
-        Preconditions.checkArgument(transaction.getJSONArray("ret").getJSONObject(0).getString("contractRet").equals("SUCCESS"), "contract result not success");
+
         JSONObject contractData = transaction.getJSONObject("raw_data").getJSONArray("contract").getJSONObject(0);
         String type = contractData.getString("type");
         TronTransactionTypeEnum txType = TronTransactionTypeEnum.valueOf(type);
         TronReceivedTransactionDto dto;
 
         if (txType == TronTransactionTypeEnum.TriggerSmartContract){
+            Preconditions.checkArgument(transaction.getJSONArray("ret").getJSONObject(0).getString("contractRet").equals("SUCCESS"), "contract result not success");
             JSONObject transactionSmartContract = nodeService.getTransaction(transaction.getString("txID"));
             JSONObject tokenTransferInfo = transactionSmartContract.getJSONObject("tokenTransferInfo");
             dto = new TronReceivedTransactionDto(tokenTransferInfo.getLong("amount_str"), transaction.getString("txID"), TronNodeServiceImpl.base58checkToHexString(tokenTransferInfo.getString("to_address")));

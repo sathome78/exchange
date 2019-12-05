@@ -635,6 +635,18 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     }
 
     @Override
+    public void setAmountById(Integer id, BigDecimal amount) {
+        final String sql = "UPDATE REFILL_REQUEST " +
+                "  SET amount = :amount, " +
+                "      status_modification_date = NOW() " +
+                "  WHERE id = :id";
+        Map<String, Object> params = new HashMap<>();
+        params.put("id", id);
+        params.put("amount", amount);
+        namedParameterJdbcTemplate.update(sql, params);
+    }
+
+    @Override
     public void setStatusAndConfirmationDataById(
             Integer id,
             InvoiceStatus newStatus,
@@ -1476,8 +1488,9 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
 
     @Override
     public List<RefillRequestAddressDto> findAllAddressesByMerchantWithChilds(int merchantId) {
-        String sql = "SELECT RRA.* FROM MERCHANT M " +
-                "JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.merchant_id = M.id)" +
+        String sql = "SELECT DISTINCT RRA.* FROM MERCHANT M " +
+                "JOIN MERCHANT M2 ON M2.service_bean_name = M.service_bean_name " +
+                "JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.merchant_id = M2.id)" +
                 "where M.id = :merchant_id OR M.tokens_parrent_id = :merchant_id ";
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("merchant_id", merchantId);

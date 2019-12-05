@@ -45,7 +45,6 @@ import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.ngExceptions.PincodeExpiredException;
 import me.exrates.ngService.GeoLocationService;
 import me.exrates.service.NotificationService;
-import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.UserSettingService;
@@ -137,8 +136,8 @@ public class UserServiceImpl implements UserService {
     private HttpServletRequest request;
     @Autowired
     private TokenScheduler tokenScheduler;
-    @Autowired
-    private ReferralService referralService;
+//    @Autowired
+//    private ReferralService referralService;
     @Autowired
     private NotificationsSettingsService settingsService;
     @Autowired
@@ -231,7 +230,7 @@ public class UserServiceImpl implements UserService {
             User user = userDao.getUserById(temporalToken.getUserId());
             if (user.getUserStatus() == UserStatus.REGISTERED) {
                 LOGGER.debug(String.format("DELETING USER %s", user.getEmail()));
-                referralService.updateReferralParentForChildren(user);
+//                referralService.updateReferralParentForChildren(user);
                 result = userDao.delete(user);
                 if (!result) {
                     throw new UnRegisteredUserDeleteException();
@@ -1006,5 +1005,15 @@ public class UserServiceImpl implements UserService {
         if (Objects.nonNull(user) && ! user.hasTradePrivileges()) {
             userDao.setUserVerificationRequired(user.getId(), isRequired);
         }
+    }
+
+    @Override
+    public List<User> findByInviteReferralLink(String link) {
+        return userDao.findByInviteReferralLink(link);
+    }
+
+    @Override
+    public List<User> findByInviteReferralLink(List<String> links) {
+        return userDao.findByInviteReferralLink(links);
     }
 }

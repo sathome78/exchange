@@ -823,7 +823,7 @@ public final class TransactionDaoImpl implements TransactionDao {
                 "w.reserved_balance AS reserved_balance, " +
                 "" +
                 "(SELECT o.date_acception" +
-                " FROM EXORDERS o" +
+                " FROM ORDERS o" +
                 " JOIN CURRENCY_PAIR cp ON cp.id = o.currency_pair_id" +
                 " WHERE o.user_id = u.id AND o.date_acception IS NOT NULL AND o.status_id = 3 AND (cp.currency1_id = cur.id OR cp.currency2_id = cur.id)" +
                 " ORDER BY o.date_acception DESC LIMIT 1) AS last_accepted_order_date, " +

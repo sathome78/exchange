@@ -1,5 +1,5 @@
 {
-  "sql" : "SELECT * FROM EXORDERS",
+  "sql" : "SELECT * FROM BOT_ORDERS",
   "content" : [ {
     "id" : "1",
     "user_id" : "1",

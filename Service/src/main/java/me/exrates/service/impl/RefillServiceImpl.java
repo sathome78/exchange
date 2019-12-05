@@ -178,12 +178,6 @@ public class RefillServiceImpl implements RefillService {
     private QuberaService quberaService;
 
     @Override
-    public Map<String, String> callRefillIRefillable(RefillRequestCreateDto request) {
-        IRefillable merchantService = (IRefillable) merchantServiceContext.getMerchantService(request.getServiceBeanName());
-        return merchantService.refill(request);
-    }
-
-    @Override
     @Transactional
     public Map<String, Object> createRefillRequest(RefillRequestCreateDto request) {
         ProfileData profileData = new ProfileData(1000);
@@ -208,6 +202,10 @@ public class RefillServiceImpl implements RefillService {
                 }
             });
             String merchantRequestSign = (String) result.get("sign");
+            if (result.containsKey("amount_to_refill")) {
+                BigDecimal amountToPay = new BigDecimal(result.get("amount_to_refill").toString());
+                refillRequestDao.setAmountById(request.getId(), amountToPay);
+            }
             request.setMerchantRequestSign(merchantRequestSign);
             if (merchantRequestSign != null) {
                 refillRequestDao.setMerchantRequestSignById(request.getId(), merchantRequestSign);
@@ -238,9 +236,11 @@ public class RefillServiceImpl implements RefillService {
                 request.setId(requestId);
             }
             profileData.setTime3();
-      /*if (merchantService.concatAdditionalToMainAddress()) {
-        ((Map<String, String>) result.get("params")).put("address", merchantService.getMainAddress().concat(request.getAddress()));
-      }*/
+
+            if (merchantService.concatAdditionalToMainAddress()) {
+                ((Map<String, String>) result.get("params")).put("address", merchantService.getMainAddress().concat(request.getAddress()));
+            }
+
         } finally {
             profileData.checkAndLog("slow create RefillRequest: " + request + " profile: " + profileData);
         }
@@ -658,6 +658,13 @@ public class RefillServiceImpl implements RefillService {
             notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
         }
         return requestId;
+    }
+
+    @Override
+    @Transactional
+    public void autoAcceptRefillRequestAndSetActualAmount(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {
+        refillRequestDao.setAmountById(requestAcceptDto.getRequestId(), requestAcceptDto.getAmount());
+        autoAcceptRefillRequest(requestAcceptDto);
     }
 
     @Override

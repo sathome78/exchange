@@ -43,7 +43,10 @@
     <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
     <%@include file="../tools/google_head.jsp"%>
+    <%--alexa закоментировано т.к. не используется в данный момент--%>
+<%--    <%@include file="../tools/alexa.jsp" %>--%>
     <%@include file="../tools/newCapchaScripts.jsp" %>
+    <%--<%@include file="../tools/yandex.jsp" %>--%>
 </head>
 <body>
 <%@include file="../fragments/header-simple.jsp" %>

@@ -18,7 +18,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <%----------------------------------------%>
-    <%@include file="tools/google_head.jsp"%>
 
     <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
 
@@ -57,7 +56,6 @@
 <body>
 
 <%@include file="fragments/header.jsp" %>
-<%@include file="../jsp/tools/google_body.jsp"%>
 
 <main class="container">
     <div class="row">
@@ -70,14 +68,6 @@
                     <hr>
                     <c:url value="/login" var="loginUrl"/>
                     <div class="clearfix">
-                        <p class="login__error">${error}
-                            <br/>
-                            <c:if test="${not empty contactsUrl}">
-                                <a href="<c:url value='/contacts'/>"><loc:message code="dashboard.contactsAndSupport" /> </a>
-                            </c:if>
-                        </p>
-
-
                         <form action="${loginUrl}" method="post" id="login_form" class="clearfix">
                             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                             <div class="input-block-wrapper clearfix">
@@ -156,12 +146,6 @@
                         <hr>
                         <c:url value="/login" var="loginUrl"/>
                         <div class="clearfix">
-                            <p class="login__error">${error}
-                                <br/>
-                                <c:if test="${not empty contactsUrl}">
-                                    <a href="<c:url value='/contacts'/>"><loc:message code="dashboard.contactsAndSupport" /> </a>
-                                </c:if>
-                            </p>
                             <form action="${loginUrl}" method="post" id="pin_code" >
                                 <div class="input-block-wrapper clearfix">
 
@@ -197,7 +181,6 @@
         </div>
     </div>
 </main>
-<%@include file='fragments/footer-fixed.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>
 

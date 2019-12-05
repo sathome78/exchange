@@ -11,6 +11,7 @@ public class Wallet {
     private User user;
     private BigDecimal activeBalance;
     private BigDecimal reservedBalance;
+    private BigDecimal referralBalance;
 
     public BigDecimal getIeoReserved() {
         return ieoReserved;
@@ -79,6 +80,14 @@ public class Wallet {
 
     public void setReservedBalance(BigDecimal reservedBalance) {
         this.reservedBalance = reservedBalance;
+    }
+
+    public BigDecimal getReferralBalance() {
+        return referralBalance;
+    }
+
+    public void setReferralBalance(BigDecimal referralBalance) {
+        this.referralBalance = referralBalance;
     }
 
     /**

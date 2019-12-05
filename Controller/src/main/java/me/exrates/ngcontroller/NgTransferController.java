@@ -15,7 +15,6 @@ import me.exrates.model.dto.TransferDto;
 import me.exrates.model.dto.TransferRequestCreateDto;
 import me.exrates.model.dto.TransferRequestFlatDto;
 import me.exrates.model.dto.TransferRequestParamsDto;
-import me.exrates.model.dto.UserMerchantCurrencyOperationDto;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.OperationType;
@@ -24,6 +23,7 @@ import me.exrates.model.enums.UserEventEnum;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
+import me.exrates.model.exceptions.OpenApiException;
 import me.exrates.model.exceptions.UnsupportedTransferProcessTypeException;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngExceptions.NgResponseException;
@@ -71,12 +71,14 @@ import org.springframework.web.servlet.LocaleResolver;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import static me.exrates.model.constants.ErrorApiTitles.USER_OPERATION_DENIED;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.PRESENT_VOUCHER;
 
 @RestController
@@ -130,12 +132,18 @@ public class NgTransferController {
     }
 
     @GetMapping("/merchants")
-    public UserMerchantCurrencyOperationDto getTransferMerchants(@RequestParam String currency) {
+    public List getTransferMerchants(@RequestParam(required = false) String currency) {
 
         boolean accessToOperationForUser = userOperationService
                 .getStatusAuthorityForUserByOperation(userService.getIdByEmail(getPrincipalEmail()), UserOperationAuthority.TRANSFER);
-        return new UserMerchantCurrencyOperationDto(accessToOperationForUser,
-                merchantService.findTransferMerchantCurrenciesByCurrency(currency));
+
+        if (!accessToOperationForUser) {
+            throw new OpenApiException(USER_OPERATION_DENIED, "Failed to process user's request as no sufficient authority for TRANSFER");
+        }
+
+        return Optional.ofNullable(currency)
+                .map(merchantService::findTransferMerchantCurrenciesByCurrency)
+                .orElse(Collections.EMPTY_LIST);
     }
 
     // /info/private/v2/balances/transfer/accept  PAYLOAD: {"CODE": "kdbfeyue743467"}

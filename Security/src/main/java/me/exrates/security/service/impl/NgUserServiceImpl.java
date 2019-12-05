@@ -18,14 +18,13 @@ import me.exrates.model.ngModel.PasswordCreateDto;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.security.service.NgUserService;
-import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.TemporalTokenService;
 import me.exrates.service.UserService;
 import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.util.IpUtils;
 import me.exrates.service.util.RestApiUtilComponent;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +58,6 @@ public class NgUserServiceImpl implements NgUserService {
     private final MessageSource messageSource;
     private final SendMailService sendMailService;
     private final AuthTokenService authTokenService;
-    private final ReferralService referralService;
     private final IpBlockingService ipBlockingService;
     private final TemporalTokenService temporalTokenService;
     private final HttpServletRequest request;
@@ -82,7 +80,6 @@ public class NgUserServiceImpl implements NgUserService {
                              MessageSource messageSource,
                              SendMailService sendMailService,
                              AuthTokenService authTokenService,
-                             ReferralService referralService,
                              IpBlockingService ipBlockingService,
                              TemporalTokenService temporalTokenService,
                              HttpServletRequest request,
@@ -92,7 +89,6 @@ public class NgUserServiceImpl implements NgUserService {
         this.messageSource = messageSource;
         this.sendMailService = sendMailService;
         this.authTokenService = authTokenService;
-        this.referralService = referralService;
         this.ipBlockingService = ipBlockingService;
         this.temporalTokenService = temporalTokenService;
         this.request = request;
@@ -109,9 +105,10 @@ public class NgUserServiceImpl implements NgUserService {
         }
         User user = new User();
         user.setEmail(userEmailDto.getEmail());
-        if (!StringUtils.isEmpty(userEmailDto.getParentEmail())) user.setParentEmail(userEmailDto.getParentEmail());
         user.setIp(IpUtils.getClientIpAddress(request));
         user.setVerificationRequired(userEmailDto.getIsUsa());
+        if (StringUtils.isNoneEmpty(userEmailDto.getInviteCode()))
+            user.setInviteReferralLink(userEmailDto.getInviteCode());
 
         if (!(userDao.create(user) && userDao.insertIp(user.getEmail(), user.getIp()))) {
             return false;
@@ -164,8 +161,8 @@ public class NgUserServiceImpl implements NgUserService {
             } catch (Exception e) {
                 logger.error("Error creating token with email {}", user.getEmail());
             }
-
-            authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
+//
+//            authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
 //            ipBlockingService.successfulProcessing(IpUtils.getClientIpAddress(request), IpTypesOfChecking.LOGIN);
             userService.deleteTempTokenByValue(tempToken);
 

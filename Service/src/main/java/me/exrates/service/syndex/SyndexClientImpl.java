@@ -82,8 +82,8 @@ public class SyndexClientImpl implements SyndexClient {
         objectMapper = new ObjectMapper();
 
         client = getUnsafeOkHttpClient()
-                .connectTimeout(20, TimeUnit.SECONDS)
-                .readTimeout(15, TimeUnit.SECONDS)
+                .connectTimeout(1, TimeUnit.MINUTES)
+                .readTimeout(1, TimeUnit.MINUTES)
                 .retryOnConnectionFailure(false)
                 .addInterceptor(chain -> {
                     Request original = chain.request();
@@ -301,7 +301,6 @@ public class SyndexClientImpl implements SyndexClient {
                         }
                     }
             };
-
             // Install the all-trusting trust manager
             final SSLContext sslContext = SSLContext.getInstance("SSL");
             sslContext.init(null, trustAllCerts, new java.security.SecureRandom());

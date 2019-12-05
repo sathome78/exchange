@@ -2,6 +2,7 @@ package me.exrates.dao.impl;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CurrencyDao;
+import me.exrates.dao.OrderDao;
 import me.exrates.dao.exception.notfound.CurrencyPairLimitNotFoundException;
 import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.Currency;
@@ -24,6 +25,7 @@ import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.Market;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderTableEnum;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
@@ -64,6 +66,17 @@ import java.util.stream.Collectors;
 @Log4j2
 @Repository
 public class CurrencyDaoImpl implements CurrencyDao {
+
+    @Autowired
+    @Qualifier(value = "masterTemplate")
+    private NamedParameterJdbcTemplate masterJdbcTemplate;
+    @Autowired
+    @Qualifier(value = "slaveTemplate")
+    private NamedParameterJdbcTemplate slaveJdbcTemplate;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+    @Autowired
+    private OrderDao orderDao;
 
     public static RowMapper<CurrencyPair> currencyPairRowMapper = (rs, row) -> {
         CurrencyPair currencyPair = new CurrencyPair();
@@ -120,14 +133,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         currencyPair.setMarket(rs.getString("market"));
         return currencyPair;
     };
-    @Autowired
-    @Qualifier(value = "masterTemplate")
-    private NamedParameterJdbcTemplate masterJdbcTemplate;
-    @Autowired
-    @Qualifier(value = "slaveTemplate")
-    private NamedParameterJdbcTemplate slaveJdbcTemplate;
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+
 
     public List<Currency> getAllActiveCurrencies() {
         String sql = "SELECT id, name FROM CURRENCY WHERE hidden IS NOT TRUE ";
@@ -205,6 +211,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 "CURRENCY_LIMIT.min_sum_usd, " +
                 "CURRENCY_LIMIT.usd_rate, " +
                 "CURRENCY_LIMIT.max_sum, " +
+                "CURRENCY_LIMIT.max_sum_usd, " +
                 "CURRENCY_LIMIT.max_daily_request, " +
                 "CURRENCY_LIMIT.recalculate_to_usd " +
                 "FROM CURRENCY_LIMIT " +
@@ -225,6 +232,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
                     .minSum(rs.getBigDecimal("min_sum"))
                     .minSumUsdRate(rs.getBigDecimal("min_sum_usd"))
                     .maxSum(rs.getBigDecimal("max_sum"))
+                    .maxSumUsd(rs.getBigDecimal("max_sum_usd"))
                     .currencyUsdRate(rs.getBigDecimal("usd_rate"))
                     .maxDailyRequest(rs.getInt("max_daily_request"))
                     .recalculateToUsd(rs.getBoolean("recalculate_to_usd"))
@@ -275,9 +283,10 @@ public class CurrencyDaoImpl implements CurrencyDao {
     }
 
     @Override
-    public void updateCurrencyLimit(int currencyId, OperationType operationType, List<Integer> roleIds, BigDecimal minAmount, BigDecimal minAmountUSD, BigDecimal maxAmount, Integer maxDailyRequest) {
+    public void updateCurrencyLimit(int currencyId, OperationType operationType, List<Integer> roleIds, BigDecimal minAmount, BigDecimal minAmountUSD,
+                                    BigDecimal maxAmount, BigDecimal maxAmountUSD, Integer maxDailyRequest) {
         String sql = "UPDATE CURRENCY_LIMIT " +
-                "SET min_sum = :min_sum, min_sum_usd = :min_sum_usd, max_sum = :max_sum, max_daily_request = :max_daily_request " +
+                "SET min_sum = :min_sum, min_sum_usd = :min_sum_usd, max_sum = :max_sum, max_daily_request = :max_daily_request, max_sum_usd = :max_sum_usd " +
                 "WHERE currency_id = :currency_id AND operation_type_id = :operation_type_id AND user_role_id IN (:role_ids)";
 
         final Map<String, Object> params = new HashMap<String, Object>() {
@@ -285,6 +294,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 put("min_sum", minAmount);
                 put("max_sum", maxAmount);
                 put("min_sum_usd", minAmountUSD);
+                put("max_sum_usd", maxAmountUSD);
                 put("currency_id", currencyId);
                 put("operation_type_id", operationType.getType());
                 put("role_ids", roleIds);
@@ -295,9 +305,10 @@ public class CurrencyDaoImpl implements CurrencyDao {
     }
 
     @Override
-    public void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, BigDecimal minAmountUSD, BigDecimal maxAmount, Integer maxDailyRequest) {
+    public void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, BigDecimal minAmountUSD,
+                                    BigDecimal maxAmount, BigDecimal maxAmountUSD, Integer maxDailyRequest) {
         String sql = "UPDATE CURRENCY_LIMIT " +
-                "SET min_sum = :min_sum, min_sum_usd = :min_sum_usd, max_sum = :max_sum, max_daily_request = :max_daily_request " +
+                "SET min_sum = :min_sum, min_sum_usd = :min_sum_usd, max_sum = :max_sum, max_daily_request = :max_daily_request, max_sum_usd = :max_sum_usd " +
                 "WHERE currency_id = :currency_id AND operation_type_id = :operation_type_id";
 
         final Map<String, Object> params = new HashMap<String, Object>() {
@@ -305,6 +316,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 put("min_sum", minAmount);
                 put("max_sum", maxAmount);
                 put("min_sum_usd", minAmountUSD);
+                put("max_sum_usd", maxAmountUSD);
                 put("currency_id", currencyId);
                 put("operation_type_id", operationType.getType());
                 put("max_daily_request", maxDailyRequest);
@@ -512,11 +524,16 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
     @Override
     public CurrencyPair findCurrencyPairByOrderId(int orderId) {
+       return findCurrencyPairByOrderId(orderId, orderDao.getOrderTable(orderId));
+    }
+
+    @Override
+    public CurrencyPair findCurrencyPairByOrderId(int orderId, OrderTableEnum orderTableName) {
         String sql = "SELECT CURRENCY_PAIR.id, CURRENCY_PAIR.currency1_id, CURRENCY_PAIR.currency2_id, name, type, top_market, top_market_volume, " +
                 "CURRENCY_PAIR.market, " +
                 "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
                 "(select name from CURRENCY where id = currency2_id) as currency2_name " +
-                " FROM EXORDERS " +
+                " FROM " + orderTableName.name() + " as EXORDERS " +
                 " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) " +
                 " WHERE EXORDERS.id = :order_id";
         Map<String, String> namedParameters = new HashMap<>();

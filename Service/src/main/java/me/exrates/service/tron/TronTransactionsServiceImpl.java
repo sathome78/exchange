@@ -198,6 +198,7 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
         String fee = "1000000";
         TronTransferDtoTRC20 tronTransferDto = new TronTransferDtoTRC20(CONTRACT_ADDRESS_HEX,FUNCTION_SELECTOR, fullParametr, fee,
                 amount, ownerAdress);
+        freezeBalanceForTransaction(ownerAdress);
         JSONObject object = tronNodeService.transferFundsTRC20(tronTransferDto);
         log.info("Send request for transaction for USDT()TRX");
         JSONObject transaction = object.getJSONObject("transaction").put("privateKey", privatKey);
@@ -208,6 +209,21 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
         boolean result = completedObject.getJSONObject("result").getBoolean("result");
         if (!result) {
             throw new RuntimeException("error transfer to main account");
+        }
+    }
+
+
+    private void freezeBalanceForTransaction(String ownerAccount){
+        log.debug("freeze TRX for smart contract for account ", ownerAccount);
+        Integer amount = 100000;
+        String resource = "ENERGY";
+        Integer freezeDuration = 3;
+        TronFreezeBalance tronFreezeBalance = new TronFreezeBalance(ownerAccount, amount, freezeDuration, resource, ownerAccount);
+        JSONObject freezeBalance = tronNodeService.freezeBalance(tronFreezeBalance);
+        log.info("Send request for freeze trx for trigerSmartContract");
+        boolean result = freezeBalance.getJSONObject("result").getBoolean("result");
+        if (!result) {
+            throw new RuntimeException("error freezing trx");
         }
     }
 }

@@ -22,7 +22,7 @@ public interface AdgroupService extends IRefillable, IWithdrawable {
 
     @Override
     default Boolean generatingAdditionalRefillAddressAvailable() {
-        return false;
+        return null;
     }
 
     @Override

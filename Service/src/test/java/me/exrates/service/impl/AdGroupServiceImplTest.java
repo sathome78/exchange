@@ -98,7 +98,7 @@ public class AdGroupServiceImplTest {
     private AdGroupResponseDto<ResponsePayOutDto> getWithdrawBad() {
 
         HeaderResponseDto header = new HeaderResponseDto();
-        ResultResponseDto result = new ResultResponseDto();
+        ResultResponseDto result = new ResultResponseDto(false, "insufficiently balance");
 
         ResponsePayOutDto responseData = ResponsePayOutDto.builder()
                 .originalAmount(new BigDecimal(100))
@@ -115,7 +115,8 @@ public class AdGroupServiceImplTest {
     private AdGroupResponseDto<ResponsePayOutDto> getWithdrawOk() {
 
         HeaderResponseDto header = new HeaderResponseDto();
-        ResultResponseDto result = new ResultResponseDto();
+        ResultResponseDto result = new ResultResponseDto(true, "All is ok");
+
 
         ResponsePayOutDto responseData = ResponsePayOutDto.builder()
                 .originalAmount(new BigDecimal(100))

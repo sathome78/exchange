@@ -29,6 +29,7 @@ import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -79,7 +80,9 @@ public class TronServiceImpl implements TronService {
     private void init() {
         merchantId = merchantService.findByName(MERCHANT_NAME).getId();
         currencyId = currencyService.findByName(CURRENCY_NAME).getId();
-        addressesHEX.addAll(refillService.findAddressDtosWithMerchantChild(merchantId).stream().map(RefillRequestAddressDto::getPubKey).collect(Collectors.toList()));
+
+        List<RefillRequestAddressDto> addressDtoList = refillService.findAddressDtosWithMerchantChild(merchantId);
+        addressesHEX.addAll(addressDtoList.stream().map(RefillRequestAddressDto::getPubKey).collect(Collectors.toList()));
     }
 
 

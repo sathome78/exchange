@@ -18,7 +18,6 @@ public class AuthTokenDto {
     @JsonProperty(value = "language")
     private Locale locale;
     private Boolean finPasswordSet;
-    private String referralReference;
 
     public AuthTokenDto() {
     }
@@ -75,14 +74,6 @@ public class AuthTokenDto {
         this.finPasswordSet = finPasswordSet;
     }
 
-    public String getReferralReference() {
-        return referralReference;
-    }
-
-    public void setReferralReference(String referralReference) {
-        this.referralReference = referralReference;
-    }
-
     @Override
     public String toString() {
         return "AuthTokenDto{" +
@@ -92,7 +83,6 @@ public class AuthTokenDto {
                 ", avatarPath='" + avatarPath + '\'' +
                 ", locale=" + locale +
                 ", finPasswordSet=" + finPasswordSet +
-                ", referralReference='" + referralReference + '\'' +
                 '}';
     }
 }
