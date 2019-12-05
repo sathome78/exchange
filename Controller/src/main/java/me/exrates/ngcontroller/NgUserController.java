@@ -89,10 +89,6 @@ public class NgUserController {
     @Value("${dev.mode}")
     private boolean DEV_MODE;
 
-    private static final Cache<String, Integer> PINCODE_CHECK_TRIES = CacheBuilder.newBuilder()
-            .expireAfterWrite(5, TimeUnit.MINUTES)
-            .build();
-
     @Autowired
     public NgUserController(IpBlockingService ipBlockingService,
                             AuthTokenService authTokenService,
