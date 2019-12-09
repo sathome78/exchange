@@ -688,11 +688,6 @@ public class CurrencyServiceImpl implements CurrencyService {
         currencyRestrictionsCache.invalidate(currencyPairId);
     }
 
-    @Override
-    public List<String> findSuitableForCommission() {
-        return currencyDao.findSuitableForCommission();
-    }
-
     private CacheLoader<Integer, CurrencyPairWithRestriction> createCacheLoader() {
         return new CacheLoader<Integer, CurrencyPairWithRestriction>() {
             @Override

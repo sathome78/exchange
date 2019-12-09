@@ -11,13 +11,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class TransactionDescription {
-
-  public String getForWithdrawCommission(InvoiceStatus currentStatus, InvoiceActionTypeEnum action) {
-    String currentStatusName = currentStatus == null ? "" : currentStatus.name();
-    String actionName = action == null ? "" : action.name();
-    return generate(currentStatusName, actionName.concat(" commission"));
-  }
-
   public String get(InvoiceStatus currentStatus, InvoiceActionTypeEnum action) {
     String currentStatusName = currentStatus == null ? "" : currentStatus.name();
     String actionName = action == null ? "" : action.name();

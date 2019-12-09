@@ -20,6 +20,7 @@ import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
+import me.exrates.model.enums.RestrictedOperation;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.Market;
 import me.exrates.model.enums.MerchantProcessType;
@@ -199,14 +200,6 @@ public class CurrencyDaoImpl implements CurrencyDao {
     public List<Currency> findAllCurrencies() {
         final String sql = "SELECT * FROM CURRENCY WHERE hidden IS NOT TRUE order by name";
         return masterJdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Currency.class));
-    }
-
-    @Override
-    public List<String> findSuitableForCommission() {
-        final String sql = "SELECT name FROM CURRENCY " +
-                "WHERE hidden IS NOT TRUE and use_for_commission IS TRUE " +
-                "order by id";
-        return masterJdbcTemplate.queryForList(sql, Collections.emptyMap(), String.class);
     }
 
     @Override

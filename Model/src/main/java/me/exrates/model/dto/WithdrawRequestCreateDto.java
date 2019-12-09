@@ -7,7 +7,6 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 
 import java.math.BigDecimal;
-import java.util.Objects;
 
 /**
  * @author ValkSam
@@ -37,8 +36,6 @@ public class WithdrawRequestCreateDto {
   private Boolean autoEnabled;
   private BigDecimal autoThresholdAmount;
   private BigDecimal merchantCommissionAmount;
-  private Integer merchantCommissionCurrencyId;
-  private Integer merchantCommissionWalletId;
 
   public WithdrawRequestCreateDto(WithdrawRequestParamsDto withdrawRequestParamsDto, CreditsOperation creditsOperation, WithdrawStatusEnum status) {
     this.userId = creditsOperation.getUser().getId();
@@ -62,9 +59,5 @@ public class WithdrawRequestCreateDto {
     this.autoEnabled = null;
     this.autoThresholdAmount = null;
     this.merchantCommissionAmount = creditsOperation.getMerchantCommissionAmount();
-    this.merchantCommissionCurrencyId = creditsOperation.getMerchantCommissionCurrencyId();
-    if (!Objects.isNull(creditsOperation.getWalletForMerchantCommission())) {
-      this.merchantCommissionWalletId = creditsOperation.getWalletForMerchantCommission().getId();
-    }
   }
 }

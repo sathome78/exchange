@@ -23,7 +23,7 @@
 <main class="container">
     <div class="row">
         <%@include file='left_side_menu.jsp' %>
-        <div class="col-md-6 col-md-offset-0 admin-container">
+        <div class="col-md-6 col-md-offset-2 admin-container">
             <div class="text-center"><h4><loc:message code="admin.commissions"/></h4></div>
 
             <div id="commissionsMenu" class="buttons">
@@ -70,9 +70,6 @@
                                 <th><loc:message code="withdrawal.currency"/> </th>
                                 <th><loc:message code="admin.merchantsCommissions.input"/></th>
                                 <th><loc:message code="admin.merchantsCommissions.output"/></th>
-                                <th><loc:message code="admin.merchantsCommissions.commissionType"/></th>
-                                <th><loc:message code="admin.merchantsCommissions.secondaryCurrency"/></th>
-                                <th><loc:message code="admin.merchantsCommissions.secondaryCurrencyAmount"/></th>
                                 <th><loc:message code="admin.merchantsCommissions.usdRate"/></th>
                                 <th><loc:message code="admin.merchantsCommissions.minFixed"/></th>
                                 <th><loc:message code="admin.merchantsCommissions.minFixedUSD"/></th>
@@ -104,8 +101,6 @@
 
 
         </div>
-            <div hidden id="com_types">${withdraw_merchant_commission_type}</div>
-            <div hidden id="com_cur">${currencies_for_commission}</div>
 </main>
 <div id="editCommissionModal" class="modal fade">
     <div class="modal-dialog modal-md">
@@ -188,14 +183,6 @@
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
                             <input  name="outputValue" class="input-block-wrapper__input" type="number">
-                        </div>
-                    </div>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-5 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label"><loc:message code="admin.merchantsCommissions.secondaryCurrencyAmount"/></label>
-                        </div>
-                        <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input  name="secondaryOutputCommission" class="input-block-wrapper__input" type="number">
                         </div>
                     </div>
                     <div class="input-block-wrapper">
