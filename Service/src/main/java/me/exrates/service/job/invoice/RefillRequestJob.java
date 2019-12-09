@@ -50,7 +50,7 @@ public class RefillRequestJob {
 
         log.info("Starting refillCheckPaymentsForCoins");
         String[] merchantNames = new String[]{"QRK", "LBTC", "LPC", "XFC", "DDX", "MBC", "BTCP", "CLX", "ABBC",
-                "CBC", "BTCZ", "KOD", "RIME", "DIVI", "OWC", "VOLLAR", "WOLF", "TSL", "DOGE", "EST", "FGC", "BUX"};
+                "CBC", "BTCZ", "KOD", "RIME", "DIVI", "OWC", "VOLLAR", "WOLF", "TSL", "DOGE", "EST", "FGC", "BUX", "ERK"};
         for (String coin : merchantNames) {
             try {
                 getBitcoinServiceByMerchantName(coin).scanForUnprocessedTransactions(null);
