@@ -85,10 +85,12 @@ ORDER BY cur.id, ur.id;
 INSERT IGNORE INTO COMPANY_EXTERNAL_WALLET_BALANCES (currency_id)
 SELECT cur.id
 FROM CURRENCY cur
-WHERE cur.name IN ('VCCO');INSERT IGNORE INTO CURRENT_CURRENCY_RATES (currency_id, currency_name)
+WHERE cur.name IN ('VCCO');
+INSERT IGNORE INTO CURRENT_CURRENCY_RATES (currency_id, currency_name)
 SELECT cur.id, cur.name
 FROM CURRENCY cur
-WHERE cur.name = 'VCCO';INSERT IGNORE INTO CURRENT_CURRENCY_BALANCES (currency_id, currency_name)
+WHERE cur.name = 'VCCO';
+INSERT IGNORE INTO CURRENT_CURRENCY_BALANCES (currency_id, currency_name)
 SELECT cur.id, cur.name
 FROM CURRENCY cur
 WHERE cur.name = 'VCCO';
