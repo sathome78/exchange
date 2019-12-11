@@ -382,6 +382,11 @@ public class CryptocurrencyConfig {
 		return new BitcoinServiceImpl("merchants/bux_wallet.properties","BUX","BUX", 20, 20, false, false);
 	}
 
+	@Bean(name = "vccoServiceImpl")
+	public BitcoinService vccoServiceImpl() {
+		return new BitcoinServiceImpl("merchants/vcco_wallet.properties","VCCO","VCCO", 20, 20, false, true);
+	}
+
 	// LISK-like cryptos
     @Bean(name = "liskServiceImpl")
     public LiskService liskService() {
