@@ -10,8 +10,8 @@ public class TokenWrappersGenerator {
     public static void main(String[] args) throws Exception {
         SolidityFunctionWrapperGenerator.run(new String[]{
                 "generate",
-                "/Users/vlad.dziubak/crypto/eth/BIRD.bin",
-                "/Users/vlad.dziubak/crypto/eth/BIRD.abi",
+                "/Users/vlad.dziubak/crypto/eth/USDA.bin",
+                "/Users/vlad.dziubak/crypto/eth/USDA.abi",
                 "-o",
                 "/Users/vlad.dziubak/workspace/exrates/Service/src/main/java",
                 "-p",
