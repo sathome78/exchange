@@ -256,6 +256,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         web3j.shutdown();
         web3j = Web3j.build(new HttpService(url));
         String lastBlock = loadLastBlock();
+
         if (currentBlockNumber.compareTo(new BigInteger(lastBlock)) > 0) {
             saveLastBlock(currentBlockNumber.toString());
             createSubscribe(currentBlockNumber.toString());
@@ -285,7 +286,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             currentHash[0] = "";
 
             observable = web3j.catchUpToLatestAndSubscribeToNewTransactionsObservable(new DefaultBlockParameterNumber(Long.parseLong(lastBlock)));
-            log.info("start subscribe method");
+            log.info("start subscribe method from block {}", Long.parseLong(lastBlock) );
             subscription = observable.subscribe(ethBlock -> {
                 log.info("new block {}", ethBlock.getBlockNumber());
                 if (merchantName.equals("Ethereum")) {
@@ -526,6 +527,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     public String loadLastBlock() {
         MerchantSpecParamDto specParamsDto = specParamsDao.getByMerchantNameAndParamName(merchantName, LAST_BLOCK_PARAM);
+        log.debug("loaded block for {} - {}", merchantName, Optional.ofNullable(specParamsDto).orElse(null));
         return specParamsDto == null ? null : specParamsDto.getParamValue();
     }
 
