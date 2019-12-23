@@ -3,7 +3,7 @@ package me.exrates.controller.openAPI;
 import me.exrates.controller.exception.InvalidNumberParamException;
 import me.exrates.controller.model.BaseResponse;
 import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
-import me.exrates.dao.exception.notfound.UserNotFoundException;
+import me.exrates.model.Transaction;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.openAPI.OpenApiCommissionDto;
 import me.exrates.model.dto.openAPI.TransactionDto;
@@ -11,8 +11,8 @@ import me.exrates.model.dto.openAPI.UserOrdersDto;
 import me.exrates.model.dto.openAPI.UserTradeHistoryDto;
 import me.exrates.model.dto.openAPI.WalletBalanceDto;
 import me.exrates.model.exceptions.OpenApiException;
-import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.service.OrderService;
+import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,9 +26,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static java.util.Objects.nonNull;
 import static me.exrates.service.util.OpenApiUtils.transformCurrencyPair;
@@ -42,14 +40,17 @@ public class OpenApiUserInfoController {
     private final WalletService walletService;
     private final OrderService orderService;
     private final UserService userService;
+    private final TransactionService transactionService;
 
     @Autowired
     public OpenApiUserInfoController(WalletService walletService,
                                      OrderService orderService,
-                                     UserService userService) {
+                                     UserService userService,
+                                     TransactionService transactionService) {
         this.walletService = walletService;
         this.orderService = orderService;
         this.userService = userService;
+        this.transactionService = transactionService;
     }
 
     @GetMapping(value = "/balances", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -131,5 +132,11 @@ public class OpenApiUserInfoController {
     @GetMapping(value = "/history/{order_id}/transactions", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseResponse<List<TransactionDto>>> getOrderTransactions(@PathVariable(value = "order_id") Integer orderId) {
         return ResponseEntity.ok(BaseResponse.success(orderService.getOrderTransactions(orderId)));
+    }
+
+    @GetMapping(value = "/transactions", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseResponse<List<Transaction>>> getTransactions(@RequestParam(value = "email") String email,
+                                                                           @RequestParam(value = "limit", defaultValue = "100") Integer limit) {
+        return ResponseEntity.ok(BaseResponse.success(transactionService.getTransactionsByUserEmail(email, limit)));
     }
 }

@@ -1,6 +1,5 @@
 package me.exrates.dao.impl;
 
-import com.beust.jcommander.internal.Sets;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.TransactionDao;
 import me.exrates.model.Commission;
@@ -18,7 +17,6 @@ import me.exrates.model.adapters.TransactionSqlAdapter;
 import me.exrates.model.dto.InOutReportDto;
 import me.exrates.model.dto.TransactionFlatForReportDto;
 import me.exrates.model.dto.UserSummaryDto;
-import me.exrates.model.dto.UserSummaryOrdersDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
@@ -289,16 +287,13 @@ public final class TransactionDaoImpl implements TransactionDao {
                     "               (REFILL_REQUEST.merchant_id IS NOT NULL AND MERCHANT.id = REFILL_REQUEST.merchant_id) OR " +
                     "               (WITHDRAW_REQUEST.merchant_id IS NOT NULL AND MERCHANT.id = WITHDRAW_REQUEST.merchant_id) " +
                     "             )";
-
+    @Autowired
+    MessageSource messageSource;
     private String PERMISSION_CLAUSE = " JOIN (SELECT DISTINCT IOP.currency_id AS permitted_currency, OTD.operation_type_id AS permitted_optype " +
             " from USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP " +
             "    JOIN OPERATION_TYPE_DIRECTION OTD ON IOP.operation_direction_id = OTD.operation_direction_id " +
             "  WHERE IOP.user_id = :requester_user_id) PERMS " +
             "    ON TRANSACTION.currency_id = PERMS.permitted_currency AND TRANSACTION.operation_type_id = PERMS.permitted_optype";
-
-
-    @Autowired
-    MessageSource messageSource;
     @Autowired
     @Qualifier(value = "masterTemplate")
     private NamedParameterJdbcTemplate jdbcTemplate;
@@ -723,6 +718,24 @@ public final class TransactionDaoImpl implements TransactionDao {
             put("orderId", orderId);
         }};
 
+        return jdbcTemplate.query(sql, namedParameters, transactionRowMapper);
+    }
+
+    @Override
+    public List<Transaction> getUserTransactionsByEmail(String email, Integer limit) {
+        String sql = "SELECT TRANSACTION.*, CURRENCY.*, COMMISSION.*, COMPANY_WALLET.*, WALLET.* " +
+                "FROM TRANSACTION " +
+                "         JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id " +
+                "         JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id " +
+                "         JOIN USER ON WALLET.user_id = USER.id" +
+                "         LEFT JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id " +
+                "         LEFT JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id " +
+                "WHERE USER.email = :email " +
+                "LIMIT :limit";
+        Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+            put("email", email);
+            put("limit", limit);
+        }};
         return jdbcTemplate.query(sql, namedParameters, transactionRowMapper);
     }
 

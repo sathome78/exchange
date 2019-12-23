@@ -260,6 +260,11 @@ public class TransactionServiceImpl implements TransactionService {
         return transactionDao.getPayedRefTransactionsByOrderId(orderId);
     }
 
+    @Override
+    public List<Transaction> getTransactionsByUserEmail(String email, Integer limit) {
+        return transactionDao.getUserTransactionsByEmail(email, limit);
+    }
+
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
     public List<InOutReportDto> getInOutSummaryByPeriodAndRoles(LocalDateTime startTime,

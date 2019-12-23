@@ -5,7 +5,6 @@ import me.exrates.model.Transaction;
 import me.exrates.model.dto.InOutReportDto;
 import me.exrates.model.dto.TransactionFlatForReportDto;
 import me.exrates.model.dto.UserSummaryDto;
-import me.exrates.model.dto.UserSummaryOrdersDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
@@ -60,6 +59,8 @@ public interface TransactionDao {
     boolean setStatusById(Integer trasactionId, Integer statusId);
 
     List<Transaction> getPayedRefTransactionsByOrderId(int orderId);
+
+    List<Transaction> getUserTransactionsByEmail(String email, Integer limit);
 
     List<InOutReportDto> getInOutSummaryByPeriodAndRoles(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles);
 
