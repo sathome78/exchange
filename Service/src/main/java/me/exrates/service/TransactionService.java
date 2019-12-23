@@ -4,7 +4,6 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.Transaction;
 import me.exrates.model.dto.InOutReportDto;
 import me.exrates.model.dto.OperationViewDto;
-import me.exrates.model.dto.TransactionFlatForReportDto;
 import me.exrates.model.dto.UserSummaryDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -45,6 +44,8 @@ public interface TransactionService {
     boolean setStatusById(Integer trasactionId, Integer statusId);
 
     List<Transaction> getPayedRefTransactionsByOrderId(int orderId);
+
+    List<Transaction> getTransactionsByUserEmail(String email, Integer limit);
 
     List<InOutReportDto> getInOutSummaryByPeriodAndRoles(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles);
 
