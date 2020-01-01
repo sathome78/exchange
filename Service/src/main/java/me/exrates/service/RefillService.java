@@ -117,6 +117,8 @@ public interface RefillService {
 
     RefillRequestFlatDto getFlatById(Integer id);
 
+    List<Integer> getRefillRequestIdsToRevoke(Integer userId);
+
     void revokeRefillRequest(int requestId);
 
     List<InvoiceBank> findBanksForCurrency(Integer currencyId);

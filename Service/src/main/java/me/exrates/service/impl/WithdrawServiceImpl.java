@@ -791,4 +791,9 @@ public class WithdrawServiceImpl implements WithdrawService {
     public BigDecimal getDailyWithdrawalSum(String email, int currencyId) {
         return withdrawRequestDao.getDailyWithdrawalSumByCurrency(email, currencyId);
     }
+
+    @Override
+    public List<Integer> getWithdrawRequestIdsToRevoke(Integer userId) {
+        return withdrawRequestDao.getWithdrawRequestIdsToRevoke(userId);
+    }
 }

@@ -86,6 +86,10 @@ public class OpenApiTokenServiceImpl implements OpenApiTokenService {
         openApiTokenDao.deactivateToken(tokenId);
     }
 
+    @Override
+    public void deleteAllTokensByUserId(Integer userId) {
+        openApiTokenDao.deleteAllTokensByUserId(userId);
+    }
 
     private String generateKey() {
         return RandomStringUtils.random(KEY_LENGTH, 0, 0, true, true, null, new SecureRandom());

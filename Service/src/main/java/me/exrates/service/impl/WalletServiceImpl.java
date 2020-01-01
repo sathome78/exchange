@@ -376,6 +376,12 @@ public class WalletServiceImpl implements WalletService {
         return walletDao.getBalancesForUser(userEmail);
     }
 
+    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+    @Override
+    public List<WalletBalanceDto> getBalancesForUser(String email) {
+        return walletDao.getBalancesForUser(email);
+    }
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void manualBalanceChange(Integer userId, Integer currencyId, BigDecimal amount, String adminEmail) {

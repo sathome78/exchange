@@ -409,4 +409,9 @@ public class TransferServiceImpl implements TransferService {
       throw new TransferRequestRevokeException(result.toString());
     }
   }
+
+  @Override
+  public List<Integer> getTransferRequestIdsToRevoke(Integer userId) {
+    return transferRequestDao.getTransferRequestIdsToRevoke(userId);
+  }
 }

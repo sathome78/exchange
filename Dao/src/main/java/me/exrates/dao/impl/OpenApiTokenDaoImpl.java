@@ -132,5 +132,10 @@ public class OpenApiTokenDaoImpl implements OpenApiTokenDao {
         jdbcTemplate.update(sql, Collections.singletonMap("token_id", tokenId));
     }
 
+    @Override
+    public void deleteAllTokensByUserId(Integer userId) {
+        final String sql = "DELETE FROM OPEN_API_USER_TOKEN WHERE user_id = :user_id";
 
+        jdbcTemplate.update(sql, Collections.singletonMap("user_id", userId));
+    }
 }

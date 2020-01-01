@@ -17,4 +17,6 @@ public interface OpenApiTokenService {
     void updateToken(Long tokenId, Boolean allowTrade, String currentUserEmail);
 
     void deleteToken(Long tokenId, String currentUserEmail);
+
+    void deleteAllTokensByUserId(Integer userId);
 }

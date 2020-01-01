@@ -12,12 +12,13 @@ import java.util.Locale;
  */
 public interface UserOperationService {
 
-  boolean getStatusAuthorityForUserByOperation(int userId, UserOperationAuthority userOperationAuthority);
+    boolean getStatusAuthorityForUserByOperation(int userId, UserOperationAuthority userOperationAuthority);
 
-  List<UserOperationAuthorityOption> getUserOperationAuthorityOptions(Integer userId, Locale locale);
+    List<UserOperationAuthorityOption> getUserOperationAuthorityOptions(Integer userId, Locale locale);
 
-  void updateUserOperationAuthority(List<UserOperationAuthorityOption> options, Integer userId, String currentUserEmail);
-
+    void updateUserOperationAuthority(List<UserOperationAuthorityOption> options, Integer userId, String currentUserEmail);
 
     void updateUserOperationAuthority(UserOperationAuthorityOption options, Integer userId);
+
+    void updateUserOperationAuthority(List<UserOperationAuthorityOption> options, Integer userId);
 }

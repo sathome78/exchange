@@ -222,6 +222,8 @@ public interface UserService {
 
     void blockUserByRequest(int userId);
 
+    void migrateUserByRequest(int userId);
+
     UsersInfoDto getUsersInfoFromCache(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles);
 
     UsersInfoDto getUsersInfoFromDatabase(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles);
@@ -263,4 +265,6 @@ public interface UserService {
     List<User> findByInviteReferralLink(String link);
 
     List<User> findByInviteReferralLink(List<String> link);
+
+    String getPassword(Integer userId);
 }

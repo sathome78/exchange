@@ -3,15 +3,15 @@ package me.exrates.controller.openAPI;
 import me.exrates.controller.exception.InvalidNumberParamException;
 import me.exrates.controller.model.BaseResponse;
 import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
-import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.constants.ErrorApiTitles;
+import me.exrates.model.dto.migrate.ExtendedUserDto;
 import me.exrates.model.dto.openAPI.OpenApiCommissionDto;
 import me.exrates.model.dto.openAPI.TransactionDto;
 import me.exrates.model.dto.openAPI.UserOrdersDto;
 import me.exrates.model.dto.openAPI.UserTradeHistoryDto;
 import me.exrates.model.dto.openAPI.WalletBalanceDto;
 import me.exrates.model.exceptions.OpenApiException;
-import me.exrates.model.ngExceptions.NgDashboardException;
+import me.exrates.service.MigrateService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
@@ -21,14 +21,13 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static java.util.Objects.nonNull;
 import static me.exrates.service.util.OpenApiUtils.transformCurrencyPair;
@@ -42,14 +41,17 @@ public class OpenApiUserInfoController {
     private final WalletService walletService;
     private final OrderService orderService;
     private final UserService userService;
+    private final MigrateService migrateService;
 
     @Autowired
     public OpenApiUserInfoController(WalletService walletService,
                                      OrderService orderService,
-                                     UserService userService) {
+                                     UserService userService,
+                                     MigrateService migrateService) {
         this.walletService = walletService;
         this.orderService = orderService;
         this.userService = userService;
+        this.migrateService = migrateService;
     }
 
     @GetMapping(value = "/balances", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -131,5 +133,10 @@ public class OpenApiUserInfoController {
     @GetMapping(value = "/history/{order_id}/transactions", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseResponse<List<TransactionDto>>> getOrderTransactions(@PathVariable(value = "order_id") Integer orderId) {
         return ResponseEntity.ok(BaseResponse.success(orderService.getOrderTransactions(orderId)));
+    }
+
+    @PostMapping("/migrate")
+    public ResponseEntity<ExtendedUserDto> migrateUser(@RequestParam("email") String email) {
+        return ResponseEntity.ok(migrateService.migrate(email));
     }
 }

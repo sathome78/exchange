@@ -633,6 +633,15 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         return jdbcTemplate.update(sql, params) > 0;
     }
 
+    @Override
+    public List<Integer> getWithdrawRequestIdsToRevoke(Integer userId) {
+        String sql = "SELECT wr.id" +
+                " FROM WITHDRAW_REQUEST wr " +
+                " WHERE wr.user_id = :user_id AND wr.status_id IN (1,2,3,4,5,6,9,10,11,13,14,15)";
+
+        return jdbcTemplate.queryForList(sql, singletonMap("user_id", userId), Integer.class);
+    }
+
     private String getPermissionClause(Integer requesterUserId) {
         if (requesterUserId == null) {
             return " LEFT JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON (IOP.user_id = -1) ";

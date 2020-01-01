@@ -266,5 +266,14 @@ public class TransferRequestDaoImpl implements TransferRequestDao {
             " WHERE TR.id = :id ";
     return jdbcTemplate.queryForObject(sql, Collections.singletonMap("id", id), String.class);
   }
+
+  @Override
+  public List<Integer> getTransferRequestIdsToRevoke(Integer userId) {
+    String sql = "SELECT tr.id" +
+            " FROM TRANSFER_REQUEST tr " +
+            " WHERE tr.user_id = :user_id AND tr.status_id IN (1,2,4,5)";
+
+    return jdbcTemplate.queryForList(sql, singletonMap("user_id", userId), Integer.class);
+  }
 }
 

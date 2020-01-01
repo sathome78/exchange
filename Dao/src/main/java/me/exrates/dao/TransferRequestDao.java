@@ -15,23 +15,23 @@ import java.util.Optional;
  * Created by ValkSam on 02.06.2017.
  */
 public interface TransferRequestDao {
-  int create(TransferRequestCreateDto transferRequest);
+    int create(TransferRequestCreateDto transferRequest);
 
-  Optional<TransferRequestFlatDto> getFlatByIdAndBlock(int id);
+    Optional<TransferRequestFlatDto> getFlatByIdAndBlock(int id);
 
-  Optional<TransferRequestFlatDto> getFlatById(int id);
+    Optional<TransferRequestFlatDto> getFlatById(int id);
 
-  Optional<TransferRequestFlatDto> getFlatByHashAndStatus(String hash, Integer requiredStatus, boolean block);
+    Optional<TransferRequestFlatDto> getFlatByHashAndStatus(String hash, Integer requiredStatus, boolean block);
 
-  void setStatusById(Integer id, InvoiceStatus newStatus);
+    void setStatusById(Integer id, InvoiceStatus newStatus);
 
-  void setRecipientById(Integer id, Integer recipientId);
+    void setRecipientById(Integer id, Integer recipientId);
 
-  List<TransferRequestFlatDto> findRequestsByStatusAndMerchant(Integer merchantId, List<Integer> statusId);
+    List<TransferRequestFlatDto> findRequestsByStatusAndMerchant(Integer merchantId, List<Integer> statusId);
 
-  void setHashById(Integer id, Map<String, String> params);
+    void setHashById(Integer id, Map<String, String> params);
 
-  String getCreatorEmailById(int id);
+    String getCreatorEmailById(int id);
 
     PagingData<List<TransferRequestFlatDto>> getPermittedFlat(
             Integer requesterUserId,
@@ -40,4 +40,5 @@ public interface TransferRequestDao {
 
     String getHashById(Integer id);
 
+    List<Integer> getTransferRequestIdsToRevoke(Integer userId);
 }

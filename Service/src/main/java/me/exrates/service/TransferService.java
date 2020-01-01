@@ -22,36 +22,38 @@ import java.util.Optional;
  * Created by ValkSam on 02.06.2017.
  */
 public interface TransferService {
-  Map<String, Object> createTransferRequest(TransferRequestCreateDto request);
+    Map<String, Object> createTransferRequest(TransferRequestCreateDto request);
 
-  List<MerchantCurrency> retrieveAdditionalParamsForWithdrawForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies);
+    List<MerchantCurrency> retrieveAdditionalParamsForWithdrawForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies);
 
-  void revokeByUser(int requestId, Principal principal);
+    void revokeByUser(int requestId, Principal principal);
 
-  void revokeByAdmin(int requestId, Principal principal);
+    void revokeByAdmin(int requestId, Principal principal);
 
-  List<TransferRequestFlatDto> getRequestsByMerchantIdAndStatus(int merchantId, List<Integer> statuses);
+    List<TransferRequestFlatDto> getRequestsByMerchantIdAndStatus(int merchantId, List<Integer> statuses);
 
-  TransferRequestFlatDto getFlatById(Integer id);
+    TransferRequestFlatDto getFlatById(Integer id);
 
-  Map<String, String> correctAmountAndCalculateCommissionPreliminarily(Integer userId, BigDecimal amount, Integer currencyId, Integer merchantId, Locale locale);
+    Map<String, String> correctAmountAndCalculateCommissionPreliminarily(Integer userId, BigDecimal amount, Integer currencyId, Integer merchantId, Locale locale);
 
-  Optional<TransferRequestFlatDto> getByHashAndStatus(String code, Integer requiredStatus, boolean block);
+    Optional<TransferRequestFlatDto> getByHashAndStatus(String code, Integer requiredStatus, boolean block);
 
-  boolean checkRequest(TransferRequestFlatDto transferRequestFlatDto, String userEmail);
+    boolean checkRequest(TransferRequestFlatDto transferRequestFlatDto, String userEmail);
 
-  TransferDto performTransfer(TransferRequestFlatDto transferRequestFlatDto, Locale locale, InvoiceActionTypeEnum action);
+    TransferDto performTransfer(TransferRequestFlatDto transferRequestFlatDto, Locale locale, InvoiceActionTypeEnum action);
 
-  String getUserEmailByTrnasferId(int id);
+    String getUserEmailByTrnasferId(int id);
 
-  @Transactional
-  DataTable<List<VoucherAdminTableDto>> getAdminVouchersList(
-          DataTableParams dataTableParams,
-          VoucherFilterData withdrawFilterData,
-          String authorizedUserEmail,
-          Locale locale);
+    @Transactional
+    DataTable<List<VoucherAdminTableDto>> getAdminVouchersList(
+            DataTableParams dataTableParams,
+            VoucherFilterData withdrawFilterData,
+            String authorizedUserEmail,
+            Locale locale);
 
     String getHash(Integer id, Principal principal);
 
     void revokeTransferRequest(Integer requestId);
+
+    List<Integer> getTransferRequestIdsToRevoke(Integer userId);
 }

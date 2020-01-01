@@ -78,4 +78,6 @@ public interface WithdrawRequestDao {
     WithdrawRequestFlatDto findByMerchantIdAndAdditionParam(int merchantId, String additionalParam);
 
     boolean updateAdditionalParamById(int requestId, String additionalParam);
+
+    List<Integer> getWithdrawRequestIdsToRevoke(Integer userId);
 }

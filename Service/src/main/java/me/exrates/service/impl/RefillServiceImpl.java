@@ -82,7 +82,6 @@ import me.exrates.service.exception.WithdrawRequestPostException;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
-import me.exrates.service.syndex.SyndexService;
 import me.exrates.service.vo.ProfileData;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -93,7 +92,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.mail.MailException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -916,6 +914,11 @@ public class RefillServiceImpl implements RefillService {
     public RefillRequestFlatDto getFlatById(Integer id) {
         return refillRequestDao.getFlatById(id)
                 .orElseThrow(() -> new RefillRequestNotFoundException(id.toString()));
+    }
+
+    @Override
+    public List<Integer> getRefillRequestIdsToRevoke(Integer userId) {
+        return refillRequestDao.getRefillRequestIdsToRevoke(userId);
     }
 
     @Override

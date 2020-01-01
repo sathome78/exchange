@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface OpenApiTokenDao {
+
     Long saveToken(OpenApiToken token);
 
     Optional<OpenApiToken> getByPublicKey(String publicKey);
@@ -18,4 +19,6 @@ public interface OpenApiTokenDao {
     void updateToken(Long tokenId, String alias, Boolean allowTrade, Boolean allowWithdraw, Boolean allowAcceptById);
 
     void deactivateToken(Long tokenId);
+
+    void deleteAllTokensByUserId(Integer userId);
 }

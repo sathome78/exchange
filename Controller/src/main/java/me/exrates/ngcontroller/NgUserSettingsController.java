@@ -7,17 +7,15 @@ import me.exrates.model.SessionParams;
 import me.exrates.model.User;
 import me.exrates.model.constants.Constants;
 import me.exrates.model.constants.ErrorApiTitles;
-import me.exrates.model.dto.BalanceFilterDataDto;
 import me.exrates.model.dto.PageLayoutSettingsDto;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserLoginSessionShortDto;
 import me.exrates.model.dto.UserNotificationMessage;
-import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.enums.ColorScheme;
-import me.exrates.model.enums.CurrencyType;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.SessionLifeTypeEnum;
 import me.exrates.model.enums.UserNotificationType;
+import me.exrates.model.enums.UserStatus;
 import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngExceptions.NgResponseException;
@@ -146,6 +144,11 @@ public class NgUserSettingsController {
                                              HttpServletRequest request) {
         String email = getPrincipalEmail();
         User user = userService.findByEmail(email);
+        if (user.getUserStatus() == UserStatus.MIGRATED) {
+            String message = String.format("User with email %s is migrated", user.getEmail());
+            logger.warn(message);
+            throw new NgDashboardException(message, Constants.ErrorApi.USER_MIGRATED);
+        }
         Locale locale = userService.getUserLocaleForMobile(email);
         String currentPassword = body.getOrDefault("currentPassword", "");
         String newPassword = body.getOrDefault("newPassword", "");

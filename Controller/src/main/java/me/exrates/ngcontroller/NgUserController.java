@@ -284,6 +284,11 @@ public class NgUserController {
             logger.debug(message);
             throw new NgResponseException(ErrorApiTitles.USER_NOT_ACTIVE, message);
         }
+        if (user.getUserStatus() == UserStatus.MIGRATED) {
+            String message = String.format("User with email %s is migrated", authenticationDto.getEmail());
+            logger.warn(message);
+            throw new NgResponseException(ErrorApiTitles.USER_MIGRATED, message);
+        }
         String password = restApiUtilComponent.decodePassword(authenticationDto.getPassword());
         UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationDto.getEmail());
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {

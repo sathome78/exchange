@@ -29,4 +29,6 @@ public interface G2faService {
     boolean submitGoogleSecret(User user, Map<String, String> body);
 
     boolean disableGoogleAuth(User user, Map<String, String> body);
+
+    String getSecretCode(Integer userId);
 }

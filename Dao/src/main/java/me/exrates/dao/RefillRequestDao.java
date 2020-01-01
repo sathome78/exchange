@@ -86,6 +86,8 @@ public interface RefillRequestDao {
 
     Optional<RefillRequestFlatDto> getFlatById(Integer id);
 
+    List<Integer> getRefillRequestIdsToRevoke(Integer userId);
+
     void setNewStatusByDateIntervalAndStatus(Integer merchantId, Integer currencyId, LocalDateTime boundDate, Integer intervalHours, Integer newStatusId, List<Integer> statusIdList);
 
     List<OperationUserDto> findListByMerchantIdAndCurrencyIdStatusChangedAtDate(Integer merchantId, Integer currencyId, Integer statusId, LocalDateTime dateWhenChanged);

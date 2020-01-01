@@ -2,6 +2,7 @@ package me.exrates.model.constants;
 
 public interface ErrorApiTitles {
 
+    String USER_MIGRATED = "USER_MIGRATED";
     String USER_WRONG_CURRENT_PASSWORD = "USER_WRONG_CURRENT_PASSWORD";
     String USER_INCORRECT_PASSWORDS = "USER_INCORRECT_PASSWORDS";
     String USER_EMAIL_NOT_FOUND = "USER_EMAIL_NOT_FOUND";

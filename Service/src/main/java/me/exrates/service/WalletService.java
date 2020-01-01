@@ -109,6 +109,8 @@ public interface WalletService {
 
     List<WalletBalanceDto> getBalancesForUser();
 
+    List<WalletBalanceDto> getBalancesForUser(String email);
+
     @Transactional(rollbackFor = Exception.class)
     void manualBalanceChange(Integer userId, Integer currencyId, BigDecimal amount, String adminEmail);
 

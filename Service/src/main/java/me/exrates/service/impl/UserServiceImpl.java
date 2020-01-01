@@ -136,7 +136,7 @@ public class UserServiceImpl implements UserService {
     private HttpServletRequest request;
     @Autowired
     private TokenScheduler tokenScheduler;
-//    @Autowired
+    //    @Autowired
 //    private ReferralService referralService;
     @Autowired
     private NotificationsSettingsService settingsService;
@@ -890,6 +890,13 @@ public class UserServiceImpl implements UserService {
         userSessionService.invalidateUserSessionExceptSpecific(getEmailById(userId), null);
     }
 
+    @Override
+    public void migrateUserByRequest(int userId) {
+        User user = new User();
+        user.setId(userId);
+        user.setUserStatus(UserStatus.MIGRATED);
+        userDao.updateUserStatus(user);
+    }
 
     @Override
     public int updateCallbackURL(int userId, CallbackURL callbackUrl) {
@@ -998,11 +1005,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public void updateUserTradeRestrictions(HttpServletRequest request, UserDetails userDetails) {
         boolean isRequired = geoLocationService.isCountryRestrictedByIp(request, RestrictedOperation.TRADE);
-        if (! isRequired) {
+        if (!isRequired) {
             return;
         }
         final User user = userDao.findByEmail(userDetails.getUsername());
-        if (Objects.nonNull(user) && ! user.hasTradePrivileges()) {
+        if (Objects.nonNull(user) && !user.hasTradePrivileges()) {
             userDao.setUserVerificationRequired(user.getId(), isRequired);
         }
     }
@@ -1015,5 +1022,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> findByInviteReferralLink(List<String> links) {
         return userDao.findByInviteReferralLink(links);
+    }
+
+    @Override
+    public String getPassword(Integer userId) {
+        return userDao.getPassword(userId);
     }
 }

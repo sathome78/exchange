@@ -24,6 +24,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
@@ -224,5 +225,11 @@ public class Google2faNotificatorServiceImpl implements NotificatorService, G2fa
         }
         g2faDao.updateGoogleAuthSecretCode(user.getId(), "", false);
         return true;
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public String getSecretCode(Integer userId) {
+        return g2faDao.getGoogleAuthSecretCodeByUser(userId);
     }
 }

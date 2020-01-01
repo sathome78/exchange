@@ -797,6 +797,15 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     }
 
     @Override
+    public List<Integer> getRefillRequestIdsToRevoke(Integer userId) {
+        String sql = "SELECT rr.id" +
+                " FROM REFILL_REQUEST rr " +
+                " WHERE rr.user_id = :user_id AND rr.status_id IN (1,2,3,4,5,6,7,9,10,13,14,15,16,17)";
+
+        return namedParameterJdbcTemplate.queryForList(sql, singletonMap("user_id", userId), Integer.class);
+    }
+
+    @Override
     public void setNewStatusByDateIntervalAndStatus(
             Integer merchantId,
             Integer currencyId,

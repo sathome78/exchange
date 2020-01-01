@@ -5,6 +5,7 @@ public interface Constants {
 
         int USER_WRONG_CURRENT_PASSWORD = 1010;
         int USER_INCORRECT_PASSWORDS = 1011;
+        int USER_MIGRATED = 1012;
 
         int QUBERA_PARAMS_OVER_LIMIT = 1200;
         int QUBERA_CREATE_ACCOUNT_RESPONSE_ERROR = 1201;
