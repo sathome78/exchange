@@ -2281,9 +2281,9 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new XemMosaicServiceImpl(
                 "RWDS",
                 "RWDS",
-                new MosaicIdDto("rewards4u", "rwds"),
-                100,
-                2,
+                new MosaicIdDto("rewards4earth", "erth"),
+                1000000,
+                6,
                 new Supply(100000000L),
                 0);
     }
